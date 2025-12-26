@@ -9,11 +9,6 @@ import '../models/recette.dart';
 import '../models/depense.dart';
 import '../models/deces.dart';
 import '../models/aliment.dart';
-import '../models/collecte_fumier.dart';
-import '../models/medicament.dart';
-import '../models/utilisation_medicament.dart';
-import '../models/quarantaine.dart';
-import '../models/reforme.dart';
 import '../utils/logger.dart';
 
 /// Service de gestion de la base de données SQLite

@@ -1,0 +1,129 @@
+# ========================================
+# BunnyManager - Flutter Project
+# ========================================
+
+# ========== Miscellaneous ==========
+*.class
+*.log
+*.pyc
+*.swp
+.DS_Store
+.atom/
+.buildlog/
+.history
+.svn/
+.swiftpm/
+migrate_working_dir/
+.fvm/
+
+# ========== IntelliJ / Android Studio ==========
+*.iml
+**/*.iml
+*.ipr
+*.iws
+.idea/
+
+# ========== VS Code ==========
+# Décommentez si vous ne voulez PAS versionner votre config VS Code
+# .vscode/
+
+# ========== Flutter / Dart / Pub ==========
+**/doc/api/
+**/ios/Flutter/.last_build_id
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.pub-cache/
+.pub/
+/build/
+/coverage/
+
+# Fichiers générés Flutter
+.metadata
+.packages
+generated_plugin_registrant.dart
+flutter_export_environment.sh
+
+# ========== Symbolication ==========
+app.*.symbols
+
+# ========== Obfuscation ==========
+app.*.map.json
+
+# ========== Android ==========
+/android/app/debug
+/android/app/profile
+/android/app/release
+/android/build/
+android/local.properties
+android/key.properties
+android/*.jks
+android/*.keystore
+android/gradlew
+android/gradlew.bat
+android/.gradle/
+
+# ========== iOS / macOS ==========
+ios/Pods/
+ios/Podfile.lock
+ios/.symlinks/
+ios/Flutter/Flutter.framework
+ios/Flutter/Flutter.podspec
+ios/Runner.xcworkspace/xcshareddata/
+macos/Pods/
+macos/Podfile.lock
+
+# ========== Web ==========
+web/flutter_service_worker.js
+
+# ========== Linux ==========
+linux/flutter/ephemeral/
+
+# ========== Windows ==========
+windows/flutter/ephemeral/
+
+# ========== Base de données locale ==========
+*.db
+*.sqlite
+*.sqlite3
+
+# ========== Photos utilisateurs ==========
+# NE PAS ignorer si vous voulez versionner des images de démo
+# assets/photos/
+
+# ========== Fichiers de backup ==========
+*.backup
+*.bak
+*~
+
+# ========== Documentation temporaire ==========
+docs/historique/
+REFONTE_*.md
+HARMONISATION_*.md
+PHASE_*.md
+IMPLEMENTATION_*.md
+EXECUTION_*.md
+GUIDE_TESTS_*.md
+VALIDATION_*.md
+SECTION_*.txt
+TODO_ETAPES_*.md
+
+# ========== Secrets (si jamais vous en ajoutez) ==========
+.env
+.env.local
+.env.production
+*.key
+*.pem
+secrets.json
+
+# ========== Logs ==========
+*.log
+logs/
+
+# ========== Sauvegardes export ==========
+# Garde les exports utilisateurs hors du Git
+exports/
+backups/
+
+# ========== Fichiers de configuration locaux ==========
+.vscode/settings.json

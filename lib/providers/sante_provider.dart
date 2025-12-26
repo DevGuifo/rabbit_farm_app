@@ -14,6 +14,10 @@ class SanteProvider with ChangeNotifier {
   List<Soin> _soins = [];
   bool _isLoading = false;
 
+  // Cache du score de santé avec timestamp
+  int? _scoreSanteCache;
+  DateTime? _scoreSanteCacheTimestamp;
+
   List<Pesee> get pesees => _pesees;
   List<Soin> get soins => _soins;
   bool get isLoading => _isLoading;
@@ -118,6 +122,7 @@ class SanteProvider with ChangeNotifier {
         }
       }
 
+      invaliderCacheScore();
       notifyListeners();
       return nouveauSoin;
     } catch (e) {
@@ -153,6 +158,7 @@ class SanteProvider with ChangeNotifier {
           }
         }
 
+        invaliderCacheScore();
         notifyListeners();
       }
     } catch (e) {
@@ -231,7 +237,20 @@ class SanteProvider with ChangeNotifier {
 
   /// Calculer le score de santé du cheptel (0-100)
   /// Basé sur: vaccination à jour, absence de soins en retard, pesées régulières
+  /// Utilise un cache de 1h pour optimiser les performances
   Future<int> calculerScoreSante() async {
+    // Vérifier si le cache est valide (moins de 1h)
+    final maintenant = DateTime.now();
+    if (_scoreSanteCache != null && _scoreSanteCacheTimestamp != null) {
+      final diffMinutes = maintenant
+          .difference(_scoreSanteCacheTimestamp!)
+          .inMinutes;
+      if (diffMinutes < 60) {
+        return _scoreSanteCache!;
+      }
+    }
+
+    // Recalculer le score
     int score = 100;
 
     // Pénalité pour vaccinations en retard (-10 points par vaccination)
@@ -250,6 +269,18 @@ class SanteProvider with ChangeNotifier {
       score += 5;
     }
 
-    return score.clamp(0, 100);
+    final scoreFinal = score.clamp(0, 100);
+
+    // Mettre à jour le cache
+    _scoreSanteCache = scoreFinal;
+    _scoreSanteCacheTimestamp = maintenant;
+
+    return scoreFinal;
+  }
+
+  /// Invalider le cache du score de santé (appeler après ajout/modification de soins)
+  void invaliderCacheScore() {
+    _scoreSanteCache = null;
+    _scoreSanteCacheTimestamp = null;
   }
 }

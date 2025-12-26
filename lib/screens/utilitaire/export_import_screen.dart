@@ -5,7 +5,7 @@ import 'dart:convert';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:path/path.dart' as p;
-import 'package:excel/excel.dart';
+import 'package:excel/excel.dart' hide Border;
 import 'package:file_picker/file_picker.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -13,8 +13,8 @@ import 'package:archive/archive_io.dart';
 import '../../services/database_helper.dart';
 import '../../utils/dialog_helper.dart';
 import '../../utils/snackbar_helper.dart';
-import '../../utils/date_formatter.dart';
 import '../../utils/logger.dart';
+import '../../models/lapin.dart';
 
 class ExportImportScreen extends StatefulWidget {
   const ExportImportScreen({super.key});
@@ -810,29 +810,337 @@ class _ExportImportScreenState extends State<ExportImportScreen> {
   }
 
   Future<void> _migrationAutreApp() async {
-    setState(() => _isImporting = true);
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Row(
+          children: [
+            Icon(Icons.sync_alt, color: Theme.of(context).primaryColor),
+            const SizedBox(width: 12),
+            const Text('Importer des données'),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text(
+              'Choisissez le format de fichier à importer :',
+              style: TextStyle(fontSize: 16),
+            ),
+            const SizedBox(height: 20),
 
+            // Option CSV
+            Card(
+              child: ListTile(
+                leading: CircleAvatar(
+                  backgroundColor: Colors.green.withOpacity(0.2),
+                  child: const Icon(Icons.table_chart, color: Colors.green),
+                ),
+                title: const Text('Fichier CSV'),
+                subtitle: const Text('Tableur Excel, Google Sheets...'),
+                trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                onTap: () {
+                  Navigator.pop(context);
+                  _importerCSV();
+                },
+              ),
+            ),
+            const SizedBox(height: 8),
+
+            // Option JSON
+            Card(
+              child: ListTile(
+                leading: CircleAvatar(
+                  backgroundColor: Colors.blue.withOpacity(0.2),
+                  child: const Icon(Icons.code, color: Colors.blue),
+                ),
+                title: const Text('Fichier JSON'),
+                subtitle: const Text('Export d\'autres apps'),
+                trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                onTap: () {
+                  Navigator.pop(context);
+                  _importerJSON();
+                },
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.blue.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.blue.withOpacity(0.3)),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.info_outline, color: Colors.blue[700], size: 20),
+                  const SizedBox(width: 8),
+                  const Expanded(
+                    child: Text(
+                      'Les données seront validées avant import',
+                      style: TextStyle(fontSize: 12),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Annuler'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _importerCSV() async {
     try {
-      // TODO: Implémenter migration
-      // 1. Détecter le format source
-      // 2. Mapper les champs
-      // 3. Convertir les données
-      // 4. Importer
+      setState(() => _isImporting = true);
 
-      await Future.delayed(const Duration(seconds: 2)); // Simulation
+      // Sélection fichier
+      final result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['csv', 'txt'],
+      );
+
+      if (result == null || result.files.isEmpty) {
+        setState(() => _isImporting = false);
+        return;
+      }
+
+      final file = File(result.files.first.path!);
+      final contenu = await file.readAsString();
+
+      // Parser CSV basique (nom, race, sexe, date_naissance)
+      final lignes = contenu.split('\n');
+      if (lignes.length < 2) {
+        throw Exception('Fichier CSV vide ou invalide');
+      }
+
+      // Ignorer la ligne d'en-tête
+      int importes = 0;
+      int erreurs = 0;
+
+      for (int i = 1; i < lignes.length; i++) {
+        final ligne = lignes[i].trim();
+        if (ligne.isEmpty) continue;
+
+        final colonnes = ligne.split(',');
+        if (colonnes.length < 4) {
+          erreurs++;
+          continue;
+        }
+
+        try {
+          // Format attendu: nom,race,sexe,date_naissance
+          final nom = colonnes[0].trim();
+          final race = colonnes[1].trim();
+          final sexe = colonnes[2].trim().toLowerCase();
+          final dateStr = colonnes[3].trim();
+
+          if (nom.isEmpty || race.isEmpty) {
+            erreurs++;
+            continue;
+          }
+
+          // Parser date (format DD/MM/YYYY ou YYYY-MM-DD)
+          DateTime? dateNaissance;
+          if (dateStr.contains('/')) {
+            final parts = dateStr.split('/');
+            if (parts.length == 3) {
+              dateNaissance = DateTime(
+                int.parse(parts[2]),
+                int.parse(parts[1]),
+                int.parse(parts[0]),
+              );
+            }
+          } else if (dateStr.contains('-')) {
+            dateNaissance = DateTime.tryParse(dateStr);
+          }
+
+          if (dateNaissance == null) {
+            erreurs++;
+            continue;
+          }
+
+          // Créer lapin
+          final lapin = Lapin(
+            nom: nom,
+            race: race,
+            sexe: sexe == 'male' || sexe == 'm' ? 'male' : 'femelle',
+            dateNaissance: dateNaissance,
+          );
+
+          // Sauvegarder en DB
+          final db = await DatabaseHelper.instance.database;
+          await db.insert('lapins', lapin.toMap());
+          importes++;
+        } catch (e) {
+          debugPrint('Erreur import ligne $i: $e');
+          erreurs++;
+        }
+      }
+
+      setState(() => _isImporting = false);
 
       if (mounted) {
-        SnackbarHelper.showWarning(
-          context,
-          '🔄 Migration en cours de développement',
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Import terminé'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    const Icon(Icons.check_circle, color: Colors.green),
+                    const SizedBox(width: 8),
+                    Text(
+                      '$importes lapin${importes > 1 ? 's' : ''} importé${importes > 1 ? 's' : ''}',
+                    ),
+                  ],
+                ),
+                if (erreurs > 0) ...[
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      const Icon(Icons.error, color: Colors.orange),
+                      const SizedBox(width: 8),
+                      Text(
+                        '$erreurs ligne${erreurs > 1 ? 's' : ''} ignorée${erreurs > 1 ? 's' : ''}',
+                      ),
+                    ],
+                  ),
+                ],
+              ],
+            ),
+            actions: [
+              ElevatedButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('OK'),
+              ),
+            ],
+          ),
         );
       }
     } catch (e) {
-      if (mounted) {
-        SnackbarHelper.showError(context, '❌ Erreur: $e');
-      }
-    } finally {
       setState(() => _isImporting = false);
+      if (mounted) {
+        SnackbarHelper.showError(context, 'Erreur import: $e');
+      }
+    }
+  }
+
+  Future<void> _importerJSON() async {
+    try {
+      setState(() => _isImporting = true);
+
+      // Sélection fichier
+      final result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['json'],
+      );
+
+      if (result == null || result.files.isEmpty) {
+        setState(() => _isImporting = false);
+        return;
+      }
+
+      final file = File(result.files.first.path!);
+      final contenu = await file.readAsString();
+
+      // Parser JSON
+      final data = jsonDecode(contenu) as Map<String, dynamic>;
+
+      // Format attendu: { "lapins": [...] }
+      if (!data.containsKey('lapins') || data['lapins'] is! List) {
+        throw Exception('Format JSON invalide');
+      }
+
+      final lapinsData = data['lapins'] as List;
+      int importes = 0;
+      int erreurs = 0;
+
+      for (final lapinData in lapinsData) {
+        try {
+          final lapin = Lapin(
+            nom: lapinData['nom'] as String,
+            race: lapinData['race'] as String,
+            sexe: (lapinData['sexe'] as String).toLowerCase() == 'male'
+                ? 'male'
+                : 'femelle',
+            dateNaissance: DateTime.parse(
+              lapinData['date_naissance'] as String,
+            ),
+            statut: lapinData['statut'] as String?,
+            localisation: lapinData['localisation'] as String?,
+            couleur: lapinData['couleur'] as String?,
+            notes: lapinData['notes'] as String?,
+          );
+
+          // Sauvegarder en DB
+          final db = await DatabaseHelper.instance.database;
+          await db.insert('lapins', lapin.toMap());
+          importes++;
+        } catch (e) {
+          debugPrint('Erreur import lapin: $e');
+          erreurs++;
+        }
+      }
+
+      setState(() => _isImporting = false);
+
+      if (mounted) {
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Import terminé'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    const Icon(Icons.check_circle, color: Colors.green),
+                    const SizedBox(width: 8),
+                    Text(
+                      '$importes lapin${importes > 1 ? 's' : ''} importé${importes > 1 ? 's' : ''}',
+                    ),
+                  ],
+                ),
+                if (erreurs > 0) ...[
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      const Icon(Icons.error, color: Colors.orange),
+                      const SizedBox(width: 8),
+                      Text(
+                        '$erreurs entrée${erreurs > 1 ? 's' : ''} ignorée${erreurs > 1 ? 's' : ''}',
+                      ),
+                    ],
+                  ),
+                ],
+              ],
+            ),
+            actions: [
+              ElevatedButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('OK'),
+              ),
+            ],
+          ),
+        );
+      }
+    } catch (e) {
+      setState(() => _isImporting = false);
+      if (mounted) {
+        SnackbarHelper.showError(context, 'Erreur import: $e');
+      }
     }
   }
 }

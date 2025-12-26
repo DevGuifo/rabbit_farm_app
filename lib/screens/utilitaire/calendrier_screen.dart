@@ -5,7 +5,6 @@ import 'package:intl/intl.dart';
 import '../../providers/reproduction_provider.dart';
 import '../../providers/lapin_provider.dart';
 import '../../providers/sante_provider.dart';
-import '../../models/accouplement.dart';
 import '../../models/lapin.dart';
 import '../../services/database_helper.dart';
 import '../cheptel/lapin_detail_screen.dart';
@@ -539,23 +538,254 @@ class _CalendrierScreenState extends State<CalendrierScreen> {
   }
 
   void _ajouterEvenementPersonnalise() {
+    final titreController = TextEditingController();
+    final descriptionController = TextEditingController();
+    DateTime dateSelectionnee = _selectedDay ?? DateTime.now();
+    TimeOfDay? heureSelectionnee;
+    String categorieSelectionnee = 'Tâche';
+    bool important = false;
+    bool notificationActive = false;
+
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Ajouter un événement'),
-        content: const Text(
-          'Fonctionnalité de création d\'événements personnalisés en cours de développement.\n\n'
-          'Prochainement :\n'
-          '• Tâches personnalisées\n'
-          '• Rappels et notifications\n'
-          '• Export vers calendrier externe',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Fermer'),
+      builder: (context) => StatefulBuilder(
+        builder: (context, setStateDialog) => AlertDialog(
+          title: Row(
+            children: [
+              Icon(Icons.event_note, color: Theme.of(context).primaryColor),
+              const SizedBox(width: 12),
+              const Text('Nouvel événement'),
+            ],
           ),
-        ],
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Titre
+                TextField(
+                  controller: titreController,
+                  decoration: InputDecoration(
+                    labelText: 'Titre *',
+                    hintText: 'Ex: Vaccination lapins, Nettoyage...',
+                    prefixIcon: const Icon(Icons.title),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  textCapitalization: TextCapitalization.sentences,
+                  maxLength: 50,
+                ),
+                const SizedBox(height: 16),
+
+                // Description
+                TextField(
+                  controller: descriptionController,
+                  decoration: InputDecoration(
+                    labelText: 'Description',
+                    hintText: 'Détails optionnels...',
+                    prefixIcon: const Icon(Icons.description),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  maxLines: 3,
+                  maxLength: 200,
+                ),
+                const SizedBox(height: 16),
+
+                // Catégorie
+                DropdownButtonFormField<String>(
+                  value: categorieSelectionnee,
+                  decoration: InputDecoration(
+                    labelText: 'Catégorie',
+                    prefixIcon: const Icon(Icons.category),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  items: const [
+                    DropdownMenuItem(value: 'Tâche', child: Text('🔨 Tâche')),
+                    DropdownMenuItem(value: 'Rappel', child: Text('⏰ Rappel')),
+                    DropdownMenuItem(
+                      value: 'Rendez-vous',
+                      child: Text('📅 Rendez-vous'),
+                    ),
+                    DropdownMenuItem(
+                      value: 'Maintenance',
+                      child: Text('🔧 Maintenance'),
+                    ),
+                    DropdownMenuItem(
+                      value: 'Contrôle',
+                      child: Text('✅ Contrôle'),
+                    ),
+                    DropdownMenuItem(value: 'Autre', child: Text('📝 Autre')),
+                  ],
+                  onChanged: (value) {
+                    setStateDialog(() => categorieSelectionnee = value!);
+                  },
+                ),
+                const SizedBox(height: 16),
+
+                // Date
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: Icon(
+                    Icons.calendar_today,
+                    color: Theme.of(context).primaryColor,
+                  ),
+                  title: const Text('Date'),
+                  subtitle: Text(
+                    DateFormat('dd/MM/yyyy').format(dateSelectionnee),
+                  ),
+                  trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                  onTap: () async {
+                    final date = await showDatePicker(
+                      context: context,
+                      initialDate: dateSelectionnee,
+                      firstDate: DateTime.now().subtract(
+                        const Duration(days: 365),
+                      ),
+                      lastDate: DateTime.now().add(const Duration(days: 365)),
+                    );
+                    if (date != null) {
+                      setStateDialog(() => dateSelectionnee = date);
+                    }
+                  },
+                ),
+
+                // Heure
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: Icon(
+                    Icons.access_time,
+                    color: Theme.of(context).primaryColor,
+                  ),
+                  title: const Text('Heure (optionnel)'),
+                  subtitle: Text(
+                    heureSelectionnee != null
+                        ? heureSelectionnee!.format(context)
+                        : 'Aucune',
+                  ),
+                  trailing: heureSelectionnee != null
+                      ? IconButton(
+                          icon: const Icon(Icons.clear, size: 20),
+                          onPressed: () {
+                            setStateDialog(() => heureSelectionnee = null);
+                          },
+                        )
+                      : const Icon(Icons.arrow_forward_ios, size: 16),
+                  onTap: () async {
+                    final heure = await showTimePicker(
+                      context: context,
+                      initialTime: heureSelectionnee ?? TimeOfDay.now(),
+                    );
+                    if (heure != null) {
+                      setStateDialog(() => heureSelectionnee = heure);
+                    }
+                  },
+                ),
+                const SizedBox(height: 8),
+
+                // Options
+                SwitchListTile(
+                  contentPadding: EdgeInsets.zero,
+                  title: const Text('Important'),
+                  subtitle: const Text('Mettre en évidence'),
+                  secondary: Icon(
+                    Icons.star,
+                    color: important ? Colors.amber : Colors.grey,
+                  ),
+                  value: important,
+                  onChanged: (value) {
+                    setStateDialog(() => important = value);
+                  },
+                ),
+                SwitchListTile(
+                  contentPadding: EdgeInsets.zero,
+                  title: const Text('Notification'),
+                  subtitle: const Text('Recevoir un rappel'),
+                  secondary: Icon(
+                    Icons.notifications,
+                    color: notificationActive ? Colors.blue : Colors.grey,
+                  ),
+                  value: notificationActive,
+                  onChanged: (value) {
+                    setStateDialog(() => notificationActive = value);
+                  },
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Annuler'),
+            ),
+            ElevatedButton.icon(
+              onPressed: () async {
+                final titre = titreController.text.trim();
+                if (titre.isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Le titre est requis')),
+                  );
+                  return;
+                }
+
+                try {
+                  // Sauvegarder dans la base de données
+                  final db = await DatabaseHelper.instance.database;
+
+                  // Construire DateTime complet avec heure
+                  DateTime dateComplete = dateSelectionnee;
+                  if (heureSelectionnee != null) {
+                    dateComplete = DateTime(
+                      dateSelectionnee.year,
+                      dateSelectionnee.month,
+                      dateSelectionnee.day,
+                      heureSelectionnee!.hour,
+                      heureSelectionnee!.minute,
+                    );
+                  }
+
+                  await db.insert('evenements_personnalises', {
+                    'titre': titre,
+                    'description': descriptionController.text.trim(),
+                    'date': dateComplete.toIso8601String(),
+                    'heure': heureSelectionnee != null
+                        ? '${heureSelectionnee!.hour}:${heureSelectionnee!.minute}'
+                        : null,
+                    'categorie': categorieSelectionnee,
+                    'important': important ? 1 : 0,
+                    'notificationActive': notificationActive ? 1 : 0,
+                    'couleur': '#9C27B0', // Violet par défaut
+                  });
+
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('✅ "$titre" ajouté au calendrier'),
+                      backgroundColor: Colors.green,
+                    ),
+                  );
+
+                  // Recharger le calendrier
+                  await _chargerEvenements();
+                } catch (e) {
+                  debugPrint('Erreur lors de l\'ajout de l\'événement: $e');
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('❌ Erreur: $e'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
+              },
+              icon: const Icon(Icons.check),
+              label: const Text('Créer'),
+            ),
+          ],
+        ),
       ),
     );
   }
