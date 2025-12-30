@@ -14,7 +14,16 @@ et ce projet adhère au [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ---
 
-## [1.1.1] - 2025-01-XX (Phase 0 - Sécurisation Git)
+## [1.1.1] - 2025-01-XX (Phase 0 & 1 - Sécurisation Git + Corrections Critiques)
+
+### Corrigé
+- **Phase 1** : Corrections critiques
+  - BuildContext asynchrones corrigés dans 3 fichiers (sevrage_detail_screen, pharmacie_screen, localisation_screen)
+  - Champ `notes` finalisé dans modèle Lapin et interface utilisateur
+  - Gestion d'erreur Supabase améliorée avec messages clairs
+  - Aucun warning Flutter Analyze restant
+
+---
 
 ### Modifié
 - **Git** : Nettoyage complet du repository
