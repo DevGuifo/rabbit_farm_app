@@ -1,3 +1,5 @@
+import 'dart:async';
+import 'dart:io';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:sqflite/sqflite.dart';
 import '../services/database_helper.dart';
@@ -42,6 +44,12 @@ class SupabaseSyncService {
       return false;
     }
 
+    // Vérifier que Supabase est disponible
+    if (!_authService.isAvailable) {
+      logger.warning('⚠️ Supabase non disponible, synchronisation annulée');
+      return false;
+    }
+
     if (!_authService.isAuthenticated) {
       logger.warning('⚠️ Utilisateur non authentifié, synchronisation annulée');
       return false;
@@ -65,8 +73,21 @@ class SupabaseSyncService {
 
       logger.info('✅ Synchronisation complète réussie');
       return true;
-    } catch (e) {
-      logger.error('❌ Erreur lors de la synchronisation: $e');
+    } on PostgrestException catch (e) {
+      // Erreur spécifique Supabase/PostgreSQL
+      logger.error('❌ Erreur Supabase lors de la synchronisation: ${e.message}');
+      return false;
+    } on SocketException catch (e) {
+      // Erreur réseau
+      logger.error('❌ Erreur réseau lors de la synchronisation: ${e.message}');
+      return false;
+    } on TimeoutException catch (e) {
+      // Timeout
+      logger.error('❌ Timeout lors de la synchronisation: ${e.message}');
+      return false;
+    } catch (e, stackTrace) {
+      logger.error('❌ Erreur inattendue lors de la synchronisation: $e');
+      logger.error('Stack trace: $stackTrace');
       return false;
     } finally {
       _isSyncing = false;
@@ -79,6 +100,11 @@ class SupabaseSyncService {
   /// 
   /// Envoie tous les enregistrements avec is_dirty = 1
   Future<void> syncUp() async {
+    // Vérifier que Supabase est disponible
+    if (!_authService.isAvailable) {
+      throw Exception('Supabase non disponible');
+    }
+
     if (!_authService.isAuthenticated) {
       throw Exception('Utilisateur non authentifié');
     }
@@ -106,6 +132,7 @@ class SupabaseSyncService {
     ];
 
     int totalSynced = 0;
+    int totalErrors = 0;
 
     for (final tableName in tables) {
       try {
@@ -221,13 +248,21 @@ class SupabaseSyncService {
             logger.error('❌ Erreur lors de la suppression de $tableName: $e');
           }
         }
+      } on SocketException catch (e) {
+        logger.error('❌ Erreur réseau lors de la sync UP de la table $tableName: ${e.message}');
+        // Re-throw pour arrêter la sync si erreur réseau
+        rethrow;
       } catch (e) {
         logger.error('❌ Erreur lors de la sync UP de la table $tableName: $e');
         // Continuer avec les autres tables
       }
     }
 
-    logger.info('✅ Sync UP terminée : $totalSynced enregistrements synchronisés');
+    if (totalErrors > 0) {
+      logger.warning('⚠️ Sync UP terminée : $totalSynced enregistrements synchronisés, $totalErrors erreurs');
+    } else {
+      logger.info('✅ Sync UP terminée : $totalSynced enregistrements synchronisés');
+    }
   }
 
   // ============= SYNC DOWN (REMOTE → LOCAL) =============
@@ -236,6 +271,11 @@ class SupabaseSyncService {
   /// 
   /// Récupère tous les enregistrements modifiés depuis last_sync_timestamp
   Future<void> syncDown() async {
+    // Vérifier que Supabase est disponible
+    if (!_authService.isAvailable) {
+      throw Exception('Supabase non disponible');
+    }
+
     if (!_authService.isAuthenticated) {
       throw Exception('Utilisateur non authentifié');
     }
@@ -256,6 +296,8 @@ class SupabaseSyncService {
         ? DateTime.parse(lastSyncTimestamp)
         : DateTime.fromMillisecondsSinceEpoch(0);
 
+    logger.debug('📅 Dernière sync : ${lastSyncDate.toIso8601String()}');
+
     // Liste des tables à synchroniser
     final tables = [
       'lapins',
@@ -269,6 +311,7 @@ class SupabaseSyncService {
     ];
 
     int totalSynced = 0;
+    int totalErrors = 0;
 
     for (final tableName in tables) {
       try {
@@ -345,18 +388,36 @@ class SupabaseSyncService {
             }
 
             totalSynced++;
+          } on PostgrestException catch (e) {
+            totalErrors++;
+            logger.error('❌ Erreur Supabase lors de la sync DOWN de $tableName: ${e.message}');
+            // Continuer avec les autres enregistrements
+          } on SocketException catch (e) {
+            totalErrors++;
+            logger.error('❌ Erreur réseau lors de la sync DOWN de $tableName: ${e.message}');
+            // Re-throw pour arrêter la sync si erreur réseau
+            rethrow;
           } catch (e) {
-            logger.error('❌ Erreur lors de la sync DOWN de $tableName: $e');
+            totalErrors++;
+            logger.error('❌ Erreur inattendue lors de la sync DOWN de $tableName: $e');
             // Continuer avec les autres enregistrements
           }
         }
+      } on SocketException catch (e) {
+        logger.error('❌ Erreur réseau lors de la sync DOWN de la table $tableName: ${e.message}');
+        // Re-throw pour arrêter la sync si erreur réseau
+        rethrow;
       } catch (e) {
         logger.error('❌ Erreur lors de la sync DOWN de la table $tableName: $e');
         // Continuer avec les autres tables
       }
     }
 
-    logger.info('✅ Sync DOWN terminée : $totalSynced enregistrements synchronisés');
+    if (totalErrors > 0) {
+      logger.warning('⚠️ Sync DOWN terminée : $totalSynced enregistrements synchronisés, $totalErrors erreurs');
+    } else {
+      logger.info('✅ Sync DOWN terminée : $totalSynced enregistrements synchronisés');
+    }
   }
 
   // ============= MÉTHODES UTILITAIRES =============

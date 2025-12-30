@@ -395,17 +395,23 @@ class _ParametresScreenState extends State<ParametresScreen> {
     if (success) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Synchronisation réussie'),
+          content: Text('✅ Synchronisation réussie'),
           backgroundColor: Colors.green,
+          duration: Duration(seconds: 2),
         ),
       );
     } else {
+      final errorMessage = syncProvider.errorMessage ?? 'Erreur lors de la synchronisation';
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(
-            syncProvider.errorMessage ?? 'Erreur lors de la synchronisation',
+          content: Text('❌ $errorMessage'),
+          backgroundColor: Colors.orange,
+          duration: const Duration(seconds: 4),
+          action: SnackBarAction(
+            label: 'Réessayer',
+            textColor: Colors.white,
+            onPressed: () => _handleSync(),
           ),
-          backgroundColor: Colors.red,
         ),
       );
     }

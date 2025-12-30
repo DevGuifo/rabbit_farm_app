@@ -1,3 +1,5 @@
+import 'dart:async';
+import 'dart:io';
 import 'package:flutter/foundation.dart';
 import '../services/supabase_sync_service.dart';
 import '../services/supabase_auth_service.dart';
@@ -80,6 +82,12 @@ class SyncProvider extends ChangeNotifier {
       return false;
     }
 
+    // Vérifier que Supabase est disponible
+    if (!_authService.isAvailable) {
+      _setError('Le service de synchronisation n\'est pas disponible');
+      return false;
+    }
+
     if (!_authService.isAuthenticated) {
       _setError('Utilisateur non authentifié');
       return false;
@@ -103,9 +111,17 @@ class SyncProvider extends ChangeNotifier {
         _setError('Échec de la synchronisation');
         return false;
       }
+    } on SocketException catch (e) {
+      logger.error('❌ Erreur réseau lors de la synchronisation: ${e.message}');
+      _setError('Erreur de connexion réseau. Vérifiez votre connexion Internet.');
+      return false;
+    } on TimeoutException catch (e) {
+      logger.error('❌ Timeout lors de la synchronisation: ${e.message}');
+      _setError('La synchronisation a pris trop de temps. Réessayez plus tard.');
+      return false;
     } catch (e) {
       logger.error('❌ Erreur lors de la synchronisation: $e');
-      _setError(e.toString());
+      _setError('Erreur lors de la synchronisation: ${e.toString()}');
       return false;
     }
   }
