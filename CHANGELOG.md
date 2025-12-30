@@ -14,6 +14,22 @@ et ce projet adhère au [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ---
 
+## [1.1.2] - 2025-01-XX (Phase 2 - Fonctionnalités Métier)
+
+### Ajouté
+- **Détection automatique des femelles gestantes** : Les femelles avec accouplement actif sont automatiquement détectées et affichées avec un badge "Gestante" dans la liste du cheptel
+- Méthode `estGestante()` dans le modèle `Lapin` pour vérifier les accouplements actifs
+
+### Modifié
+- Affichage du badge gestante dans `cheptel_screen.dart` (décommenté et finalisé)
+- Chargement automatique des accouplements au démarrage de l'écran cheptel
+
+### Technique
+- Import de `accouplement.dart` dans `lapin.dart` pour la méthode `estGestante()`
+- Intégration avec `ReproductionProvider` pour accéder aux accouplements
+
+---
+
 ## [1.1.1] - 2025-01-XX (Phase 0 & 1 - Sécurisation Git + Corrections Critiques)
 
 ### Corrigé
