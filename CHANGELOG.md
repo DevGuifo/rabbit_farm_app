@@ -14,6 +14,27 @@ et ce projet adhère au [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ---
 
+## [1.1.3] - 2025-01-XX (Phase 3 - Synchronisation Supabase Robuste)
+
+### Amélioré
+- **Synchronisation Supabase** : Robustesse améliorée
+  - Vérification `isAvailable` avant chaque opération de sync
+  - Gestion spécifique des erreurs réseau (SocketException, TimeoutException)
+  - Logs détaillés avec statistiques (succès/erreurs)
+  - Messages d'erreur clairs et informatifs pour l'utilisateur
+  - Mode offline total sans crash
+- **UI Synchronisation** : Amélioration de l'expérience utilisateur
+  - Messages de succès/échec plus clairs
+  - Bouton "Réessayer" en cas d'échec
+  - Durée d'affichage adaptée
+
+### Technique
+- Gestion d'erreur robuste avec types spécifiques
+- Logs structurés pour debugging facilité
+- Vérifications préalables pour éviter les crashes
+
+---
+
 ## [1.1.2] - 2025-01-XX (Phase 2 - Fonctionnalités Métier)
 
 ### Ajouté
