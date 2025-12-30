@@ -239,6 +239,7 @@ class _SevrageDetailScreenState extends State<SevrageDetailScreen> {
       final sexe = _sexes[p.id!] ?? p.sexe;
       return sexe.toLowerCase() == 'femelle' || sexe.toLowerCase() == 'f';
     }).length;
+    if (!mounted) return;
     final confirm = await SevrageConfirmationDialog.show(
       context,
       totalPetits: _petits.length,

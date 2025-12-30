@@ -32,8 +32,8 @@ class IdentityTab extends StatelessWidget {
           const SizedBox(height: 16),
           // Notes Card
           NotesCard(
-            notes: null, // TODO: Ajouter champ notes dans le modèle Lapin
-            lastUpdateInfo: null, // MOCK DATA
+            notes: lapin.notes,
+            lastUpdateInfo: null, // MOCK DATA - À implémenter avec historique
           ),
           const SizedBox(height: 120), // Espace pour FAB
         ],

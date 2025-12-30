@@ -20,6 +20,11 @@ class SupabaseAuthService {
   final SecureStorageService _secureStorage = SecureStorageService();
   bool _isInitialized = false;
 
+  /// Vérifier si Supabase est disponible et initialisé
+  /// 
+  /// Retourne true si Supabase peut être utilisé pour l'authentification
+  bool get isAvailable => _isInitialized && SupabaseConfig.isValid;
+
   /// Initialiser Supabase
   /// 
   /// Doit être appelé au démarrage de l'application (dans main.dart)
@@ -167,8 +172,11 @@ class SupabaseAuthService {
     required String email,
     required String password,
   }) async {
-    if (!_isInitialized) {
-      throw Exception('Supabase non initialisé');
+    if (!isAvailable) {
+      throw Exception(
+        'Le service de synchronisation n\'est pas disponible. '
+        'Vérifiez votre connexion Internet ou contactez le support si le problème persiste.',
+      );
     }
 
     try {
@@ -213,8 +221,11 @@ class SupabaseAuthService {
     required String email,
     required String password,
   }) async {
-    if (!_isInitialized) {
-      throw Exception('Supabase non initialisé');
+    if (!isAvailable) {
+      throw Exception(
+        'Le service de synchronisation n\'est pas disponible. '
+        'Vérifiez votre connexion Internet ou contactez le support si le problème persiste.',
+      );
     }
 
     try {

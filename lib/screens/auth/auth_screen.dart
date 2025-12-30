@@ -65,6 +65,22 @@ class _AuthScreenState extends State<AuthScreen> {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final connectivityProvider =
         Provider.of<ConnectivityProvider>(context, listen: false);
+    final supabaseAuthService = SupabaseAuthService();
+
+    // Vérifier si Supabase est disponible
+    if (!supabaseAuthService.isAvailable) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Le service de synchronisation n\'est pas disponible. '
+            'Vous pouvez utiliser l\'application en mode hors ligne avec un PIN.',
+          ),
+          backgroundColor: Colors.orange,
+          duration: Duration(seconds: 5),
+        ),
+      );
+      return;
+    }
 
     // Validation basique
     if (_isSignUp) {
@@ -166,6 +182,21 @@ class _AuthScreenState extends State<AuthScreen> {
           const SnackBar(
             content: Text('Veuillez remplir tous les champs'),
             backgroundColor: Colors.red,
+          ),
+        );
+        return;
+      }
+
+      // Vérifier si Supabase est disponible
+      if (!supabaseAuthService.isAvailable) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Le service de synchronisation n\'est pas disponible. '
+              'Vous pouvez utiliser l\'application en mode hors ligne avec un PIN.',
+            ),
+            backgroundColor: Colors.orange,
+            duration: Duration(seconds: 5),
           ),
         );
         return;

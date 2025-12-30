@@ -14,6 +14,21 @@ et ce projet adhère au [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ---
 
+## [1.1.1] - 2025-01-XX (Phase 0 - Sécurisation Git)
+
+### Modifié
+- **Git** : Nettoyage complet du repository
+  - Suppression de 12 fichiers temporaires obsolètes
+  - Amélioration du `.gitignore` pour ignorer scripts temporaires
+  - Organisation de la documentation dans `docs/historique/`
+- **Documentation** : Déplacement des fichiers temporaires (scripts Python, shell)
+
+### Technique
+- Repository Git propre et professionnel
+- Structure de branches : `master` (stable) / `develop` (travail quotidien)
+
+---
+
 ## [1.1.0] - 2024-12-21 (Phase P0 Complète)
 
 ### Ajouté

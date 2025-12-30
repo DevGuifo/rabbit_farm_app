@@ -855,6 +855,7 @@ class _PharmacieScreenState extends State<PharmacieScreen> {
     );
 
     if (confirmed == true) {
+      if (!mounted) return;
       try {
         final provider = Provider.of<MedicamentProvider>(
           context,

@@ -370,8 +370,11 @@ class _LocalisationScreenState extends State<LocalisationScreen> {
 
   void _onCageTap(Map<String, dynamic> cageData) {
     final cage = cageData['cage'] as Cage;
+    if (!mounted) return;
     CageDetailsDialog.show(context, cageData, () async {
+      if (!mounted) return;
       final success = await EditCageDialog.show(context, cage);
+      if (!mounted) return;
       if (success) await _chargerDonnees();
     }, () => _supprimerCage(cage));
   }

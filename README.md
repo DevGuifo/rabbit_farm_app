@@ -40,6 +40,7 @@ lib/
 - Flutter SDK 3.9.2+
 - Dart 3.9+
 - Android Studio / Xcode (pour builds natifs)
+- Git (pour la gestion de version)
 
 ### Commandes
 
@@ -51,12 +52,30 @@ cd rabbit-farm-app
 # 2. Installer les dépendances
 flutter pub get
 
-# 3. Lancer l'app en debug
+# 3. Vérifier que tout compile
+flutter analyze
+
+# 4. Lancer l'app en debug
 flutter run
 
-# 4. Build production Android
+# 5. Build production Android
 flutter build apk --release
 ```
+
+### Mode Offline-First
+
+L'application fonctionne **entièrement en mode offline** :
+- Toutes les données sont stockées localement (SQLite)
+- Aucune connexion Internet requise pour l'utilisation normale
+- Synchronisation Supabase optionnelle (si configurée)
+
+### Authentification
+
+Deux modes d'authentification disponibles :
+1. **Supabase** (si configuré) : Inscription/Connexion avec email
+2. **PIN Offline** : Déverrouillage avec un code PIN (4-6 chiffres)
+
+Pour utiliser le mode offline uniquement, configurez simplement un PIN lors du premier lancement.
 
 ## 🧪 Tests
 
@@ -70,9 +89,20 @@ flutter analyze
 
 ## 📝 Documentation
 
+### Documentation principale
 - [Cahier des charges](cahier_charges_app_elevage.md)
-- [Copilot Instructions](.github/copilot-instructions.md)
 - [Changelog](CHANGELOG.md)
+- [Guide utilisateur](GUIDE_UTILISATEUR.md)
+- [Guide de test](GUIDE_TEST_APPLICATION.md)
+
+### Documentation technique
+- [Rapport d'audit technique](RAPPORT_AUDIT_TECHNIQUE_COMPLET.md)
+- [Rapport final corrections](RAPPORT_FINAL_CORRECTIONS.md)
+- [Guide Supabase](docs/SUPABASE_SETUP_GUIDE.md)
+- [Migration Supabase](docs/MIGRATION_SUPABASE.md)
+
+### Documentation historique
+Les fichiers temporaires et anciens rapports sont dans `docs/historique/`
 
 ## 🛠 Technologies
 
