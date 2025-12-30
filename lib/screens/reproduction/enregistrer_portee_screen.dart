@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../../models/accouplement.dart';
@@ -9,12 +8,15 @@ import '../../providers/reproduction_provider.dart';
 import '../../providers/lapin_provider.dart';
 import '../../utils/snackbar_helper.dart';
 import '../../services/database_helper.dart';
+import 'package:rabbit_farm_app/theme/app_theme.dart';
+import '../alertes/alertes_screen.dart';
+import '../parametres/parametres_screen.dart';
 
-/// Écran pour enregistrer une portée
+/// Écran Record New Litter - Design Stitch complet
 class EnregistrerPorteeScreen extends StatefulWidget {
-  final Accouplement accouplement;
+  final Accouplement? accouplement;
 
-  const EnregistrerPorteeScreen({super.key, required this.accouplement});
+  const EnregistrerPorteeScreen({super.key, this.accouplement});
 
   @override
   State<EnregistrerPorteeScreen> createState() =>
@@ -23,71 +25,73 @@ class EnregistrerPorteeScreen extends StatefulWidget {
 
 class _EnregistrerPorteeScreenState extends State<EnregistrerPorteeScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _nombreNesController = TextEditingController();
-  final _nombreVivantsController = TextEditingController();
-  final _nombreMortsController = TextEditingController();
-  final _notesController = TextEditingController();
+  final _observationsController = TextEditingController();
 
-  DateTime _dateMiseBasReelle = DateTime.now();
+  int? _accouplementIdSelectionne;
+  DateTime _dateKindling = DateTime.now();
+  int _totalBorn = 0;
+  int _bornAlive = 0;
+
   Lapin? _male;
   Lapin? _femelle;
   bool _isLoading = true;
-  bool _creerLapereaux = true;
+  final bool _creerLapereaux = true;
+
+  List<Accouplement> _accouplements = [];
 
   @override
   void initState() {
     super.initState();
-    _chargerLapins();
-    _nombreMortsController.text = '0';
+    _accouplementIdSelectionne = widget.accouplement?.id;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _chargerDonnees();
+    });
   }
 
   @override
   void dispose() {
-    _nombreNesController.dispose();
-    _nombreVivantsController.dispose();
-    _nombreMortsController.dispose();
-    _notesController.dispose();
+    _observationsController.dispose();
     super.dispose();
   }
 
-  /// Charger les informations des parents
-  Future<void> _chargerLapins() async {
+  Future<void> _chargerDonnees() async {
+    final reproProvider = Provider.of<ReproductionProvider>(
+      context,
+      listen: false,
+    );
+
+    await reproProvider.chargerAccouplements();
+
+    // Filtrer les accouplements en attente ou confirmés
+    final accouplementsActifs = reproProvider.accouplements.where((a) {
+      return a.statut == 'en_attente' || a.statut == 'confirme';
+    }).toList();
+
+    setState(() {
+      _accouplements = accouplementsActifs;
+      _isLoading = false;
+    });
+
+    if (_accouplementIdSelectionne != null) {
+      final acc = _accouplements.firstWhere(
+        (a) => a.id == _accouplementIdSelectionne,
+        orElse: () => _accouplements.first,
+      );
+      await _chargerLapins(acc);
+    }
+  }
+
+  Future<void> _chargerLapins(Accouplement accouplement) async {
     final db = DatabaseHelper.instance;
-    final male = await db.getLapinById(widget.accouplement.maleId);
-    final femelle = await db.getLapinById(widget.accouplement.femelleId);
+    final male = await db.getLapinById(accouplement.maleId);
+    final femelle = await db.getLapinById(accouplement.femelleId);
 
     setState(() {
       _male = male;
       _femelle = femelle;
-      _isLoading = false;
     });
   }
 
-  /// Calculer automatiquement le nombre de morts
-  void _calculerMorts() {
-    final nes = int.tryParse(_nombreNesController.text) ?? 0;
-    final vivants = int.tryParse(_nombreVivantsController.text) ?? 0;
-    final morts = (nes - vivants).clamp(0, nes);
-    _nombreMortsController.text = morts.toString();
-  }
-
-  /// Sélectionner la date de mise bas
-  Future<void> _selectionnerDate(BuildContext context) async {
-    final DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate: _dateMiseBasReelle,
-      firstDate: widget.accouplement.dateAccouplement,
-      lastDate: DateTime.now().add(const Duration(days: 7)),
-      locale: const Locale('fr', 'FR'),
-    );
-    if (picked != null && picked != _dateMiseBasReelle) {
-      setState(() {
-        _dateMiseBasReelle = picked;
-      });
-    }
-  }
-
-  /// Créer automatiquement les lapereaux
   Future<void> _creerLapereausDansDB(int nombreVivants) async {
     if (!_creerLapereaux || nombreVivants == 0) return;
 
@@ -95,19 +99,17 @@ class _EnregistrerPorteeScreenState extends State<EnregistrerPorteeScreen> {
     final db = DatabaseHelper.instance;
 
     for (int i = 1; i <= nombreVivants; i++) {
-      // Créer un lapereau
       final lapereau = Lapin(
         nom: '${_femelle!.nom} - Lapereau $i',
         race: _femelle!.race,
         sexe: 'Inconnu',
-        dateNaissance: _dateMiseBasReelle,
+        dateNaissance: _dateKindling,
         statut: 'Jeune',
         localisation: _femelle!.localisation ?? 'Nid',
       );
 
       final lapereauAjoute = await lapinProvider.ajouterLapin(lapereau);
 
-      // Définir les parents
       if (lapereauAjoute.id != null &&
           _male?.id != null &&
           _femelle?.id != null) {
@@ -116,31 +118,50 @@ class _EnregistrerPorteeScreenState extends State<EnregistrerPorteeScreen> {
     }
   }
 
-  /// Enregistrer la portée
   Future<void> _enregistrerPortee() async {
     if (!_formKey.currentState!.validate()) {
       return;
     }
 
-    final nombreNes = int.parse(_nombreNesController.text);
-    final nombreVivants = int.parse(_nombreVivantsController.text);
-    final nombreMorts = int.parse(_nombreMortsController.text);
-
-    if (nombreVivants + nombreMorts != nombreNes) {
+    if (_accouplementIdSelectionne == null) {
       SnackbarHelper.showValidationError(
         context,
-        'Le total vivants + morts doit être égal au nombre de nés',
+        'Veuillez sélectionner un accouplement',
       );
       return;
     }
 
+    if (_totalBorn == 0) {
+      SnackbarHelper.showValidationError(
+        context,
+        'Le nombre total de nés doit être supérieur à 0',
+      );
+      return;
+    }
+
+    if (_bornAlive > _totalBorn) {
+      SnackbarHelper.showValidationError(
+        context,
+        'Le nombre de vivants ne peut pas dépasser le total',
+      );
+      return;
+    }
+
+    final nombreMorts = _totalBorn - _bornAlive;
+
+    final accouplementSelectionne = _accouplements.firstWhere(
+      (a) => a.id == _accouplementIdSelectionne,
+    );
+
     final portee = Portee(
-      accouplementId: widget.accouplement.id!,
-      dateMiseBasReelle: _dateMiseBasReelle,
-      nombreNes: nombreNes,
-      nombreVivants: nombreVivants,
+      accouplementId: accouplementSelectionne.id!,
+      dateMiseBasReelle: _dateKindling,
+      nombreNes: _totalBorn,
+      nombreVivants: _bornAlive,
       nombreMorts: nombreMorts,
-      notes: _notesController.text.isNotEmpty ? _notesController.text : null,
+      notes: _observationsController.text.isNotEmpty
+          ? _observationsController.text
+          : null,
     );
 
     try {
@@ -149,221 +170,631 @@ class _EnregistrerPorteeScreenState extends State<EnregistrerPorteeScreen> {
         listen: false,
       );
 
-      // Enregistrer la portée
       await reproductionProvider.ajouterPortee(portee);
+      await reproductionProvider.terminerAccouplement(
+        accouplementSelectionne.id!,
+      );
 
-      // Marquer l'accouplement comme terminé
-      await reproductionProvider.terminerAccouplement(widget.accouplement.id!);
-
-      // Créer les lapereaux
-      await _creerLapereausDansDB(nombreVivants);
+      await _creerLapereausDansDB(_bornAlive);
 
       if (mounted) {
         SnackbarHelper.showSuccess(
           context,
           _creerLapereaux
-              ? 'Portée enregistrée et $nombreVivants lapereaux créés'
+              ? 'Portée enregistrée et $_bornAlive lapereaux créés'
               : 'Portée enregistrée avec succès',
         );
-        Navigator.of(context).pop();
+        Navigator.of(context).pop(true);
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Erreur : $e')));
+        SnackbarHelper.showError(context, 'Erreur : $e');
       }
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final dateFormat = DateFormat('dd/MM/yyyy');
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     if (_isLoading) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+      return Scaffold(
+        backgroundColor: isDark
+            ? AppTheme.backgroundDark
+            : AppTheme.backgroundLight,
+        appBar: AppBar(
+          backgroundColor:
+              (isDark ? AppTheme.backgroundDark : AppTheme.cardLight)
+                  .withValues(alpha: 0.95),
+          title: const Text('Record New Litter'),
+        ),
+        body: const Center(child: CircularProgressIndicator()),
+      );
     }
 
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.background,
-      appBar: AppBar(
-        title: Text(
-          'Enregistrer une portée',
-          style: TextStyle(
-            color: Theme.of(context).colorScheme.onSurface,
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        backgroundColor: Theme.of(context).colorScheme.surface,
-        elevation: 0,
-        iconTheme: IconThemeData(color: Theme.of(context).colorScheme.primary),
-      ),
-      body: Form(
-        key: _formKey,
-        child: ListView(
-          padding: const EdgeInsets.all(16),
+      backgroundColor: isDark
+          ? AppTheme.backgroundDark
+          : AppTheme.backgroundLight,
+      appBar: _buildAppBar(isDark),
+      body: SafeArea(
+        child: Column(
           children: [
-            // Informations de l'accouplement
-            Card(
-              color: Theme.of(context).colorScheme.secondaryContainer,
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Accouplement',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
+            Expanded(
+              child: SingleChildScrollView(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 512),
+                    child: Form(
+                      key: _formKey,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          _buildDescription(isDark),
+                          const SizedBox(height: 24),
+                          _buildMatingPairSelector(isDark),
+                          const SizedBox(height: 24),
+                          _buildKindlingDatePicker(isDark),
+                          const SizedBox(height: 24),
+                          _buildNumberInputs(isDark),
+                          const SizedBox(height: 16),
+                          _buildInfoCard(isDark),
+                          const SizedBox(height: 24),
+                          _buildObservationsField(isDark),
+                          const SizedBox(height: 100),
+                        ],
                       ),
                     ),
-                    const SizedBox(height: 12),
-                    Row(
-                      children: [
-                        const Icon(Icons.male, color: Colors.blue),
-                        const SizedBox(width: 8),
-                        Expanded(child: Text(_male?.nom ?? 'Inconnu')),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    Row(
-                      children: [
-                        const Icon(Icons.female, color: Colors.pink),
-                        const SizedBox(width: 8),
-                        Expanded(child: Text(_femelle?.nom ?? 'Inconnue')),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    Row(
-                      children: [
-                        const Icon(Icons.calendar_today, size: 18),
-                        const SizedBox(width: 8),
-                        Text(
-                          'Accouplement: ${dateFormat.format(widget.accouplement.dateAccouplement)}',
-                        ),
-                      ],
+                  ),
+                ),
+              ),
+            ),
+            _buildStickyBottomActions(isDark),
+          ],
+        ),
+      ),
+    );
+  }
+
+  PreferredSizeWidget _buildAppBar(bool isDark) {
+    return AppBar(
+      backgroundColor: (isDark ? AppTheme.backgroundDark : AppTheme.cardLight)
+          .withValues(alpha: 0.95),
+      elevation: 1,
+      leading: IconButton(
+        icon: Icon(
+          Icons.arrow_back,
+          color: isDark ? AppTheme.textLight : AppTheme.textPrimary,
+        ),
+        onPressed: () => Navigator.of(context).pop(),
+      ),
+      title: Text(
+        'Record New Litter',
+        style: AppTheme.titleLarge.copyWith(
+          color: isDark ? AppTheme.textLight : AppTheme.textPrimary,
+        ),
+      ),
+      actions: [
+        IconButton(
+          icon: Icon(
+            Icons.sync,
+            color: isDark ? AppTheme.textLight : AppTheme.textPrimary,
+          ),
+          onPressed: () => _chargerDonnees(),
+        ),
+        IconButton(
+          icon: Icon(
+            Icons.notifications,
+            color: isDark ? AppTheme.textLight : AppTheme.textPrimary,
+          ),
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => const AlertesScreen(),
+              ),
+            );
+          },
+        ),
+        IconButton(
+          icon: Icon(
+            Icons.settings,
+            color: isDark ? AppTheme.textLight : AppTheme.textPrimary,
+          ),
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => const ParametresScreen(),
+              ),
+            );
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDescription(bool isDark) {
+    return Text(
+      'Enter the details of the new litter below. Accurate records help in tracking doe performance and kit survival rates.',
+      style: AppTheme.bodyMedium.copyWith(
+        color: isDark ? AppTheme.textSecondary : AppTheme.textSecondary,
+      ),
+    );
+  }
+
+  Widget _buildMatingPairSelector(bool isDark) {
+    // Vérifier si l'ID sélectionné existe dans la liste
+    final accouplementValide =
+        _accouplementIdSelectionne != null &&
+        _accouplements.any((a) => a.id == _accouplementIdSelectionne);
+
+    // Réinitialiser si invalide
+    if (!accouplementValide && _accouplementIdSelectionne != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        setState(() {
+          _accouplementIdSelectionne = null;
+        });
+      });
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'MATING PAIR',
+          style: AppTheme.caption.copyWith(
+            fontWeight: FontWeight.bold,
+            letterSpacing: 1.2,
+            color: isDark ? AppTheme.textLight : AppTheme.textPrimary,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Container(
+          decoration: BoxDecoration(
+            color: isDark ? AppTheme.backgroundDark : AppTheme.cardLight,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: isDark ? AppTheme.textSecondary : AppTheme.textLight,
+            ),
+            boxShadow: isDark
+                ? []
+                : [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.02),
+                      blurRadius: 4,
+                      offset: const Offset(0, 2),
                     ),
                   ],
+          ),
+          child: DropdownButtonFormField<int>(
+            initialValue: accouplementValide
+                ? _accouplementIdSelectionne
+                : null,
+            decoration: InputDecoration(
+              suffixIcon: Icon(
+                Icons.expand_more,
+                color: isDark ? AppTheme.textSecondary : AppTheme.textSecondary,
+              ),
+              border: InputBorder.none,
+              contentPadding: const EdgeInsets.all(16),
+              hintText: 'Select active mating...',
+              hintStyle: AppTheme.bodyLarge.copyWith(
+                color: isDark ? AppTheme.textSecondary : AppTheme.textSecondary,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            dropdownColor: isDark
+                ? AppTheme.backgroundDark
+                : AppTheme.cardLight,
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w500,
+              color: isDark ? AppTheme.textLight : AppTheme.textPrimary,
+            ),
+            items: _accouplements.map((acc) {
+              return DropdownMenuItem<int>(
+                value: acc.id,
+                child: FutureBuilder<String>(
+                  future: _getAccouplementLabel(acc),
+                  builder: (context, snapshot) {
+                    if (!snapshot.hasData) {
+                      return const Text('Loading...');
+                    }
+                    return Text(
+                      snapshot.data!,
+                      style: TextStyle(
+                        color: isDark
+                            ? AppTheme.textLight
+                            : AppTheme.textPrimary,
+                      ),
+                    );
+                  },
+                ),
+              );
+            }).toList(),
+            onChanged: (value) async {
+              setState(() {
+                _accouplementIdSelectionne = value;
+              });
+              if (value != null) {
+                final acc = _accouplements.firstWhere((a) => a.id == value);
+                await _chargerLapins(acc);
+              }
+            },
+            validator: (value) =>
+                value == null ? 'Sélectionnez un accouplement' : null,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Future<String> _getAccouplementLabel(Accouplement acc) async {
+    final db = DatabaseHelper.instance;
+    final male = await db.getLapinById(acc.maleId);
+    final femelle = await db.getLapinById(acc.femelleId);
+    final dateDue = DateFormat('MMM dd').format(acc.dateMiseBasPrevue);
+
+    return 'Doe ${femelle?.nom ?? 'Unknown'} x Buck ${male?.nom ?? 'Unknown'} (Due $dateDue)';
+  }
+
+  Widget _buildKindlingDatePicker(bool isDark) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'KINDLING DATE',
+          style: AppTheme.caption.copyWith(
+            fontWeight: FontWeight.bold,
+            letterSpacing: 1.2,
+            color: isDark ? AppTheme.textLight : AppTheme.textPrimary,
+          ),
+        ),
+        const SizedBox(height: 8),
+        InkWell(
+          onTap: () async {
+            final picked = await showDatePicker(
+              context: context,
+              initialDate: _dateKindling,
+              firstDate: DateTime.now().subtract(const Duration(days: 60)),
+              lastDate: DateTime.now().add(const Duration(days: 7)),
+            );
+            if (picked != null) {
+              setState(() {
+                _dateKindling = picked;
+              });
+            }
+          },
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: isDark ? AppTheme.backgroundDark : AppTheme.cardLight,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: isDark ? AppTheme.textSecondary : AppTheme.textLight,
+              ),
+              boxShadow: isDark
+                  ? []
+                  : [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.02),
+                        blurRadius: 4,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    DateFormat('MM/dd/yyyy').format(_dateKindling),
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                      color: isDark ? AppTheme.textLight : AppTheme.textPrimary,
+                    ),
+                  ),
+                ),
+                Icon(
+                  Icons.calendar_today,
+                  size: 20,
+                  color: isDark
+                      ? AppTheme.textSecondary
+                      : AppTheme.textSecondary,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildNumberInputs(bool isDark) {
+    return Row(
+      children: [
+        Expanded(
+          child: _buildNumberInput(
+            isDark: isDark,
+            label: 'TOTAL BORN',
+            value: _totalBorn,
+            onIncrement: () => setState(() => _totalBorn++),
+            onDecrement: () => setState(() {
+              if (_totalBorn > 0) _totalBorn--;
+            }),
+            onChange: (val) => setState(() => _totalBorn = val),
+          ),
+        ),
+        const SizedBox(width: 16),
+        Expanded(
+          child: _buildNumberInput(
+            isDark: isDark,
+            label: 'BORN ALIVE',
+            value: _bornAlive,
+            onIncrement: () => setState(() => _bornAlive++),
+            onDecrement: () => setState(() {
+              if (_bornAlive > 0) _bornAlive--;
+            }),
+            onChange: (val) => setState(() => _bornAlive = val),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildNumberInput({
+    required bool isDark,
+    required String label,
+    required int value,
+    required VoidCallback onIncrement,
+    required VoidCallback onDecrement,
+    required Function(int) onChange,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: AppTheme.caption.copyWith(
+            fontWeight: FontWeight.bold,
+            letterSpacing: 1.2,
+            color: isDark ? AppTheme.textLight : AppTheme.textPrimary,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Container(
+          decoration: BoxDecoration(
+            color: isDark ? AppTheme.backgroundDark : AppTheme.cardLight,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: isDark ? AppTheme.textSecondary : AppTheme.textLight,
+            ),
+            boxShadow: isDark
+                ? []
+                : [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.02),
+                      blurRadius: 4,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+          ),
+          child: Row(
+            children: [
+              IconButton(
+                onPressed: onDecrement,
+                icon: const Icon(Icons.remove, size: 20),
+                color: isDark ? AppTheme.textSecondary : AppTheme.textSecondary,
+              ),
+              Expanded(
+                child: Text(
+                  value.toString(),
+                  textAlign: TextAlign.center,
+                  style: AppTheme.titleLarge.copyWith(
+                    color: isDark ? AppTheme.textLight : AppTheme.textPrimary,
+                  ),
                 ),
               ),
-            ),
-            const SizedBox(height: 16),
-
-            // Date de mise bas réelle
-            Card(
-              child: ListTile(
-                leading: const Icon(Icons.event),
-                title: const Text('Date de mise bas'),
-                subtitle: Text(dateFormat.format(_dateMiseBasReelle)),
-                trailing: const Icon(Icons.edit),
-                onTap: () => _selectionnerDate(context),
+              IconButton(
+                onPressed: onIncrement,
+                icon: const Icon(Icons.add, size: 20),
+                color: AppTheme.primaryNeonGreen,
               ),
-            ),
-            const SizedBox(height: 16),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
 
-            // Nombre de nés
-            TextFormField(
-              controller: _nombreNesController,
-              decoration: const InputDecoration(
-                labelText: 'Nombre de lapereaux nés',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.baby_changing_station),
-              ),
-              keyboardType: TextInputType.number,
-              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Veuillez entrer le nombre de nés';
-                }
-                final nombre = int.tryParse(value);
-                if (nombre == null || nombre < 0) {
-                  return 'Veuillez entrer un nombre valide';
-                }
-                return null;
-              },
-              onChanged: (_) => _calculerMorts(),
-            ),
-            const SizedBox(height: 12),
+  Widget _buildInfoCard(bool isDark) {
+    final stillborn = _totalBorn - _bornAlive;
+    final survivalRate = _totalBorn > 0
+        ? ((_bornAlive / _totalBorn) * 100).toStringAsFixed(1)
+        : '0.0';
 
-            // Nombre de vivants
-            TextFormField(
-              controller: _nombreVivantsController,
-              decoration: const InputDecoration(
-                labelText: 'Nombre de vivants',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.favorite, color: Colors.green),
-              ),
-              keyboardType: TextInputType.number,
-              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Veuillez entrer le nombre de vivants';
-                }
-                final nombre = int.tryParse(value);
-                if (nombre == null || nombre < 0) {
-                  return 'Veuillez entrer un nombre valide';
-                }
-                return null;
-              },
-              onChanged: (_) => _calculerMorts(),
-            ),
-            const SizedBox(height: 12),
+    if (_totalBorn == 0) {
+      return const SizedBox.shrink();
+    }
 
-            // Nombre de morts
-            TextFormField(
-              controller: _nombreMortsController,
-              decoration: const InputDecoration(
-                labelText: 'Nombre de morts',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.heart_broken, color: Colors.red),
-              ),
-              keyboardType: TextInputType.number,
-              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-              readOnly: true,
-            ),
-            const SizedBox(height: 16),
-
-            // Option de création automatique des lapereaux
-            Card(
-              child: SwitchListTile(
-                title: const Text('Créer automatiquement les lapereaux'),
-                subtitle: const Text(
-                  'Crée une fiche pour chaque lapereau vivant',
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: isDark
+            ? AppTheme.textSecondary.withValues(alpha: 0.5)
+            : AppTheme.cardLight,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: isDark ? AppTheme.textSecondary : AppTheme.textLight,
+        ),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(
+            Icons.info,
+            size: 20,
+            color: isDark ? AppTheme.textSecondary : AppTheme.textSecondary,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: RichText(
+              text: TextSpan(
+                style: AppTheme.bodyMedium.copyWith(
+                  color: isDark
+                      ? AppTheme.textSecondary
+                      : AppTheme.textSecondary,
                 ),
-                value: _creerLapereaux,
-                onChanged: (value) {
-                  setState(() {
-                    _creerLapereaux = value;
-                  });
-                },
-                secondary: const Icon(Icons.auto_awesome),
+                children: [
+                  if (stillborn > 0) ...[
+                    TextSpan(
+                      text:
+                          '$stillborn kit${stillborn > 1 ? 's' : ''} stillborn',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: isDark
+                            ? AppTheme.textLight
+                            : AppTheme.textPrimary,
+                      ),
+                    ),
+                    const TextSpan(text: '. '),
+                  ],
+                  const TextSpan(
+                    text: 'The survival rate for this litter is currently ',
+                  ),
+                  TextSpan(
+                    text: '$survivalRate%',
+                    style: AppTheme.bodyMedium.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const TextSpan(text: '.'),
+                ],
               ),
             ),
-            const SizedBox(height: 16),
+          ),
+        ],
+      ),
+    );
+  }
 
-            // Notes
-            TextFormField(
-              controller: _notesController,
-              decoration: const InputDecoration(
-                labelText: 'Notes (optionnel)',
-                hintText: 'Observations sur la portée...',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.notes),
+  Widget _buildObservationsField(bool isDark) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'OBSERVATIONS',
+          style: AppTheme.caption.copyWith(
+            fontWeight: FontWeight.bold,
+            letterSpacing: 1.2,
+            color: isDark ? AppTheme.textLight : AppTheme.textPrimary,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Container(
+          decoration: BoxDecoration(
+            color: isDark ? AppTheme.backgroundDark : AppTheme.cardLight,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: isDark ? AppTheme.textSecondary : AppTheme.textLight,
+            ),
+            boxShadow: isDark
+                ? []
+                : [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.02),
+                      blurRadius: 4,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+          ),
+          child: TextFormField(
+            controller: _observationsController,
+            maxLines: 4,
+            style: TextStyle(
+              fontSize: 16,
+              color: isDark ? AppTheme.textLight : AppTheme.textPrimary,
+            ),
+            decoration: InputDecoration(
+              border: InputBorder.none,
+              contentPadding: const EdgeInsets.all(16),
+              hintText:
+                  'Note any specific characteristics, complications during birth, or kit conditions...',
+              hintStyle: TextStyle(
+                color: isDark ? AppTheme.textSecondary : AppTheme.textSecondary,
+                fontSize: 16,
               ),
-              maxLines: 3,
             ),
-            const SizedBox(height: 24),
+          ),
+        ),
+      ],
+    );
+  }
 
-            // Bouton enregistrer
-            FilledButton.icon(
-              onPressed: _enregistrerPortee,
-              icon: const Icon(Icons.save),
-              label: const Text('Enregistrer la portée'),
-              style: FilledButton.styleFrom(padding: const EdgeInsets.all(16)),
-            ),
-          ],
+  Widget _buildStickyBottomActions(bool isDark) {
+    return Container(
+      decoration: BoxDecoration(
+        color: (isDark ? AppTheme.backgroundDark : AppTheme.backgroundLight)
+            .withValues(alpha: 0.95),
+        border: Border(
+          top: BorderSide(
+            color: isDark ? AppTheme.textSecondary : AppTheme.textLight,
+          ),
+        ),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 512),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              SizedBox(
+                width: double.infinity,
+                height: 56,
+                child: ElevatedButton(
+                  onPressed: _enregistrerPortee,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppTheme.primaryNeonGreen,
+                    foregroundColor: AppTheme.textPrimary,
+                    elevation: 8,
+                    shadowColor: AppTheme.primaryNeonGreen.withValues(
+                      alpha: 0.3,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: const [
+                      Icon(Icons.save, size: 24),
+                      SizedBox(width: 8),
+                      Text('Record Litter', style: AppTheme.titleSmall),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                style: TextButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                ),
+                child: Text(
+                  'Cancel',
+                  style: AppTheme.bodyMedium.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: isDark
+                        ? AppTheme.textSecondary
+                        : AppTheme.textSecondary,
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

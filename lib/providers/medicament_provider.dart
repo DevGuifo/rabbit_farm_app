@@ -3,6 +3,7 @@ import 'package:sqflite/sqflite.dart';
 import '../models/medicament.dart';
 import '../models/utilisation_medicament.dart';
 import '../services/database_helper.dart';
+import '../utils/logger.dart';
 
 class MedicamentProvider with ChangeNotifier {
   final List<Medicament> _medicaments = [];
@@ -39,7 +40,7 @@ class MedicamentProvider with ChangeNotifier {
       _medicaments.clear();
       _medicaments.addAll(maps.map((map) => Medicament.fromMap(map)));
     } catch (e) {
-      debugPrint('Erreur lors du chargement des médicaments: $e');
+      logger.error('Erreur lors du chargement des médicaments: $e');
       rethrow;
     } finally {
       _isLoading = false;
@@ -62,7 +63,7 @@ class MedicamentProvider with ChangeNotifier {
       );
       notifyListeners();
     } catch (e) {
-      debugPrint('Erreur lors du chargement des utilisations: $e');
+      logger.error('Erreur lors du chargement des utilisations: $e');
       rethrow;
     }
   }
@@ -81,7 +82,7 @@ class MedicamentProvider with ChangeNotifier {
       _medicaments.add(nouveauMedicament);
       notifyListeners();
     } catch (e) {
-      debugPrint('Erreur lors de l\'ajout du médicament: $e');
+      logger.error('Erreur lors de l\'ajout du médicament: $e');
       rethrow;
     }
   }
@@ -103,7 +104,7 @@ class MedicamentProvider with ChangeNotifier {
         notifyListeners();
       }
     } catch (e) {
-      debugPrint('Erreur lors de la modification du médicament: $e');
+      logger.error('Erreur lors de la modification du médicament: $e');
       rethrow;
     }
   }
@@ -117,7 +118,7 @@ class MedicamentProvider with ChangeNotifier {
       _medicaments.removeWhere((m) => m.id == id);
       notifyListeners();
     } catch (e) {
-      debugPrint('Erreur lors de la suppression du médicament: $e');
+      logger.error('Erreur lors de la suppression du médicament: $e');
       rethrow;
     }
   }
@@ -149,7 +150,7 @@ class MedicamentProvider with ChangeNotifier {
       _utilisations.insert(0, utilisation.copyWith(id: id));
       notifyListeners();
     } catch (e) {
-      debugPrint('Erreur lors de l\'enregistrement de l\'utilisation: $e');
+      logger.error('Erreur lors de l\'enregistrement de l\'utilisation: $e');
       rethrow;
     }
   }
@@ -164,7 +165,7 @@ class MedicamentProvider with ChangeNotifier {
         medicament.copyWith(quantiteStock: nouveauStock),
       );
     } catch (e) {
-      debugPrint('Erreur lors du réapprovisionnement: $e');
+      logger.error('Erreur lors du réapprovisionnement: $e');
       rethrow;
     }
   }
@@ -184,7 +185,7 @@ class MedicamentProvider with ChangeNotifier {
 
       return maps.map((map) => UtilisationMedicament.fromMap(map)).toList();
     } catch (e) {
-      debugPrint('Erreur lors de la récupération de l\'historique: $e');
+      logger.error('Erreur lors de la récupération de l\'historique: $e');
       rethrow;
     }
   }
@@ -204,7 +205,7 @@ class MedicamentProvider with ChangeNotifier {
 
       return maps.map((map) => UtilisationMedicament.fromMap(map)).toList();
     } catch (e) {
-      debugPrint(
+      logger.error(
         'Erreur lors de la récupération des utilisations du lapin: $e',
       );
       rethrow;
@@ -256,7 +257,7 @@ class MedicamentProvider with ChangeNotifier {
         'plus_utilises': plusUtilises,
       };
     } catch (e) {
-      debugPrint('Erreur lors du calcul des statistiques: $e');
+      logger.error('Erreur lors du calcul des statistiques: $e');
       rethrow;
     }
   }

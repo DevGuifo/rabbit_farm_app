@@ -18,33 +18,16 @@ class AppTheme {
   static const Color accentRed = Color(0xFFE74C3C);
   static const Color accentPink = Color(0xFFFF6B9D);
 
-  // Dégradés
-  static LinearGradient cardGradient(Color accentColor) {
-    return LinearGradient(
-      begin: Alignment.topLeft,
-      end: Alignment.bottomRight,
-      colors: [Colors.white, accentColor.withOpacity(0.03)],
-    );
-  }
-
-  static LinearGradient headerGradient() {
-    return LinearGradient(
-      begin: Alignment.topLeft,
-      end: Alignment.bottomRight,
-      colors: [Colors.white, Colors.grey.shade50],
-    );
-  }
-
   // Styles de bordure
   static BoxBorder cardBorder(Color color) {
-    return Border.all(color: color.withOpacity(0.3), width: 1);
+    return Border.all(color: color.withValues(alpha: 0.3), width: 1);
   }
 
   // Ombres
   static List<BoxShadow> cardShadow(Color color) {
     return [
       BoxShadow(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         blurRadius: 8,
         offset: const Offset(0, 4),
       ),
@@ -101,7 +84,7 @@ class AppTheme {
     double borderRadius = 20,
   }) {
     return BoxDecoration(
-      gradient: cardGradient(accentColor),
+      color: Colors.white,
       borderRadius: BorderRadius.circular(borderRadius),
       border: cardBorder(accentColor),
       boxShadow: cardShadow(accentColor),
@@ -171,9 +154,9 @@ class AppTheme {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withOpacity(0.3)),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -200,15 +183,7 @@ class AppTheme {
     return Container(
       height: 1,
       margin: const EdgeInsets.symmetric(vertical: 16),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            Colors.transparent,
-            Colors.grey.shade300,
-            Colors.transparent,
-          ],
-        ),
-      ),
+      color: Colors.grey.shade300,
     );
   }
 }

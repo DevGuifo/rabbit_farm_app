@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
-import 'package:image_picker/image_picker.dart';
-import 'dart:io';
 import '../../providers/lapin_provider.dart';
-import '../../utils/dialog_helper.dart';
 import '../../models/lapin.dart';
+import '../../theme/app_theme.dart';
+import 'widgets/notes_search_bar.dart';
+import 'widgets/note_card.dart';
+import 'widgets/notes_detail_dialog.dart';
+import 'widgets/notes_add_dialog.dart';
 
 class NotesScreen extends StatefulWidget {
   const NotesScreen({super.key});
@@ -77,51 +79,21 @@ class _NotesScreenState extends State<NotesScreen>
 
         return Column(
           children: [
-            // Barre de recherche
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: TextField(
-                decoration: InputDecoration(
-                  hintText: 'Rechercher un lapin...',
-                  prefixIcon: const Icon(Icons.search),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  filled: true,
-                  fillColor: Colors.grey[100],
-                ),
-                onChanged: (value) {
-                  setState(() {
-                    _searchQuery = value;
-                  });
-                },
-              ),
-            ),
-
-            // Filtre par tag
-            Container(
-              height: 50,
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: ListView.builder(
-                scrollDirection: Axis.horizontal,
-                itemCount: _tags.length,
-                itemBuilder: (context, index) {
-                  final tag = _tags[index];
-                  final isSelected = tag == _selectedTag;
-                  return Padding(
-                    padding: const EdgeInsets.only(right: 8.0),
-                    child: FilterChip(
-                      label: Text(tag),
-                      selected: isSelected,
-                      onSelected: (selected) {
-                        setState(() {
-                          _selectedTag = tag;
-                        });
-                      },
-                    ),
-                  );
-                },
-              ),
+            // Barre de recherche + filtres (widget extrait)
+            NotesSearchBar(
+              searchQuery: _searchQuery,
+              selectedTag: _selectedTag,
+              tags: _tags,
+              onSearchChanged: (value) {
+                setState(() {
+                  _searchQuery = value;
+                });
+              },
+              onTagSelected: (tag) {
+                setState(() {
+                  _selectedTag = tag;
+                });
+              },
             ),
 
             const SizedBox(height: 8),
@@ -129,10 +101,12 @@ class _NotesScreenState extends State<NotesScreen>
             // Liste des lapins avec notes
             Expanded(
               child: lapins.isEmpty
-                  ? const Center(
+                  ? Center(
                       child: Text(
                         'Aucun lapin trouvé',
-                        style: TextStyle(fontSize: 16, color: Colors.grey),
+                        style: AppTheme.bodyLarge.copyWith(
+                          color: AppTheme.textSecondary,
+                        ),
                       ),
                     )
                   : ListView.builder(
@@ -152,24 +126,26 @@ class _NotesScreenState extends State<NotesScreen>
                           child: ExpansionTile(
                             leading: CircleAvatar(
                               backgroundColor: lapin.sexe == 'M'
-                                  ? Colors.blue[100]
-                                  : Colors.pink[100],
+                                  ? AppTheme.info.withValues(alpha: 0.2)
+                                  : AppTheme.accentPink.withValues(alpha: 0.2),
                               child: Icon(
                                 Icons.pets,
                                 color: lapin.sexe == 'M'
-                                    ? Colors.blue
-                                    : Colors.pink,
+                                    ? AppTheme.info
+                                    : AppTheme.accentPink,
                               ),
                             ),
                             title: Text(
                               '${lapin.nom} (ID: ${lapin.id})',
-                              style: const TextStyle(
+                              style: AppTheme.bodyLarge.copyWith(
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
                             subtitle: Text(
                               '${filteredNotes.length} note(s)',
-                              style: TextStyle(color: Colors.grey[600]),
+                              style: AppTheme.bodyMedium.copyWith(
+                                color: AppTheme.textSecondary,
+                              ),
                             ),
                             trailing: IconButton(
                               icon: const Icon(Icons.add_circle_outline),
@@ -177,11 +153,13 @@ class _NotesScreenState extends State<NotesScreen>
                             ),
                             children: filteredNotes.isEmpty
                                 ? [
-                                    const Padding(
+                                    Padding(
                                       padding: EdgeInsets.all(16.0),
                                       child: Text(
                                         'Aucune note pour ce lapin',
-                                        style: TextStyle(color: Colors.grey),
+                                        style: AppTheme.bodyMedium.copyWith(
+                                          color: AppTheme.textSecondary,
+                                        ),
                                       ),
                                     ),
                                   ]
@@ -226,7 +204,7 @@ class _NotesScreenState extends State<NotesScreen>
                 borderRadius: BorderRadius.circular(12),
               ),
               filled: true,
-              fillColor: Colors.grey[100],
+              fillColor: AppTheme.border,
             ),
             onChanged: (value) {
               setState(() {
@@ -267,10 +245,12 @@ class _NotesScreenState extends State<NotesScreen>
         // Notes groupées par date
         Expanded(
           child: notesParDate.isEmpty
-              ? const Center(
+              ? Center(
                   child: Text(
                     'Aucune note générale',
-                    style: TextStyle(fontSize: 16, color: Colors.grey),
+                    style: AppTheme.bodyLarge.copyWith(
+                      color: AppTheme.textSecondary,
+                    ),
                   ),
                 )
               : ListView.builder(
@@ -292,24 +272,22 @@ class _NotesScreenState extends State<NotesScreen>
                                 Icon(
                                   Icons.calendar_today,
                                   size: 20,
-                                  color: Colors.blue[700],
+                                  color: AppTheme.info,
                                 ),
                                 const SizedBox(width: 8),
                                 Text(
                                   dateKey,
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.blue[700],
+                                  style: AppTheme.titleSmall.copyWith(
+                                    color: AppTheme.info,
                                   ),
                                 ),
                               ],
                             ),
                           ),
                           const Divider(height: 1),
-                          ...notesJour
-                              .map((note) => _buildNoteItem(note, null))
-                              .toList(),
+                          ...notesJour.map(
+                            (note) => _buildNoteItem(note, null),
+                          ),
                         ],
                       ),
                     );
@@ -321,122 +299,43 @@ class _NotesScreenState extends State<NotesScreen>
   }
 
   Widget _buildNoteItem(NoteObservation note, Lapin? lapin) {
-    return Dismissible(
-      key: Key(note.id),
-      background: Container(
-        color: Colors.red,
-        alignment: Alignment.centerRight,
-        padding: const EdgeInsets.only(right: 16),
-        child: const Icon(Icons.delete, color: Colors.white),
-      ),
-      direction: DismissDirection.endToStart,
-      onDismissed: (direction) {
+    return NoteCard(
+      note: note,
+      onTap: () => _afficherDetailNote(note, lapin),
+      onDelete: () {
         _supprimerNote(note);
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(const SnackBar(content: Text('Note supprimée')));
       },
-      child: InkWell(
-        onTap: () => _afficherDetailNote(note, lapin),
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: Wrap(
-                      spacing: 4,
-                      runSpacing: 4,
-                      children: note.tags.map((tag) {
-                        return Chip(
-                          label: Text(
-                            tag,
-                            style: const TextStyle(fontSize: 11),
-                          ),
-                          backgroundColor: _getTagColor(tag),
-                          padding: const EdgeInsets.all(4),
-                          materialTapTargetSize:
-                              MaterialTapTargetSize.shrinkWrap,
-                        );
-                      }).toList(),
-                    ),
-                  ),
-                  Text(
-                    DateFormat('HH:mm', 'fr_FR').format(note.date),
-                    style: TextStyle(color: Colors.grey[600], fontSize: 12),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              Text(
-                note.titre,
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 15,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                note.contenu,
-                maxLines: 3,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(color: Colors.grey[700]),
-              ),
-              if (note.photos.isNotEmpty) ...[
-                const SizedBox(height: 8),
-                Row(
-                  children: [
-                    Icon(
-                      Icons.photo_library,
-                      size: 16,
-                      color: Colors.grey[600],
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      '${note.photos.length} photo(s)',
-                      style: TextStyle(color: Colors.grey[600], fontSize: 12),
-                    ),
-                  ],
-                ),
-              ],
-            ],
-          ),
-        ),
-      ),
     );
-  }
-
-  Color _getTagColor(String tag) {
-    switch (tag) {
-      case 'Santé':
-        return Colors.red[100]!;
-      case 'Comportement':
-        return Colors.orange[100]!;
-      case 'Reproduction':
-        return Colors.pink[100]!;
-      case 'Alimentation':
-        return Colors.green[100]!;
-      case 'Génétique':
-        return Colors.purple[100]!;
-      case 'Administratif':
-        return Colors.blue[100]!;
-      default:
-        return Colors.grey[200]!;
-    }
   }
 
   void _ajouterNote({Lapin? lapin}) {
     showDialog(
       context: context,
-      builder: (context) => _DialogueAjoutNote(
+      builder: (context) => NotesAddDialog(
         lapin: lapin,
-        onSave: (note) {
-          setState(() {
-            _notesSimulees.add(note);
-          });
-        },
+        onSave:
+            ({
+              required String titre,
+              required String contenu,
+              required List<String> tags,
+              required List<String> photos,
+            }) {
+              final note = NoteObservation(
+                id: DateTime.now().millisecondsSinceEpoch.toString(),
+                titre: titre,
+                contenu: contenu,
+                date: DateTime.now(),
+                tags: tags,
+                lapinId: lapin?.id,
+                photos: photos,
+              );
+              setState(() {
+                _notesSimulees.add(note);
+              });
+            },
       ),
     );
   }
@@ -444,8 +343,12 @@ class _NotesScreenState extends State<NotesScreen>
   void _afficherDetailNote(NoteObservation note, Lapin? lapin) {
     showDialog(
       context: context,
-      builder: (context) => _DialogueDetailNote(
-        note: note,
+      builder: (context) => NotesDetailDialog(
+        titre: note.titre,
+        contenu: note.contenu,
+        date: note.date,
+        tags: note.tags,
+        photos: note.photos,
         lapin: lapin,
         onEdit: () {
           Navigator.pop(context);
@@ -462,17 +365,35 @@ class _NotesScreenState extends State<NotesScreen>
   void _modifierNote(NoteObservation note, Lapin? lapin) {
     showDialog(
       context: context,
-      builder: (context) => _DialogueAjoutNote(
+      builder: (context) => NotesAddDialog(
         lapin: lapin,
-        noteExistante: note,
-        onSave: (noteModifiee) {
-          setState(() {
-            final index = _notesSimulees.indexWhere((n) => n.id == note.id);
-            if (index != -1) {
-              _notesSimulees[index] = noteModifiee;
-            }
-          });
-        },
+        initialTitre: note.titre,
+        initialContenu: note.contenu,
+        initialTags: note.tags,
+        initialPhotos: note.photos,
+        onSave:
+            ({
+              required String titre,
+              required String contenu,
+              required List<String> tags,
+              required List<String> photos,
+            }) {
+              final noteModifiee = NoteObservation(
+                id: note.id,
+                titre: titre,
+                contenu: contenu,
+                date: note.date,
+                tags: tags,
+                lapinId: lapin?.id,
+                photos: photos,
+              );
+              setState(() {
+                final index = _notesSimulees.indexWhere((n) => n.id == note.id);
+                if (index != -1) {
+                  _notesSimulees[index] = noteModifiee;
+                }
+              });
+            },
       ),
     );
   }
@@ -548,574 +469,6 @@ class NoteObservation {
   });
 }
 
-class _DialogueAjoutNote extends StatefulWidget {
-  final Lapin? lapin;
-  final NoteObservation? noteExistante;
-  final Function(NoteObservation) onSave;
+// Dialog d'ajout/modification remplacé par NotesAddDialog (widget public extrait)
 
-  const _DialogueAjoutNote({
-    this.lapin,
-    this.noteExistante,
-    required this.onSave,
-  });
-
-  @override
-  State<_DialogueAjoutNote> createState() => _DialogueAjoutNoteState();
-}
-
-class _DialogueAjoutNoteState extends State<_DialogueAjoutNote> {
-  late TextEditingController _titreController;
-  late TextEditingController _contenuController;
-  final List<String> _tagsSelectionnes = [];
-  final List<String> _photos = [];
-  final ImagePicker _picker = ImagePicker();
-
-  final List<String> _tagsDisponibles = [
-    'Santé',
-    'Comportement',
-    'Reproduction',
-    'Alimentation',
-    'Génétique',
-    'Administratif',
-    'Autre',
-  ];
-
-  @override
-  void initState() {
-    super.initState();
-    _titreController = TextEditingController(
-      text: widget.noteExistante?.titre ?? '',
-    );
-    _contenuController = TextEditingController(
-      text: widget.noteExistante?.contenu ?? '',
-    );
-    if (widget.noteExistante != null) {
-      _tagsSelectionnes.addAll(widget.noteExistante!.tags);
-      _photos.addAll(widget.noteExistante!.photos);
-    }
-  }
-
-  @override
-  void dispose() {
-    _titreController.dispose();
-    _contenuController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Dialog(
-      child: Container(
-        constraints: const BoxConstraints(maxWidth: 500, maxHeight: 600),
-        child: Column(
-          children: [
-            // En-tête
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.blue[700],
-                borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(4),
-                ),
-              ),
-              child: Row(
-                children: [
-                  const Icon(Icons.note_add, color: Colors.white),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      widget.noteExistante == null
-                          ? 'Nouvelle note'
-                          : 'Modifier la note',
-                      style: const TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.close, color: Colors.white),
-                    onPressed: () => Navigator.pop(context),
-                  ),
-                ],
-              ),
-            ),
-
-            // Contenu
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Lapin concerné
-                    if (widget.lapin != null) ...[
-                      Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: Colors.blue[50],
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Row(
-                          children: [
-                            Icon(Icons.pets, color: Colors.blue[700]),
-                            const SizedBox(width: 8),
-                            Text(
-                              '${widget.lapin!.nom} (ID: ${widget.lapin!.id})',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: Colors.blue[700],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                    ],
-
-                    // Titre
-                    TextField(
-                      controller: _titreController,
-                      decoration: const InputDecoration(
-                        labelText: 'Titre',
-                        border: OutlineInputBorder(),
-                        prefixIcon: Icon(Icons.title),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-
-                    // Contenu
-                    TextField(
-                      controller: _contenuController,
-                      maxLines: 6,
-                      decoration: const InputDecoration(
-                        labelText: 'Observation',
-                        border: OutlineInputBorder(),
-                        alignLabelWithHint: true,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-
-                    // Tags
-                    const Text(
-                      'Catégories',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: _tagsDisponibles.map((tag) {
-                        final isSelected = _tagsSelectionnes.contains(tag);
-                        return FilterChip(
-                          label: Text(tag),
-                          selected: isSelected,
-                          onSelected: (selected) {
-                            setState(() {
-                              if (selected) {
-                                _tagsSelectionnes.add(tag);
-                              } else {
-                                _tagsSelectionnes.remove(tag);
-                              }
-                            });
-                          },
-                        );
-                      }).toList(),
-                    ),
-                    const SizedBox(height: 16),
-
-                    // Photos
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text(
-                          'Photos',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
-                          ),
-                        ),
-                        ElevatedButton.icon(
-                          onPressed: _ajouterPhoto,
-                          icon: const Icon(Icons.add_a_photo, size: 18),
-                          label: const Text('Ajouter'),
-                          style: ElevatedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 8,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    if (_photos.isEmpty)
-                      Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          border: Border.all(color: Colors.grey[300]!),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: const Center(
-                          child: Text(
-                            'Aucune photo ajoutée',
-                            style: TextStyle(color: Colors.grey),
-                          ),
-                        ),
-                      )
-                    else
-                      SizedBox(
-                        height: 100,
-                        child: ListView.builder(
-                          scrollDirection: Axis.horizontal,
-                          itemCount: _photos.length,
-                          itemBuilder: (context, index) {
-                            return Stack(
-                              children: [
-                                Container(
-                                  width: 100,
-                                  height: 100,
-                                  margin: const EdgeInsets.only(right: 8),
-                                  decoration: BoxDecoration(
-                                    border: Border.all(
-                                      color: Colors.grey[300]!,
-                                    ),
-                                    borderRadius: BorderRadius.circular(8),
-                                    image: DecorationImage(
-                                      image: FileImage(File(_photos[index])),
-                                      fit: BoxFit.cover,
-                                    ),
-                                  ),
-                                ),
-                                Positioned(
-                                  top: 4,
-                                  right: 12,
-                                  child: GestureDetector(
-                                    onTap: () {
-                                      setState(() {
-                                        _photos.removeAt(index);
-                                      });
-                                    },
-                                    child: Container(
-                                      padding: const EdgeInsets.all(4),
-                                      decoration: const BoxDecoration(
-                                        color: Colors.red,
-                                        shape: BoxShape.circle,
-                                      ),
-                                      child: const Icon(
-                                        Icons.close,
-                                        size: 16,
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            );
-                          },
-                        ),
-                      ),
-                  ],
-                ),
-              ),
-            ),
-
-            // Actions
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                border: Border(top: BorderSide(color: Colors.grey[300]!)),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  TextButton(
-                    onPressed: () => Navigator.pop(context),
-                    child: const Text('Annuler'),
-                  ),
-                  const SizedBox(width: 8),
-                  ElevatedButton(
-                    onPressed: _sauvegarder,
-                    child: const Text('Enregistrer'),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Future<void> _ajouterPhoto() async {
-    final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
-    if (image != null) {
-      setState(() {
-        _photos.add(image.path);
-      });
-    }
-  }
-
-  void _sauvegarder() {
-    if (_titreController.text.isEmpty) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Veuillez saisir un titre')));
-      return;
-    }
-
-    if (_contenuController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Veuillez saisir une observation')),
-      );
-      return;
-    }
-
-    final note = NoteObservation(
-      id:
-          widget.noteExistante?.id ??
-          DateTime.now().millisecondsSinceEpoch.toString(),
-      titre: _titreController.text,
-      contenu: _contenuController.text,
-      date: widget.noteExistante?.date ?? DateTime.now(),
-      tags: _tagsSelectionnes,
-      lapinId: widget.lapin?.id,
-      photos: _photos,
-    );
-
-    widget.onSave(note);
-    Navigator.pop(context);
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(const SnackBar(content: Text('Note enregistrée')));
-  }
-}
-
-class _DialogueDetailNote extends StatelessWidget {
-  final NoteObservation note;
-  final Lapin? lapin;
-  final VoidCallback onEdit;
-  final VoidCallback onDelete;
-
-  const _DialogueDetailNote({
-    required this.note,
-    this.lapin,
-    required this.onEdit,
-    required this.onDelete,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Dialog(
-      child: Container(
-        constraints: const BoxConstraints(maxWidth: 500, maxHeight: 600),
-        child: Column(
-          children: [
-            // En-tête
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.blue[700],
-                borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(4),
-                ),
-              ),
-              child: Row(
-                children: [
-                  const Icon(Icons.description, color: Colors.white),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      note.titre,
-                      style: const TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.edit, color: Colors.white),
-                    onPressed: onEdit,
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.delete, color: Colors.white),
-                    onPressed: () async {
-                      final confirm = await DialogHelper.showConfirmation(
-                        context: context,
-                        title: 'Confirmer la suppression',
-                        message: 'Voulez-vous vraiment supprimer cette note ?',
-                        isDangerous: true,
-                      );
-
-                      if (confirm == true && context.mounted) {
-                        onDelete();
-                      }
-                    },
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.close, color: Colors.white),
-                    onPressed: () => Navigator.pop(context),
-                  ),
-                ],
-              ),
-            ),
-
-            // Contenu
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Lapin
-                    if (lapin != null) ...[
-                      Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: Colors.blue[50],
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Row(
-                          children: [
-                            Icon(Icons.pets, color: Colors.blue[700]),
-                            const SizedBox(width: 8),
-                            Text(
-                              '${lapin!.nom} (ID: ${lapin!.id})',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: Colors.blue[700],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                    ],
-
-                    // Date
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.calendar_today,
-                          size: 16,
-                          color: Colors.grey[600],
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          DateFormat(
-                            'dd MMMM yyyy à HH:mm',
-                            'fr_FR',
-                          ).format(note.date),
-                          style: TextStyle(color: Colors.grey[600]),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-
-                    // Tags
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: note.tags.map((tag) {
-                        return Chip(
-                          label: Text(tag),
-                          backgroundColor: _getTagColor(tag),
-                        );
-                      }).toList(),
-                    ),
-                    const SizedBox(height: 16),
-
-                    // Contenu
-                    const Text(
-                      'Observation',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      note.contenu,
-                      style: const TextStyle(fontSize: 15, height: 1.5),
-                    ),
-                    const SizedBox(height: 16),
-
-                    // Photos
-                    if (note.photos.isNotEmpty) ...[
-                      const Text(
-                        'Photos',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      GridView.builder(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        gridDelegate:
-                            const SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: 3,
-                              crossAxisSpacing: 8,
-                              mainAxisSpacing: 8,
-                            ),
-                        itemCount: note.photos.length,
-                        itemBuilder: (context, index) {
-                          return GestureDetector(
-                            onTap: () {
-                              // Afficher la photo en plein écran
-                              showDialog(
-                                context: context,
-                                builder: (context) => Dialog(
-                                  child: Image.file(File(note.photos[index])),
-                                ),
-                              );
-                            },
-                            child: Container(
-                              decoration: BoxDecoration(
-                                border: Border.all(color: Colors.grey[300]!),
-                                borderRadius: BorderRadius.circular(8),
-                                image: DecorationImage(
-                                  image: FileImage(File(note.photos[index])),
-                                  fit: BoxFit.cover,
-                                ),
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Color _getTagColor(String tag) {
-    switch (tag) {
-      case 'Santé':
-        return Colors.red[100]!;
-      case 'Comportement':
-        return Colors.orange[100]!;
-      case 'Reproduction':
-        return Colors.pink[100]!;
-      case 'Alimentation':
-        return Colors.green[100]!;
-      case 'Génétique':
-        return Colors.purple[100]!;
-      case 'Administratif':
-        return Colors.blue[100]!;
-      default:
-        return Colors.grey[200]!;
-    }
-  }
-}
+// Dialog de détail remplacé par NotesDetailDialog (widget public extrait)

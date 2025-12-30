@@ -4,6 +4,7 @@ import '../../models/protocole_soin.dart';
 import '../../providers/protocole_soin_provider.dart';
 import '../../utils/dialog_helper.dart';
 import '../../utils/snackbar_helper.dart';
+import '../../theme/app_theme.dart';
 
 /// Écran de gestion des protocoles de soin
 class ProtocolesScreen extends StatefulWidget {
@@ -168,13 +169,11 @@ class _ProtocolesScreenState extends State<ProtocolesScreen> {
         const SizedBox(height: 4),
         Text(
           value,
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
+          style: AppTheme.titleLarge.copyWith(
             color: color,
           ),
         ),
-        Text(label, style: const TextStyle(fontSize: 12, color: Colors.grey)),
+        Text(label, style: AppTheme.caption.copyWith(color: Colors.grey)),
       ],
     );
   }
@@ -209,12 +208,12 @@ class _ProtocolesScreenState extends State<ProtocolesScreen> {
       margin: const EdgeInsets.only(bottom: 12),
       child: ListTile(
         leading: CircleAvatar(
-          backgroundColor: typeColor.withOpacity(0.2),
+          backgroundColor: typeColor.withValues(alpha: 0.2),
           child: Icon(typeIcon, color: typeColor),
         ),
         title: Text(
           protocole.nom,
-          style: TextStyle(
+          style: AppTheme.bodyLarge.copyWith(
             fontWeight: FontWeight.bold,
             decoration: protocole.actif ? null : TextDecoration.lineThrough,
           ),
@@ -234,20 +233,20 @@ class _ProtocolesScreenState extends State<ProtocolesScreen> {
               children: [
                 Chip(
                   label: Text(protocole.type),
-                  backgroundColor: typeColor.withOpacity(0.1),
-                  labelStyle: TextStyle(fontSize: 11, color: typeColor),
+                  backgroundColor: typeColor.withValues(alpha: 0.1),
+                  labelStyle: AppTheme.caption.copyWith(fontSize: 11, color: typeColor),
                   visualDensity: VisualDensity.compact,
                 ),
                 Chip(
                   label: Text(protocole.frequence),
                   visualDensity: VisualDensity.compact,
-                  labelStyle: const TextStyle(fontSize: 11),
+                  labelStyle: AppTheme.bodyMedium.copyWith(fontSize: 11),
                 ),
                 if (protocole.coutEstime != null)
                   Chip(
                     label: Text('${protocole.coutEstime!.toStringAsFixed(0)}€'),
                     visualDensity: VisualDensity.compact,
-                    labelStyle: const TextStyle(fontSize: 11),
+                    labelStyle: AppTheme.bodyMedium.copyWith(fontSize: 11),
                   ),
               ],
             ),
@@ -326,7 +325,7 @@ class _ProtocolesScreenState extends State<ProtocolesScreen> {
                   ),
                   const SizedBox(height: 16),
                   DropdownButtonFormField<String>(
-                    value: selectedType,
+                    initialValue:  selectedType,
                     decoration: const InputDecoration(
                       labelText: 'Type *',
                       border: OutlineInputBorder(),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/palpation.dart';
 import '../services/database_helper.dart';
+import '../utils/logger.dart';
 
 /// Provider pour gérer les palpations
 class PalpationProvider with ChangeNotifier {
@@ -20,7 +21,7 @@ class PalpationProvider with ChangeNotifier {
       final maps = await db.query('palpations', orderBy: 'date_palpation DESC');
       _palpations = maps.map((map) => Palpation.fromMap(map)).toList();
     } catch (e) {
-      debugPrint('❌ Erreur lors du chargement des palpations: $e');
+      logger.error('❌ Erreur lors du chargement des palpations: $e');
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -36,7 +37,7 @@ class PalpationProvider with ChangeNotifier {
       _palpations.insert(0, nouvellePalpation);
       notifyListeners();
     } catch (e) {
-      debugPrint('❌ Erreur lors de l\'ajout de la palpation: $e');
+      logger.error('❌ Erreur lors de l\'ajout de la palpation: $e');
       rethrow;
     }
   }
@@ -58,7 +59,7 @@ class PalpationProvider with ChangeNotifier {
         notifyListeners();
       }
     } catch (e) {
-      debugPrint('❌ Erreur lors de la modification de la palpation: $e');
+      logger.error('❌ Erreur lors de la modification de la palpation: $e');
       rethrow;
     }
   }
@@ -71,7 +72,7 @@ class PalpationProvider with ChangeNotifier {
       _palpations.removeWhere((p) => p.id == id);
       notifyListeners();
     } catch (e) {
-      debugPrint('❌ Erreur lors de la suppression de la palpation: $e');
+      logger.error('❌ Erreur lors de la suppression de la palpation: $e');
       rethrow;
     }
   }

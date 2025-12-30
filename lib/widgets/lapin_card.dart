@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import '../models/lapin.dart';
 import 'animations.dart';
+import 'package:rabbit_farm_app/theme/app_theme.dart';
 
 /// Widget de carte pour afficher un lapin
 class LapinCard extends StatelessWidget {
@@ -18,8 +19,8 @@ class LapinCard extends StatelessWidget {
   /// Obtenir la couleur selon le sexe
   Color _getCouleurSexe(BuildContext context) {
     return lapin.sexe.toLowerCase() == 'mâle'
-        ? Colors.blue
-        : Colors.pink.shade300;
+        ? AppTheme.info
+        : AppTheme.accentPink;
   }
 
   @override

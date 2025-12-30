@@ -6,6 +6,7 @@ import '../../providers/lapin_provider.dart';
 import '../../providers/reproduction_provider.dart';
 import '../../utils/dialog_helper.dart';
 import '../../models/reforme.dart';
+import '../../theme/app_theme.dart';
 
 class ReformeScreen extends StatefulWidget {
   const ReformeScreen({super.key});
@@ -30,7 +31,7 @@ class _ReformeScreenState extends State<ReformeScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Réforme'),
-        backgroundColor: const Color(0xFF607D8B),
+        backgroundColor: AppTheme.textSecondary,
         foregroundColor: Colors.white,
         actions: [
           PopupMenuButton<String>(
@@ -125,7 +126,7 @@ class _ReformeScreenState extends State<ReformeScreen> {
                               _filtreMotif == 'tous'
                                   ? 'Aucune réforme'
                                   : 'Aucune réforme pour motif $_filtreMotif',
-                              style: const TextStyle(
+                              style: AppTheme.bodyMedium.copyWith(
                                 fontSize: 18,
                                 color: Colors.grey,
                               ),
@@ -162,7 +163,7 @@ class _ReformeScreenState extends State<ReformeScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _showAjouterReformeDialog(context),
-        backgroundColor: const Color(0xFF607D8B),
+        backgroundColor: AppTheme.textSecondary,
         child: const Icon(Icons.add),
       ),
     );
@@ -178,15 +179,8 @@ class _ReformeScreenState extends State<ReformeScreen> {
       children: [
         Icon(icon, color: color, size: 28),
         const SizedBox(height: 4),
-        Text(
-          value,
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: color,
-          ),
-        ),
-        Text(label, style: TextStyle(fontSize: 12, color: Colors.grey[600])),
+        Text(value, style: AppTheme.titleLarge.copyWith(color: color)),
+        Text(label, style: AppTheme.caption.copyWith(color: Colors.grey[600])),
       ],
     );
   }
@@ -225,7 +219,7 @@ class _ReformeScreenState extends State<ReformeScreen> {
         ),
         title: Text(
           nomLapin,
-          style: const TextStyle(fontWeight: FontWeight.bold),
+          style: AppTheme.bodyLarge.copyWith(fontWeight: FontWeight.bold),
         ),
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -233,7 +227,7 @@ class _ReformeScreenState extends State<ReformeScreen> {
             const SizedBox(height: 4),
             Text(
               '${_getMotifLabel(reforme.motif)} • ${dateFormat.format(reforme.dateReforme)}',
-              style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+              style: AppTheme.caption.copyWith(color: Colors.grey[600]),
             ),
             const SizedBox(height: 4),
             Row(
@@ -242,8 +236,7 @@ class _ReformeScreenState extends State<ReformeScreen> {
                 const SizedBox(width: 4),
                 Text(
                   _getDestinationLabel(reforme.destination),
-                  style: TextStyle(
-                    fontSize: 12,
+                  style: AppTheme.caption.copyWith(
                     fontWeight: FontWeight.w600,
                     color: Colors.blueGrey[700],
                   ),
@@ -252,8 +245,7 @@ class _ReformeScreenState extends State<ReformeScreen> {
                   const SizedBox(width: 8),
                   Text(
                     '${reforme.prixVente!.toStringAsFixed(2)} €',
-                    style: const TextStyle(
-                      fontSize: 12,
+                    style: AppTheme.caption.copyWith(
                       fontWeight: FontWeight.bold,
                       color: Colors.green,
                     ),
@@ -291,9 +283,7 @@ class _ReformeScreenState extends State<ReformeScreen> {
                             const SizedBox(width: 8),
                             Text(
                               'Bilan de carrière',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
+                              style: AppTheme.titleSmall.copyWith(
                                 color: Colors.blue[900],
                               ),
                             ),
@@ -315,8 +305,7 @@ class _ReformeScreenState extends State<ReformeScreen> {
                                 ),
                                 Text(
                                   'Portées',
-                                  style: TextStyle(
-                                    fontSize: 12,
+                                  style: AppTheme.caption.copyWith(
                                     color: Colors.grey[600],
                                   ),
                                 ),
@@ -334,8 +323,7 @@ class _ReformeScreenState extends State<ReformeScreen> {
                                 ),
                                 Text(
                                   'Lapereaux nés',
-                                  style: TextStyle(
-                                    fontSize: 12,
+                                  style: AppTheme.caption.copyWith(
                                     color: Colors.grey[600],
                                   ),
                                 ),
@@ -355,8 +343,7 @@ class _ReformeScreenState extends State<ReformeScreen> {
                                   ),
                                   Text(
                                     'Moy./portée',
-                                    style: TextStyle(
-                                      fontSize: 12,
+                                    style: AppTheme.caption.copyWith(
                                       color: Colors.grey[600],
                                     ),
                                   ),
@@ -411,7 +398,10 @@ class _ReformeScreenState extends State<ReformeScreen> {
             ),
           ),
           Expanded(
-            child: Text(value, style: const TextStyle(color: Colors.black87)),
+            child: Text(
+              value,
+              style: AppTheme.bodyMedium.copyWith(color: Colors.black87),
+            ),
           ),
         ],
       ),
@@ -502,7 +492,7 @@ class _ReformeScreenState extends State<ReformeScreen> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 DropdownButtonFormField<int>(
-                  value: lapinSelectionne,
+                  initialValue: lapinSelectionne,
                   decoration: const InputDecoration(
                     labelText: 'Lapin *',
                     border: OutlineInputBorder(),
@@ -518,7 +508,7 @@ class _ReformeScreenState extends State<ReformeScreen> {
                 ),
                 const SizedBox(height: 12),
                 DropdownButtonFormField<String>(
-                  value: motif,
+                  initialValue: motif,
                   decoration: const InputDecoration(
                     labelText: 'Motif',
                     border: OutlineInputBorder(),
@@ -544,7 +534,7 @@ class _ReformeScreenState extends State<ReformeScreen> {
                 ),
                 const SizedBox(height: 12),
                 DropdownButtonFormField<String>(
-                  value: destination,
+                  initialValue: destination,
                   decoration: const InputDecoration(
                     labelText: 'Destination',
                     border: OutlineInputBorder(),
@@ -621,7 +611,7 @@ class _ReformeScreenState extends State<ReformeScreen> {
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF607D8B),
+                backgroundColor: AppTheme.textSecondary,
               ),
               onPressed: () {
                 if (lapinSelectionne == null) {

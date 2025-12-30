@@ -6,6 +6,7 @@ import '../../providers/lapin_provider.dart';
 import '../../providers/sante_provider.dart';
 import '../../models/lapin.dart';
 import '../../models/pesee.dart';
+import '../../theme/app_theme.dart';
 
 /// Écran d'affichage des courbes de croissance
 class CourbesCroissanceScreen extends StatefulWidget {
@@ -56,7 +57,11 @@ class _CourbesCroissanceScreenState extends State<CourbesCroissanceScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.show_chart, size: 80, color: Colors.grey[400]),
+          Icon(
+            Icons.show_chart,
+            size: 80,
+            color: AppTheme.textSecondary.withValues(alpha: 0.6),
+          ),
           const SizedBox(height: 16),
           Text(
             'Aucun lapin disponible',
@@ -67,7 +72,7 @@ class _CourbesCroissanceScreenState extends State<CourbesCroissanceScreen> {
             'Ajoutez des lapins pour voir leurs courbes',
             style: Theme.of(
               context,
-            ).textTheme.bodyMedium?.copyWith(color: Colors.grey[600]),
+            ).textTheme.bodyMedium?.copyWith(color: AppTheme.textSecondary),
           ),
         ],
       ),
@@ -77,7 +82,7 @@ class _CourbesCroissanceScreenState extends State<CourbesCroissanceScreen> {
   Widget _buildSelectionLapin(LapinProvider provider) {
     return Container(
       padding: const EdgeInsets.all(16),
-      color: Colors.blue[50],
+      color: AppTheme.info.withValues(alpha: 0.1),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -89,10 +94,10 @@ class _CourbesCroissanceScreenState extends State<CourbesCroissanceScreen> {
           ),
           const SizedBox(height: 8),
           DropdownButtonFormField<Lapin>(
-            value: _lapinSelectionne,
+            initialValue: _lapinSelectionne,
             decoration: const InputDecoration(
               filled: true,
-              fillColor: Colors.white,
+              fillColor: AppTheme.cardLight,
               border: OutlineInputBorder(),
               prefixIcon: Icon(Icons.pets),
             ),
@@ -147,9 +152,9 @@ class _CourbesCroissanceScreenState extends State<CourbesCroissanceScreen> {
       onSelected: (selected) {
         setState(() => _periodeSelectionnee = value);
       },
-      selectedColor: Colors.blue[300],
-      labelStyle: TextStyle(
-        color: isSelected ? Colors.white : Colors.black87,
+      selectedColor: AppTheme.info.withValues(alpha: 0.6),
+      labelStyle: AppTheme.bodyMedium.copyWith(
+        color: isSelected ? AppTheme.textLight : AppTheme.textPrimary,
         fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
       ),
     );
@@ -167,7 +172,11 @@ class _CourbesCroissanceScreenState extends State<CourbesCroissanceScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.scale_outlined, size: 60, color: Colors.grey[400]),
+            Icon(
+              Icons.scale_outlined,
+              size: 60,
+              color: AppTheme.textSecondary.withValues(alpha: 0.6),
+            ),
             const SizedBox(height: 16),
             Text(
               'Aucune pesée enregistrée',
@@ -176,7 +185,9 @@ class _CourbesCroissanceScreenState extends State<CourbesCroissanceScreen> {
             const SizedBox(height: 8),
             Text(
               'Ajoutez des pesées pour voir la courbe',
-              style: TextStyle(color: Colors.grey[600]),
+              style: AppTheme.bodyMedium.copyWith(
+                color: AppTheme.textSecondary,
+              ),
             ),
           ],
         ),
@@ -208,18 +219,18 @@ class _CourbesCroissanceScreenState extends State<CourbesCroissanceScreen> {
       margin: const EdgeInsets.all(16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.blue[50],
+        color: AppTheme.info.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.blue[200] ?? Colors.blue),
+        border: Border.all(color: AppTheme.info.withValues(alpha: 0.4)),
       ),
       child: Row(
         children: [
           CircleAvatar(
             radius: 30,
-            backgroundColor: Colors.blue[100],
+            backgroundColor: AppTheme.info.withValues(alpha: 0.2),
             child: Text(
               lapin.nom[0].toUpperCase(),
-              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              style: AppTheme.titleLarge.copyWith(fontSize: 24),
             ),
           ),
           const SizedBox(width: 16),
@@ -227,13 +238,7 @@ class _CourbesCroissanceScreenState extends State<CourbesCroissanceScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  lapin.nom,
-                  style: const TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
+                Text(lapin.nom, style: AppTheme.titleLarge),
                 const SizedBox(height: 4),
                 Text('Race: ${lapin.race}'),
                 Text('Âge: $age'),
@@ -272,10 +277,16 @@ class _CourbesCroissanceScreenState extends State<CourbesCroissanceScreen> {
             horizontalInterval: 500,
             verticalInterval: 1,
             getDrawingHorizontalLine: (value) {
-              return FlLine(color: Colors.grey[300]!, strokeWidth: 1);
+              return FlLine(
+                color: AppTheme.textSecondary.withValues(alpha: 0.3),
+                strokeWidth: 1,
+              );
             },
             getDrawingVerticalLine: (value) {
-              return FlLine(color: Colors.grey[300]!, strokeWidth: 1);
+              return FlLine(
+                color: AppTheme.textSecondary.withValues(alpha: 0.3),
+                strokeWidth: 1,
+              );
             },
           ),
           titlesData: FlTitlesData(
@@ -298,8 +309,7 @@ class _CourbesCroissanceScreenState extends State<CourbesCroissanceScreen> {
                     padding: const EdgeInsets.only(top: 8),
                     child: Text(
                       DateFormat('dd/MM').format(pesee.date),
-                      style: const TextStyle(
-                        fontSize: 10,
+                      style: AppTheme.caption.copyWith(
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -314,8 +324,7 @@ class _CourbesCroissanceScreenState extends State<CourbesCroissanceScreen> {
                 getTitlesWidget: (value, meta) {
                   return Text(
                     '${value.toInt()}g',
-                    style: const TextStyle(
-                      fontSize: 10,
+                    style: AppTheme.caption.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
                   );
@@ -325,7 +334,9 @@ class _CourbesCroissanceScreenState extends State<CourbesCroissanceScreen> {
           ),
           borderData: FlBorderData(
             show: true,
-            border: Border.all(color: Colors.grey[300]!),
+            border: Border.all(
+              color: AppTheme.textSecondary.withValues(alpha: 0.3),
+            ),
           ),
           minX: 0,
           maxX: (pesees.length - 1).toDouble(),
@@ -335,7 +346,7 @@ class _CourbesCroissanceScreenState extends State<CourbesCroissanceScreen> {
             LineChartBarData(
               spots: spots,
               isCurved: true,
-              color: Colors.blue,
+              color: AppTheme.info,
               barWidth: 3,
               isStrokeCapRound: true,
               dotData: FlDotData(
@@ -343,15 +354,15 @@ class _CourbesCroissanceScreenState extends State<CourbesCroissanceScreen> {
                 getDotPainter: (spot, percent, barData, index) {
                   return FlDotCirclePainter(
                     radius: 4,
-                    color: Colors.blue,
+                    color: AppTheme.info,
                     strokeWidth: 2,
-                    strokeColor: Colors.white,
+                    strokeColor: AppTheme.textLight,
                   );
                 },
               ),
               belowBarData: BarAreaData(
                 show: true,
-                color: Colors.blue.withOpacity(0.1),
+                color: AppTheme.info.withValues(alpha: 0.1),
               ),
             ),
           ],
@@ -362,8 +373,8 @@ class _CourbesCroissanceScreenState extends State<CourbesCroissanceScreen> {
                   final pesee = pesees[spot.x.toInt()];
                   return LineTooltipItem(
                     '${pesee.poids.toStringAsFixed(0)}g\n${DateFormat('dd/MM/yyyy').format(pesee.date)}',
-                    const TextStyle(
-                      color: Colors.white,
+                    AppTheme.bodyMedium.copyWith(
+                      color: AppTheme.textLight,
                       fontWeight: FontWeight.bold,
                     ),
                   );
@@ -413,7 +424,7 @@ class _CourbesCroissanceScreenState extends State<CourbesCroissanceScreen> {
                   'Nombre de pesées',
                   pesees.length.toString(),
                   Icons.scale,
-                  Colors.blue,
+                  AppTheme.info,
                 ),
               ),
               const SizedBox(width: 12),
@@ -422,7 +433,7 @@ class _CourbesCroissanceScreenState extends State<CourbesCroissanceScreen> {
                   'Poids moyen',
                   '${poidsMoyen.toStringAsFixed(0)}g',
                   Icons.trending_flat,
-                  Colors.orange,
+                  AppTheme.warning,
                 ),
               ),
             ],
@@ -435,7 +446,7 @@ class _CourbesCroissanceScreenState extends State<CourbesCroissanceScreen> {
                   'Poids min',
                   '${poidsMin.toStringAsFixed(0)}g',
                   Icons.arrow_downward,
-                  Colors.red,
+                  AppTheme.error,
                 ),
               ),
               const SizedBox(width: 12),
@@ -444,7 +455,7 @@ class _CourbesCroissanceScreenState extends State<CourbesCroissanceScreen> {
                   'Poids max',
                   '${poidsMax.toStringAsFixed(0)}g',
                   Icons.arrow_upward,
-                  Colors.green,
+                  AppTheme.success,
                 ),
               ),
             ],
@@ -457,7 +468,7 @@ class _CourbesCroissanceScreenState extends State<CourbesCroissanceScreen> {
                   'Gain total',
                   '${gainTotal.toStringAsFixed(0)}g',
                   Icons.trending_up,
-                  Colors.purple,
+                  AppTheme.success,
                 ),
               ),
               const SizedBox(width: 12),
@@ -468,7 +479,7 @@ class _CourbesCroissanceScreenState extends State<CourbesCroissanceScreen> {
                       ? '${gainQuotidien.toStringAsFixed(1)}g'
                       : 'N/A',
                   Icons.calendar_today,
-                  Colors.teal,
+                  AppTheme.info,
                 ),
               ),
             ],
@@ -487,9 +498,9 @@ class _CourbesCroissanceScreenState extends State<CourbesCroissanceScreen> {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: color.withOpacity(0.3)),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -501,20 +512,15 @@ class _CourbesCroissanceScreenState extends State<CourbesCroissanceScreen> {
               Expanded(
                 child: Text(
                   label,
-                  style: TextStyle(fontSize: 12, color: Colors.grey[700]),
+                  style: AppTheme.caption.copyWith(
+                    color: AppTheme.textSecondary,
+                  ),
                 ),
               ),
             ],
           ),
           const SizedBox(height: 8),
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: color,
-            ),
-          ),
+          Text(value, style: AppTheme.titleMedium.copyWith(color: color)),
         ],
       ),
     );
@@ -538,8 +544,8 @@ class _CourbesCroissanceScreenState extends State<CourbesCroissanceScreen> {
               margin: const EdgeInsets.only(bottom: 8),
               child: ListTile(
                 leading: CircleAvatar(
-                  backgroundColor: Colors.blue[100],
-                  child: const Icon(Icons.scale, color: Colors.blue),
+                  backgroundColor: AppTheme.info.withValues(alpha: 0.2),
+                  child: const Icon(Icons.scale, color: AppTheme.info),
                 ),
                 title: Text('${pesee.poids.toStringAsFixed(0)}g'),
                 subtitle: Text(
@@ -547,7 +553,7 @@ class _CourbesCroissanceScreenState extends State<CourbesCroissanceScreen> {
                 ),
                 trailing: pesee.notes != null
                     ? IconButton(
-                        icon: const Icon(Icons.note, color: Colors.orange),
+                        icon: const Icon(Icons.note, color: AppTheme.warning),
                         onPressed: () {
                           _afficherNote(pesee.notes!);
                         },

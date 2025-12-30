@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../models/aliment.dart';
 import '../../providers/alimentation_provider.dart';
+import '../../theme/app_theme.dart';
 
 /// Écran pour ajouter un nouvel aliment
 class AjouterAlimentScreen extends StatefulWidget {
@@ -102,9 +103,9 @@ class _AjouterAlimentScreenState extends State<AjouterAlimentScreen> {
 
       if (result != null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Aliment ajouté avec succès'),
-            backgroundColor: Colors.green,
+          SnackBar(
+            content: const Text('Aliment ajouté avec succès'),
+            backgroundColor: AppTheme.success,
           ),
         );
         Navigator.pop(context, true);
@@ -114,7 +115,7 @@ class _AjouterAlimentScreenState extends State<AjouterAlimentScreen> {
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erreur: $e'), backgroundColor: Colors.red),
+        SnackBar(content: Text('Erreur: $e'), backgroundColor: AppTheme.error),
       );
     } finally {
       if (mounted) {
@@ -134,7 +135,7 @@ class _AjouterAlimentScreenState extends State<AjouterAlimentScreen> {
         title: const Text('Ajouter un aliment'),
         backgroundColor: theme.colorScheme.surface,
       ),
-      backgroundColor: theme.colorScheme.background,
+      backgroundColor: theme.colorScheme.surface,
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Form(
@@ -160,7 +161,7 @@ class _AjouterAlimentScreenState extends State<AjouterAlimentScreen> {
 
               // Type
               DropdownButtonFormField<String>(
-                value: _type,
+                initialValue: _type,
                 decoration: const InputDecoration(
                   labelText: 'Type *',
                   border: OutlineInputBorder(),
@@ -304,27 +305,24 @@ class _AjouterAlimentScreenState extends State<AjouterAlimentScreen> {
                 child: ElevatedButton(
                   onPressed: _isSubmitting ? null : _ajouterAliment,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF4CAF50),
-                    foregroundColor: Colors.white,
+                    backgroundColor: AppTheme.primaryGreen,
+                    foregroundColor: AppTheme.textLight,
                     padding: const EdgeInsets.symmetric(vertical: 16),
                   ),
                   child: _isSubmitting
-                      ? const SizedBox(
+                      ? SizedBox(
                           height: 20,
                           width: 20,
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
                             valueColor: AlwaysStoppedAnimation<Color>(
-                              Colors.white,
+                              AppTheme.textLight,
                             ),
                           ),
                         )
                       : const Text(
                           'Ajouter l\'aliment',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
+                          style: AppTheme.titleSmall,
                         ),
                 ),
               ),

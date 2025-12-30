@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:sqflite/sqflite.dart';
 import '../models/quarantaine.dart';
 import '../services/database_helper.dart';
+import '../utils/logger.dart';
 
 class QuarantaineProvider with ChangeNotifier {
   final List<Quarantaine> _quarantaines = [];
@@ -29,7 +30,7 @@ class QuarantaineProvider with ChangeNotifier {
       _quarantaines.clear();
       _quarantaines.addAll(maps.map((map) => Quarantaine.fromMap(map)));
     } catch (e) {
-      debugPrint('Erreur lors du chargement des quarantaines: $e');
+      logger.error('Erreur lors du chargement des quarantaines: $e');
       rethrow;
     } finally {
       _isLoading = false;
@@ -51,7 +52,7 @@ class QuarantaineProvider with ChangeNotifier {
       _quarantaines.insert(0, nouvelleQuarantaine);
       notifyListeners();
     } catch (e) {
-      debugPrint('Erreur lors de l\'ajout de la quarantaine: $e');
+      logger.error('Erreur lors de l\'ajout de la quarantaine: $e');
       rethrow;
     }
   }
@@ -73,7 +74,7 @@ class QuarantaineProvider with ChangeNotifier {
         notifyListeners();
       }
     } catch (e) {
-      debugPrint('Erreur lors de la modification de la quarantaine: $e');
+      logger.error('Erreur lors de la modification de la quarantaine: $e');
       rethrow;
     }
   }
@@ -91,7 +92,7 @@ class QuarantaineProvider with ChangeNotifier {
 
       await modifierQuarantaine(quarantaineTerminee);
     } catch (e) {
-      debugPrint('Erreur lors de la terminaison de la quarantaine: $e');
+      logger.error('Erreur lors de la terminaison de la quarantaine: $e');
       rethrow;
     }
   }
@@ -105,7 +106,7 @@ class QuarantaineProvider with ChangeNotifier {
       _quarantaines.removeWhere((q) => q.id == id);
       notifyListeners();
     } catch (e) {
-      debugPrint('Erreur lors de la suppression de la quarantaine: $e');
+      logger.error('Erreur lors de la suppression de la quarantaine: $e');
       rethrow;
     }
   }
@@ -123,7 +124,7 @@ class QuarantaineProvider with ChangeNotifier {
 
       return maps.map((map) => Quarantaine.fromMap(map)).toList();
     } catch (e) {
-      debugPrint(
+      logger.error(
         'Erreur lors de la récupération des quarantaines du lapin: $e',
       );
       rethrow;
@@ -143,7 +144,7 @@ class QuarantaineProvider with ChangeNotifier {
 
       return maps.isNotEmpty;
     } catch (e) {
-      debugPrint('Erreur lors de la vérification de la quarantaine: $e');
+      logger.error('Erreur lors de la vérification de la quarantaine: $e');
       return false;
     }
   }
@@ -171,7 +172,7 @@ class QuarantaineProvider with ChangeNotifier {
 
       await chargerQuarantaines();
     } catch (e) {
-      debugPrint('Erreur lors de la levée de quarantaine: $e');
+      logger.error('Erreur lors de la levée de quarantaine: $e');
       rethrow;
     }
   }
@@ -211,7 +212,7 @@ class QuarantaineProvider with ChangeNotifier {
         'repartition_statut': repartitionStatut,
       };
     } catch (e) {
-      debugPrint('Erreur lors du calcul des statistiques: $e');
+      logger.error('Erreur lors du calcul des statistiques: $e');
       rethrow;
     }
   }

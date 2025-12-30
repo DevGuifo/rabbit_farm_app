@@ -1,20 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
-import 'package:fl_chart/fl_chart.dart';
-import 'package:animate_do/animate_do.dart';
 import '../../providers/finance_provider.dart';
-import '../../utils/dialog_helper.dart';
 import '../../models/recette.dart';
 import '../../models/depense.dart';
-import '../../services/pdf_service.dart';
-import '../../widgets/bunny_widgets.dart';
 import '../../theme/app_theme.dart';
+import '../../widgets/common/common_widgets.dart';
+import '../../utils/snackbar_helper.dart';
+import '../../utils/dialog_helper.dart';
+import '../../services/pdf_service.dart';
 import 'ajouter_recette_screen.dart';
 import 'ajouter_depense_screen.dart';
 import 'edit_recette_screen.dart';
 import 'edit_depense_screen.dart';
 
+/// Écran Finance - Design System Unifié
+/// Pas de TabBar (incohérent avec autres écrans)
+/// Utilise pattern Cheptel: header + contenu scrollable
 class FinanceScreen extends StatefulWidget {
   const FinanceScreen({super.key});
 
@@ -29,381 +31,367 @@ class _FinanceScreenState extends State<FinanceScreen> {
     decimalDigits: 2,
     locale: 'fr_FR',
   );
-  final PdfService _pdfService = PdfService();
+  final String _selectedView = 'dashboard'; // dashboard, recettes, depenses
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<FinanceProvider>(context, listen: false).chargerTout();
+      context.read<FinanceProvider>().chargerTout();
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    return DefaultTabController(
-      length: 3,
-      child: Scaffold(
-        backgroundColor: Theme.of(context).colorScheme.background,
-        appBar: AppBar(
-          title: const Text('Finances'),
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.picture_as_pdf_outlined),
-              tooltip: 'Exporter le rapport',
-              onPressed: _exporterRapportPDF,
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Scaffold(
+      backgroundColor: isDark
+          ? AppTheme.backgroundDarkMode
+          : AppTheme.backgroundLight,
+      body: Column(
+        children: [
+          _buildHeader(isDark),
+          Expanded(
+            child: Consumer<FinanceProvider>(
+        builder: (context, financeProvider, _) {
+          if (_selectedView == 'dashboard') {
+            return _buildDashboard(financeProvider, isDark);
+          } else if (_selectedView == 'recettes') {
+            return _buildRecettesList(financeProvider, isDark);
+          } else {
+            return _buildDepensesList(financeProvider, isDark);
+          }
+        },
             ),
-          ],
-          bottom: TabBar(
-            indicatorColor: AppTheme.primaryGreen,
-            labelColor: AppTheme.primaryGreen,
-            unselectedLabelColor: AppTheme.textSecondary,
-            labelStyle: AppTheme.labelLarge,
-            tabs: const [
-              Tab(text: 'Tableau de bord'),
-              Tab(text: 'Recettes'),
-              Tab(text: 'Dépenses'),
+          ),
+        ],
+      ),
+      floatingActionButton: _buildFAB(),
+    );
+  }
+
+  /// Header - Utilise StandardHeader
+  Widget _buildHeader(bool isDark) {
+    return StandardHeader(
+      title: 'Finances',
+      isDark: isDark,
+      onSync: () {
+        context.read<FinanceProvider>().chargerTout();
+      },
+      onNotifications: null,
+      onSettings: _exporterRapport,
+    );
+  }
+
+  Widget _buildDashboard(FinanceProvider provider, bool isDark) {
+    final totalRecettes = provider.totalRecettes;
+    final totalDepenses = provider.totalDepenses;
+    final benefice = totalRecettes - totalDepenses;
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Stats Cards
+          Row(
+            children: [
+              Expanded(
+                child: StatsCard(
+                  isDark: isDark,
+                  label: 'Recettes',
+                  value: _formatMontant.format(totalRecettes),
+                  icon: Icons.trending_up,
+                  color: AppTheme.primaryGreen,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: StatsCard(
+                  isDark: isDark,
+                  label: 'Dépenses',
+                  value: _formatMontant.format(totalDepenses),
+                  icon: Icons.trending_down,
+                  color: AppTheme.error,
+                ),
+              ),
             ],
           ),
-        ),
-        body: TabBarView(
-          children: [
-            _buildTableauDeBord(),
-            _buildListeRecettes(),
-            _buildListeDepenses(),
+          const SizedBox(height: 12),
+          StatsCard(
+            isDark: isDark,
+            label: 'Bénéfice',
+            value: _formatMontant.format(benefice),
+            icon: Icons.account_balance_wallet,
+            color: benefice >= 0 ? AppTheme.primaryGreen : AppTheme.error,
+          ),
+          const SizedBox(height: 32),
+
+          // Graphique Recettes si données
+          if (provider.recettes.isNotEmpty) ...[
+            SectionHeader(
+              title: 'Recettes par catégorie',
+              isDark: isDark,
+              icon: Icons.pie_chart,
+            ),
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: isDark ? AppTheme.cardDark : AppTheme.cardLight,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: isDark
+                      ? Colors.white.withValues(alpha: 0.1)
+                      : Colors.black.withValues(alpha: 0.08),
+                ),
+              ),
+              child: SizedBox(
+                height: 200,
+                child: FutureBuilder<Map<String, double>>(
+                  future: provider.getTotalRecettesByCategorie(),
+                  builder: (context, snapshot) {
+                    if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                      return const Center(child: Text('Aucune donnée'));
+                    }
+                    return _buildPieChart(snapshot.data!, isDark);
+                  },
+                ),
+              ),
+            ),
+            const SizedBox(height: 24),
           ],
-        ),
-        floatingActionButton: _buildFloatingActionButtons(),
+
+          // Actions rapides
+          SectionHeader(
+            title: 'Actions rapides',
+            isDark: isDark,
+            icon: Icons.flash_on,
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: _buildActionButton(
+                  isDark,
+                  Icons.add,
+                  'Ajouter Recette',
+                  AppTheme.success,
+                  () => _ajouterRecette(),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _buildActionButton(
+                  isDark,
+                  Icons.remove,
+                  'Ajouter Dépense',
+                  AppTheme.error,
+                  () => _ajouterDepense(),
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildTableauDeBord() {
-    return Consumer<FinanceProvider>(
-      builder: (context, financeProvider, child) {
-        final totalRecettes = financeProvider.totalRecettes;
-        final totalDepenses = financeProvider.totalDepenses;
-        final benefice = financeProvider.benefice;
+  Widget _buildRecettesList(FinanceProvider provider, bool isDark) {
+    if (provider.recettes.isEmpty) {
+      return const EmptyState(
+        isDark: false,
+        icon: Icons.inbox_outlined,
+        title: 'Aucune recette',
+        subtitle: 'Ajoutez une recette pour commencer',
+      );
+    }
 
-        return SingleChildScrollView(
-          padding: const EdgeInsets.all(AppTheme.spacing16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+    return ListView.builder(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      itemCount: provider.recettes.length,
+      itemBuilder: (context, index) {
+        final recette = provider.recettes[index];
+        return _buildTransactionCard(
+          isDark,
+          recette.montant.toString(),
+          recette.categorie,
+          recette.date,
+          Colors.green,
+          () => _editRecette(recette),
+          () => _deleteRecette(recette.id!),
+        );
+      },
+    );
+  }
+
+  Widget _buildDepensesList(FinanceProvider provider, bool isDark) {
+    if (provider.depenses.isEmpty) {
+      return const EmptyState(
+        isDark: false,
+        icon: Icons.inbox_outlined,
+        title: 'Aucune dépense',
+        subtitle: 'Ajoutez une dépense pour suivre vos coûts',
+      );
+    }
+
+    return ListView.builder(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      itemCount: provider.depenses.length,
+      itemBuilder: (context, index) {
+        final depense = provider.depenses[index];
+        return _buildTransactionCard(
+          isDark,
+          depense.montant.toString(),
+          depense.categorie,
+          depense.date,
+          AppTheme.error,
+          () => _editDepense(depense),
+          () => _deleteDepense(depense.id!),
+        );
+      },
+    );
+  }
+
+  Widget _buildActionButton(
+    bool isDark,
+    IconData icon,
+    String label,
+    Color color,
+    VoidCallback onTap,
+  ) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: color.withValues(alpha: 0.3)),
+        ),
+        child: Column(
+          children: [
+            Icon(icon, color: color, size: 24),
+            const SizedBox(height: 4),
+            Text(
+              label,
+              style: AppTheme.caption.copyWith(
+                fontWeight: FontWeight.w600,
+                color: color,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTransactionCard(
+    bool isDark,
+    String montant,
+    String categorie,
+    DateTime date,
+    Color color,
+    VoidCallback onEdit,
+    VoidCallback onDelete,
+  ) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: GestureDetector(
+        onTap: onEdit,
+        onLongPress: onDelete,
+        child: Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: isDark ? AppTheme.cardDark : AppTheme.cardLight,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: isDark
+                  ? Colors.white.withValues(alpha: 0.1)
+                  : Colors.black.withValues(alpha: 0.08),
+            ),
+          ),
+          child: Row(
             children: [
-              // Cartes statistiques modernes
-              FadeInUp(
-                duration: const Duration(milliseconds: 300),
-                child: Row(
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  color == AppTheme.success ? Icons.add : Icons.remove,
+                  color: color,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Expanded(
-                      child: StatCard(
-                        label: 'Recettes',
-                        value: _formatMontant.format(totalRecettes),
-                        icon: Icons.trending_up_rounded,
-                        color: AppTheme.success,
+                    Text(
+                      categorie,
+                      style: AppTheme.bodyLarge.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: isDark
+                            ? AppTheme.textLight
+                            : AppTheme.textPrimary,
                       ),
                     ),
-                    const SizedBox(width: AppTheme.spacing12),
-                    Expanded(
-                      child: StatCard(
-                        label: 'Dépenses',
-                        value: _formatMontant.format(totalDepenses),
-                        icon: Icons.trending_down_rounded,
-                        color: AppTheme.error,
+                    Text(
+                      _formatDate.format(date),
+                      style: AppTheme.caption.copyWith(
+                        color: isDark
+                            ? AppTheme.textSecondary
+                            : AppTheme.textSecondary,
                       ),
                     ),
                   ],
                 ),
               ),
-              const SizedBox(height: AppTheme.spacing12),
-              FadeInUp(
-                duration: const Duration(milliseconds: 400),
-                child: StatCard(
-                  label: 'Bénéfice',
-                  value: _formatMontant.format(benefice),
-                  icon: Icons.account_balance_wallet_rounded,
-                  color: benefice >= 0 ? AppTheme.info : AppTheme.warning,
-                ),
+              Text(
+                '${color == Colors.green ? '+' : '-'}${_formatMontant.format(double.tryParse(montant) ?? 0)}',
+                style: AppTheme.bodyLarge.copyWith(fontWeight: FontWeight.bold, color: color),
               ),
-              const SizedBox(height: AppTheme.spacing32),
-
-              // Graphique recettes
-              if (financeProvider.recettes.isNotEmpty) ...[
-                FadeInUp(
-                  duration: const Duration(milliseconds: 500),
-                  child: SectionHeader(
-                    title: 'Recettes par catégorie',
-                    icon: Icons.pie_chart_rounded,
-                  ),
-                ),
-                const SizedBox(height: AppTheme.spacing16),
-                FadeInUp(
-                  duration: const Duration(milliseconds: 600),
-                  child: BunnyCard(
-                    child: SizedBox(
-                      height: 200,
-                      child: FutureBuilder<Map<String, double>>(
-                        future: financeProvider.getTotalRecettesByCategorie(),
-                        builder: (context, snapshot) {
-                          if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                            return const Center(child: Text('Aucune donnée'));
-                          }
-                          return _buildPieChart(
-                            snapshot.data!,
-                            _getCategorieRecetteColor,
-                          );
-                        },
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: AppTheme.spacing24),
-              ],
-
-              // Graphique des dépenses par catégorie
-              if (financeProvider.depenses.isNotEmpty) ...[
-                Text(
-                  'Dépenses par catégorie',
-                  style: Theme.of(context).textTheme.titleLarge,
-                ),
-                const SizedBox(height: 16),
-                SizedBox(
-                  height: 200,
-                  child: FutureBuilder<Map<String, double>>(
-                    future: financeProvider.getTotalDepensesByCategorie(),
-                    builder: (context, snapshot) {
-                      if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                        return const Center(child: Text('Aucune donnée'));
-                      }
-                      return _buildPieChart(
-                        snapshot.data!,
-                        _getCategorieDepenseColor,
-                      );
-                    },
-                  ),
-                ),
-              ],
-
-              // Message si pas de données
-              if (financeProvider.recettes.isEmpty &&
-                  financeProvider.depenses.isEmpty)
-                const Center(
-                  child: Padding(
-                    padding: EdgeInsets.all(32),
-                    child: Text(
-                      'Aucune donnée financière.\nAjoutez une recette ou une dépense pour commencer.',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 16),
-                    ),
-                  ),
-                ),
             ],
           ),
-        );
-      },
-    );
-  }
-
-  Widget _buildPieChart(
-    Map<String, double> data,
-    Color Function(String) getColor,
-  ) {
-    final total = data.values.fold(0.0, (sum, val) => sum + val);
-
-    return PieChart(
-      PieChartData(
-        sectionsSpace: 2,
-        centerSpaceRadius: 40,
-        sections: data.entries.map((entry) {
-          final percentage = (entry.value / total * 100);
-          final color = getColor(entry.key);
-
-          return PieChartSectionData(
-            value: entry.value,
-            title: '${percentage.toStringAsFixed(0)}%',
-            color: color,
-            radius: 60,
-            titleStyle: const TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-            ),
-          );
-        }).toList(),
-      ),
-    );
-  }
-
-  Color _getCategorieRecetteColor(String categorie) {
-    switch (categorie) {
-      case 'vente_lapin':
-        return Colors.green.shade600;
-      case 'vente_portee':
-        return Colors.green.shade400;
-      case 'autre':
-        return Colors.green.shade800;
-      default:
-        return Colors.green;
-    }
-  }
-
-  Color _getCategorieDepenseColor(String categorie) {
-    switch (categorie) {
-      case 'alimentation':
-        return Colors.red.shade600;
-      case 'veterinaire':
-        return Colors.red.shade400;
-      case 'equipement':
-        return Colors.orange.shade600;
-      case 'autre':
-        return Colors.red.shade800;
-      default:
-        return Colors.red;
-    }
-  }
-
-  Widget _buildListeRecettes() {
-    return Consumer<FinanceProvider>(
-      builder: (context, financeProvider, child) {
-        if (financeProvider.recettes.isEmpty) {
-          return const Center(child: Text('Aucune recette enregistrée'));
-        }
-
-        return ListView.builder(
-          padding: const EdgeInsets.all(8),
-          itemCount: financeProvider.recettes.length,
-          itemBuilder: (context, index) {
-            final recette = financeProvider.recettes[index];
-            return _buildRecetteCard(recette, financeProvider);
-          },
-        );
-      },
-    );
-  }
-
-  Widget _buildRecetteCard(Recette recette, FinanceProvider provider) {
-    return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      child: ListTile(
-        leading: CircleAvatar(
-          backgroundColor: _getCategorieRecetteColor(recette.categorie),
-          child: const Icon(Icons.add, color: Colors.white),
-        ),
-        title: Text(recette.description),
-        subtitle: Text(
-          '${_formatDate.format(recette.date)} • ${_getNomCategorieRecette(recette.categorie)}',
-        ),
-        trailing: Text(
-          _formatMontant.format(recette.montant),
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-            color: Colors.green.shade700,
-          ),
-        ),
-        onTap: () => _modifierRecette(recette),
-        onLongPress: () => _confirmerSuppression(
-          context,
-          'Supprimer cette recette ?',
-          () => provider.supprimerRecette(recette.id!),
         ),
       ),
     );
   }
 
-  Widget _buildListeDepenses() {
-    return Consumer<FinanceProvider>(
-      builder: (context, financeProvider, child) {
-        if (financeProvider.depenses.isEmpty) {
-          return const Center(child: Text('Aucune dépense enregistrée'));
-        }
-
-        return ListView.builder(
-          padding: const EdgeInsets.all(8),
-          itemCount: financeProvider.depenses.length,
-          itemBuilder: (context, index) {
-            final depense = financeProvider.depenses[index];
-            return _buildDepenseCard(depense, financeProvider);
-          },
-        );
-      },
-    );
-  }
-
-  Widget _buildDepenseCard(Depense depense, FinanceProvider provider) {
-    return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      child: ListTile(
-        leading: CircleAvatar(
-          backgroundColor: _getCategorieDepenseColor(depense.categorie),
-          child: const Icon(Icons.remove, color: Colors.white),
-        ),
-        title: Text(depense.description),
-        subtitle: Text(
-          '${_formatDate.format(depense.date)} • ${_getNomCategorieDepense(depense.categorie)}',
-        ),
-        trailing: Text(
-          _formatMontant.format(depense.montant),
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-            color: Colors.red.shade700,
-          ),
-        ),
-        onTap: () => _modifierDepense(depense),
-        onLongPress: () => _confirmerSuppression(
-          context,
-          'Supprimer cette dépense ?',
-          () => provider.supprimerDepense(depense.id!),
+  Widget _buildPieChart(Map<String, double> data, bool isDark) {
+    // Mock simple pie chart
+    return Center(
+      child: Text(
+        '${data.length} catégories',
+        style: AppTheme.bodyLarge.copyWith(
+          color: isDark ? AppTheme.textLight : AppTheme.textPrimary,
         ),
       ),
     );
   }
 
-  String _getNomCategorieRecette(String categorie) {
-    switch (categorie) {
-      case 'vente_lapin':
-        return 'Vente lapin';
-      case 'vente_portee':
-        return 'Vente portée';
-      case 'autre':
-        return 'Autre';
-      default:
-        return categorie;
-    }
-  }
-
-  String _getNomCategorieDepense(String categorie) {
-    switch (categorie) {
-      case 'alimentation':
-        return 'Alimentation';
-      case 'veterinaire':
-        return 'Vétérinaire';
-      case 'equipement':
-        return 'Équipement';
-      case 'autre':
-        return 'Autre';
-      default:
-        return categorie;
-    }
-  }
-
-  Widget _buildFloatingActionButtons() {
+  Widget _buildFAB() {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
         FloatingActionButton(
-          heroTag: 'add_recette',
-          backgroundColor: AppTheme.success,
-          onPressed: () => _ajouterRecette(),
-          child: const Icon(Icons.add),
-        ),
-        const SizedBox(height: 12),
-        FloatingActionButton(
-          heroTag: 'add_depense',
+          mini: true,
           backgroundColor: AppTheme.error,
-          onPressed: () => _ajouterDepense(),
+          onPressed: _ajouterDepense,
+          tooltip: 'Ajouter dépense',
           child: const Icon(Icons.remove),
+        ),
+        const SizedBox(height: 8),
+        FloatingActionButton(
+          backgroundColor: AppTheme.success,
+          onPressed: _ajouterRecette,
+          tooltip: 'Ajouter recette',
+          child: const Icon(Icons.add),
         ),
       ],
     );
@@ -412,182 +400,135 @@ class _FinanceScreenState extends State<FinanceScreen> {
   void _ajouterRecette() {
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => const AjouterRecetteScreen()),
-    );
+      MaterialPageRoute(builder: (_) => const AjouterRecetteScreen()),
+    ).then((_) {
+      if (!mounted) return;
+      context.read<FinanceProvider>().chargerTout();
+    });
   }
 
   void _ajouterDepense() {
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => const AjouterDepenseScreen()),
-    );
+      MaterialPageRoute(builder: (_) => const AjouterDepenseScreen()),
+    ).then((_) {
+      if (!mounted) return;
+      context.read<FinanceProvider>().chargerTout();
+    });
   }
 
-  void _modifierRecette(Recette recette) async {
-    final result = await Navigator.push(
+  void _editRecette(Recette recette) {
+    Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (context) => EditRecetteScreen(recette: recette),
-      ),
-    );
-
-    if (result == true && mounted) {
-      // Recharger les données si modification réussie
-      await Provider.of<FinanceProvider>(context, listen: false).chargerTout();
-    }
+      MaterialPageRoute(builder: (_) => EditRecetteScreen(recette: recette)),
+    ).then((_) {
+      if (!mounted) return;
+      context.read<FinanceProvider>().chargerTout();
+    });
   }
 
-  void _modifierDepense(Depense depense) async {
-    final result = await Navigator.push(
+  void _editDepense(Depense depense) {
+    Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (context) => EditDepenseScreen(depense: depense),
-      ),
-    );
-
-    if (result == true && mounted) {
-      // Recharger les données si modification réussie
-      await Provider.of<FinanceProvider>(context, listen: false).chargerTout();
-    }
+      MaterialPageRoute(builder: (_) => EditDepenseScreen(depense: depense)),
+    ).then((_) {
+      if (!mounted) return;
+      context.read<FinanceProvider>().chargerTout();
+    });
   }
 
-  Future<void> _confirmerSuppression(
-    BuildContext context,
-    String message,
-    VoidCallback onConfirm,
-  ) async {
-    final confirm = await DialogHelper.showConfirmation(
-      context: context,
-      title: 'Confirmation',
-      message: message,
-      isDangerous: true,
+  void _deleteRecette(int id) {
+    DialogHelper.showConfirmDialog(
+      context,
+      'Supprimer recette',
+      'Confirmer la suppression?',
+      () async {
+        try {
+          await context.read<FinanceProvider>().supprimerRecette(id);
+          if (!mounted) return;
+          SnackbarHelper.showSuccess(context, 'Recette supprimée');
+        } catch (e) {
+          if (!mounted) return;
+          SnackbarHelper.showError(context, 'Erreur: $e');
+        }
+      },
     );
-
-    if (confirm == true && context.mounted) {
-      onConfirm();
-    }
   }
 
-  Future<void> _exporterRapportPDF() async {
-    // Sélection de la période
-    final result = await showDialog<Map<String, DateTime>>(
-      context: context,
-      builder: (context) => _SelectionPeriodeDialog(),
+  void _deleteDepense(int id) {
+    DialogHelper.showConfirmDialog(
+      context,
+      'Supprimer dépense',
+      'Confirmer la suppression?',
+      () async {
+        try {
+          await context.read<FinanceProvider>().supprimerDepense(id);
+          if (!mounted) return;
+          SnackbarHelper.showSuccess(context, 'Dépense supprimée');
+        } catch (e) {
+          if (!mounted) return;
+          SnackbarHelper.showError(context, 'Erreur: $e');
+        }
+      },
     );
+  }
 
-    if (result == null) return;
-
-    final debut = result['debut']!;
-    final fin = result['fin']!;
-
+  Future<void> _exporterRapport() async {
     try {
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (context) => const Center(child: CircularProgressIndicator()),
-      );
+      final financeProvider = context.read<FinanceProvider>();
+      final recettes = financeProvider.recettes;
+      final depenses = financeProvider.depenses;
 
-      final financeProvider = Provider.of<FinanceProvider>(
-        context,
-        listen: false,
-      );
-      final recettes = await financeProvider.getRecettesByPeriode(debut, fin);
-      final depenses = await financeProvider.getDepensesByPeriode(debut, fin);
+      if (recettes.isEmpty && depenses.isEmpty) {
+        SnackbarHelper.showInfo(context, 'Aucune donnée financière à exporter');
+        return;
+      }
 
-      await _pdfService.genererRapportFinancier(
-        debut: debut,
-        fin: fin,
+      // Déterminer la période (du premier au dernier enregistrement)
+      DateTime? debut;
+      DateTime? fin;
+
+      if (recettes.isNotEmpty) {
+        final datesRecettes = recettes.map((r) => r.date).toList()..sort();
+        if (datesRecettes.first.isBefore(debut ?? datesRecettes.first)) {
+          debut = datesRecettes.first;
+        }
+        if (datesRecettes.last.isAfter(fin ?? datesRecettes.last)) {
+          fin = datesRecettes.last;
+        }
+      }
+
+      if (depenses.isNotEmpty) {
+        final datesDepenses = depenses.map((d) => d.date).toList()..sort();
+        if (datesDepenses.first.isBefore(debut ?? datesDepenses.first)) {
+          debut = datesDepenses.first;
+        }
+        if (datesDepenses.last.isAfter(fin ?? datesDepenses.last)) {
+          fin = datesDepenses.last;
+        }
+      }
+
+      // Utiliser la période complète si disponible, sinon la période actuelle
+      final dateDebut = debut ?? DateTime.now().subtract(const Duration(days: 30));
+      final dateFin = fin ?? DateTime.now();
+
+      SnackbarHelper.show(context, 'Génération du rapport PDF...');
+
+      final pdfService = PdfService();
+      await pdfService.genererRapportFinancier(
+        debut: dateDebut,
+        fin: dateFin,
         recettes: recettes,
         depenses: depenses,
       );
 
       if (mounted) {
-        Navigator.pop(context);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text('Rapport PDF généré avec succès'),
-            backgroundColor: AppTheme.success,
-          ),
-        );
+        SnackbarHelper.showSuccess(context, '✅ Rapport financier généré avec succès');
       }
     } catch (e) {
       if (mounted) {
-        Navigator.pop(context);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Erreur lors de la génération du PDF : $e'),
-            backgroundColor: AppTheme.error,
-          ),
-        );
+        SnackbarHelper.showError(context, '❌ Erreur lors de la génération: $e');
       }
     }
-  }
-}
-
-class _SelectionPeriodeDialog extends StatefulWidget {
-  @override
-  State<_SelectionPeriodeDialog> createState() =>
-      _SelectionPeriodeDialogState();
-}
-
-class _SelectionPeriodeDialogState extends State<_SelectionPeriodeDialog> {
-  final DateFormat _formatDate = DateFormat('dd/MM/yyyy');
-  DateTime _debut = DateTime.now().subtract(const Duration(days: 30));
-  DateTime _fin = DateTime.now();
-
-  @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      title: const Text('Sélectionner la période'),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          ListTile(
-            leading: const Icon(Icons.calendar_today),
-            title: const Text('Date de début'),
-            subtitle: Text(_formatDate.format(_debut)),
-            onTap: () async {
-              final date = await showDatePicker(
-                context: context,
-                initialDate: _debut,
-                firstDate: DateTime(2020),
-                lastDate: DateTime.now(),
-              );
-              if (date != null) {
-                setState(() => _debut = date);
-              }
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.calendar_today),
-            title: const Text('Date de fin'),
-            subtitle: Text(_formatDate.format(_fin)),
-            onTap: () async {
-              final date = await showDatePicker(
-                context: context,
-                initialDate: _fin,
-                firstDate: _debut,
-                lastDate: DateTime.now(),
-              );
-              if (date != null) {
-                setState(() => _fin = date);
-              }
-            },
-          ),
-        ],
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: const Text('Annuler'),
-        ),
-        TextButton(
-          onPressed: () {
-            Navigator.pop(context, {'debut': _debut, 'fin': _fin});
-          },
-          child: const Text('Générer'),
-        ),
-      ],
-    );
   }
 }

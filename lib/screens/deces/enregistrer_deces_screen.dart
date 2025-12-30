@@ -4,6 +4,7 @@ import '../../models/deces.dart';
 import '../../models/lapin.dart';
 import '../../providers/deces_provider.dart';
 import '../../providers/lapin_provider.dart';
+import '../../theme/app_theme.dart';
 
 /// Écran pour enregistrer un décès
 class EnregistrerDecesScreen extends StatefulWidget {
@@ -95,7 +96,7 @@ class _EnregistrerDecesScreenState extends State<EnregistrerDecesScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Décès de ${widget.lapin.nom} enregistré'),
-            backgroundColor: Colors.green,
+            backgroundColor: AppTheme.success,
           ),
         );
         Navigator.pop(context, true);
@@ -105,7 +106,7 @@ class _EnregistrerDecesScreenState extends State<EnregistrerDecesScreen> {
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erreur: $e'), backgroundColor: Colors.red),
+        SnackBar(content: Text('Erreur: $e'), backgroundColor: AppTheme.error),
       );
     } finally {
       if (mounted) {
@@ -125,7 +126,7 @@ class _EnregistrerDecesScreenState extends State<EnregistrerDecesScreen> {
         title: const Text('Enregistrer un décès'),
         backgroundColor: theme.colorScheme.surface,
       ),
-      backgroundColor: theme.colorScheme.background,
+      backgroundColor: theme.colorScheme.surface,
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Form(
@@ -142,15 +143,9 @@ class _EnregistrerDecesScreenState extends State<EnregistrerDecesScreen> {
                     children: [
                       Row(
                         children: [
-                          const Icon(Icons.pets, color: Color(0xFF4CAF50)),
+                          const Icon(Icons.pets, color: AppTheme.primaryGreen),
                           const SizedBox(width: 8),
-                          Text(
-                            widget.lapin.nom,
-                            style: const TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
+                          Text(widget.lapin.nom, style: AppTheme.titleLarge),
                         ],
                       ),
                       const SizedBox(height: 8),
@@ -168,10 +163,8 @@ class _EnregistrerDecesScreenState extends State<EnregistrerDecesScreen> {
               // Date du décès
               Text(
                 'Date du décès *',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: theme.colorScheme.onBackground,
+                style: AppTheme.titleSmall.copyWith(
+                  color: theme.colorScheme.onSurface,
                 ),
               ),
               const SizedBox(height: 8),
@@ -180,19 +173,19 @@ class _EnregistrerDecesScreenState extends State<EnregistrerDecesScreen> {
                 child: Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    border: Border.all(color: Colors.grey),
+                    border: Border.all(color: AppTheme.textSecondary),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Row(
                     children: [
                       const Icon(
                         Icons.calendar_today,
-                        color: Color(0xFF4CAF50),
+                        color: AppTheme.primaryGreen,
                       ),
                       const SizedBox(width: 12),
                       Text(
                         '${_dateDeces.day}/${_dateDeces.month}/${_dateDeces.year}',
-                        style: const TextStyle(fontSize: 16),
+                        style: AppTheme.bodyMedium.copyWith(fontSize: 16),
                       ),
                     ],
                   ),
@@ -203,15 +196,13 @@ class _EnregistrerDecesScreenState extends State<EnregistrerDecesScreen> {
               // Cause du décès
               Text(
                 'Cause du décès *',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: theme.colorScheme.onBackground,
+                style: AppTheme.titleSmall.copyWith(
+                  color: theme.colorScheme.onSurface,
                 ),
               ),
               const SizedBox(height: 8),
               DropdownButtonFormField<String>(
-                value: _cause,
+                initialValue: _cause,
                 decoration: InputDecoration(
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
@@ -240,10 +231,8 @@ class _EnregistrerDecesScreenState extends State<EnregistrerDecesScreen> {
               // Circonstances détaillées
               Text(
                 'Circonstances détaillées *',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: theme.colorScheme.onBackground,
+                style: AppTheme.titleSmall.copyWith(
+                  color: theme.colorScheme.onSurface,
                 ),
               ),
               const SizedBox(height: 8),
@@ -283,10 +272,8 @@ class _EnregistrerDecesScreenState extends State<EnregistrerDecesScreen> {
                 const SizedBox(height: 8),
                 Text(
                   'Résultats de l\'autopsie',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: theme.colorScheme.onBackground,
+                  style: AppTheme.titleSmall.copyWith(
+                    color: theme.colorScheme.onSurface,
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -307,10 +294,8 @@ class _EnregistrerDecesScreenState extends State<EnregistrerDecesScreen> {
               // Mesures préventives
               Text(
                 'Mesures préventives (optionnel)',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: theme.colorScheme.onBackground,
+                style: AppTheme.titleSmall.copyWith(
+                  color: theme.colorScheme.onSurface,
                 ),
               ),
               const SizedBox(height: 8),
@@ -333,30 +318,27 @@ class _EnregistrerDecesScreenState extends State<EnregistrerDecesScreen> {
                 child: ElevatedButton(
                   onPressed: _isSubmitting ? null : _enregistrerDeces,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.red,
-                    foregroundColor: Colors.white,
+                    backgroundColor: AppTheme.error,
+                    foregroundColor: AppTheme.textLight,
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
                   ),
                   child: _isSubmitting
-                      ? const SizedBox(
+                      ? SizedBox(
                           height: 20,
                           width: 20,
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
                             valueColor: AlwaysStoppedAnimation<Color>(
-                              Colors.white,
+                              AppTheme.textLight,
                             ),
                           ),
                         )
                       : const Text(
                           'Enregistrer le décès',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
+                          style: AppTheme.titleSmall,
                         ),
                 ),
               ),

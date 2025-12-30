@@ -59,14 +59,27 @@ class ReproductionProvider with ChangeNotifier {
       final nouveauAccouplement = await _db.insertAccouplement(accouplement);
       _accouplements.insert(0, nouveauAccouplement);
 
-      // Planifier une notification si l'accouplement est en attente
+      // Planifier les notifications si l'accouplement est en attente
       if (nouveauAccouplement.statut == 'en_attente' &&
           nouveauAccouplement.id != null) {
         final femelle = await _db.getLapinById(nouveauAccouplement.femelleId);
         if (femelle != null) {
+          // Notification mise bas (3 jours avant)
           await _notificationService.planifierRappelMiseBas(
             accouplementId: nouveauAccouplement.id!,
             dateMiseBasPrevue: nouveauAccouplement.dateMiseBasPrevue,
+            nomFemelle: femelle.nom,
+          );
+          // Notification palpation (10 jours après accouplement)
+          await _notificationService.planifierRappelPalpation(
+            accouplementId: nouveauAccouplement.id!,
+            dateAccouplement: nouveauAccouplement.dateAccouplement,
+            nomFemelle: femelle.nom,
+          );
+          // Notification préparation nid (28 jours après accouplement)
+          await _notificationService.planifierRappelNid(
+            accouplementId: nouveauAccouplement.id!,
+            dateAccouplement: nouveauAccouplement.dateAccouplement,
             nomFemelle: femelle.nom,
           );
         }
@@ -91,19 +104,35 @@ class ReproductionProvider with ChangeNotifier {
         // Gérer les notifications selon le statut
         if (accouplement.id != null) {
           if (accouplement.statut == 'en_attente') {
-            // Replanifier la notification
+            // Replanifier toutes les notifications
             final femelle = await _db.getLapinById(accouplement.femelleId);
             if (femelle != null) {
+              // Annuler les anciennes notifications
               await _notificationService.annulerRappelMiseBas(accouplement.id!);
+              await _notificationService.annulerRappelPalpation(accouplement.id!);
+              await _notificationService.annulerRappelNid(accouplement.id!);
+              // Replanifier
               await _notificationService.planifierRappelMiseBas(
                 accouplementId: accouplement.id!,
                 dateMiseBasPrevue: accouplement.dateMiseBasPrevue,
                 nomFemelle: femelle.nom,
               );
+              await _notificationService.planifierRappelPalpation(
+                accouplementId: accouplement.id!,
+                dateAccouplement: accouplement.dateAccouplement,
+                nomFemelle: femelle.nom,
+              );
+              await _notificationService.planifierRappelNid(
+                accouplementId: accouplement.id!,
+                dateAccouplement: accouplement.dateAccouplement,
+                nomFemelle: femelle.nom,
+              );
             }
           } else {
-            // Annuler la notification si le statut n'est plus "en_attente"
+            // Annuler toutes les notifications si le statut n'est plus "en_attente"
             await _notificationService.annulerRappelMiseBas(accouplement.id!);
+            await _notificationService.annulerRappelPalpation(accouplement.id!);
+            await _notificationService.annulerRappelNid(accouplement.id!);
           }
         }
 

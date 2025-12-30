@@ -6,6 +6,7 @@ import '../../providers/reproduction_provider.dart';
 import '../../providers/lapin_provider.dart';
 import '../../utils/dialog_helper.dart';
 import '../../models/palpation.dart';
+import '../../theme/app_theme.dart';
 
 class PalpationScreen extends StatefulWidget {
   const PalpationScreen({super.key});
@@ -31,7 +32,7 @@ class _PalpationScreenState extends State<PalpationScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Palpation'),
-        backgroundColor: const Color(0xFFFF6B9D),
+        backgroundColor: AppTheme.warning,
         foregroundColor: Colors.white,
         actions: [
           PopupMenuButton<String>(
@@ -132,15 +133,14 @@ class _PalpationScreenState extends State<PalpationScreen> {
                                   _filtreResultat == 'tous'
                                       ? 'Aucune palpation'
                                       : 'Aucune palpation $_filtreResultat',
-                                  style: const TextStyle(
-                                    fontSize: 18,
+                                  style: AppTheme.titleMedium.copyWith(
                                     color: Colors.grey,
                                   ),
                                 ),
                                 const SizedBox(height: 8),
-                                const Text(
+                                Text(
                                   'Appuyez sur + pour en ajouter',
-                                  style: TextStyle(color: Colors.grey),
+                                  style: AppTheme.bodyMedium.copyWith(color: Colors.grey),
                                 ),
                               ],
                             ),
@@ -175,7 +175,7 @@ class _PalpationScreenState extends State<PalpationScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _showAjouterPalpationDialog(context),
-        backgroundColor: const Color(0xFFFF6B9D),
+        backgroundColor: AppTheme.warning,
         child: const Icon(Icons.add),
       ),
     );
@@ -193,13 +193,11 @@ class _PalpationScreenState extends State<PalpationScreen> {
         const SizedBox(height: 4),
         Text(
           value,
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
+          style: AppTheme.titleLarge.copyWith(
             color: color,
           ),
         ),
-        Text(label, style: TextStyle(fontSize: 12, color: Colors.grey[600])),
+        Text(label, style: AppTheme.caption.copyWith(color: Colors.grey[600])),
       ],
     );
   }
@@ -238,7 +236,7 @@ class _PalpationScreenState extends State<PalpationScreen> {
         ),
         title: Text(
           nomFemelle,
-          style: const TextStyle(fontWeight: FontWeight.bold),
+          style: AppTheme.bodyMedium.copyWith(fontWeight: FontWeight.bold),
         ),
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -266,7 +264,7 @@ class _PalpationScreenState extends State<PalpationScreen> {
             const SizedBox(height: 4),
             Text(
               'J$joursDepuis après accouplement • ${dateFormat.format(palpation.datePalpation)}',
-              style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+              style: AppTheme.caption.copyWith( color: Colors.grey[600]),
             ),
             if (!dansPeriodeRecommandee) ...[
               const SizedBox(height: 4),
@@ -276,8 +274,7 @@ class _PalpationScreenState extends State<PalpationScreen> {
                   const SizedBox(width: 4),
                   Text(
                     'Hors période recommandée (J10-J12)',
-                    style: TextStyle(
-                      fontSize: 11,
+                    style: AppTheme.caption.copyWith(
                       color: Colors.orange[700],
                       fontWeight: FontWeight.w500,
                     ),
@@ -378,7 +375,7 @@ class _PalpationScreenState extends State<PalpationScreen> {
             ),
           ),
           Expanded(
-            child: Text(value, style: const TextStyle(color: Colors.black87)),
+            child: Text(value, style: AppTheme.bodyMedium.copyWith(color: Colors.black87)),
           ),
         ],
       ),
@@ -418,7 +415,7 @@ class _PalpationScreenState extends State<PalpationScreen> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 DropdownButtonFormField<int>(
-                  value: accouplementSelectionne,
+                  initialValue: accouplementSelectionne,
                   decoration: const InputDecoration(
                     labelText: 'Accouplement *',
                     border: OutlineInputBorder(),
@@ -666,7 +663,7 @@ class _PalpationScreenState extends State<PalpationScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Annuler'),
+              child: Text('Annuler'),
             ),
             ElevatedButton(
               onPressed: () {

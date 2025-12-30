@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 import '../../models/lapin.dart';
+import '../../models/portee.dart';
 import '../../services/database_helper.dart';
+import 'genealogie/widgets/rabbit_genealogy_card.dart';
+import 'genealogie/widgets/litter_card.dart';
+import 'package:rabbit_farm_app/theme/app_theme.dart';
 
-/// Écran pour afficher l'arbre généalogique d'un lapin
+/// Écran pour afficher l'arbre généalogique d'un lapin avec design Stitch
 class GenealogieScreen extends StatefulWidget {
   final Lapin lapin;
 
@@ -13,9 +17,17 @@ class GenealogieScreen extends StatefulWidget {
 }
 
 class _GenealogieScreenState extends State<GenealogieScreen> {
-  Map<String, dynamic>? _arbreGenealogique;
   double? _tauxConsanguinite;
+  List<Portee> _portees = [];
   bool _isLoading = true;
+
+  // Ancêtres extraits
+  Lapin? _pere;
+  Lapin? _mere;
+  Lapin? _grandPerePaternel;
+  Lapin? _grandMerePaternel;
+  Lapin? _grandPereMaternal;
+  Lapin? _grandMereMaternal;
 
   @override
   void initState() {
@@ -35,9 +47,24 @@ class _GenealogieScreenState extends State<GenealogieScreen> {
         widget.lapin.id!,
       );
 
+      // Charger les portées via les accouplements
+      final accouplements = await DatabaseHelper.instance.getAllAccouplements();
+      final accouplementsLapin = accouplements.where((a) {
+        return a.femelleId == widget.lapin.id || a.maleId == widget.lapin.id;
+      }).toList();
+
+      // Charger les portées des accouplements de ce lapin
+      final toutesPortees = await DatabaseHelper.instance.getAllPortees();
+      final portees = toutesPortees.where((p) {
+        return accouplementsLapin.any((a) => a.id == p.accouplementId);
+      }).toList();
+
+      // Extraire les ancêtres
+      _extraireAncetres(arbre);
+
       setState(() {
-        _arbreGenealogique = arbre;
         _tauxConsanguinite = taux;
+        _portees = portees;
         _isLoading = false;
       });
     } catch (e) {
@@ -50,219 +77,235 @@ class _GenealogieScreenState extends State<GenealogieScreen> {
     }
   }
 
+  void _extraireAncetres(Map<String, dynamic>? arbre) {
+    if (arbre == null) return;
+
+    // Parents
+    if (arbre['pere'] != null) {
+      _pere = arbre['pere']['lapin'] as Lapin?;
+      // Grands-parents paternels
+      if (arbre['pere']['pere'] != null) {
+        _grandPerePaternel = arbre['pere']['pere']['lapin'] as Lapin?;
+      }
+      if (arbre['pere']['mere'] != null) {
+        _grandMerePaternel = arbre['pere']['mere']['lapin'] as Lapin?;
+      }
+    }
+
+    if (arbre['mere'] != null) {
+      _mere = arbre['mere']['lapin'] as Lapin?;
+      // Grands-parents maternels
+      if (arbre['mere']['pere'] != null) {
+        _grandPereMaternal = arbre['mere']['pere']['lapin'] as Lapin?;
+      }
+      if (arbre['mere']['mere'] != null) {
+        _grandMereMaternal = arbre['mere']['mere']['lapin'] as Lapin?;
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.background,
+      backgroundColor: isDark
+          ? AppTheme.backgroundDark
+          : AppTheme.backgroundLight,
       appBar: AppBar(
-        title: Text(
-          'Généalogie de ${widget.lapin.nom}',
-          style: TextStyle(
-            color: Theme.of(context).colorScheme.onSurface,
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        backgroundColor: Theme.of(context).colorScheme.surface,
+        title: const Text('Genealogy View', style: AppTheme.titleLarge),
+        backgroundColor: isDark ? AppTheme.cardDark : AppTheme.cardLight,
         elevation: 0,
-        iconTheme: IconThemeData(color: Theme.of(context).colorScheme.primary),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.pop(context),
+        ),
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(
+              child: CircularProgressIndicator(color: AppTheme.primaryGreen),
+            )
           : SingleChildScrollView(
               padding: const EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Carte du lapin principal
-                  _buildLapinCard(widget.lapin, isPrincipal: true),
+                  // Section Grands-Parents
+                  _buildSectionTitle('GRANDPARENTS', isDark),
+                  const SizedBox(height: 12),
+                  _buildGrandparentsGrid(),
                   const SizedBox(height: 24),
+
+                  // Section Parents
+                  _buildSectionTitle('PARENTS', isDark),
+                  const SizedBox(height: 12),
+                  _buildParentsRow(),
+                  const SizedBox(height: 24),
+
+                  // Carte du lapin sujet
+                  _buildSectionTitle('SUBJECT', isDark),
+                  const SizedBox(height: 12),
+                  RabbitGenealogyCard(lapin: widget.lapin, isSubject: true),
+                  const SizedBox(height: 16),
 
                   // Taux de consanguinité
                   if (_tauxConsanguinite != null)
-                    _buildConsanguiniteCard(_tauxConsanguinite!),
+                    _buildConsanguiniteChip(_tauxConsanguinite!, isDark),
                   const SizedBox(height: 24),
 
-                  // Arbre généalogique
-                  Text(
-                    'Arbre généalogique (3 générations)',
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-
-                  if (_arbreGenealogique != null)
-                    _buildArbreNode(_arbreGenealogique!, level: 0)
-                  else
-                    const Text('Aucune généalogie disponible'),
+                  // Section Offspring
+                  if (_portees.isNotEmpty) ...[
+                    _buildSectionTitle('OFFSPRING / LITTERS', isDark),
+                    const SizedBox(height: 12),
+                    ..._portees.map((portee) => LitterCard(portee: portee)),
+                  ],
                 ],
               ),
             ),
     );
   }
 
-  /// Construire un nœud de l'arbre généalogique
-  Widget _buildArbreNode(Map<String, dynamic> noeud, {required int level}) {
-    if (noeud['lapin'] == null) return const SizedBox.shrink();
-
-    final lapin = noeud['lapin'] as Lapin;
-    final hasPere = noeud['pere'] != null;
-    final hasMere = noeud['mere'] != null;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Le lapin actuel
-        if (level > 0)
-          Padding(
-            padding: EdgeInsets.only(left: level * 24.0),
-            child: _buildLapinCard(lapin),
-          ),
-
-        // Ses parents
-        if (hasPere || hasMere) ...[
-          const SizedBox(height: 12),
-
-          // Père
-          if (hasPere) ...[
-            Padding(
-              padding: EdgeInsets.only(left: (level + 1) * 24.0),
-              child: Row(
-                children: [
-                  const Icon(Icons.subdirectory_arrow_right, size: 16),
-                  const SizedBox(width: 8),
-                  const Icon(Icons.male, size: 16, color: Colors.blue),
-                  const SizedBox(width: 4),
-                  Text('Père', style: Theme.of(context).textTheme.titleSmall),
-                ],
-              ),
-            ),
-            const SizedBox(height: 8),
-            _buildArbreNode(noeud['pere'], level: level + 1),
-          ],
-
-          // Mère
-          if (hasMere) ...[
-            const SizedBox(height: 12),
-            Padding(
-              padding: EdgeInsets.only(left: (level + 1) * 24.0),
-              child: Row(
-                children: [
-                  const Icon(Icons.subdirectory_arrow_right, size: 16),
-                  const SizedBox(width: 8),
-                  const Icon(Icons.female, size: 16, color: Colors.pink),
-                  const SizedBox(width: 4),
-                  Text('Mère', style: Theme.of(context).textTheme.titleSmall),
-                ],
-              ),
-            ),
-            const SizedBox(height: 8),
-            _buildArbreNode(noeud['mere'], level: level + 1),
-          ],
-        ],
-      ],
-    );
-  }
-
-  /// Construire une carte de lapin
-  Widget _buildLapinCard(Lapin lapin, {bool isPrincipal = false}) {
-    return Card(
-      elevation: isPrincipal ? 4 : 1,
-      color: isPrincipal
-          ? Theme.of(context).colorScheme.primaryContainer
-          : null,
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Row(
-          children: [
-            Icon(
-              lapin.sexe.toLowerCase() == 'mâle' ? Icons.male : Icons.female,
-              color: lapin.sexe.toLowerCase() == 'mâle'
-                  ? Colors.blue
-                  : Colors.pink,
-              size: isPrincipal ? 32 : 24,
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    lapin.nom,
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      fontSize: isPrincipal ? 20 : null,
-                    ),
-                  ),
-                  Text(
-                    lapin.race,
-                    style: Theme.of(context).textTheme.bodyMedium,
-                  ),
-                  Text(
-                    lapin.ageFormate,
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Theme.of(context).colorScheme.secondary,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
+  Widget _buildSectionTitle(String title, bool isDark) {
+    return Text(
+      title,
+      style: AppTheme.caption.copyWith(
+        fontWeight: FontWeight.bold,
+        letterSpacing: 1.2,
+        color: isDark
+            ? AppTheme.textLight.withValues(alpha: 0.7)
+            : AppTheme.textSecondary,
       ),
     );
   }
 
-  /// Construire la carte de consanguinité
-  Widget _buildConsanguiniteCard(double taux) {
-    Color couleur;
-    String evaluation;
-    IconData icone;
-
-    if (taux < 0.1) {
-      couleur = Colors.green;
-      evaluation = 'Excellent';
-      icone = Icons.check_circle;
-    } else if (taux < 0.25) {
-      couleur = Colors.orange;
-      evaluation = 'Modéré';
-      icone = Icons.warning;
-    } else {
-      couleur = Colors.red;
-      evaluation = 'Élevé';
-      icone = Icons.error;
-    }
-
-    return Card(
-      color: couleur.withValues(alpha: 0.1),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Row(
-          children: [
-            Icon(icone, color: couleur, size: 40),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+  Widget _buildGrandparentsGrid() {
+    return Row(
+      children: [
+        // Côté paternel
+        Expanded(
+          child: Column(
+            children: [
+              Row(
                 children: [
-                  Text(
-                    'Taux de consanguinité',
-                    style: Theme.of(context).textTheme.titleMedium,
+                  Expanded(
+                    child: RabbitGenealogyCard(
+                      lapin: _grandPerePaternel,
+                      isUnknown: _grandPerePaternel == null,
+                    ),
                   ),
-                  const SizedBox(height: 4),
-                  Text(
-                    '${(taux * 100).toStringAsFixed(1)}% - $evaluation',
-                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                      color: couleur,
-                      fontWeight: FontWeight.bold,
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: RabbitGenealogyCard(
+                      lapin: _grandMerePaternel,
+                      isUnknown: _grandMerePaternel == null,
                     ),
                   ),
                 ],
               ),
-            ),
-          ],
+            ],
+          ),
         ),
+        const SizedBox(width: 16),
+        // Côté maternel
+        Expanded(
+          child: Column(
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: RabbitGenealogyCard(
+                      lapin: _grandPereMaternal,
+                      isUnknown: _grandPereMaternal == null,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: RabbitGenealogyCard(
+                      lapin: _grandMereMaternal,
+                      isUnknown: _grandMereMaternal == null,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildParentsRow() {
+    return Row(
+      children: [
+        Expanded(
+          child: RabbitGenealogyCard(
+            lapin: _pere,
+            isParent: true,
+            isUnknown: _pere == null,
+            onTap: _pere != null
+                ? () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => GenealogieScreen(lapin: _pere!),
+                    ),
+                  )
+                : null,
+          ),
+        ),
+        const SizedBox(width: 16),
+        Expanded(
+          child: RabbitGenealogyCard(
+            lapin: _mere,
+            isParent: true,
+            isUnknown: _mere == null,
+            onTap: _mere != null
+                ? () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => GenealogieScreen(lapin: _mere!),
+                    ),
+                  )
+                : null,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildConsanguiniteChip(double taux, bool isDark) {
+    Color couleur;
+    String evaluation;
+
+    if (taux < 0.1) {
+      couleur = AppTheme.primaryGreen;
+      evaluation = 'Excellent';
+    } else if (taux < 0.25) {
+      couleur = AppTheme.warning;
+      evaluation = 'Modéré';
+    } else {
+      couleur = AppTheme.error;
+      evaluation = 'Élevé';
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: couleur.withValues(alpha: 0.15),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.analytics_outlined, size: 16, color: couleur),
+          const SizedBox(width: 8),
+          Text(
+            'Taux de consanguinité: ${(taux * 100).toStringAsFixed(1)}% ($evaluation)',
+            style: AppTheme.caption.copyWith(
+              fontWeight: FontWeight.w600,
+              color: isDark ? AppTheme.textLight : AppTheme.textPrimary,
+            ),
+          ),
+        ],
       ),
     );
   }

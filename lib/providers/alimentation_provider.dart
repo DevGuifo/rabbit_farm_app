@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import '../models/aliment.dart';
 import '../services/database_helper.dart';
+import '../utils/logger.dart';
 
 /// Provider pour la gestion de l'alimentation
 class AlimentationProvider with ChangeNotifier {
@@ -23,7 +24,7 @@ class AlimentationProvider with ChangeNotifier {
     try {
       _aliments = await _dbHelper.getAllAliments();
     } catch (e) {
-      debugPrint('❌ Erreur lors du chargement des aliments: $e');
+      logger.error('❌ Erreur lors du chargement des aliments: $e');
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -36,7 +37,7 @@ class AlimentationProvider with ChangeNotifier {
       _distributions = await _dbHelper.getAllDistributions();
       notifyListeners();
     } catch (e) {
-      debugPrint('❌ Erreur lors du chargement des distributions: $e');
+      logger.error('❌ Erreur lors du chargement des distributions: $e');
     }
   }
 
@@ -47,10 +48,10 @@ class AlimentationProvider with ChangeNotifier {
       _aliments.insert(0, nouveauAliment);
       notifyListeners();
 
-      debugPrint('✅ Aliment ajouté: ${aliment.nom}');
+      logger.error('✅ Aliment ajouté: ${aliment.nom}');
       return nouveauAliment;
     } catch (e) {
-      debugPrint('❌ Erreur lors de l\'ajout de l\'aliment: $e');
+      logger.error('❌ Erreur lors de l\'ajout de l\'aliment: $e');
       return null;
     }
   }
@@ -65,7 +66,7 @@ class AlimentationProvider with ChangeNotifier {
 
       // Vérifier qu'il y a assez de stock
       if (aliment.quantiteRestante < distribution.quantiteDistribuee) {
-        debugPrint('❌ Stock insuffisant pour ${aliment.nom}');
+        logger.error('❌ Stock insuffisant pour ${aliment.nom}');
         return false;
       }
 
@@ -89,12 +90,12 @@ class AlimentationProvider with ChangeNotifier {
       }
 
       notifyListeners();
-      debugPrint(
+      logger.error(
         '✅ Distribution enregistrée: ${distribution.quantiteDistribuee}kg de ${aliment.nom}',
       );
       return true;
     } catch (e) {
-      debugPrint('❌ Erreur lors de la distribution: $e');
+      logger.error('❌ Erreur lors de la distribution: $e');
       return false;
     }
   }
@@ -116,10 +117,10 @@ class AlimentationProvider with ChangeNotifier {
       }
 
       notifyListeners();
-      debugPrint('✅ Stock mis à jour pour ${aliment.nom}');
+      logger.error('✅ Stock mis à jour pour ${aliment.nom}');
       return true;
     } catch (e) {
-      debugPrint('❌ Erreur lors de la mise à jour du stock: $e');
+      logger.error('❌ Erreur lors de la mise à jour du stock: $e');
       return false;
     }
   }
@@ -147,7 +148,7 @@ class AlimentationProvider with ChangeNotifier {
 
       return consommationTotale / jours;
     } catch (e) {
-      debugPrint('❌ Erreur lors du calcul de la consommation moyenne: $e');
+      logger.error('❌ Erreur lors du calcul de la consommation moyenne: $e');
       return 0.0;
     }
   }
@@ -167,7 +168,7 @@ class AlimentationProvider with ChangeNotifier {
 
       return joursRestants;
     } catch (e) {
-      debugPrint('❌ Erreur lors du calcul des jours avant épuisement: $e');
+      logger.error('❌ Erreur lors du calcul des jours avant épuisement: $e');
       return {};
     }
   }
@@ -181,7 +182,7 @@ class AlimentationProvider with ChangeNotifier {
         return jours < 7;
       }).toList();
     } catch (e) {
-      debugPrint('❌ Erreur lors de la récupération des stocks faibles: $e');
+      logger.error('❌ Erreur lors de la récupération des stocks faibles: $e');
       return [];
     }
   }
@@ -191,7 +192,7 @@ class AlimentationProvider with ChangeNotifier {
     try {
       return await _dbHelper.getAlimentsPeremptionProche(jours);
     } catch (e) {
-      debugPrint('❌ Erreur lors de la récupération des péremptions: $e');
+      logger.error('❌ Erreur lors de la récupération des péremptions: $e');
       return [];
     }
   }
@@ -222,7 +223,7 @@ class AlimentationProvider with ChangeNotifier {
       // Coût par lapin
       return coutTotal / nombreLapins;
     } catch (e) {
-      debugPrint('❌ Erreur lors du calcul du coût par lapin: $e');
+      logger.error('❌ Erreur lors du calcul du coût par lapin: $e');
       return 0.0;
     }
   }
@@ -232,7 +233,7 @@ class AlimentationProvider with ChangeNotifier {
     try {
       return await _dbHelper.getValeurStock();
     } catch (e) {
-      debugPrint('❌ Erreur lors du calcul de la valeur du stock: $e');
+      logger.error('❌ Erreur lors du calcul de la valeur du stock: $e');
       return 0.0;
     }
   }
@@ -250,7 +251,7 @@ class AlimentationProvider with ChangeNotifier {
     try {
       return await _dbHelper.getDistributionsByPeriode(debut, fin);
     } catch (e) {
-      debugPrint('❌ Erreur lors de la récupération des distributions: $e');
+      logger.error('❌ Erreur lors de la récupération des distributions: $e');
       return [];
     }
   }
@@ -279,7 +280,7 @@ class AlimentationProvider with ChangeNotifier {
 
       return evolution;
     } catch (e) {
-      debugPrint('❌ Erreur lors de la récupération de l\'évolution: $e');
+      logger.error('❌ Erreur lors de la récupération de l\'évolution: $e');
       return {};
     }
   }
@@ -295,10 +296,10 @@ class AlimentationProvider with ChangeNotifier {
         notifyListeners();
       }
 
-      debugPrint('✅ Aliment mis à jour');
+      logger.error('✅ Aliment mis à jour');
       return true;
     } catch (e) {
-      debugPrint('❌ Erreur lors de la mise à jour de l\'aliment: $e');
+      logger.error('❌ Erreur lors de la mise à jour de l\'aliment: $e');
       return false;
     }
   }
@@ -310,10 +311,10 @@ class AlimentationProvider with ChangeNotifier {
       _aliments.removeWhere((a) => a.id == id);
       notifyListeners();
 
-      debugPrint('✅ Aliment supprimé');
+      logger.error('✅ Aliment supprimé');
       return true;
     } catch (e) {
-      debugPrint('❌ Erreur lors de la suppression de l\'aliment: $e');
+      logger.error('❌ Erreur lors de la suppression de l\'aliment: $e');
       return false;
     }
   }
@@ -325,10 +326,10 @@ class AlimentationProvider with ChangeNotifier {
       _distributions.removeWhere((d) => d.id == id);
       notifyListeners();
 
-      debugPrint('✅ Distribution supprimée');
+      logger.error('✅ Distribution supprimée');
       return true;
     } catch (e) {
-      debugPrint('❌ Erreur lors de la suppression de la distribution: $e');
+      logger.error('❌ Erreur lors de la suppression de la distribution: $e');
       return false;
     }
   }

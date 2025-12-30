@@ -6,6 +6,7 @@ import '../../models/recette.dart';
 import '../../models/lapin.dart';
 import '../../providers/finance_provider.dart';
 import '../../providers/lapin_provider.dart';
+import '../../theme/app_theme.dart';
 
 class AjouterRecetteScreen extends StatefulWidget {
   const AjouterRecetteScreen({super.key});
@@ -36,14 +37,12 @@ class _AjouterRecetteScreenState extends State<AjouterRecetteScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.background,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
         title: Text(
           'Ajouter une recette',
-          style: TextStyle(
+          style: AppTheme.titleLarge.copyWith(
             color: Theme.of(context).colorScheme.onSurface,
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
           ),
         ),
         backgroundColor: Theme.of(context).colorScheme.surface,
@@ -68,7 +67,7 @@ class _AjouterRecetteScreenState extends State<AjouterRecetteScreen> {
 
             // Catégorie
             DropdownButtonFormField<String>(
-              value: _categorieSelectionnee,
+              initialValue: _categorieSelectionnee,
               decoration: const InputDecoration(
                 labelText: 'Catégorie',
                 prefixIcon: Icon(Icons.category),
@@ -102,7 +101,7 @@ class _AjouterRecetteScreenState extends State<AjouterRecetteScreen> {
               Consumer<LapinProvider>(
                 builder: (context, lapinProvider, child) {
                   return DropdownButtonFormField<Lapin>(
-                    value: _lapinSelectionne,
+                    initialValue: _lapinSelectionne,
                     decoration: const InputDecoration(
                       labelText: 'Lapin vendu (optionnel)',
                       prefixIcon: Icon(Icons.pets),
@@ -195,8 +194,8 @@ class _AjouterRecetteScreenState extends State<AjouterRecetteScreen> {
               label: const Text('Enregistrer la recette'),
               style: ElevatedButton.styleFrom(
                 padding: const EdgeInsets.all(16),
-                backgroundColor: Colors.green,
-                foregroundColor: Colors.white,
+                backgroundColor: AppTheme.success,
+                foregroundColor: AppTheme.textLight,
               ),
             ),
           ],
@@ -246,7 +245,7 @@ class _AjouterRecetteScreenState extends State<AjouterRecetteScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Recette ajoutée avec succès'),
-            backgroundColor: Colors.green,
+            backgroundColor: AppTheme.success,
           ),
         );
         Navigator.pop(context);
@@ -256,7 +255,7 @@ class _AjouterRecetteScreenState extends State<AjouterRecetteScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Erreur lors de l\'ajout : $e'),
-            backgroundColor: Colors.red,
+            backgroundColor: AppTheme.error,
           ),
         );
       }

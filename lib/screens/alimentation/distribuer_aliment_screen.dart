@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:rabbit_farm_app/theme/app_theme.dart';
 import '../../models/aliment.dart';
 import '../../models/aliment.dart' as model;
 import '../../providers/alimentation_provider.dart';
@@ -115,7 +116,7 @@ class _DistribuerAlimentScreenState extends State<DistribuerAlimentScreen> {
         title: const Text('Distribuer aliment'),
         backgroundColor: theme.colorScheme.surface,
       ),
-      backgroundColor: theme.colorScheme.background,
+      backgroundColor: theme.colorScheme.surface,
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Form(
@@ -132,11 +133,11 @@ class _DistribuerAlimentScreenState extends State<DistribuerAlimentScreen> {
                     children: [
                       Row(
                         children: [
-                          const Icon(Icons.grass, color: Color(0xFF4CAF50)),
+                          Icon(Icons.grass, color: AppTheme.primaryGreen),
                           const SizedBox(width: 8),
                           Text(
                             widget.aliment.nom,
-                            style: const TextStyle(
+                            style: AppTheme.bodyMedium.copyWith(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
                             ),
@@ -149,7 +150,7 @@ class _DistribuerAlimentScreenState extends State<DistribuerAlimentScreen> {
                       ),
                       Text(
                         'Stock disponible: ${widget.aliment.quantiteRestante.toStringAsFixed(1)} kg',
-                        style: TextStyle(
+                        style: AppTheme.bodyMedium.copyWith(
                           color: widget.aliment.quantiteRestante < 5
                               ? Colors.red
                               : Colors.green,
@@ -175,7 +176,7 @@ class _DistribuerAlimentScreenState extends State<DistribuerAlimentScreen> {
                       const Icon(
                         Icons.calendar_today,
                         size: 20,
-                        color: Color(0xFF4CAF50),
+                        color: AppTheme.primaryGreen,
                       ),
                       const SizedBox(width: 12),
                       Text('${_date.day}/${_date.month}/${_date.year}'),
@@ -245,7 +246,7 @@ class _DistribuerAlimentScreenState extends State<DistribuerAlimentScreen> {
                 child: ElevatedButton(
                   onPressed: _isSubmitting ? null : _distribuerAliment,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF4CAF50),
+                    backgroundColor: AppTheme.primaryGreen,
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 16),
                   ),
@@ -262,10 +263,7 @@ class _DistribuerAlimentScreenState extends State<DistribuerAlimentScreen> {
                         )
                       : const Text(
                           'Enregistrer la distribution',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
+                          style: AppTheme.titleSmall,
                         ),
                 ),
               ),

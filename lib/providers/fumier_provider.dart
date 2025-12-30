@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:sqflite/sqflite.dart';
 import '../models/collecte_fumier.dart';
 import '../services/database_helper.dart';
+import '../utils/logger.dart';
 
 class FumierProvider with ChangeNotifier {
   final List<CollecteFumier> _collectes = [];
@@ -25,7 +26,7 @@ class FumierProvider with ChangeNotifier {
       _collectes.clear();
       _collectes.addAll(maps.map((map) => CollecteFumier.fromMap(map)));
     } catch (e) {
-      debugPrint('Erreur lors du chargement des collectes: $e');
+      logger.error('Erreur lors du chargement des collectes: $e');
       rethrow;
     } finally {
       _isLoading = false;
@@ -47,7 +48,7 @@ class FumierProvider with ChangeNotifier {
       _collectes.insert(0, nouvelleCollecte);
       notifyListeners();
     } catch (e) {
-      debugPrint('Erreur lors de l\'ajout de la collecte: $e');
+      logger.error('Erreur lors de l\'ajout de la collecte: $e');
       rethrow;
     }
   }
@@ -69,7 +70,7 @@ class FumierProvider with ChangeNotifier {
         notifyListeners();
       }
     } catch (e) {
-      debugPrint('Erreur lors de la modification de la collecte: $e');
+      logger.error('Erreur lors de la modification de la collecte: $e');
       rethrow;
     }
   }
@@ -83,7 +84,7 @@ class FumierProvider with ChangeNotifier {
       _collectes.removeWhere((c) => c.id == id);
       notifyListeners();
     } catch (e) {
-      debugPrint('Erreur lors de la suppression de la collecte: $e');
+      logger.error('Erreur lors de la suppression de la collecte: $e');
       rethrow;
     }
   }
@@ -142,7 +143,7 @@ class FumierProvider with ChangeNotifier {
         'nombre_collectes': _collectes.length,
       };
     } catch (e) {
-      debugPrint('Erreur lors du calcul des statistiques: $e');
+      logger.error('Erreur lors du calcul des statistiques: $e');
       rethrow;
     }
   }
@@ -163,7 +164,7 @@ class FumierProvider with ChangeNotifier {
 
       return maps.map((map) => CollecteFumier.fromMap(map)).toList();
     } catch (e) {
-      debugPrint(
+      logger.error(
         'Erreur lors de la récupération des collectes par période: $e',
       );
       rethrow;

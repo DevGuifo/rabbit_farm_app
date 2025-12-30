@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:rabbit_farm_app/theme/app_theme.dart';
 
 /// Animation de slide-in depuis le bas
 class SlideInAnimation extends StatefulWidget {
@@ -148,12 +149,7 @@ class _ShimmerLoadingState extends State<ShimmerLoading>
           height: widget.height,
           decoration: BoxDecoration(
             borderRadius: widget.borderRadius ?? BorderRadius.circular(8),
-            gradient: LinearGradient(
-              begin: Alignment(-1.0 - _controller.value * 2, 0),
-              end: Alignment(1.0 - _controller.value * 2, 0),
-              colors: [Colors.grey[300]!, Colors.grey[100]!, Colors.grey[300]!],
-              stops: const [0.0, 0.5, 1.0],
-            ),
+            color: AppTheme.textSecondary.withValues(alpha: 0.2),
           ),
         );
       },

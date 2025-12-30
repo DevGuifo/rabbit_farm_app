@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/sevrage.dart';
 import '../services/database_helper.dart';
+import '../utils/logger.dart';
 
 /// Provider pour gérer les sevrages
 class SevrageProvider with ChangeNotifier {
@@ -20,7 +21,7 @@ class SevrageProvider with ChangeNotifier {
       final maps = await db.query('sevrages', orderBy: 'date_sevrage DESC');
       _sevrages = maps.map((map) => Sevrage.fromMap(map)).toList();
     } catch (e) {
-      debugPrint('❌ Erreur lors du chargement des sevrages: $e');
+      logger.error('❌ Erreur lors du chargement des sevrages: $e');
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -36,7 +37,7 @@ class SevrageProvider with ChangeNotifier {
       _sevrages.insert(0, nouveauSevrage);
       notifyListeners();
     } catch (e) {
-      debugPrint('❌ Erreur lors de l\'ajout du sevrage: $e');
+      logger.error('❌ Erreur lors de l\'ajout du sevrage: $e');
       rethrow;
     }
   }
@@ -58,7 +59,7 @@ class SevrageProvider with ChangeNotifier {
         notifyListeners();
       }
     } catch (e) {
-      debugPrint('❌ Erreur lors de la modification du sevrage: $e');
+      logger.error('❌ Erreur lors de la modification du sevrage: $e');
       rethrow;
     }
   }
@@ -71,7 +72,7 @@ class SevrageProvider with ChangeNotifier {
       _sevrages.removeWhere((s) => s.id == id);
       notifyListeners();
     } catch (e) {
-      debugPrint('❌ Erreur lors de la suppression du sevrage: $e');
+      logger.error('❌ Erreur lors de la suppression du sevrage: $e');
       rethrow;
     }
   }

@@ -81,6 +81,22 @@ dependencies:
   # Logger et compression
   logger: ^2.0.2+1
   archive: ^3.4.10
+  
+  # Génération de QR codes
+  qr_flutter: ^4.1.0
+  qr: ^3.0.2
+  
+  # Authentification et synchronisation Supabase
+  supabase_flutter: ^2.5.0
+  
+  # Stockage sécurisé (tokens, PIN)
+  flutter_secure_storage: ^9.0.0
+  
+  # Détection de connectivité réseau
+  connectivity_plus: ^5.0.2
+  
+  # Cryptographie (PBKDF2 pour PIN)
+  crypto: ^3.0.3
 
 dev_dependencies:
   flutter_test:

@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../../models/depense.dart';
 import '../../providers/finance_provider.dart';
+import '../../theme/app_theme.dart';
 
 class AjouterDepenseScreen extends StatefulWidget {
   const AjouterDepenseScreen({super.key});
@@ -33,11 +34,11 @@ class _AjouterDepenseScreenState extends State<AjouterDepenseScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.background,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
         title: Text(
           'Ajouter une dépense',
-          style: TextStyle(
+          style: AppTheme.titleLarge.copyWith(
             color: Theme.of(context).colorScheme.onSurface,
             fontSize: 20,
             fontWeight: FontWeight.bold,
@@ -65,7 +66,7 @@ class _AjouterDepenseScreenState extends State<AjouterDepenseScreen> {
 
             // Catégorie
             DropdownButtonFormField<String>(
-              value: _categorieSelectionnee,
+              initialValue: _categorieSelectionnee,
               decoration: const InputDecoration(
                 labelText: 'Catégorie',
                 prefixIcon: Icon(Icons.category),
@@ -158,8 +159,8 @@ class _AjouterDepenseScreenState extends State<AjouterDepenseScreen> {
               label: const Text('Enregistrer la dépense'),
               style: ElevatedButton.styleFrom(
                 padding: const EdgeInsets.all(16),
-                backgroundColor: Colors.red,
-                foregroundColor: Colors.white,
+                backgroundColor: AppTheme.error,
+                foregroundColor: AppTheme.textLight,
               ),
             ),
           ],
@@ -208,7 +209,7 @@ class _AjouterDepenseScreenState extends State<AjouterDepenseScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Dépense ajoutée avec succès'),
-            backgroundColor: Colors.green,
+            backgroundColor: AppTheme.success,
           ),
         );
         Navigator.pop(context);
@@ -218,7 +219,7 @@ class _AjouterDepenseScreenState extends State<AjouterDepenseScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Erreur lors de l\'ajout : $e'),
-            backgroundColor: Colors.red,
+            backgroundColor: AppTheme.error,
           ),
         );
       }

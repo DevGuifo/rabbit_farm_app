@@ -7,6 +7,7 @@ import '../../utils/snackbar_helper.dart';
 import '../../widgets/parent_selector.dart';
 import '../../services/database_helper.dart';
 import '../../services/photo_service.dart';
+import '../../theme/app_theme.dart';
 
 /// Écran pour modifier un lapin existant
 class EditLapinScreen extends StatefulWidget {
@@ -26,11 +27,17 @@ class _EditLapinScreenState extends State<EditLapinScreen> {
   late final TextEditingController _nomController;
   late final TextEditingController _poidsController;
   late final TextEditingController _localisationController;
+  late final TextEditingController _numeroIdController;
+  late final TextEditingController _prixAchatController;
+  late final TextEditingController _notesController;
+  late final TextEditingController _caracteristiquesController;
 
   // Valeurs sélectionnées
   late String _raceSelectionnee;
   late String _sexeSelectionne;
   String? _statutSelectionne;
+  String? _couleurSelectionnee;
+  String? _origineSelectionnee;
   late DateTime _dateNaissance;
   String? _photoPath;
 
@@ -61,6 +68,27 @@ class _EditLapinScreenState extends State<EditLapinScreen> {
     'Retraite',
   ];
 
+  final List<String> _couleurs = [
+    'Blanc',
+    'Noir',
+    'Gris',
+    'Fauve',
+    'Brun',
+    'Argenté',
+    'Chinchilla',
+    'Papillon',
+    'Tricolore',
+    'Autre',
+  ];
+
+  final List<String> _origines = [
+    'Naissance sur place',
+    'Achat',
+    'Don',
+    'Échange',
+    'Autre',
+  ];
+
   @override
   void initState() {
     super.initState();
@@ -73,10 +101,22 @@ class _EditLapinScreenState extends State<EditLapinScreen> {
     _localisationController = TextEditingController(
       text: widget.lapin.localisation ?? '',
     );
+    _numeroIdController = TextEditingController(
+      text: widget.lapin.numeroIdentification ?? '',
+    );
+    _prixAchatController = TextEditingController(
+      text: widget.lapin.prixAchat?.toString() ?? '',
+    );
+    _notesController = TextEditingController(text: widget.lapin.notes ?? '');
+    _caracteristiquesController = TextEditingController(
+      text: widget.lapin.caracteristiques ?? '',
+    );
 
     _raceSelectionnee = widget.lapin.race;
     _sexeSelectionne = widget.lapin.sexe;
     _statutSelectionne = widget.lapin.statut;
+    _couleurSelectionnee = widget.lapin.couleur;
+    _origineSelectionnee = widget.lapin.origine;
     _dateNaissance = widget.lapin.dateNaissance;
     _photoPath = widget.lapin.photoPath;
 
@@ -106,6 +146,10 @@ class _EditLapinScreenState extends State<EditLapinScreen> {
     _nomController.dispose();
     _poidsController.dispose();
     _localisationController.dispose();
+    _numeroIdController.dispose();
+    _prixAchatController.dispose();
+    _notesController.dispose();
+    _caracteristiquesController.dispose();
     super.dispose();
   }
 
@@ -117,6 +161,7 @@ class _EditLapinScreenState extends State<EditLapinScreen> {
       firstDate: DateTime(2020),
       lastDate: DateTime.now(),
     );
+    if (!mounted) return;
     if (picked != null && picked != _dateNaissance) {
       setState(() {
         _dateNaissance = picked;
@@ -177,8 +222,22 @@ class _EditLapinScreenState extends State<EditLapinScreen> {
             ? double.tryParse(_poidsController.text)
             : null,
         statut: _statutSelectionne,
+        couleur: _couleurSelectionnee,
+        origine: _origineSelectionnee,
         localisation: _localisationController.text.trim().isNotEmpty
             ? _localisationController.text.trim()
+            : null,
+        numeroIdentification: _numeroIdController.text.trim().isNotEmpty
+            ? _numeroIdController.text.trim()
+            : null,
+        prixAchat: _prixAchatController.text.isNotEmpty
+            ? double.tryParse(_prixAchatController.text)
+            : null,
+        notes: _notesController.text.trim().isNotEmpty
+            ? _notesController.text.trim()
+            : null,
+        caracteristiques: _caracteristiquesController.text.trim().isNotEmpty
+            ? _caracteristiquesController.text.trim()
             : null,
         photoPath: _photoPath,
       );
@@ -227,7 +286,7 @@ class _EditLapinScreenState extends State<EditLapinScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.background,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
         title: Text(
           'Modifier ${widget.lapin.nom}',
@@ -256,9 +315,14 @@ class _EditLapinScreenState extends State<EditLapinScreen> {
                       width: 150,
                       height: 150,
                       decoration: BoxDecoration(
-                        color: Colors.grey[200],
+                        color: Theme.of(context).brightness == Brightness.dark
+                            ? AppTheme.darkGreyLight
+                            : AppTheme.textTertiary.withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.grey[400]!, width: 2),
+                        border: Border.all(
+                          color: Theme.of(context).dividerColor,
+                          width: 2,
+                        ),
                       ),
                       child: _photoPath != null
                           ? ClipRRect(
@@ -274,12 +338,14 @@ class _EditLapinScreenState extends State<EditLapinScreen> {
                                 Icon(
                                   Icons.camera_alt,
                                   size: 48,
-                                  color: Colors.grey[600],
+                                  color: AppTheme.textSecondary,
                                 ),
                                 const SizedBox(height: 8),
                                 Text(
                                   'Modifier la photo',
-                                  style: TextStyle(color: Colors.grey[600]),
+                                  style: AppTheme.bodyMedium.copyWith(
+                                    color: AppTheme.textSecondary,
+                                  ),
                                 ),
                               ],
                             ),
@@ -292,10 +358,12 @@ class _EditLapinScreenState extends State<EditLapinScreen> {
                           _photoPath = null;
                         });
                       },
-                      icon: const Icon(Icons.delete, color: Colors.red),
-                      label: const Text(
+                      icon: Icon(Icons.delete, color: AppTheme.error),
+                      label: Text(
                         'Supprimer la photo',
-                        style: TextStyle(color: Colors.red),
+                        style: AppTheme.bodyMedium.copyWith(
+                          color: AppTheme.error,
+                        ),
                       ),
                     ),
                 ],
@@ -324,7 +392,7 @@ class _EditLapinScreenState extends State<EditLapinScreen> {
 
             // Race
             DropdownButtonFormField<String>(
-              value: _raceSelectionnee,
+              initialValue: _raceSelectionnee,
               decoration: const InputDecoration(
                 labelText: 'Race *',
                 prefixIcon: Icon(Icons.category),
@@ -341,6 +409,31 @@ class _EditLapinScreenState extends State<EditLapinScreen> {
             ),
             const SizedBox(height: 16),
 
+            // Couleur
+            DropdownButtonFormField<String>(
+              initialValue: _couleurSelectionnee,
+              decoration: const InputDecoration(
+                labelText: 'Couleur',
+                prefixIcon: Icon(Icons.palette),
+                border: OutlineInputBorder(),
+              ),
+              items: [
+                const DropdownMenuItem(
+                  value: null,
+                  child: Text('Non spécifiée'),
+                ),
+                ..._couleurs.map((couleur) {
+                  return DropdownMenuItem(value: couleur, child: Text(couleur));
+                }),
+              ],
+              onChanged: (value) {
+                setState(() {
+                  _couleurSelectionnee = value;
+                });
+              },
+            ),
+            const SizedBox(height: 16),
+
             // Sexe
             Card(
               child: Padding(
@@ -352,33 +445,25 @@ class _EditLapinScreenState extends State<EditLapinScreen> {
                       'Sexe *',
                       style: Theme.of(context).textTheme.titleSmall,
                     ),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: RadioListTile<String>(
-                            title: const Text('Mâle'),
-                            value: 'Mâle',
-                            groupValue: _sexeSelectionne,
-                            onChanged: (value) {
-                              setState(() {
-                                _sexeSelectionne = value!;
-                              });
-                            },
-                          ),
+                    SegmentedButton<String>(
+                      segments: const [
+                        ButtonSegment(
+                          value: 'Mâle',
+                          label: Text('Mâle'),
+                          icon: Icon(Icons.male),
                         ),
-                        Expanded(
-                          child: RadioListTile<String>(
-                            title: const Text('Femelle'),
-                            value: 'Femelle',
-                            groupValue: _sexeSelectionne,
-                            onChanged: (value) {
-                              setState(() {
-                                _sexeSelectionne = value!;
-                              });
-                            },
-                          ),
+                        ButtonSegment(
+                          value: 'Femelle',
+                          label: Text('Femelle'),
+                          icon: Icon(Icons.female),
                         ),
                       ],
+                      selected: {_sexeSelectionne},
+                      onSelectionChanged: (values) {
+                        setState(() {
+                          _sexeSelectionne = values.first;
+                        });
+                      },
                     ),
                   ],
                 ),
@@ -429,7 +514,7 @@ class _EditLapinScreenState extends State<EditLapinScreen> {
 
             // Statut
             DropdownButtonFormField<String>(
-              value: _statutSelectionne,
+              initialValue: _statutSelectionne,
               decoration: const InputDecoration(
                 labelText: 'Statut',
                 prefixIcon: Icon(Icons.info),
@@ -439,7 +524,7 @@ class _EditLapinScreenState extends State<EditLapinScreen> {
                 const DropdownMenuItem(value: null, child: Text('Aucun')),
                 ..._statuts.map((statut) {
                   return DropdownMenuItem(value: statut, child: Text(statut));
-                }).toList(),
+                }),
               ],
               onChanged: (value) {
                 setState(() {
@@ -459,6 +544,95 @@ class _EditLapinScreenState extends State<EditLapinScreen> {
                 border: OutlineInputBorder(),
               ),
               textCapitalization: TextCapitalization.characters,
+            ),
+            const SizedBox(height: 16),
+
+            // Origine
+            DropdownButtonFormField<String>(
+              initialValue: _origineSelectionnee,
+              decoration: const InputDecoration(
+                labelText: 'Origine',
+                prefixIcon: Icon(Icons.source),
+                border: OutlineInputBorder(),
+              ),
+              items: [
+                const DropdownMenuItem(
+                  value: null,
+                  child: Text('Non spécifiée'),
+                ),
+                ..._origines.map((origine) {
+                  return DropdownMenuItem(value: origine, child: Text(origine));
+                }),
+              ],
+              onChanged: (value) {
+                setState(() {
+                  _origineSelectionnee = value;
+                });
+              },
+            ),
+            const SizedBox(height: 16),
+
+            // Numéro d'identification
+            TextFormField(
+              controller: _numeroIdController,
+              decoration: const InputDecoration(
+                labelText: 'Numéro d\'identification',
+                hintText: 'Ex: 123456',
+                prefixIcon: Icon(Icons.qr_code),
+                border: OutlineInputBorder(),
+              ),
+              textCapitalization: TextCapitalization.characters,
+            ),
+            const SizedBox(height: 16),
+
+            // Prix d'achat
+            TextFormField(
+              controller: _prixAchatController,
+              decoration: const InputDecoration(
+                labelText: 'Prix d\'achat',
+                hintText: 'Ex: 50',
+                prefixIcon: Icon(Icons.euro),
+                border: OutlineInputBorder(),
+                suffixText: '€',
+              ),
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
+              validator: (value) {
+                if (value != null && value.isNotEmpty) {
+                  final prix = double.tryParse(value);
+                  if (prix == null || prix < 0) {
+                    return 'Veuillez entrer un prix valide';
+                  }
+                }
+                return null;
+              },
+            ),
+            const SizedBox(height: 16),
+
+            // Caractéristiques
+            TextFormField(
+              controller: _caracteristiquesController,
+              decoration: const InputDecoration(
+                labelText: 'Caractéristiques',
+                hintText: 'Ex: Poils longs, oreilles tombantes...',
+                prefixIcon: Icon(Icons.description),
+                border: OutlineInputBorder(),
+              ),
+              maxLines: 2,
+            ),
+            const SizedBox(height: 16),
+
+            // Notes
+            TextFormField(
+              controller: _notesController,
+              decoration: const InputDecoration(
+                labelText: 'Notes',
+                hintText: 'Notes supplémentaires...',
+                prefixIcon: Icon(Icons.note),
+                border: OutlineInputBorder(),
+              ),
+              maxLines: 3,
             ),
             const SizedBox(height: 24),
 

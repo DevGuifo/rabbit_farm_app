@@ -7,6 +7,8 @@ import '../../providers/lapin_provider.dart';
 import '../../providers/sante_provider.dart';
 import '../../models/lapin.dart';
 import '../../services/database_helper.dart';
+import '../../utils/logger.dart';
+import '../../theme/app_theme.dart';
 import '../cheptel/lapin_detail_screen.dart';
 
 class CalendrierScreen extends StatefulWidget {
@@ -187,8 +189,8 @@ class _CalendrierScreenState extends State<CalendrierScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Calendrier & Planning'),
-        backgroundColor: const Color(0xFF9C27B0),
-        foregroundColor: Colors.white,
+        backgroundColor: AppTheme.accentPink,
+        foregroundColor: AppTheme.textLight,
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
@@ -216,15 +218,15 @@ class _CalendrierScreenState extends State<CalendrierScreen> {
             locale: 'fr_FR',
             calendarStyle: CalendarStyle(
               todayDecoration: BoxDecoration(
-                color: Colors.blue.withOpacity(0.5),
+                color: AppTheme.info.withValues(alpha: 0.5),
                 shape: BoxShape.circle,
               ),
               selectedDecoration: const BoxDecoration(
-                color: Color(0xFF9C27B0),
+                color: AppTheme.accentPink,
                 shape: BoxShape.circle,
               ),
               markerDecoration: const BoxDecoration(
-                color: Colors.orange,
+                color: AppTheme.warning,
                 shape: BoxShape.circle,
               ),
               markersMaxCount: 3,
@@ -271,15 +273,19 @@ class _CalendrierScreenState extends State<CalendrierScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.event_busy, size: 64, color: Colors.grey[300]),
+            Icon(
+              Icons.event_busy,
+              size: 64,
+              color: AppTheme.textSecondary.withValues(alpha: 0.3),
+            ),
             const SizedBox(height: 16),
             Text(
               'Aucun événement',
-              style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+              style: AppTheme.bodyLarge.copyWith(color: AppTheme.textSecondary),
             ),
             Text(
               DateFormat('EEEE d MMMM yyyy', 'fr_FR').format(_selectedDay!),
-              style: TextStyle(fontSize: 14, color: Colors.grey[500]),
+              style: AppTheme.bodyMedium.copyWith(color: AppTheme.textTertiary),
             ),
           ],
         ),
@@ -293,7 +299,7 @@ class _CalendrierScreenState extends State<CalendrierScreen> {
           padding: const EdgeInsets.all(16.0),
           child: Text(
             DateFormat('EEEE d MMMM yyyy', 'fr_FR').format(_selectedDay!),
-            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            style: AppTheme.titleMedium,
           ),
         ),
         Expanded(
@@ -313,7 +319,9 @@ class _CalendrierScreenState extends State<CalendrierScreen> {
     return Card(
       margin: const EdgeInsets.only(bottom: 12.0),
       elevation: evenement.important ? 4 : 2,
-      color: evenement.important ? Colors.orange[50] : null,
+      color: evenement.important
+          ? AppTheme.warning.withValues(alpha: 0.1)
+          : null,
       child: InkWell(
         onTap: () => _afficherDetailsEvenement(evenement),
         borderRadius: BorderRadius.circular(8),
@@ -325,7 +333,7 @@ class _CalendrierScreenState extends State<CalendrierScreen> {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: _getCouleurType(evenement.type).withOpacity(0.1),
+                  color: _getCouleurType(evenement.type).withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Icon(
@@ -346,10 +354,9 @@ class _CalendrierScreenState extends State<CalendrierScreen> {
                         if (evenement.heure != null) ...[
                           Text(
                             evenement.heure!.format(context),
-                            style: TextStyle(
-                              fontSize: 12,
+                            style: AppTheme.caption.copyWith(
                               fontWeight: FontWeight.bold,
-                              color: Colors.grey[600],
+                              color: AppTheme.textSecondary,
                             ),
                           ),
                           const SizedBox(width: 8),
@@ -361,13 +368,13 @@ class _CalendrierScreenState extends State<CalendrierScreen> {
                               vertical: 2,
                             ),
                             decoration: BoxDecoration(
-                              color: Colors.orange,
+                              color: AppTheme.warning,
                               borderRadius: BorderRadius.circular(4),
                             ),
-                            child: const Text(
+                            child: Text(
                               'IMPORTANT',
-                              style: TextStyle(
-                                color: Colors.white,
+                              style: AppTheme.caption.copyWith(
+                                color: AppTheme.textLight,
                                 fontSize: 10,
                                 fontWeight: FontWeight.bold,
                               ),
@@ -376,25 +383,25 @@ class _CalendrierScreenState extends State<CalendrierScreen> {
                       ],
                     ),
                     const SizedBox(height: 4),
-                    Text(
-                      evenement.titre,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
+                    Text(evenement.titre, style: AppTheme.titleSmall),
                     if (evenement.description != null) ...[
                       const SizedBox(height: 4),
                       Text(
                         evenement.description!,
-                        style: TextStyle(fontSize: 13, color: Colors.grey[600]),
+                        style: AppTheme.bodySmall.copyWith(
+                          color: AppTheme.textSecondary,
+                        ),
                       ),
                     ],
                   ],
                 ),
               ),
 
-              Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey[400]),
+              Icon(
+                Icons.arrow_forward_ios,
+                size: 16,
+                color: AppTheme.textTertiary,
+              ),
             ],
           ),
         ),
@@ -405,21 +412,21 @@ class _CalendrierScreenState extends State<CalendrierScreen> {
   Color _getCouleurType(TypeEvenement type) {
     switch (type) {
       case TypeEvenement.palpation:
-        return Colors.purple;
+        return AppTheme.accentPink;
       case TypeEvenement.preparationNid:
-        return Colors.brown;
+        return AppTheme.textSecondary;
       case TypeEvenement.miseBas:
-        return Colors.pink;
+        return AppTheme.accentPink;
       case TypeEvenement.sevrage:
-        return Colors.blue;
+        return AppTheme.info;
       case TypeEvenement.vaccination:
-        return Colors.red;
+        return AppTheme.error;
       case TypeEvenement.traitement:
-        return Colors.orange;
+        return AppTheme.warning;
       case TypeEvenement.pesee:
-        return Colors.green;
+        return AppTheme.success;
       case TypeEvenement.personnalise:
-        return Colors.teal;
+        return AppTheme.accentTeal;
     }
   }
 
@@ -465,7 +472,7 @@ class _CalendrierScreenState extends State<CalendrierScreen> {
             if (evenement.heure != null)
               Text(
                 '🕐 Heure : ${evenement.heure!.format(context)}',
-                style: const TextStyle(fontWeight: FontWeight.bold),
+                style: AppTheme.bodyLarge.copyWith(fontWeight: FontWeight.bold),
               ),
             if (evenement.heure != null) const SizedBox(height: 8),
             if (evenement.description != null) Text(evenement.description!),
@@ -474,18 +481,20 @@ class _CalendrierScreenState extends State<CalendrierScreen> {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: Colors.orange[50],
+                  color: AppTheme.warning.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.orange),
+                  border: Border.all(color: AppTheme.warning),
                 ),
-                child: const Row(
+                child: Row(
                   children: [
-                    Icon(Icons.warning, color: Colors.orange, size: 20),
-                    SizedBox(width: 8),
+                    Icon(Icons.warning, color: AppTheme.warning, size: 20),
+                    const SizedBox(width: 8),
                     Expanded(
                       child: Text(
                         'Événement important',
-                        style: TextStyle(fontWeight: FontWeight.bold),
+                        style: AppTheme.bodyMedium.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
                   ],
@@ -509,18 +518,20 @@ class _CalendrierScreenState extends State<CalendrierScreen> {
                   evenement.lapinId!,
                 );
 
-                if (lapin != null && mounted) {
+                if (!context.mounted) return;
+
+                if (lapin != null) {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
                       builder: (context) => LapinDetailScreen(lapin: lapin),
                     ),
                   );
-                } else if (mounted) {
+                } else {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
                       content: Text('Lapin introuvable'),
-                      backgroundColor: Colors.red,
+                      backgroundColor: AppTheme.error,
                     ),
                   );
                 }
@@ -528,8 +539,8 @@ class _CalendrierScreenState extends State<CalendrierScreen> {
               icon: const Icon(Icons.pets),
               label: const Text('Voir lapin'),
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF9C27B0),
-                foregroundColor: Colors.white,
+                backgroundColor: AppTheme.accentPink,
+                foregroundColor: AppTheme.textLight,
               ),
             ),
         ],
@@ -596,7 +607,7 @@ class _CalendrierScreenState extends State<CalendrierScreen> {
 
                 // Catégorie
                 DropdownButtonFormField<String>(
-                  value: categorieSelectionnee,
+                  initialValue: categorieSelectionnee,
                   decoration: InputDecoration(
                     labelText: 'Catégorie',
                     prefixIcon: const Icon(Icons.category),
@@ -694,7 +705,9 @@ class _CalendrierScreenState extends State<CalendrierScreen> {
                   subtitle: const Text('Mettre en évidence'),
                   secondary: Icon(
                     Icons.star,
-                    color: important ? Colors.amber : Colors.grey,
+                    color: important
+                        ? AppTheme.accentAmber
+                        : AppTheme.textSecondary,
                   ),
                   value: important,
                   onChanged: (value) {
@@ -707,7 +720,9 @@ class _CalendrierScreenState extends State<CalendrierScreen> {
                   subtitle: const Text('Recevoir un rappel'),
                   secondary: Icon(
                     Icons.notifications,
-                    color: notificationActive ? Colors.blue : Colors.grey,
+                    color: notificationActive
+                        ? AppTheme.info
+                        : AppTheme.textSecondary,
                   ),
                   value: notificationActive,
                   onChanged: (value) {
@@ -761,22 +776,24 @@ class _CalendrierScreenState extends State<CalendrierScreen> {
                     'couleur': '#9C27B0', // Violet par défaut
                   });
 
+                  if (!context.mounted) return;
                   Navigator.pop(context);
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text('✅ "$titre" ajouté au calendrier'),
-                      backgroundColor: Colors.green,
+                      backgroundColor: AppTheme.success,
                     ),
                   );
 
                   // Recharger le calendrier
                   await _chargerEvenements();
                 } catch (e) {
-                  debugPrint('Erreur lors de l\'ajout de l\'événement: $e');
+                  logger.error('❌ Erreur lors de l\'ajout de l\'événement', e);
+                  if (!context.mounted) return;
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text('❌ Erreur: $e'),
-                      backgroundColor: Colors.red,
+                      backgroundColor: AppTheme.error,
                     ),
                   );
                 }

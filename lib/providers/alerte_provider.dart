@@ -1,6 +1,8 @@
 import 'package:flutter/foundation.dart';
 import '../models/alerte.dart';
 import '../services/database_helper.dart';
+import '../services/poids_normes_service.dart';
+import '../utils/logger.dart';
 import 'deces_provider.dart';
 import 'alimentation_provider.dart';
 
@@ -10,7 +12,7 @@ class AlerteProvider with ChangeNotifier {
   final DecesProvider _decesProvider;
   final AlimentationProvider _alimentationProvider;
 
-  List<Alerte> _alertes = [];
+  final List<Alerte> _alertes = [];
   bool _isLoading = false;
 
   AlerteProvider({
@@ -104,7 +106,7 @@ class AlerteProvider with ChangeNotifier {
         return b.dateCreation.compareTo(a.dateCreation);
       });
     } catch (e) {
-      debugPrint('❌ Erreur lors du scan des alertes: $e');
+      logger.error('❌ Erreur lors du scan des alertes: $e');
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -154,7 +156,7 @@ class AlerteProvider with ChangeNotifier {
         }
       }
     } catch (e) {
-      debugPrint('❌ Erreur scan vaccinations: $e');
+      logger.error('❌ Erreur scan vaccinations: $e');
     }
   }
 
@@ -195,7 +197,7 @@ class AlerteProvider with ChangeNotifier {
         }
       }
     } catch (e) {
-      debugPrint('❌ Erreur scan palpations: $e');
+      logger.error('❌ Erreur scan palpations: $e');
     }
   }
 
@@ -235,7 +237,7 @@ class AlerteProvider with ChangeNotifier {
         }
       }
     } catch (e) {
-      debugPrint('❌ Erreur scan nids: $e');
+      logger.error('❌ Erreur scan nids: $e');
     }
   }
 
@@ -288,7 +290,7 @@ class AlerteProvider with ChangeNotifier {
         }
       }
     } catch (e) {
-      debugPrint('❌ Erreur scan mises bas: $e');
+      logger.error('❌ Erreur scan mises bas: $e');
     }
   }
 
@@ -329,7 +331,7 @@ class AlerteProvider with ChangeNotifier {
         }
       }
     } catch (e) {
-      debugPrint('❌ Erreur scan sevrages: $e');
+      logger.error('❌ Erreur scan sevrages: $e');
     }
   }
 
@@ -388,7 +390,7 @@ class AlerteProvider with ChangeNotifier {
         }
       }
     } catch (e) {
-      debugPrint('❌ Erreur scan pesées: $e');
+      logger.error('❌ Erreur scan pesées: $e');
     }
   }
 
@@ -436,11 +438,11 @@ class AlerteProvider with ChangeNotifier {
         }
       }
     } catch (e) {
-      debugPrint('❌ Erreur scan traitements: $e');
+      logger.error('❌ Erreur scan traitements: $e');
     }
   }
 
-  /// 8. Scanner les poids anormaux
+  /// 8. Scanner les poids anormaux (AMÉLIORÉ avec normes par race)
   Future<void> _scanPoidsAnormaux() async {
     try {
       final lapins = await _dbHelper.getAllLapins();
@@ -448,7 +450,50 @@ class AlerteProvider with ChangeNotifier {
 
       for (final lapin in lapins) {
         if (lapin.statut == 'decede' || lapin.statut == 'vendu') continue;
+        if (lapin.id == null) continue;
 
+        final ageJours = lapin.ageEnJours;
+
+        // 1. Vérifier poids absolu selon normes par race et âge
+        if (lapin.poids != null) {
+          final poidsAnormal = PoidsNormesService.estPoidsAnormal(
+            poids: lapin.poids!,
+            race: lapin.race,
+            ageJours: ageJours,
+            sexe: lapin.sexe,
+          );
+
+          if (poidsAnormal) {
+            final normes = PoidsNormesService.getPoidsNormal(
+              race: lapin.race,
+              ageJours: ageJours,
+              sexe: lapin.sexe,
+            );
+            final message = PoidsNormesService.getMessagePoids(
+              poids: lapin.poids!,
+              race: lapin.race,
+              ageJours: ageJours,
+              sexe: lapin.sexe,
+            );
+
+            _alertes.add(
+              Alerte(
+                id: 'poids_absolu_${lapin.id}_${DateTime.now().millisecondsSinceEpoch}',
+                titre: 'Poids hors norme',
+                description:
+                    '${lapin.nom}: ${lapin.poids!.toStringAsFixed(2)}kg (norme: ${normes['min']!.toStringAsFixed(1)}-${normes['max']!.toStringAsFixed(1)}kg). $message',
+                type: TypeAlerte.poidsAnormal,
+                priorite: PrioriteAlerte.urgent,
+                dateCreation: maintenant,
+                lapinId: lapin.id,
+                lapinNom: lapin.nom,
+                action: 'Vérifier l\'état de santé',
+              ),
+            );
+          }
+        }
+
+        // 2. Vérifier variation rapide entre pesées (amélioré avec seuils adaptatifs)
         final pesees = await _dbHelper.getPeseesByLapin(lapin.id!);
         if (pesees.length < 2) continue;
 
@@ -456,22 +501,27 @@ class AlerteProvider with ChangeNotifier {
         final dernierePesee = pesees[0];
         final avantDernierePesee = pesees[1];
 
+        // Seuil adaptatif selon l'âge (plus strict pour jeunes)
+        final seuilVariation = ageJours < 90 ? 15.0 : 20.0;
+
         // Calculer la variation de poids
         final variation =
             ((dernierePesee.poids - avantDernierePesee.poids) /
-                avantDernierePesee.poids) *
-            100;
+                    avantDernierePesee.poids) *
+                100;
 
-        // Alerter si variation > ±20%
-        if (variation.abs() > 20) {
+        // Alerter si variation > seuil adaptatif
+        if (variation.abs() > seuilVariation) {
           _alertes.add(
             Alerte(
-              id: 'poids_${lapin.id}_${DateTime.now().millisecondsSinceEpoch}',
-              titre: 'Poids anormal détecté',
+              id: 'poids_variation_${lapin.id}_${DateTime.now().millisecondsSinceEpoch}',
+              titre: 'Variation de poids importante',
               description:
-                  '${lapin.nom}: ${variation > 0 ? "gain" : "perte"} de ${variation.abs().toStringAsFixed(1)}% du poids',
+                  '${lapin.nom}: ${variation > 0 ? "gain" : "perte"} de ${variation.abs().toStringAsFixed(1)}% du poids en ${dernierePesee.date.difference(avantDernierePesee.date).inDays} jours',
               type: TypeAlerte.poidsAnormal,
-              priorite: PrioriteAlerte.urgent,
+              priorite: variation.abs() > 30
+                  ? PrioriteAlerte.urgent
+                  : PrioriteAlerte.important,
               dateCreation: maintenant,
               lapinId: lapin.id,
               lapinNom: lapin.nom,
@@ -481,7 +531,7 @@ class AlerteProvider with ChangeNotifier {
         }
       }
     } catch (e) {
-      debugPrint('❌ Erreur scan poids: $e');
+      logger.error('❌ Erreur scan poids: $e');
     }
   }
 
@@ -509,7 +559,7 @@ class AlerteProvider with ChangeNotifier {
         );
       }
     } catch (e) {
-      debugPrint('❌ Erreur scan stocks: $e');
+      logger.error('❌ Erreur scan stocks: $e');
     }
   }
 
@@ -543,7 +593,7 @@ class AlerteProvider with ChangeNotifier {
         );
       }
     } catch (e) {
-      debugPrint('❌ Erreur scan péremptions: $e');
+      logger.error('❌ Erreur scan péremptions: $e');
     }
   }
 
@@ -570,7 +620,7 @@ class AlerteProvider with ChangeNotifier {
         );
       }
     } catch (e) {
-      debugPrint('❌ Erreur scan mortalité: $e');
+      logger.error('❌ Erreur scan mortalité: $e');
     }
   }
 
@@ -600,7 +650,7 @@ class AlerteProvider with ChangeNotifier {
         }
       }
     } catch (e) {
-      debugPrint('❌ Erreur scan quarantaines: $e');
+      logger.error('❌ Erreur scan quarantaines: $e');
     }
   }
 
@@ -637,7 +687,7 @@ class AlerteProvider with ChangeNotifier {
         }
       }
     } catch (e) {
-      debugPrint('❌ Erreur scan réformes: $e');
+      logger.error('❌ Erreur scan réformes: $e');
     }
   }
 }

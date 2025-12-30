@@ -101,20 +101,36 @@ docs/historique/
 REFONTE_*.md
 HARMONISATION_*.md
 PHASE_*.md
+PHASE*_*.md
 IMPLEMENTATION_*.md
 EXECUTION_*.md
 GUIDE_TESTS_*.md
 VALIDATION_*.md
 SECTION_*.txt
 TODO_ETAPES_*.md
+TODO.md
+DASHBOARD_*.md
+CHANGER_*.md
+REBRANDING_*.md
+CORRECTIONS_UI_*.md
+# Scripts temporaires
+fix_*.py
+run_*.sh
 
 # ========== Secrets (si jamais vous en ajoutez) ==========
 .env
 .env.local
 .env.production
+.env.development
 *.key
 *.pem
 secrets.json
+config/secrets.dart
+supabase_credentials.dart
+
+# ========== Fichiers de configuration Supabase ==========
+# Ne jamais commiter les fichiers contenant des credentials réels
+**/supabase_config_local.dart
 
 # ========== Logs ==========
 *.log

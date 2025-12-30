@@ -5,9 +5,10 @@
 This is a **Flutter mobile app** for rabbit farm management with **100% offline-first** SQLite architecture. Key components:
 
 - **MVVM Pattern**: Providers (state) → Services (business logic) → Models (data)
-- **Singleton Services**: `DatabaseHelper.instance`, `NotificationService()`, `PdfService()`, `PhotoService()`
-- **Provider State**: 5 providers (`LapinProvider`, `ReproductionProvider`, `SanteProvider`, `FinanceProvider`, `ThemeProvider`)
+- **Singleton Services**: `DatabaseHelper.instance`, `LocalisationService()`, `NavigationService()`, `NotificationService()`, `PdfService()`, `PhotoService()`
+- **Provider State**: **17 providers** (`LapinProvider`, `ReproductionProvider`, `SanteProvider`, `FinanceProvider`, `ThemeProvider`, `DecesProvider`, `AlimentationProvider`, `AlerteProvider`, `FumierProvider`, `MedicamentProvider`, `QuarantaineProvider`, `ReformeProvider`, `SevrageProvider`, `PalpationProvider`, `PreparationNidProvider`, `ProtocoleSoinProvider`, `EvenementPersonnaliseProvider`)
 - **SQLite Database**: Version 5 schema with 9 tables, cascading foreign keys, automatic migrations
+- **Logger Pattern**: Phase P0.6 established - Use `logger.info()` / `logger.warning()` / `logger.error()` instead of `print()`. Initialized in `main()` with `logger.initialize(isProduction: false)`
 
 ## Critical Pattern: Provider Initialization
 
@@ -24,6 +25,25 @@ void initState() {
 ```
 
 See: `lib/screens/reproduction/reproduction_screen.dart:24`, `lib/screens/sante/sante_screen.dart:21`
+
+## Logger Pattern (Phase P0.6)
+
+⚠️ **NEVER** use `print()` - Use logger instead:
+
+```dart
+import 'package:rabbit_farm_app/utils/logger.dart';
+
+// In main.dart
+logger.initialize(isProduction: false);
+logger.info('🚀 Démarrage BunnyManager');
+
+// In any file
+logger.info('User action: $_action');
+logger.warning('Empty list returned from $_method');
+logger.error('Failed to $_operation: $error');
+```
+
+39 `print()` statements replaced in Phase P0.6. Follow this pattern for all new code.
 
 ## Database Architecture
 
@@ -168,15 +188,69 @@ lapin.photoPath != null && File(lapin.photoPath!).existsSync()
 
 ```
 lib/
-├── main.dart                    # Entry point, MultiProvider setup
-├── models/                      # 7 data models with toMap/fromMap
-├── providers/                   # 5 ChangeNotifier classes
-├── services/                    # 4 singletons (DB, Notification, PDF, Photo)
-├── screens/                     # Feature-organized (cheptel/, sante/, etc.)
-├── widgets/                     # Reusable (lapin_card.dart, animations.dart)
+├── main.dart                    # Entry point, 17 MultiProvider setup
+├── models/                      # 9 data models with toMap/fromMap
+├── providers/                   # 17 ChangeNotifier classes
+├── services/                    # 7 singletons (DatabaseHelper, LocalisationService, NavigationService, NotificationService, PdfService, PhotoService, photo_exceptions)
+├── screens/                     # Feature-organized (cheptel/, sante/, reproduction/, parametres/, optimisation/, utilitaire/)
+├── widgets/                     # Reusable (lapin_card.dart, animations.dart, cage_selector.dart)
 ├── constants/                   # App-wide constants
-└── utils/                       # Helper functions
+├── theme/                       # app_theme.dart (simple design, green #4CAF50 palette)
+└── utils/                       # Helper functions (logger, snackbar_helper, pdf_generator)
 ```
+
+## CRUD Pattern - LocalisationManagerScreen Example
+
+**Contextual FloatingActionButton**: Display multiple FABs based on context (e.g., add Building, add Clapier, add Cage):
+
+```dart
+Widget _buildFAB() {
+  return Column(
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      FloatingActionButton(
+        onPressed: _ajouterBatiment,
+        backgroundColor: Colors.blue,
+        tooltip: 'Bâtiment',
+        child: const Icon(Icons.domain),
+      ),
+      const SizedBox(height: 8),
+      FloatingActionButton(
+        onPressed: _ajouterClapier,
+        backgroundColor: Colors.purple,
+        tooltip: 'Clapier',
+        child: const Icon(Icons.meeting_room),
+      ),
+    ],
+  );
+}
+```
+
+**Long Press Menu for Edit/Delete**:
+```dart
+onLongPress: () => _showContextMenu(context, item)
+```
+
+**getCagesDisponibles() Format** (sevrage workflow):
+```dart
+// Returns List<Map<String, dynamic>> with keys:
+// 'cageId', 'batimentNom', 'clapierNom', 'cageNumero', 'cageCapacite', 'occupantCount'
+final cagesDisponibles = await LocalisationService().getCagesDisponibles();
+```
+
+## UI/UX Known Issues (Phase P0 Complete, but gaps vs requirements)
+
+⚠️ **Critical Gaps** (note 5.3/10 vs cahier des charges):
+- **Dashboard**: Pas de tableau de bord actionnable central (navigation fragmentée dans bottom bar)
+- **Workflow complexe**: Reproduction nécessite 7 clics vs optimal 3 (pas de boutons rapides)
+- **Localisation**: 3 niveaux (Bâtiment → Clapier → Cage) trop profonds, pas de recherche globale
+- **Conformité**: ~60% cahier des charges (10 sections attendues)
+
+**Recommended actions for future agents**:
+1. Prioriser dashboard central avec KPIs et actions rapides
+2. Ajouter recherche globale (lapins, cages, accouplements)
+3. Simplifier workflow reproduction (boutons contextuels)
+4. Implémenter bottom navigation bar (Cheptel, Santé, Reproduction, Finances, Paramètres)
 
 ## When Debugging
 

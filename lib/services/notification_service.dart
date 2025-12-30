@@ -262,12 +262,212 @@ class NotificationService {
     );
   }
 
+  /// Planifier une notification pour la palpation (10 jours après accouplement)
+  Future<void> planifierRappelPalpation({
+    required int accouplementId,
+    required DateTime dateAccouplement,
+    required String nomFemelle,
+  }) async {
+    if (!_isInitialized) await initialize();
+
+    // Calculer la date de rappel (10 jours après l'accouplement)
+    final dateRappel = dateAccouplement.add(const Duration(days: 10));
+
+    // Ne pas planifier si la date est déjà passée
+    if (dateRappel.isBefore(DateTime.now())) {
+      logger.warning(
+        '⚠️ Date de rappel palpation déjà passée pour l\'accouplement $accouplementId',
+      );
+      return;
+    }
+
+    final scheduledDate = tz.TZDateTime.from(dateRappel, tz.local);
+
+    const androidDetails = AndroidNotificationDetails(
+      'reproduction_channel',
+      'Rappels de reproduction',
+      channelDescription: 'Notifications pour les accouplements et reproductions',
+      importance: Importance.high,
+      priority: Priority.high,
+      icon: '@mipmap/ic_launcher',
+    );
+
+    const iosDetails = DarwinNotificationDetails(
+      presentAlert: true,
+      presentBadge: true,
+      presentSound: true,
+    );
+
+    const details = NotificationDetails(
+      android: androidDetails,
+      iOS: iosDetails,
+    );
+
+    // Utiliser un ID unique pour les palpations (offset de 200000)
+    await _notifications.zonedSchedule(
+      200000 + accouplementId,
+      '🔍 Rappel de palpation',
+      'Palpation prévue pour $nomFemelle le ${_formatDate(dateRappel)}',
+      scheduledDate,
+      details,
+      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+      uiLocalNotificationDateInterpretation:
+          UILocalNotificationDateInterpretation.absoluteTime,
+      payload: 'palpation:$accouplementId',
+    );
+
+    logger.info(
+      '✅ Rappel de palpation planifié pour $nomFemelle le ${_formatDate(dateRappel)}',
+    );
+  }
+
+  /// Planifier une notification pour la préparation du nid (28 jours après accouplement)
+  Future<void> planifierRappelNid({
+    required int accouplementId,
+    required DateTime dateAccouplement,
+    required String nomFemelle,
+  }) async {
+    if (!_isInitialized) await initialize();
+
+    // Calculer la date de rappel (28 jours après l'accouplement)
+    final dateRappel = dateAccouplement.add(const Duration(days: 28));
+
+    // Ne pas planifier si la date est déjà passée
+    if (dateRappel.isBefore(DateTime.now())) {
+      logger.warning(
+        '⚠️ Date de rappel nid déjà passée pour l\'accouplement $accouplementId',
+      );
+      return;
+    }
+
+    final scheduledDate = tz.TZDateTime.from(dateRappel, tz.local);
+
+    const androidDetails = AndroidNotificationDetails(
+      'reproduction_channel',
+      'Rappels de reproduction',
+      channelDescription: 'Notifications pour les accouplements et reproductions',
+      importance: Importance.high,
+      priority: Priority.high,
+      icon: '@mipmap/ic_launcher',
+    );
+
+    const iosDetails = DarwinNotificationDetails(
+      presentAlert: true,
+      presentBadge: true,
+      presentSound: true,
+    );
+
+    const details = NotificationDetails(
+      android: androidDetails,
+      iOS: iosDetails,
+    );
+
+    // Utiliser un ID unique pour les nids (offset de 300000)
+    await _notifications.zonedSchedule(
+      300000 + accouplementId,
+      '🏠 Préparation du nid',
+      'Préparer le nid pour $nomFemelle le ${_formatDate(dateRappel)}',
+      scheduledDate,
+      details,
+      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+      uiLocalNotificationDateInterpretation:
+          UILocalNotificationDateInterpretation.absoluteTime,
+      payload: 'nid:$accouplementId',
+    );
+
+    logger.info(
+      '✅ Rappel de nid planifié pour $nomFemelle le ${_formatDate(dateRappel)}',
+    );
+  }
+
+  /// Planifier un rappel de pesée hebdomadaire pour un lapin
+  Future<void> planifierRappelPeseeHebdomadaire({
+    required int lapinId,
+    required String nomLapin,
+    DateTime? dateDernierePesee,
+  }) async {
+    if (!_isInitialized) await initialize();
+
+    // Calculer la date de rappel (7 jours après la dernière pesée, ou dans 7 jours si pas de pesée)
+    final dateReference = dateDernierePesee ?? DateTime.now();
+    final dateRappel = dateReference.add(const Duration(days: 7));
+
+    // Ne pas planifier si la date est déjà passée
+    if (dateRappel.isBefore(DateTime.now())) {
+      logger.warning(
+        '⚠️ Date de rappel pesée déjà passée pour le lapin $lapinId',
+      );
+      return;
+    }
+
+    final scheduledDate = tz.TZDateTime.from(dateRappel, tz.local);
+
+    const androidDetails = AndroidNotificationDetails(
+      'pesee_channel',
+      'Rappels de pesées',
+      channelDescription: 'Notifications pour les pesées régulières',
+      importance: Importance.defaultImportance,
+      priority: Priority.defaultPriority,
+      icon: '@mipmap/ic_launcher',
+    );
+
+    const iosDetails = DarwinNotificationDetails(
+      presentAlert: true,
+      presentBadge: true,
+      presentSound: true,
+    );
+
+    const details = NotificationDetails(
+      android: androidDetails,
+      iOS: iosDetails,
+    );
+
+    // Utiliser un ID unique pour les pesées (offset de 400000)
+    await _notifications.zonedSchedule(
+      400000 + lapinId,
+      '⚖️ Rappel de pesée',
+      'Pesée hebdomadaire pour $nomLapin le ${_formatDate(dateRappel)}',
+      scheduledDate,
+      details,
+      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+      uiLocalNotificationDateInterpretation:
+          UILocalNotificationDateInterpretation.absoluteTime,
+      payload: 'pesee:$lapinId',
+    );
+
+    logger.info(
+      '✅ Rappel de pesée planifié pour $nomLapin le ${_formatDate(dateRappel)}',
+    );
+  }
+
   /// Annuler une notification de mise bas
   Future<void> annulerRappelMiseBas(int accouplementId) async {
     await _notifications.cancel(accouplementId);
     logger.debug(
       '❌ Rappel de mise bas annulé pour l\'accouplement $accouplementId',
     );
+  }
+
+  /// Annuler une notification de palpation
+  Future<void> annulerRappelPalpation(int accouplementId) async {
+    await _notifications.cancel(200000 + accouplementId);
+    logger.debug(
+      '❌ Rappel de palpation annulé pour l\'accouplement $accouplementId',
+    );
+  }
+
+  /// Annuler une notification de nid
+  Future<void> annulerRappelNid(int accouplementId) async {
+    await _notifications.cancel(300000 + accouplementId);
+    logger.debug(
+      '❌ Rappel de nid annulé pour l\'accouplement $accouplementId',
+    );
+  }
+
+  /// Annuler un rappel de pesée
+  Future<void> annulerRappelPesee(int lapinId) async {
+    await _notifications.cancel(400000 + lapinId);
+    logger.debug('❌ Rappel de pesée annulé pour le lapin $lapinId');
   }
 
   /// Annuler une notification de soin

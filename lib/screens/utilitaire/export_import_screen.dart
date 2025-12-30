@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import 'dart:io';
 import 'dart:convert';
@@ -6,15 +7,28 @@ import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:path/path.dart' as p;
 import 'package:excel/excel.dart' hide Border;
+import '../../models/accouplement.dart';
+import '../../models/recette.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:archive/archive_io.dart';
 import '../../services/database_helper.dart';
+import '../../providers/lapin_provider.dart';
+import '../../providers/reproduction_provider.dart';
+import '../../providers/sante_provider.dart';
+import '../../providers/finance_provider.dart';
 import '../../utils/dialog_helper.dart';
 import '../../utils/snackbar_helper.dart';
 import '../../utils/logger.dart';
 import '../../models/lapin.dart';
+import '../../theme/app_theme.dart';
+import 'widgets/export_options_section.dart';
+import 'widgets/import_options_section.dart';
+import 'widgets/backup_info_card.dart';
+import 'widgets/backup_tips_card.dart';
+import 'widgets/progress_section.dart';
+import 'widgets/migration_format_dialog.dart';
 
 class ExportImportScreen extends StatefulWidget {
   const ExportImportScreen({super.key});
@@ -77,356 +91,75 @@ class _ExportImportScreenState extends State<ExportImportScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Export / Import'),
-        backgroundColor: const Color(0xFF9C27B0),
-        foregroundColor: Colors.white,
+        backgroundColor: AppTheme.accentPink,
+        foregroundColor: AppTheme.textLight,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // En-tête
             Row(
               children: [
                 const Icon(
                   Icons.cloud_upload,
                   size: 32,
-                  color: Color(0xFF9C27B0),
+                  color: AppTheme.accentPink,
                 ),
                 const SizedBox(width: 12),
-                const Text(
+                Text(
                   'Sauvegarde & Restauration',
-                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                  style: AppTheme.titleLarge.copyWith(fontSize: 24),
                 ),
               ],
             ),
             const SizedBox(height: 8),
             Text(
               'Sécurisez vos données et restaurez-les facilement',
-              style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+              style: AppTheme.bodyMedium.copyWith(
+                fontSize: 14,
+                color: Colors.grey[600],
+              ),
             ),
             const SizedBox(height: 24),
-
-            // Dernière sauvegarde
-            if (_lastBackupDate != null)
-              Card(
-                color: Colors.green[50],
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Row(
-                    children: [
-                      const Icon(
-                        Icons.check_circle,
-                        color: Colors.green,
-                        size: 32,
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              'Dernière sauvegarde',
-                              style: TextStyle(fontWeight: FontWeight.bold),
-                            ),
-                            Text(
-                              DateFormat(
-                                'dd/MM/yyyy à HH:mm',
-                              ).format(_lastBackupDate!),
-                              style: TextStyle(color: Colors.grey[700]),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
+            BackupInfoCard(
+              backupPath: _lastBackupPath,
+              backupDate: _lastBackupDate,
+              onShare: _shareBackup,
+            ),
             if (_lastBackupDate != null) const SizedBox(height: 24),
-
-            // SECTION EXPORT
-            const Text(
-              'EXPORT DES DONNÉES',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 16),
-
-            // Option 1: Sauvegarde complète
-            _buildExportCard(
-              title: 'Sauvegarde complète',
-              description: 'Base de données SQLite + toutes les photos',
-              icon: Icons.backup,
-              color: Colors.blue,
-              onTap: _isExporting ? null : _exportSauvegardeComplete,
-            ),
-            const SizedBox(height: 12),
-
-            // Option 2: Export Excel
-            _buildExportCard(
-              title: 'Export Excel',
-              description:
-                  'Tableaux Excel par table (lapins, accouplements, etc.)',
-              icon: Icons.table_chart,
-              color: Colors.green,
-              onTap: _isExporting ? null : _exportExcel,
-            ),
-            const SizedBox(height: 12),
-
-            // Option 3: Export JSON
-            _buildExportCard(
-              title: 'Export JSON',
-              description: 'Format JSON pour API ou développeurs',
-              icon: Icons.code,
-              color: Colors.orange,
-              onTap: _isExporting ? null : _exportJSON,
-            ),
-            const SizedBox(height: 12),
-
-            // Option 4: Cloud Sync (placeholder)
-            _buildExportCard(
-              title: 'Synchronisation Cloud',
-              description: 'Sauvegarde automatique sur Google Drive (bientôt)',
-              icon: Icons.cloud_sync,
-              color: Colors.purple,
-              onTap: null, // Disabled
+            ExportOptionsSection(
+              onExportDatabase: _exportSauvegardeComplete,
+              onExportExcel: _exportExcel,
+              onExportJson: _exportJSON,
+              onExportCsv: _exportCsv,
+              isExporting: _isExporting,
             ),
             const SizedBox(height: 32),
-
-            // SECTION IMPORT
-            const Text(
-              'IMPORT / RESTAURATION',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 16),
-
-            // Option 1: Restaurer sauvegarde
-            _buildImportCard(
-              title: 'Restaurer une sauvegarde',
-              description: 'Remplacer les données actuelles par une sauvegarde',
-              icon: Icons.restore,
-              color: Colors.red,
-              danger: true,
-              onTap: _isImporting ? null : _importSauvegarde,
-            ),
-            const SizedBox(height: 12),
-
-            // Option 2: Import Excel
-            _buildImportCard(
-              title: 'Importer depuis Excel',
-              description: 'Ajouter des données depuis un fichier Excel',
-              icon: Icons.upload_file,
-              color: Colors.blue,
-              onTap: _isImporting ? null : _importExcel,
-            ),
-            const SizedBox(height: 12),
-
-            // Option 3: Migration
-            _buildImportCard(
-              title: 'Migrer depuis autre app',
-              description: 'Importer les données d\'une autre application',
-              icon: Icons.sync_alt,
-              color: Colors.teal,
-              onTap: _isImporting ? null : _migrationAutreApp,
+            ImportOptionsSection(
+              onImportDatabase: _importSauvegarde,
+              onImportExcel: _importExcel,
+              onImportJson: _migrationAutreApp,
+              isImporting: _isImporting,
             ),
             const SizedBox(height: 32),
-
-            // Informations utiles
-            Card(
-              color: Colors.blue[50],
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Icon(Icons.info_outline, color: Colors.blue[700]),
-                        const SizedBox(width: 8),
-                        Text(
-                          'Conseils de sauvegarde',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: Colors.blue[900],
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    const Text(
-                      '• Effectuez une sauvegarde complète au moins une fois par semaine\n'
-                      '• Conservez les sauvegardes sur un support externe (USB, Cloud)\n'
-                      '• Vérifiez régulièrement l\'intégrité de vos sauvegardes\n'
-                      '• La restauration écrase toutes les données actuelles\n'
-                      '• Les exports Excel peuvent être modifiés avant réimport',
-                      style: TextStyle(fontSize: 13),
-                    ),
-                  ],
-                ),
-              ),
+            const BackupTipsCard(),
+            ProgressSection(
+              isExporting: _isExporting,
+              isImporting: _isImporting,
             ),
-
-            // Indicateur de chargement
-            if (_isExporting || _isImporting)
-              Padding(
-                padding: const EdgeInsets.only(top: 24.0),
-                child: Center(
-                  child: Column(
-                    children: [
-                      const CircularProgressIndicator(),
-                      const SizedBox(height: 12),
-                      Text(
-                        _isExporting
-                            ? 'Export en cours...'
-                            : 'Import en cours...',
-                        style: TextStyle(color: Colors.grey[600]),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildExportCard({
-    required String title,
-    required String description,
-    required IconData icon,
-    required Color color,
-    required VoidCallback? onTap,
-  }) {
-    return Card(
-      elevation: 2,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(8),
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: color.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Icon(icon, color: color, size: 32),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      description,
-                      style: TextStyle(fontSize: 13, color: Colors.grey[600]),
-                    ),
-                  ],
-                ),
-              ),
-              Icon(
-                Icons.arrow_forward_ios,
-                color: onTap == null ? Colors.grey[300] : Colors.grey[400],
-                size: 16,
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildImportCard({
-    required String title,
-    required String description,
-    required IconData icon,
-    required Color color,
-    required VoidCallback? onTap,
-    bool danger = false,
-  }) {
-    return Card(
-      elevation: 2,
-      color: danger ? Colors.red[50] : null,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(8),
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: color.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Icon(icon, color: color, size: 32),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Text(
-                          title,
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        if (danger) ...[
-                          const SizedBox(width: 8),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 6,
-                              vertical: 2,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.red,
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            child: const Text(
-                              'ATTENTION',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 10,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ],
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      description,
-                      style: TextStyle(fontSize: 13, color: Colors.grey[600]),
-                    ),
-                  ],
-                ),
-              ),
-              Icon(
-                Icons.arrow_forward_ios,
-                color: onTap == null ? Colors.grey[300] : Colors.grey[400],
-                size: 16,
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
+  Future<void> _shareBackup() async {
+    if (_lastBackupPath != null) {
+      await Share.shareXFiles([
+        XFile(_lastBackupPath!),
+      ], subject: 'Sauvegarde BunnyManager');
+    }
   }
 
   // ============================================
@@ -635,6 +368,197 @@ class _ExportImportScreenState extends State<ExportImportScreen> {
     }
   }
 
+  Future<void> _exportCsv() async {
+    setState(() => _isExporting = true);
+
+    try {
+      final db = DatabaseHelper.instance;
+
+      // Créer un fichier CSV avec toutes les données
+      final csvLines = <String>[];
+
+      // En-tête
+      csvLines.add('=== EXPORT BUNNYMANAGER ===');
+      csvLines.add(
+        'Date export: ${DateFormat('dd/MM/yyyy à HH:mm').format(DateTime.now())}',
+      );
+      csvLines.add('');
+
+      // 1. LAPINS
+      csvLines.add('=== LAPINS ===');
+      csvLines.add(
+        'ID,Nom,Race,Sexe,Date Naissance,Poids,Statut,Localisation,Numéro Identification,Couleur',
+      );
+      final lapins = await db.getAllLapins();
+      for (final lapin in lapins) {
+        csvLines.add(
+          [
+            lapin.id?.toString() ?? '',
+            _escapeCsv(lapin.nom),
+            _escapeCsv(lapin.race),
+            _escapeCsv(lapin.sexe),
+            DateFormat('yyyy-MM-dd').format(lapin.dateNaissance),
+            lapin.poids?.toString() ?? '',
+            lapin.statut ?? '',
+            lapin.localisation ?? '',
+            lapin.numeroIdentification ?? '',
+            lapin.couleur ?? '',
+          ].join(','),
+        );
+      }
+      csvLines.add('');
+
+      // 2. ACCOUPLEMENTS
+      csvLines.add('=== ACCOUPLEMENTS ===');
+      csvLines.add(
+        'ID,Mâle ID,Mâle Nom,Femelle ID,Femelle Nom,Date Accouplement,Date Mise Bas Prévue,Statut',
+      );
+      final accouplements = await db.getAllAccouplements();
+      for (final acc in accouplements) {
+        final male = await db.getLapinById(acc.maleId);
+        final femelle = await db.getLapinById(acc.femelleId);
+        csvLines.add(
+          [
+            acc.id?.toString() ?? '',
+            acc.maleId.toString(),
+            _escapeCsv(male?.nom ?? 'Inconnu'),
+            acc.femelleId.toString(),
+            _escapeCsv(femelle?.nom ?? 'Inconnu'),
+            DateFormat('yyyy-MM-dd').format(acc.dateAccouplement),
+            DateFormat('yyyy-MM-dd').format(acc.dateMiseBasPrevue),
+            _escapeCsv(acc.statut),
+          ].join(','),
+        );
+      }
+      csvLines.add('');
+
+      // 3. PORTÉES
+      csvLines.add('=== PORTÉES ===');
+      csvLines.add('ID,Accouplement ID,Date Mise Bas,Nés,Vivants,Morts');
+      final portees = await db.getAllPortees();
+      for (final portee in portees) {
+        csvLines.add(
+          [
+            portee.id?.toString() ?? '',
+            portee.accouplementId.toString(),
+            DateFormat('yyyy-MM-dd').format(portee.dateMiseBasReelle),
+            portee.nombreNes.toString(),
+            portee.nombreVivants.toString(),
+            portee.nombreMorts.toString(),
+          ].join(','),
+        );
+      }
+      csvLines.add('');
+
+      // 4. PESÉES
+      csvLines.add('=== PESÉES ===');
+      csvLines.add('ID,Lapin ID,Lapin Nom,Date,Poids,Notes');
+      final pesees = await db.getAllPesees();
+      for (final pesee in pesees) {
+        final lapin = await db.getLapinById(pesee.lapinId);
+        csvLines.add(
+          [
+            pesee.id?.toString() ?? '',
+            pesee.lapinId.toString(),
+            _escapeCsv(lapin?.nom ?? 'Inconnu'),
+            DateFormat('yyyy-MM-dd').format(pesee.date),
+            pesee.poids.toString(),
+            _escapeCsv(pesee.notes ?? ''),
+          ].join(','),
+        );
+      }
+      csvLines.add('');
+
+      // 5. SOINS
+      csvLines.add('=== SOINS ===');
+      csvLines.add(
+        'ID,Lapin ID,Lapin Nom,Date,Type,Description,Médicament,Dosage',
+      );
+      final soins = await db.getAllSoins();
+      for (final soin in soins) {
+        final lapin = await db.getLapinById(soin.lapinId);
+        csvLines.add(
+          [
+            soin.id?.toString() ?? '',
+            soin.lapinId.toString(),
+            _escapeCsv(lapin?.nom ?? 'Inconnu'),
+            DateFormat('yyyy-MM-dd').format(soin.date),
+            _escapeCsv(soin.type),
+            _escapeCsv(soin.description),
+            _escapeCsv(soin.medicament ?? ''),
+            _escapeCsv(soin.dosage ?? ''),
+          ].join(','),
+        );
+      }
+      csvLines.add('');
+
+      // 6. RECETTES
+      csvLines.add('=== RECETTES ===');
+      csvLines.add('ID,Date,Catégorie,Montant,Description,Lapin ID');
+      final recettes = await db.getAllRecettes();
+      for (final recette in recettes) {
+        csvLines.add(
+          [
+            recette.id?.toString() ?? '',
+            DateFormat('yyyy-MM-dd').format(recette.date),
+            _escapeCsv(recette.categorie),
+            recette.montant.toString(),
+            _escapeCsv(recette.description),
+            recette.lapinId?.toString() ?? '',
+          ].join(','),
+        );
+      }
+      csvLines.add('');
+
+      // 7. DÉPENSES
+      csvLines.add('=== DÉPENSES ===');
+      csvLines.add('ID,Date,Catégorie,Montant,Description');
+      final depenses = await db.getAllDepenses();
+      for (final depense in depenses) {
+        csvLines.add(
+          [
+            depense.id?.toString() ?? '',
+            DateFormat('yyyy-MM-dd').format(depense.date),
+            _escapeCsv(depense.categorie),
+            depense.montant.toString(),
+            _escapeCsv(depense.description),
+          ].join(','),
+        );
+      }
+
+      // Sauvegarder le fichier
+      final directory = await getApplicationDocumentsDirectory();
+      final fileName =
+          'elevage_export_${DateFormat('yyyyMMdd_HHmmss').format(DateTime.now())}.csv';
+      final filePath = p.join(directory.path, fileName);
+      final file = File(filePath);
+      await file.writeAsString(csvLines.join('\n'), encoding: utf8);
+
+      // Partager
+      await Share.shareXFiles([
+        XFile(filePath),
+      ], text: 'Export CSV complet de l\'élevage');
+
+      if (mounted) {
+        SnackbarHelper.showSuccess(context, '✅ Export CSV réussi : $fileName');
+      }
+    } catch (e) {
+      if (mounted) {
+        SnackbarHelper.showError(context, '❌ Erreur: $e');
+      }
+    } finally {
+      setState(() => _isExporting = false);
+    }
+  }
+
+  /// Échapper les caractères spéciaux pour CSV
+  String _escapeCsv(String value) {
+    if (value.contains(',') || value.contains('"') || value.contains('\n')) {
+      return '"${value.replaceAll('"', '""')}"';
+    }
+    return value;
+  }
+
   Future<void> _exportJSON() async {
     setState(() => _isExporting = true);
 
@@ -723,7 +647,7 @@ class _ExportImportScreenState extends State<ExportImportScreen> {
 
       // Obtenir le chemin de la DB actuelle
       final dbDirectory = await getDatabasesPath();
-      final dbPath = p.join(dbDirectory, 'rabbit_farm.db');
+      final dbPath = p.join(dbDirectory, 'mon_elevage_lapins.db');
       final dbFile = File(dbPath);
 
       // Faire une sauvegarde de sécurité avant restauration
@@ -737,10 +661,23 @@ class _ExportImportScreenState extends State<ExportImportScreen> {
       // Remplacer la DB
       await sourceFile.copy(dbPath);
 
+      // Recharger tous les providers
+      if (mounted) {
+        await Future.wait([
+          Provider.of<LapinProvider>(context, listen: false).chargerLapins(),
+          Provider.of<ReproductionProvider>(
+            context,
+            listen: false,
+          ).chargerTout(),
+          Provider.of<SanteProvider>(context, listen: false).chargerTout(),
+          Provider.of<FinanceProvider>(context, listen: false).chargerTout(),
+        ]);
+      }
+
       if (mounted) {
         SnackbarHelper.showSuccess(
           context,
-          '✅ Restauration réussie ! Veuillez redémarrer l\'application',
+          '✅ Restauration réussie et données rechargées !',
           duration: const Duration(seconds: 5),
         );
       }
@@ -767,6 +704,7 @@ class _ExportImportScreenState extends State<ExportImportScreen> {
         if (mounted) {
           SnackbarHelper.showInfo(context, 'Aucun fichier sélectionné');
         }
+        setState(() => _isImporting = false);
         return;
       }
 
@@ -779,28 +717,273 @@ class _ExportImportScreenState extends State<ExportImportScreen> {
 
       final excel = Excel.decodeBytes(bytes);
       int importCount = 0;
+      int erreurs = 0;
+      final List<String> erreursDetails = [];
+
+      final db = DatabaseHelper.instance;
 
       // Importer les lapins si la sheet existe
       if (excel.sheets.containsKey('Lapins')) {
         final lapinsSheet = excel.sheets['Lapins']!;
+        if (lapinsSheet.rows.length < 2) {
+          throw Exception('Sheet "Lapins" vide ou invalide');
+        }
+
+        // Vérifier les en-têtes
+        final headers = lapinsSheet.rows[0];
+        if (headers.length < 6) {
+          throw Exception(
+            'Format invalide : colonnes manquantes dans "Lapins"',
+          );
+        }
+
         // Ignorer la première ligne (en-têtes)
         for (var i = 1; i < lapinsSheet.rows.length; i++) {
           final row = lapinsSheet.rows[i];
-          if (row.length >= 6) {
-            // Créer et insérer le lapin
-            // Note: Import simplifié, en production ajouter validation complète
+          if (row.isEmpty || row.length < 6) continue;
+
+          try {
+            // Extraire et valider les données
+            final nom = _getCellValue(row[1])?.toString().trim() ?? '';
+            if (nom.isEmpty) {
+              erreurs++;
+              erreursDetails.add('Ligne ${i + 1}: Nom manquant');
+              continue;
+            }
+
+            final race = _getCellValue(row[2])?.toString().trim() ?? '';
+            if (race.isEmpty) {
+              erreurs++;
+              erreursDetails.add('Ligne ${i + 1}: Race manquante');
+              continue;
+            }
+
+            final sexeStr =
+                _getCellValue(row[3])?.toString().trim().toLowerCase() ?? '';
+            if (sexeStr != 'male' && sexeStr != 'femelle') {
+              erreurs++;
+              erreursDetails.add(
+                'Ligne ${i + 1}: Sexe invalide (doit être "male" ou "femelle")',
+              );
+              continue;
+            }
+
+            final dateStr = _getCellValue(row[4])?.toString().trim() ?? '';
+            DateTime? dateNaissance;
+            try {
+              // Essayer plusieurs formats de date
+              if (dateStr.contains('/')) {
+                final parts = dateStr.split('/');
+                if (parts.length == 3) {
+                  dateNaissance = DateTime(
+                    int.parse(parts[2]),
+                    int.parse(parts[1]),
+                    int.parse(parts[0]),
+                  );
+                }
+              } else {
+                dateNaissance = DateTime.tryParse(dateStr);
+              }
+            } catch (e) {
+              erreurs++;
+              erreursDetails.add('Ligne ${i + 1}: Date invalide ($dateStr)');
+              continue;
+            }
+
+            if (dateNaissance == null) {
+              erreurs++;
+              erreursDetails.add('Ligne ${i + 1}: Date de naissance invalide');
+              continue;
+            }
+
+            final statut = _getCellValue(row[5])?.toString().trim();
+
+            // Créer le lapin
+            final lapin = Lapin(
+              nom: nom,
+              race: race,
+              sexe: sexeStr,
+              dateNaissance: dateNaissance,
+              statut: statut,
+            );
+
+            await db.insertLapin(lapin);
             importCount++;
+          } catch (e) {
+            erreurs++;
+            erreursDetails.add('Ligne ${i + 1}: ${e.toString()}');
+            logger.error('Erreur import ligne ${i + 1}: $e');
           }
         }
       }
 
+      // Importer les accouplements si la sheet existe
+      if (excel.sheets.containsKey('Accouplements')) {
+        final accouplSheet = excel.sheets['Accouplements']!;
+        if (accouplSheet.rows.length >= 2) {
+          for (var i = 1; i < accouplSheet.rows.length; i++) {
+            final row = accouplSheet.rows[i];
+            if (row.isEmpty || row.length < 5) continue;
+
+            try {
+              final maleId = _getIntValue(row[1]);
+              final femelleId = _getIntValue(row[2]);
+              final dateStr = _getCellValue(row[3])?.toString().trim() ?? '';
+
+              if (maleId == null || femelleId == null) {
+                erreurs++;
+                erreursDetails.add(
+                  'Accouplement ligne ${i + 1}: IDs invalides',
+                );
+                continue;
+              }
+
+              // Vérifier que les lapins existent
+              final male = await db.getLapinById(maleId);
+              final femelle = await db.getLapinById(femelleId);
+              if (male == null || femelle == null) {
+                erreurs++;
+                erreursDetails.add(
+                  'Accouplement ligne ${i + 1}: Lapin(s) introuvable(s)',
+                );
+                continue;
+              }
+
+              DateTime? dateAccouplement;
+              try {
+                if (dateStr.contains('/')) {
+                  final parts = dateStr.split('/');
+                  if (parts.length == 3) {
+                    dateAccouplement = DateTime(
+                      int.parse(parts[2]),
+                      int.parse(parts[1]),
+                      int.parse(parts[0]),
+                    );
+                  }
+                } else {
+                  dateAccouplement = DateTime.tryParse(dateStr);
+                }
+              } catch (e) {
+                erreurs++;
+                erreursDetails.add(
+                  'Accouplement ligne ${i + 1}: Date invalide',
+                );
+                continue;
+              }
+
+              if (dateAccouplement == null) {
+                erreurs++;
+                erreursDetails.add(
+                  'Accouplement ligne ${i + 1}: Date manquante',
+                );
+                continue;
+              }
+
+              final statut =
+                  _getCellValue(row[4])?.toString().trim() ?? 'en_attente';
+
+              final accouplement = Accouplement(
+                maleId: maleId,
+                femelleId: femelleId,
+                dateAccouplement: dateAccouplement,
+                dateMiseBasPrevue: dateAccouplement.add(
+                  const Duration(days: 31),
+                ),
+                statut: statut,
+              );
+
+              await db.insertAccouplement(accouplement);
+              importCount++;
+            } catch (e) {
+              erreurs++;
+              erreursDetails.add(
+                'Accouplement ligne ${i + 1}: ${e.toString()}',
+              );
+            }
+          }
+        }
+      }
+
+      // Importer les recettes si la sheet existe
+      if (excel.sheets.containsKey('Recettes')) {
+        final recettesSheet = excel.sheets['Recettes']!;
+        if (recettesSheet.rows.length >= 2) {
+          for (var i = 1; i < recettesSheet.rows.length; i++) {
+            final row = recettesSheet.rows[i];
+            if (row.isEmpty || row.length < 4) continue;
+
+            try {
+              final montant = _getDoubleValue(row[1]);
+              final categorie =
+                  _getCellValue(row[2])?.toString().trim() ?? 'autre';
+              final dateStr = _getCellValue(row[3])?.toString().trim() ?? '';
+
+              if (montant == null || montant <= 0) {
+                erreurs++;
+                erreursDetails.add('Recette ligne ${i + 1}: Montant invalide');
+                continue;
+              }
+
+              DateTime? date;
+              try {
+                if (dateStr.contains('/')) {
+                  final parts = dateStr.split('/');
+                  if (parts.length == 3) {
+                    date = DateTime(
+                      int.parse(parts[2]),
+                      int.parse(parts[1]),
+                      int.parse(parts[0]),
+                    );
+                  }
+                } else {
+                  date = DateTime.tryParse(dateStr);
+                }
+              } catch (e) {
+                erreurs++;
+                erreursDetails.add('Recette ligne ${i + 1}: Date invalide');
+                continue;
+              }
+
+              date ??= DateTime.now();
+
+              final recette = Recette(
+                montant: montant,
+                categorie: categorie,
+                date: date,
+                description: 'Import Excel',
+              );
+
+              await db.insertRecette(recette);
+              importCount++;
+            } catch (e) {
+              erreurs++;
+              erreursDetails.add('Recette ligne ${i + 1}: ${e.toString()}');
+            }
+          }
+        }
+      }
+
+      // Afficher le résultat
+      String message = '✅ Import Excel réussi : $importCount entrée(s)';
+      if (erreurs > 0) {
+        message += '\n⚠️ $erreurs erreur(s)';
+        if (erreursDetails.length <= 5) {
+          message += '\n${erreursDetails.join('\n')}';
+        } else {
+          message +=
+              '\n${erreursDetails.take(5).join('\n')}\n... et ${erreursDetails.length - 5} autres';
+        }
+      }
+
       if (mounted) {
-        SnackbarHelper.showSuccess(
-          context,
-          '✅ Import Excel réussi : $importCount entrées',
-        );
+        if (erreurs > 0) {
+          SnackbarHelper.showWarning(context, message);
+        } else {
+          SnackbarHelper.showSuccess(context, message);
+        }
       }
     } catch (e) {
+      logger.error('Erreur import Excel: $e');
       if (mounted) {
         SnackbarHelper.showError(context, '❌ Erreur: $e');
       }
@@ -809,90 +992,44 @@ class _ExportImportScreenState extends State<ExportImportScreen> {
     }
   }
 
+  /// Helper pour extraire la valeur d'une cellule
+  dynamic _getCellValue(Data? cell) {
+    if (cell == null) return null;
+    return cell.value;
+  }
+
+  /// Helper pour extraire une valeur entière
+  int? _getIntValue(Data? cell) {
+    final value = _getCellValue(cell);
+    if (value == null) return null;
+    if (value is int) return value;
+    if (value is double) return value.toInt();
+    if (value is String) {
+      final parsed = int.tryParse(value.trim());
+      return parsed;
+    }
+    return null;
+  }
+
+  /// Helper pour extraire une valeur décimale
+  double? _getDoubleValue(Data? cell) {
+    final value = _getCellValue(cell);
+    if (value == null) return null;
+    if (value is double) return value;
+    if (value is int) return value.toDouble();
+    if (value is String) {
+      final parsed = double.tryParse(value.trim().replaceAll(',', '.'));
+      return parsed;
+    }
+    return null;
+  }
+
   Future<void> _migrationAutreApp() async {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Row(
-          children: [
-            Icon(Icons.sync_alt, color: Theme.of(context).primaryColor),
-            const SizedBox(width: 12),
-            const Text('Importer des données'),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text(
-              'Choisissez le format de fichier à importer :',
-              style: TextStyle(fontSize: 16),
-            ),
-            const SizedBox(height: 20),
-
-            // Option CSV
-            Card(
-              child: ListTile(
-                leading: CircleAvatar(
-                  backgroundColor: Colors.green.withOpacity(0.2),
-                  child: const Icon(Icons.table_chart, color: Colors.green),
-                ),
-                title: const Text('Fichier CSV'),
-                subtitle: const Text('Tableur Excel, Google Sheets...'),
-                trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-                onTap: () {
-                  Navigator.pop(context);
-                  _importerCSV();
-                },
-              ),
-            ),
-            const SizedBox(height: 8),
-
-            // Option JSON
-            Card(
-              child: ListTile(
-                leading: CircleAvatar(
-                  backgroundColor: Colors.blue.withOpacity(0.2),
-                  child: const Icon(Icons.code, color: Colors.blue),
-                ),
-                title: const Text('Fichier JSON'),
-                subtitle: const Text('Export d\'autres apps'),
-                trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-                onTap: () {
-                  Navigator.pop(context);
-                  _importerJSON();
-                },
-              ),
-            ),
-            const SizedBox(height: 16),
-
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.blue.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.blue.withOpacity(0.3)),
-              ),
-              child: Row(
-                children: [
-                  Icon(Icons.info_outline, color: Colors.blue[700], size: 20),
-                  const SizedBox(width: 8),
-                  const Expanded(
-                    child: Text(
-                      'Les données seront validées avant import',
-                      style: TextStyle(fontSize: 12),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Annuler'),
-          ),
-        ],
+      builder: (context) => MigrationFormatDialog(
+        onSelectCsv: _importerCSV,
+        onSelectJson: _importerJSON,
       ),
     );
   }
@@ -980,7 +1117,7 @@ class _ExportImportScreenState extends State<ExportImportScreen> {
           await db.insert('lapins', lapin.toMap());
           importes++;
         } catch (e) {
-          debugPrint('Erreur import ligne $i: $e');
+          logger.error('❌ Erreur import ligne $i', e);
           erreurs++;
         }
       }
@@ -1088,7 +1225,7 @@ class _ExportImportScreenState extends State<ExportImportScreen> {
           await db.insert('lapins', lapin.toMap());
           importes++;
         } catch (e) {
-          debugPrint('Erreur import lapin: $e');
+          logger.error('❌ Erreur import lapin', e);
           erreurs++;
         }
       }

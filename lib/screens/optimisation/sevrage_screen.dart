@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
-import '../../models/sevrage.dart';
-import '../../providers/sevrage_provider.dart';
-import '../../providers/reproduction_provider.dart';
-import '../../utils/dialog_helper.dart';
+import 'package:animate_do/animate_do.dart';
+import '../../models/portee.dart';
+import '../../models/lapin.dart';
+import '../../models/accouplement.dart';
+import '../../services/database_helper.dart';
 import '../../utils/snackbar_helper.dart';
+import '../../theme/app_theme.dart';
+import '../../widgets/common/common_widgets.dart';
+import 'sevrage_detail_screen.dart';
 
-/// Écran de gestion des sevrages
+/// Ecran de gestion des sevrages - Liste les portees pretes a etre sevrees
 class SevrageScreen extends StatefulWidget {
   const SevrageScreen({super.key});
 
@@ -16,512 +19,396 @@ class SevrageScreen extends StatefulWidget {
 }
 
 class _SevrageScreenState extends State<SevrageScreen> {
+  final _dbHelper = DatabaseHelper.instance;
+
+  List<Map<String, dynamic>> _porteesASevrer =
+      []; // portee + accouplement + mere
+  bool _loading = true;
+
   @override
   void initState() {
     super.initState();
-    // Charger les données au démarrage
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<SevrageProvider>().chargerSevrages();
-    });
+    _chargerPortees();
+  }
+
+  /// Charger toutes les portees pretes a etre sevrees
+  Future<void> _chargerPortees() async {
+    setState(() => _loading = true);
+
+    try {
+      final db = await _dbHelper.database;
+
+      // Recuperer toutes les portees
+      final porteesMap = await db.query(
+        'portees',
+        orderBy: 'date_mise_bas_reelle DESC',
+      );
+      final portees = porteesMap.map((map) => Portee.fromMap(map)).toList();
+
+      // Pour chaque portee, recuperer les infos de l'accouplement et de la mere
+      _porteesASevrer = [];
+      for (var portee in portees) {
+        // Recuperer l'accouplement
+        final accouplementsMap = await db.query(
+          'accouplements',
+          where: 'id = ?',
+          whereArgs: [portee.accouplementId],
+        );
+        if (accouplementsMap.isEmpty) continue;
+
+        final accouplement = Accouplement.fromMap(accouplementsMap.first);
+
+        // Recuperer la mere
+        final mere = await _dbHelper.getLapinById(accouplement.femelleId);
+        if (mere == null) continue;
+
+        _porteesASevrer.add({
+          'portee': portee,
+          'accouplement': accouplement,
+          'mere': mere,
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        SnackbarHelper.showError(context, 'Erreur lors du chargement: $e');
+      }
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Gestion des sevrages'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.info_outline),
-            onPressed: () => _afficherAide(context),
+      backgroundColor: isDark
+          ? AppTheme.backgroundDark
+          : AppTheme.backgroundLight,
+      body: Column(
+        children: [
+          _buildHeader(isDark),
+          _buildStats(isDark),
+          if (_loading)
+            const Expanded(child: Center(child: CircularProgressIndicator()))
+          else if (_porteesASevrer.isEmpty)
+            Expanded(child: _buildEmptyState(isDark))
+          else
+            Expanded(child: _buildListePortees(isDark)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHeader(bool isDark) {
+    return StandardHeader(title: 'Sevrages', isDark: isDark);
+  }
+
+  Widget _buildStats(bool isDark) {
+    if (_loading) return const SizedBox.shrink();
+
+    final porteesPretes = _porteesASevrer.where((data) {
+      final portee = data['portee'] as Portee;
+      return portee.doitEtreSevres;
+    }).length;
+
+    return Padding(
+      padding: const EdgeInsets.all(AppTheme.spacing16),
+      child: Row(
+        children: [
+          Expanded(
+            child: StatsCard(
+              isDark: isDark,
+              label: 'Portées totales',
+              value: '${_porteesASevrer.length}',
+              icon: Icons.pets,
+              color: Colors.blue,
+            ),
+          ),
+          const SizedBox(width: AppTheme.spacing12),
+          Expanded(
+            child: StatsCard(
+              isDark: isDark,
+              label: 'Prêtes (35+ jours)',
+              value: '$porteesPretes',
+              icon: Icons.check_circle,
+              color: Colors.green,
+            ),
           ),
         ],
       ),
-      body: Consumer<SevrageProvider>(
-        builder: (context, provider, child) {
-          if (provider.isLoading) {
-            return const Center(child: CircularProgressIndicator());
-          }
+    );
+  }
 
-          if (provider.sevrages.isEmpty) {
-            return _buildEmptyState(context);
-          }
+  Widget _buildEmptyState(bool isDark) {
+    return FadeIn(
+      child: EmptyState(
+        isDark: isDark,
+        icon: Icons.grass_outlined,
+        title: 'Aucune portée enregistrée',
+        subtitle: 'Les portées apparaîtront ici après la mise bas',
+      ),
+    );
+  }
 
-          return Column(
-            children: [
-              _buildStatistiques(provider),
-              Expanded(
-                child: ListView.builder(
-                  padding: const EdgeInsets.all(16),
-                  itemCount: provider.sevrages.length,
-                  itemBuilder: (context, index) {
-                    final sevrage = provider.sevrages[index];
-                    return _buildSevrageCard(context, sevrage);
-                  },
-                ),
-              ),
-            ],
+  Widget _buildListePortees(bool isDark) {
+    return RefreshIndicator(
+      onRefresh: _chargerPortees,
+      child: ListView.builder(
+        padding: const EdgeInsets.all(AppTheme.spacing16),
+        itemCount: _porteesASevrer.length,
+        itemBuilder: (context, index) {
+          final data = _porteesASevrer[index];
+          return FadeInUp(
+            delay: Duration(milliseconds: index * 50),
+            child: _buildPorteeCard(
+              data['portee'] as Portee,
+              data['mere'] as Lapin,
+              isDark,
+            ),
           );
         },
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _ajouterSevrage(context),
-        icon: const Icon(Icons.add),
-        label: const Text('Nouveau sevrage'),
-      ),
     );
   }
 
-  Widget _buildEmptyState(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.grass_outlined, size: 80, color: Colors.grey[400]),
-          const SizedBox(height: 16),
-          Text(
-            'Aucun sevrage enregistré',
-            style: Theme.of(context).textTheme.titleLarge,
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Commencez par ajouter un sevrage',
-            style: Theme.of(
-              context,
-            ).textTheme.bodyMedium?.copyWith(color: Colors.grey[600]),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildStatistiques(SevrageProvider provider) {
-    final poidsMoyen = provider.getPoidsMoyenSevrage();
-    final totalLapereaux = provider.getTotalLapereaux();
+  Widget _buildPorteeCard(Portee portee, Lapin mere, bool isDark) {
+    final estPrete = portee.doitEtreSevres;
+    final joursRestants = 35 - portee.ageEnJours;
+    final couleurStatut = estPrete ? Colors.green : Colors.orange;
 
     return Container(
-      padding: const EdgeInsets.all(16),
-      color: Colors.blue[50],
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
+      margin: const EdgeInsets.only(bottom: AppTheme.spacing16),
+      decoration: BoxDecoration(
+        color: isDark ? AppTheme.cardDark : AppTheme.cardLight,
+        borderRadius: BorderRadius.circular(AppTheme.radiusLarge),
+        border: Border.all(
+          color: estPrete ? AppTheme.primaryGreen : AppTheme.textSecondary,
+          width: estPrete ? 2 : 1,
+        ),
+        boxShadow: AppTheme.shadowSmall,
+      ),
+      child: Column(
         children: [
-          _buildStatCard(
-            icon: Icons.trending_up,
-            label: 'Total sevrages',
-            value: provider.sevrages.length.toString(),
-            color: Colors.blue,
+          // En-tete avec statut
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: couleurStatut.withValues(alpha: 0.05),
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(8),
+              ),
+            ),
+            child: Row(
+              children: [
+                CircleAvatar(
+                  backgroundColor: couleurStatut.withValues(alpha: 0.1),
+                  child: Icon(
+                    estPrete ? Icons.check_circle : Icons.schedule,
+                    color: couleurStatut,
+                  ),
+                ),
+                const SizedBox(width: AppTheme.spacing12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Portee #${portee.id}',
+                        style: AppTheme.titleMedium.copyWith(
+                          color: isDark
+                              ? AppTheme.textLight
+                              : AppTheme.textPrimary,
+                        ),
+                      ),
+                      Text(
+                        'Mere: ${mere.nom}',
+                        style: AppTheme.bodyMedium.copyWith(
+                          color: isDark
+                              ? AppTheme.textLight.withValues(alpha: 0.7)
+                              : AppTheme.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppTheme.spacing12,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: couleurStatut,
+                    borderRadius: BorderRadius.circular(AppTheme.radiusRound),
+                  ),
+                  child: Text(
+                    estPrete ? 'Prete' : '$joursRestants j',
+                    style: AppTheme.caption.copyWith(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
-          _buildStatCard(
-            icon: Icons.pets,
-            label: 'Lapereaux sevrés',
-            value: totalLapereaux.toString(),
-            color: Colors.green,
+
+          // Informations de la portÃ©e
+          Padding(
+            padding: const EdgeInsets.all(AppTheme.spacing16),
+            child: Column(
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildInfoItem(
+                        Icons.calendar_today,
+                        'Naissance',
+                        DateFormat(
+                          'dd/MM/yyyy',
+                        ).format(portee.dateMiseBasReelle),
+                        isDark,
+                      ),
+                    ),
+                    Expanded(
+                      child: _buildInfoItem(
+                        Icons.access_time,
+                        'Age',
+                        '${portee.ageEnJours} jours',
+                        isDark,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: AppTheme.spacing12),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildInfoItem(
+                        Icons.pets,
+                        'Vivants',
+                        '${portee.nombreVivants}',
+                        isDark,
+                      ),
+                    ),
+                    Expanded(
+                      child: _buildInfoItem(
+                        Icons.show_chart,
+                        'Survie',
+                        '${portee.tauxSurvie.toStringAsFixed(0)}%',
+                        isDark,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
-          _buildStatCard(
-            icon: Icons.scale,
-            label: 'Poids moyen',
-            value: poidsMoyen != null
-                ? '${poidsMoyen.toStringAsFixed(0)}g'
-                : 'N/A',
-            color: Colors.orange,
-          ),
+
+          // Bouton d'action
+          if (estPrete)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                AppTheme.spacing16,
+                0,
+                AppTheme.spacing16,
+                AppTheme.spacing16,
+              ),
+              child: SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: () => _demarrerSevrage(portee, mere),
+                  icon: const Icon(Icons.grass),
+                  label: const Text('Demarrer le sevrage'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppTheme.primaryGreen,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(
+                        AppTheme.radiusMedium,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            )
+          else
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                AppTheme.spacing16,
+                0,
+                AppTheme.spacing16,
+                AppTheme.spacing16,
+              ),
+              child: Row(
+                children: [
+                  const Icon(
+                    Icons.info_outline,
+                    color: Colors.orange,
+                    size: 16,
+                  ),
+                  const SizedBox(width: AppTheme.spacing8),
+                  Expanded(
+                    child: Text(
+                      estPrete
+                          ? 'Prete a etre sevree'
+                          : 'Sevrage recommande dans $joursRestants jour${joursRestants > 1 ? 's' : ''}',
+                      style: AppTheme.caption.copyWith(
+                        color: Colors.orange,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
         ],
       ),
     );
   }
 
-  Widget _buildStatCard({
-    required IconData icon,
-    required String label,
-    required String value,
-    required Color color,
-  }) {
+  Widget _buildInfoItem(
+    IconData icon,
+    String label,
+    String value,
+    bool isDark,
+  ) {
     return Column(
       children: [
-        Icon(icon, color: color, size: 28),
-        const SizedBox(height: 4),
+        Icon(icon, color: AppTheme.primaryGreen, size: 20),
+        const SizedBox(width: 4),
         Text(
-          value,
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: color,
+          label,
+          style: AppTheme.caption.copyWith(
+            color: isDark
+                ? AppTheme.textLight.withValues(alpha: 0.7)
+                : AppTheme.textSecondary,
           ),
         ),
-        Text(label, style: const TextStyle(fontSize: 12, color: Colors.grey)),
+        const SizedBox(height: 2),
+        Text(
+          value,
+          style: AppTheme.bodyMedium.copyWith(
+            color: isDark ? AppTheme.textLight : AppTheme.textPrimary,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
       ],
     );
   }
 
-  Widget _buildSevrageCard(BuildContext context, Sevrage sevrage) {
-    final dateFormat = DateFormat('dd/MM/yyyy');
-
-    return Card(
-      margin: const EdgeInsets.only(bottom: 12),
-      child: ListTile(
-        leading: CircleAvatar(
-          backgroundColor: Colors.green[100],
-          child: const Icon(Icons.grass, color: Colors.green),
-        ),
-        title: Text(
-          'Portée #${sevrage.porteeId} - ${sevrage.nombreLapereaux} lapereaux',
-          style: const TextStyle(fontWeight: FontWeight.bold),
-        ),
-        subtitle: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(height: 4),
-            Text('Date: ${dateFormat.format(sevrage.dateSevrage)}'),
-            if (sevrage.poidsMoyenSevrage != null)
-              Text(
-                'Poids moyen: ${sevrage.poidsMoyenSevrage!.toStringAsFixed(0)}g',
-              ),
-            if (sevrage.nouvelleCage != null)
-              Text('Cage: ${sevrage.nouvelleCage}'),
-          ],
-        ),
-        trailing: PopupMenuButton(
-          itemBuilder: (context) => [
-            const PopupMenuItem(
-              value: 'modifier',
-              child: Row(
-                children: [
-                  Icon(Icons.edit, size: 20),
-                  SizedBox(width: 8),
-                  Text('Modifier'),
-                ],
-              ),
-            ),
-            const PopupMenuItem(
-              value: 'supprimer',
-              child: Row(
-                children: [
-                  Icon(Icons.delete, size: 20, color: Colors.red),
-                  SizedBox(width: 8),
-                  Text('Supprimer', style: TextStyle(color: Colors.red)),
-                ],
-              ),
-            ),
-          ],
-          onSelected: (value) {
-            if (value == 'modifier') {
-              _modifierSevrage(context, sevrage);
-            } else if (value == 'supprimer') {
-              _confirmerSuppression(context, sevrage);
-            }
-          },
-        ),
+  /// Demarrer le sevrage d'une portee
+  void _demarrerSevrage(Portee portee, Lapin mere) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => SevrageDetailScreen(portee: portee, mere: mere),
       ),
-    );
-  }
-
-  Future<void> _ajouterSevrage(BuildContext context) async {
-    await _showSevrageForm(context, null);
-  }
-
-  Future<void> _modifierSevrage(BuildContext context, Sevrage sevrage) async {
-    await _showSevrageForm(context, sevrage);
-  }
-
-  Future<void> _showSevrageForm(BuildContext context, Sevrage? sevrage) async {
-    final formKey = GlobalKey<FormState>();
-    final dateController = TextEditingController(
-      text: sevrage != null
-          ? DateFormat('dd/MM/yyyy').format(sevrage.dateSevrage)
-          : DateFormat('dd/MM/yyyy').format(DateTime.now()),
-    );
-    final nombreController = TextEditingController(
-      text: sevrage?.nombreLapereaux.toString() ?? '',
-    );
-    final poidsController = TextEditingController(
-      text: sevrage?.poidsMoyenSevrage?.toString() ?? '',
-    );
-    final cageController = TextEditingController(
-      text: sevrage?.nouvelleCage ?? '',
-    );
-    final observationsController = TextEditingController(
-      text: sevrage?.observations ?? '',
-    );
-    final alimentationController = TextEditingController(
-      text: sevrage?.alimentationPostSevrage ?? '',
-    );
-
-    DateTime selectedDate = sevrage?.dateSevrage ?? DateTime.now();
-    int? selectedPorteeId = sevrage?.porteeId;
-
-    await showDialog(
-      context: context,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setState) => AlertDialog(
-          title: Text(sevrage == null ? 'Nouveau sevrage' : 'Modifier sevrage'),
-          content: SingleChildScrollView(
-            child: Form(
-              key: formKey,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // Sélection de la portée
-                  Consumer<ReproductionProvider>(
-                    builder: (context, repro, child) {
-                      final portees = repro.portees;
-                      return DropdownButtonFormField<int>(
-                        value: selectedPorteeId,
-                        decoration: const InputDecoration(
-                          labelText: 'Portée *',
-                          border: OutlineInputBorder(),
-                        ),
-                        items: portees.map((portee) {
-                          return DropdownMenuItem(
-                            value: portee.id,
-                            child: Text(
-                              'Portée #${portee.id} - ${portee.nombreVivants} vivants',
-                            ),
-                          );
-                        }).toList(),
-                        onChanged: (value) {
-                          setState(() => selectedPorteeId = value);
-                        },
-                        validator: (value) =>
-                            value == null ? 'Sélectionnez une portée' : null,
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Date de sevrage
-                  TextFormField(
-                    controller: dateController,
-                    decoration: const InputDecoration(
-                      labelText: 'Date de sevrage *',
-                      border: OutlineInputBorder(),
-                      suffixIcon: Icon(Icons.calendar_today),
-                    ),
-                    readOnly: true,
-                    onTap: () async {
-                      final date = await showDatePicker(
-                        context: context,
-                        initialDate: selectedDate,
-                        firstDate: DateTime(2020),
-                        lastDate: DateTime.now(),
-                      );
-                      if (date != null) {
-                        setState(() {
-                          selectedDate = date;
-                          dateController.text = DateFormat(
-                            'dd/MM/yyyy',
-                          ).format(date);
-                        });
-                      }
-                    },
-                    validator: (value) =>
-                        value!.isEmpty ? 'Date requise' : null,
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Nombre de lapereaux
-                  TextFormField(
-                    controller: nombreController,
-                    decoration: const InputDecoration(
-                      labelText: 'Nombre de lapereaux sevrés *',
-                      border: OutlineInputBorder(),
-                    ),
-                    keyboardType: TextInputType.number,
-                    validator: (value) {
-                      if (value!.isEmpty) return 'Nombre requis';
-                      if (int.tryParse(value) == null) return 'Nombre invalide';
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Poids moyen
-                  TextFormField(
-                    controller: poidsController,
-                    decoration: const InputDecoration(
-                      labelText: 'Poids moyen au sevrage (g)',
-                      border: OutlineInputBorder(),
-                    ),
-                    keyboardType: TextInputType.number,
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Nouvelle cage
-                  TextFormField(
-                    controller: cageController,
-                    decoration: const InputDecoration(
-                      labelText: 'Nouvelle cage',
-                      border: OutlineInputBorder(),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Alimentation post-sevrage
-                  TextFormField(
-                    controller: alimentationController,
-                    decoration: const InputDecoration(
-                      labelText: 'Alimentation post-sevrage',
-                      border: OutlineInputBorder(),
-                    ),
-                    maxLines: 2,
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Observations
-                  TextFormField(
-                    controller: observationsController,
-                    decoration: const InputDecoration(
-                      labelText: 'Observations',
-                      border: OutlineInputBorder(),
-                    ),
-                    maxLines: 3,
-                  ),
-                ],
-              ),
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Annuler'),
-            ),
-            ElevatedButton(
-              onPressed: () async {
-                if (formKey.currentState!.validate() &&
-                    selectedPorteeId != null) {
-                  final nouveauSevrage = Sevrage(
-                    id: sevrage?.id,
-                    porteeId: selectedPorteeId!,
-                    dateSevrage: selectedDate,
-                    nombreLapereaux: int.parse(nombreController.text),
-                    poidsMoyenSevrage: poidsController.text.isNotEmpty
-                        ? double.tryParse(poidsController.text)
-                        : null,
-                    nouvelleCage: cageController.text.isNotEmpty
-                        ? cageController.text
-                        : null,
-                    observations: observationsController.text.isNotEmpty
-                        ? observationsController.text
-                        : null,
-                    alimentationPostSevrage:
-                        alimentationController.text.isNotEmpty
-                        ? alimentationController.text
-                        : null,
-                  );
-
-                  try {
-                    if (sevrage == null) {
-                      await context.read<SevrageProvider>().ajouterSevrage(
-                        nouveauSevrage,
-                      );
-                      if (context.mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Sevrage enregistré avec succès'),
-                          ),
-                        );
-                      }
-                    } else {
-                      await context.read<SevrageProvider>().modifierSevrage(
-                        nouveauSevrage,
-                      );
-                      if (context.mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Sevrage modifié avec succès'),
-                          ),
-                        );
-                      }
-                    }
-                    if (context.mounted) Navigator.pop(context);
-                  } catch (e) {
-                    if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('Erreur: $e'),
-                          backgroundColor: Colors.red,
-                        ),
-                      );
-                    }
-                  }
-                }
-              },
-              child: Text(sevrage == null ? 'Ajouter' : 'Modifier'),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Future<void> _confirmerSuppression(
-    BuildContext context,
-    Sevrage sevrage,
-  ) async {
-    final confirmed = await DialogHelper.showConfirmation(
-      context: context,
-      title: 'Confirmer la suppression',
-      message:
-          'Voulez-vous vraiment supprimer ce sevrage ?\nCette action est irréversible.',
-      isDangerous: true,
-    );
-
-    if (confirmed == true && context.mounted) {
-      try {
-        await context.read<SevrageProvider>().supprimerSevrage(sevrage.id!);
-        if (context.mounted) {
-          SnackbarHelper.showSuccess(context, 'Sevrage supprimé');
-        }
-      } catch (e) {
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Erreur: $e'), backgroundColor: Colors.red),
-          );
-        }
+    ).then((success) {
+      if (success == true) {
+        _chargerPortees(); // Recharger la liste
       }
-    }
+    });
   }
 
-  void _afficherAide(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Aide - Gestion des sevrages'),
-        content: const SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                'Le sevrage des lapereaux',
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-              SizedBox(height: 8),
-              Text(
-                'Le sevrage est une étape cruciale dans l\'élevage. Il se fait généralement entre 4 et 8 semaines après la naissance.',
-              ),
-              SizedBox(height: 16),
-              Text(
-                'Informations importantes :',
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-              SizedBox(height: 8),
-              Text(
-                '• Date de sevrage : quand les lapereaux sont séparés de la mère',
-              ),
-              Text('• Nombre sevrés : combien de lapereaux viables'),
-              Text('• Poids moyen : pour suivre la croissance'),
-              Text('• Nouvelle cage : où sont placés les lapereaux'),
-              Text('• Alimentation : régime alimentaire post-sevrage'),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Fermer'),
-          ),
-        ],
-      ),
-    );
-  }
 }

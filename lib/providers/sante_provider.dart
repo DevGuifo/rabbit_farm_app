@@ -62,6 +62,20 @@ class SanteProvider with ChangeNotifier {
     try {
       final nouvellePesee = await _db.insertPesee(pesee);
       _pesees.insert(0, nouvellePesee);
+
+      // Planifier un rappel de pesée hebdomadaire pour ce lapin
+      final lapin = await _db.getLapinById(pesee.lapinId);
+      if (lapin != null) {
+        // Annuler l'ancien rappel s'il existe
+        await _notificationService.annulerRappelPesee(pesee.lapinId);
+        // Planifier le nouveau rappel (7 jours après cette pesée)
+        await _notificationService.planifierRappelPeseeHebdomadaire(
+          lapinId: pesee.lapinId,
+          nomLapin: lapin.nom,
+          dateDernierePesee: pesee.date,
+        );
+      }
+
       notifyListeners();
       return nouvellePesee;
     } catch (e) {
@@ -212,6 +226,15 @@ class SanteProvider with ChangeNotifier {
     }
   }
 
+  /// Obtenir les soins avec rappel (synchrone, depuis les données chargées)
+  List<Soin> get soinsAvecRappel {
+    return _soins.where((soin) => soin.dateRappel != null).toList()..sort(
+      (a, b) => (a.dateRappel ?? DateTime.now()).compareTo(
+        b.dateRappel ?? DateTime.now(),
+      ),
+    );
+  }
+
   /// LOGIQUE MÉTIER POUR LE DASHBOARD
 
   /// Obtenir les vaccinations en retard
@@ -276,6 +299,58 @@ class SanteProvider with ChangeNotifier {
     _scoreSanteCacheTimestamp = maintenant;
 
     return scoreFinal;
+  }
+
+  /// Vérifier si un lapin est malade
+  /// Un lapin est considéré comme malade s'il a :
+  /// - Des soins récents de type "Traitement" ou "Consultation" (dans les 30 derniers jours)
+  /// - Un statut "Malade" dans la base de données
+  Future<bool> estLapinMalade(int lapinId) async {
+    try {
+      // Vérifier le statut dans la base de données
+      final lapin = await _db.getLapinById(lapinId);
+      if (lapin?.statut == 'Malade') {
+        return true;
+      }
+
+      // Vérifier les soins récents (traitements ou consultations dans les 30 derniers jours)
+      final soins = await _db.getSoinsByLapin(lapinId);
+      final maintenant = DateTime.now();
+      final ilYATrenteJours = maintenant.subtract(const Duration(days: 30));
+
+      final soinsRecents = soins.where((soin) {
+        final estTraitementOuConsultation =
+            soin.type == 'Traitement' || soin.type == 'Consultation';
+        final estRecent = soin.date.isAfter(ilYATrenteJours);
+        return estTraitementOuConsultation && estRecent;
+      }).toList();
+
+      // Si le lapin a des soins récents de type traitement/consultation, il est considéré comme malade
+      return soinsRecents.isNotEmpty;
+    } catch (e) {
+      logger.error('Erreur lors de la vérification si le lapin est malade: $e');
+      return false;
+    }
+  }
+
+  /// Obtenir la liste des IDs des lapins malades
+  Future<List<int>> getLapinsMalades() async {
+    try {
+      final lapins = await _db.getAllLapins();
+      final lapinsMalades = <int>[];
+
+      for (final lapin in lapins) {
+        if (lapin.id == null) continue;
+        if (await estLapinMalade(lapin.id!)) {
+          lapinsMalades.add(lapin.id!);
+        }
+      }
+
+      return lapinsMalades;
+    } catch (e) {
+      logger.error('Erreur lors de la récupération des lapins malades: $e');
+      return [];
+    }
   }
 
   /// Invalider le cache du score de santé (appeler après ajout/modification de soins)

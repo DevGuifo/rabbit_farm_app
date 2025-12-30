@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/preparation_nid.dart';
 import '../services/database_helper.dart';
+import '../utils/logger.dart';
 
 /// Provider pour gérer les préparations de nid
 class PreparationNidProvider with ChangeNotifier {
@@ -23,7 +24,7 @@ class PreparationNidProvider with ChangeNotifier {
       );
       _preparations = maps.map((map) => PreparationNid.fromMap(map)).toList();
     } catch (e) {
-      debugPrint('❌ Erreur lors du chargement des préparations de nid: $e');
+      logger.error('❌ Erreur lors du chargement des préparations de nid: $e');
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -39,7 +40,7 @@ class PreparationNidProvider with ChangeNotifier {
       _preparations.insert(0, nouvellePreparation);
       notifyListeners();
     } catch (e) {
-      debugPrint('❌ Erreur lors de l\'ajout de la préparation de nid: $e');
+      logger.error('❌ Erreur lors de l\'ajout de la préparation de nid: $e');
       rethrow;
     }
   }
@@ -61,7 +62,7 @@ class PreparationNidProvider with ChangeNotifier {
         notifyListeners();
       }
     } catch (e) {
-      debugPrint(
+      logger.error(
         '❌ Erreur lors de la modification de la préparation de nid: $e',
       );
       rethrow;
@@ -76,7 +77,7 @@ class PreparationNidProvider with ChangeNotifier {
       _preparations.removeWhere((p) => p.id == id);
       notifyListeners();
     } catch (e) {
-      debugPrint(
+      logger.error(
         '❌ Erreur lors de la suppression de la préparation de nid: $e',
       );
       rethrow;

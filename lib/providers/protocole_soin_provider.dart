@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/protocole_soin.dart';
 import '../services/database_helper.dart';
+import '../utils/logger.dart';
 
 /// Provider pour gérer les protocoles de soin
 class ProtocoleSoinProvider with ChangeNotifier {
@@ -20,7 +21,7 @@ class ProtocoleSoinProvider with ChangeNotifier {
       final maps = await db.query('protocoles_soin', orderBy: 'nom ASC');
       _protocoles = maps.map((map) => ProtocoleSoin.fromMap(map)).toList();
     } catch (e) {
-      debugPrint('❌ Erreur lors du chargement des protocoles de soin: $e');
+      logger.error('❌ Erreur lors du chargement des protocoles de soin: $e');
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -37,7 +38,7 @@ class ProtocoleSoinProvider with ChangeNotifier {
       _protocoles.sort((a, b) => a.nom.compareTo(b.nom));
       notifyListeners();
     } catch (e) {
-      debugPrint('❌ Erreur lors de l\'ajout du protocole de soin: $e');
+      logger.error('❌ Erreur lors de l\'ajout du protocole de soin: $e');
       rethrow;
     }
   }
@@ -60,7 +61,7 @@ class ProtocoleSoinProvider with ChangeNotifier {
         notifyListeners();
       }
     } catch (e) {
-      debugPrint('❌ Erreur lors de la modification du protocole de soin: $e');
+      logger.error('❌ Erreur lors de la modification du protocole de soin: $e');
       rethrow;
     }
   }
@@ -73,7 +74,7 @@ class ProtocoleSoinProvider with ChangeNotifier {
       _protocoles.removeWhere((p) => p.id == id);
       notifyListeners();
     } catch (e) {
-      debugPrint('❌ Erreur lors de la suppression du protocole de soin: $e');
+      logger.error('❌ Erreur lors de la suppression du protocole de soin: $e');
       rethrow;
     }
   }

@@ -7,6 +7,7 @@ import '../../models/lapin.dart';
 import '../../providers/reproduction_provider.dart';
 import '../../utils/snackbar_helper.dart';
 import '../../services/database_helper.dart';
+import '../../theme/app_theme.dart';
 
 /// Écran pour modifier une portée existante
 class EditPorteeScreen extends StatefulWidget {
@@ -95,6 +96,7 @@ class _EditPorteeScreenState extends State<EditPorteeScreen> {
       lastDate: DateTime.now().add(const Duration(days: 7)),
       locale: const Locale('fr', 'FR'),
     );
+    if (!mounted) return;
     if (picked != null && picked != _dateMiseBasReelle) {
       setState(() {
         _dateMiseBasReelle = picked;
@@ -155,14 +157,12 @@ class _EditPorteeScreenState extends State<EditPorteeScreen> {
     }
 
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.background,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
         title: Text(
           'Modifier portée',
-          style: TextStyle(
+          style: AppTheme.titleLarge.copyWith(
             color: Theme.of(context).colorScheme.onSurface,
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
           ),
         ),
         backgroundColor: Theme.of(context).colorScheme.surface,
@@ -182,32 +182,34 @@ class _EditPorteeScreenState extends State<EditPorteeScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'Parents',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                      ),
-                    ),
+                    const Text('Parents', style: AppTheme.titleSmall),
                     const SizedBox(height: 12),
                     Row(
                       children: [
-                        const Icon(Icons.male, color: Colors.blue, size: 20),
+                        Icon(Icons.male, color: AppTheme.info, size: 20),
                         const SizedBox(width: 8),
                         Text(
                           _male?.nom ?? 'Inconnu',
-                          style: const TextStyle(fontWeight: FontWeight.w500),
+                          style: AppTheme.bodyLarge.copyWith(
+                            fontWeight: FontWeight.w500,
+                          ),
                         ),
                       ],
                     ),
                     const SizedBox(height: 8),
                     Row(
                       children: [
-                        const Icon(Icons.female, color: Colors.pink, size: 20),
+                        const Icon(
+                          Icons.female,
+                          color: AppTheme.accentPink,
+                          size: 20,
+                        ),
                         const SizedBox(width: 8),
                         Text(
                           _femelle?.nom ?? 'Inconnue',
-                          style: const TextStyle(fontWeight: FontWeight.w500),
+                          style: AppTheme.bodyLarge.copyWith(
+                            fontWeight: FontWeight.w500,
+                          ),
                         ),
                       ],
                     ),
@@ -258,7 +260,7 @@ class _EditPorteeScreenState extends State<EditPorteeScreen> {
               controller: _nombreVivantsController,
               decoration: const InputDecoration(
                 labelText: 'Nombre de vivants',
-                prefixIcon: Icon(Icons.favorite, color: Colors.green),
+                prefixIcon: Icon(Icons.favorite, color: AppTheme.neonGreen),
                 border: OutlineInputBorder(),
               ),
               keyboardType: TextInputType.number,
@@ -286,7 +288,7 @@ class _EditPorteeScreenState extends State<EditPorteeScreen> {
               controller: _nombreMortsController,
               decoration: const InputDecoration(
                 labelText: 'Nombre de morts (calculé auto)',
-                prefixIcon: Icon(Icons.heart_broken, color: Colors.red),
+                prefixIcon: Icon(Icons.heart_broken, color: AppTheme.error),
                 border: OutlineInputBorder(),
               ),
               keyboardType: TextInputType.number,
@@ -297,12 +299,12 @@ class _EditPorteeScreenState extends State<EditPorteeScreen> {
 
             // Avertissement
             Card(
-              color: Colors.orange.shade100,
-              child: const Padding(
-                padding: EdgeInsets.all(12),
+              color: AppTheme.warning.withValues(alpha: 0.2),
+              child: Padding(
+                padding: const EdgeInsets.all(12),
                 child: Row(
                   children: [
-                    Icon(Icons.info_outline, color: Colors.orange),
+                    Icon(Icons.info_outline, color: AppTheme.warning),
                     SizedBox(width: 12),
                     Expanded(
                       child: Text(

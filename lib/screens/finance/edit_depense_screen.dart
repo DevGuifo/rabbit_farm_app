@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import '../../models/depense.dart';
 import '../../providers/finance_provider.dart';
 import '../../utils/snackbar_helper.dart';
+import '../../theme/app_theme.dart';
 
 class EditDepenseScreen extends StatefulWidget {
   final Depense depense;
@@ -53,11 +54,11 @@ class _EditDepenseScreenState extends State<EditDepenseScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.background,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
         title: Text(
           'Modifier une dépense',
-          style: TextStyle(
+          style: AppTheme.titleLarge.copyWith(
             color: Theme.of(context).colorScheme.onSurface,
             fontSize: 20,
             fontWeight: FontWeight.bold,
@@ -85,7 +86,7 @@ class _EditDepenseScreenState extends State<EditDepenseScreen> {
 
             // Catégorie
             DropdownButtonFormField<String>(
-              value: _categorieSelectionnee,
+              initialValue:  _categorieSelectionnee,
               decoration: const InputDecoration(
                 labelText: 'Catégorie',
                 prefixIcon: Icon(Icons.category),
@@ -193,8 +194,8 @@ class _EditDepenseScreenState extends State<EditDepenseScreen> {
                     label: const Text('Enregistrer'),
                     style: ElevatedButton.styleFrom(
                       padding: const EdgeInsets.all(16),
-                      backgroundColor: Colors.red,
-                      foregroundColor: Colors.white,
+                      backgroundColor: AppTheme.error,
+                      foregroundColor: AppTheme.textOnPrimary,
                     ),
                   ),
                 ),

@@ -1,17 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:animate_do/animate_do.dart';
-import '../../models/lapin.dart';
 import '../../providers/lapin_provider.dart';
 import '../../providers/sante_provider.dart';
-import '../../widgets/bunny_widgets.dart';
 import '../../theme/app_theme.dart';
+import '../../widgets/common/common_widgets.dart';
 import 'fiche_sante_screen.dart';
 import '../optimisation/protocoles_screen.dart';
-import '../rentabilite/medicaments_screen.dart';
-import '../rentabilite/quarantaine_screen.dart';
+import 'ajouter_pesee_screen.dart';
+import 'pesee_tracking_screen.dart';
+import 'treatments_care_screen.dart';
+import 'pharmacie_screen.dart';
+import '../alertes/alertes_screen.dart';
 
-/// Écran de suivi sanitaire principal
+/// Écran Santé Overview - Design Stitch "Health Hub"
 class SanteScreen extends StatefulWidget {
   const SanteScreen({super.key});
 
@@ -23,7 +24,6 @@ class _SanteScreenState extends State<SanteScreen> {
   @override
   void initState() {
     super.initState();
-    // Différer le chargement après le build
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _chargerDonnees();
     });
@@ -36,166 +36,350 @@ class _SanteScreenState extends State<SanteScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.background,
-      appBar: AppBar(
-        title: const Text('Santé'),
-        actions: [
-          Consumer<SanteProvider>(
-            builder: (context, santeProvider, _) {
-              return FutureBuilder(
-                future: santeProvider.getSoinsAvecRappel(),
-                builder: (context, snapshot) {
-                  final hasRappels = snapshot.data?.isNotEmpty ?? false;
-                  return IconButton(
-                    icon: Badge(
-                      isLabelVisible: hasRappels,
-                      child: const Icon(Icons.notifications_outlined),
-                    ),
-                    onPressed: () => _afficherRappels(),
-                    tooltip: 'Rappels de soins',
-                  );
-                },
+      backgroundColor: isDark
+          ? AppTheme.backgroundDarkMode
+          : AppTheme.backgroundLight,
+      body: Column(
+        children: [
+          _buildHeader(isDark),
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.only(bottom: 100),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildHeroSection(isDark),
+                  const SizedBox(height: 24),
+                  _buildActionGrid(isDark),
+                  const SizedBox(height: 24),
+                  _buildUpcomingTasks(isDark),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+      floatingActionButton: _buildFAB(),
+    );
+  }
+
+  /// Header Stitch avec actions - Utilise StandardHeader
+  Widget _buildHeader(bool isDark) {
+    return StandardHeader(
+      title: 'Santé Overview',
+      isDark: isDark,
+      onSync: _chargerDonnees,
+      onNotifications: () => _afficherRappels(),
+      onSettings: () {
+        // Navigation vers paramètres
+      },
+    );
+  }
+
+  /// Section héro "Health Hub" - Utilise HeroSection
+  Widget _buildHeroSection(bool isDark) {
+    return HeroSection(
+      title: 'Health Hub',
+      subtitle: 'Manage herd wellness and records',
+      isDark: isDark,
+    );
+  }
+
+  /// Grille 2x2 des cartes d'action
+  Widget _buildActionGrid(bool isDark) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: GridView.count(
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        crossAxisCount: 2,
+        mainAxisSpacing: 12,
+        crossAxisSpacing: 12,
+        childAspectRatio: 0.85,
+        children: [
+          _buildActionCard(
+            isDark: isDark,
+            icon: Icons.monitor_heart,
+            title: 'Health\nTracking',
+            subtitle: 'Vitals & Logs',
+            color: AppTheme.primaryGreen,
+            onTap: () => _showRabbitSelector(context),
+          ),
+          _buildActionCard(
+            isDark: isDark,
+            icon: Icons.healing,
+            title: 'Treatments\n& Care',
+            subtitle: 'Active & History',
+            color: AppTheme.success,
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const TreatmentsCareScreen()),
+              );
+            },
+          ),
+          _buildActionCard(
+            isDark: isDark,
+            icon: Icons.scale,
+            title: 'Weight\nTracking',
+            subtitle: 'Growth Charts',
+            color: AppTheme.warning,
+            onTap: () => _showWeightTracking(),
+          ),
+          _buildActionCard(
+            isDark: isDark,
+            icon: Icons.medication,
+            title: 'Pharmacie',
+            subtitle: 'Stock & Inventory',
+            color: AppTheme.info,
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const PharmacieScreen()),
               );
             },
           ),
         ],
       ),
-      body: Consumer<LapinProvider>(
-        builder: (context, lapinProvider, child) {
-          if (lapinProvider.isLoading) {
-            return const Center(child: CircularProgressIndicator());
-          }
+    );
+  }
 
-          if (lapinProvider.lapins.isEmpty) {
-            return const EmptyState(
-              icon: Icons.health_and_safety_rounded,
-              title: 'Aucun lapin à suivre',
-              message:
-                  'Ajoutez des lapins dans l\'onglet Cheptel pour démarrer le suivi sanitaire',
-            );
-          }
+  Widget _buildActionCard({
+    required bool isDark,
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return ActionCard(
+      isDark: isDark,
+      icon: icon,
+      title: title,
+      subtitle: subtitle,
+      iconColor: color,
+      onTap: onTap,
+    );
+  }
 
-          return Column(
-            children: [
-              // Boutons rapides pour les 3 outils santé
-              Container(
-                padding: const EdgeInsets.all(AppTheme.spacing16),
-                color: Theme.of(context).colorScheme.surface,
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: _buildQuickAccessButton(
-                        context,
-                        icon: Icons.medical_services_rounded,
-                        label: 'Protocoles',
-                        color: const Color(0xFF9C27B0),
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const ProtocolesScreen(),
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: _buildQuickAccessButton(
-                        context,
-                        icon: Icons.medication_rounded,
-                        label: 'Médicaments',
-                        color: const Color(0xFFE91E63),
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const MedicamentsScreen(),
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: _buildQuickAccessButton(
-                        context,
-                        icon: Icons.warning_rounded,
-                        label: 'Quarantaine',
-                        color: const Color(0xFFFF9800),
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const QuarantaineScreen(),
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-                  ],
-                ),
+  /// Section "Upcoming Tasks"
+  Widget _buildUpcomingTasks(bool isDark) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Consumer<SanteProvider>(
+        builder: (context, santeProvider, _) {
+          final rappels = santeProvider.soinsAvecRappel;
+          final pendingCount = rappels.length;
+
+          return Container(
+            decoration: BoxDecoration(
+              color: isDark ? AppTheme.cardDark : AppTheme.cardLight,
+              borderRadius: BorderRadius.circular(40),
+              border: Border.all(
+                color: isDark ? AppTheme.divider : AppTheme.border,
               ),
-              // Liste des lapins
-              Expanded(
-                child: RefreshIndicator(
-                  onRefresh: _chargerDonnees,
-                  child: ListView.builder(
-                    padding: const EdgeInsets.all(AppTheme.spacing16),
-                    itemCount: lapinProvider.lapins.length,
-                    itemBuilder: (context, index) {
-                      final lapin = lapinProvider.lapins[index];
-                      return FadeInUp(
-                        duration: Duration(milliseconds: 300 + (index * 50)),
-                        child: _LapinSanteCard(
-                          lapin: lapin,
-                          onTap: () => _ouvrirFicheSante(lapin),
+              boxShadow: [
+                BoxShadow(
+                  color: AppTheme.backgroundDark.withValues(alpha: 0.03),
+                  blurRadius: 4,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Column(
+              children: [
+                // En-tête
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 20,
+                  ),
+                  decoration: BoxDecoration(
+                    color: isDark
+                        ? AppTheme.cardLight.withValues(alpha: 0.05)
+                        : AppTheme.backgroundLight,
+                    borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(40),
+                    ),
+                    border: Border(
+                      bottom: BorderSide(
+                        color: isDark ? AppTheme.divider : AppTheme.border,
+                      ),
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Upcoming Tasks',
+                        style: AppTheme.titleMedium.copyWith(
+                          color: isDark
+                              ? AppTheme.textLight
+                              : AppTheme.textPrimary,
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: AppTheme.primaryYellow.withValues(alpha: 0.2),
+                          borderRadius: BorderRadius.circular(999),
+                        ),
+                        child: Text(
+                          '$pendingCount Pending',
+                          style: AppTheme.caption.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: isDark
+                                ? AppTheme.primaryYellow
+                                : AppTheme.backgroundDark,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                // Liste des tâches (MOCK DATA pour design)
+                if (pendingCount == 0) ...[
+                  _buildTaskItem(
+                    isDark: isDark,
+                    icon: Icons.vaccines,
+                    color: AppTheme.error,
+                    badge: 'TOMORROW',
+                    title: 'VHD Vaccination',
+                    subtitle: 'Rabbit Buck-042',
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const AlertesScreen(),
                         ),
                       );
                     },
                   ),
-                ),
-              ),
-            ],
+                  _buildTaskDivider(isDark),
+                  _buildTaskItem(
+                    isDark: isDark,
+                    icon: Icons.healing,
+                    color: AppTheme.warning,
+                    badge: 'TODAY',
+                    title: 'Wound Check',
+                    subtitle: 'Doe-015',
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const AlertesScreen(),
+                        ),
+                      );
+                    },
+                  ),
+                ] else
+                  ...rappels.take(3).map((soin) {
+                    return Column(
+                      children: [
+                        _buildTaskItem(
+                          isDark: isDark,
+                          icon: Icons.medical_services,
+                          color: AppTheme.accentTeal,
+                          badge: 'RAPPEL',
+                          title: soin.description,
+                          subtitle: soin.type,
+                          onTap: () {
+                            // Naviguer vers la fiche santé du lapin concerné
+                            final lapinProvider = Provider.of<LapinProvider>(context, listen: false);
+                            final lapin = lapinProvider.getLapinById(soin.lapinId);
+                            if (lapin != null) {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => FicheSanteScreen(lapin: lapin),
+                                ),
+                              );
+                            }
+                          },
+                        ),
+                        if (soin != rappels.last) _buildTaskDivider(isDark),
+                      ],
+                    );
+                  }),
+              ],
+            ),
           );
         },
       ),
     );
   }
 
-  Widget _buildQuickAccessButton(
-    BuildContext context, {
+  Widget _buildTaskItem({
+    required bool isDark,
     required IconData icon,
-    required String label,
     required Color color,
+    required String badge,
+    required String title,
+    required String subtitle,
     required VoidCallback onTap,
   }) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
-      child: Container(
-        padding: const EdgeInsets.symmetric(
-          vertical: AppTheme.spacing12,
-          horizontal: AppTheme.spacing8,
-        ),
-        decoration: BoxDecoration(
-          color: color.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
-          border: Border.all(color: color.withOpacity(0.3), width: 1),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
+      borderRadius: BorderRadius.circular(24),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Row(
           children: [
-            Icon(icon, color: color, size: 28),
-            const SizedBox(height: 4),
-            Text(
-              label,
-              style: AppTheme.labelSmall.copyWith(
-                color: color,
-                fontWeight: FontWeight.w600,
+            Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.15),
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: color.withValues(alpha: 0.3),
+                  width: 1,
+                ),
               ),
-              textAlign: TextAlign.center,
+              child: Icon(icon, color: color, size: 20),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    badge,
+                    style: AppTheme.caption.copyWith(
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 1,
+                      color: isDark
+                          ? AppTheme.textSecondary
+                          : AppTheme.textTertiary,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    title,
+                    style: AppTheme.titleSmall.copyWith(
+                      color: isDark ? AppTheme.textLight : AppTheme.textPrimary,
+                    ),
+                  ),
+                  Text(
+                    subtitle,
+                    style: AppTheme.caption.copyWith(
+                      color: isDark
+                          ? AppTheme.textSecondary
+                          : AppTheme.textSecondary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Icon(
+              Icons.chevron_right,
+              color: isDark ? AppTheme.divider : AppTheme.border,
             ),
           ],
         ),
@@ -203,14 +387,249 @@ class _SanteScreenState extends State<SanteScreen> {
     );
   }
 
-  void _ouvrirFicheSante(Lapin lapin) {
-    Navigator.of(context)
-        .push(
-          MaterialPageRoute(
-            builder: (context) => FicheSanteScreen(lapin: lapin),
+  Widget _buildTaskDivider(bool isDark) {
+    return Container(
+      height: 1,
+      width: double.infinity,
+      margin: const EdgeInsets.only(left: 80, right: 16),
+      color: isDark ? AppTheme.divider : AppTheme.border,
+    );
+  }
+
+  Widget _buildFAB() {
+    return Container(
+      width: 64,
+      height: 64,
+      decoration: BoxDecoration(
+        color: AppTheme.primaryYellow,
+        shape: BoxShape.circle,
+        border: Border.all(color: AppTheme.cardLight, width: 4),
+        boxShadow: [
+          BoxShadow(
+            color: AppTheme.primaryYellow.withValues(alpha: 0.3),
+            blurRadius: 30,
+            offset: const Offset(0, 8),
           ),
-        )
-        .then((_) => _chargerDonnees());
+        ],
+      ),
+      child: IconButton(
+        icon: const Icon(Icons.add, size: 32, color: AppTheme.backgroundDark),
+        onPressed: () {
+          // Menu contextuel : Ajouter pesée, soin, protocole
+          _showAddMenu();
+        },
+      ),
+    );
+  }
+
+  void _showAddMenu() {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (context) => Container(
+        padding: const EdgeInsets.all(24),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: const Icon(
+                  Icons.monitor_weight,
+                  color: AppTheme.accentCyan,
+                ),
+                title: const Text('Ajouter une pesée'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _showRabbitSelectorForPesee();
+                },
+              ),
+              ListTile(
+                leading: const Icon(
+                  Icons.medical_services,
+                  color: AppTheme.neonGreen,
+                ),
+                title: const Text('Ajouter un soin'),
+                onTap: () {
+                  Navigator.pop(context);
+                  // Navigation vers ajout soin
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.science, color: AppTheme.accentTeal),
+                title: const Text('Protocole de soins'),
+                onTap: () {
+                  Navigator.pop(context);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const ProtocolesScreen()),
+                  );
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showRabbitSelector(BuildContext parentContext) {
+    final lapinProvider = Provider.of<LapinProvider>(
+      parentContext,
+      listen: false,
+    );
+
+    showModalBottomSheet(
+      context: parentContext,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (context) => Container(
+        padding: const EdgeInsets.all(24),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Sélectionner un lapin',
+                style: AppTheme.titleLarge,
+              ),
+              const SizedBox(height: 16),
+              ...lapinProvider.lapins.take(5).map((lapin) {
+                return ListTile(
+                  leading: CircleAvatar(
+                    backgroundColor: lapin.sexe == 'Mâle'
+                        ? AppTheme.accentCyan.withValues(alpha: 0.2)
+                        : AppTheme.accentPink.withValues(alpha: 0.2),
+                    child: Icon(
+                      lapin.sexe == 'Mâle' ? Icons.male : Icons.female,
+                      color: lapin.sexe == 'Mâle'
+                          ? AppTheme.accentCyan
+                          : AppTheme.accentPink,
+                    ),
+                  ),
+                  title: Text(lapin.nom),
+                  subtitle: Text(lapin.race),
+                  onTap: () {
+                    Navigator.pop(context);
+                    Navigator.push(
+                      parentContext,
+                      MaterialPageRoute(
+                        builder: (_) => FicheSanteScreen(lapin: lapin),
+                      ),
+                    );
+                  },
+                );
+              }),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showRabbitSelectorForPesee() {
+    final lapinProvider = Provider.of<LapinProvider>(context, listen: false);
+
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (context) => Container(
+        padding: const EdgeInsets.all(24),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Peser un lapin',
+                style: AppTheme.titleLarge,
+              ),
+              const SizedBox(height: 16),
+              ...lapinProvider.lapins.take(5).map((lapin) {
+                return ListTile(
+                  leading: CircleAvatar(
+                    backgroundColor: AppTheme.warning.withValues(alpha: 0.2),
+                    child: const Icon(Icons.scale, color: AppTheme.warning),
+                  ),
+                  title: Text(lapin.nom),
+                  subtitle: Text('${lapin.poids ?? '?'} kg'),
+                  onTap: () {
+                    Navigator.pop(context);
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => AjouterPeseeScreen(lapin: lapin),
+                      ),
+                    );
+                  },
+                );
+              }),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showWeightTracking() {
+    final lapinProvider = Provider.of<LapinProvider>(context, listen: false);
+
+    if (lapinProvider.lapins.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Aucun lapin disponible'),
+          backgroundColor: AppTheme.warning,
+        ),
+      );
+      return;
+    }
+
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (context) => Container(
+        padding: const EdgeInsets.all(24),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Sélectionner un lapin pour le tracking',
+                style: AppTheme.titleLarge,
+              ),
+              const SizedBox(height: 16),
+              ...lapinProvider.lapins.take(10).map((lapin) {
+                return ListTile(
+                  leading: CircleAvatar(
+                    backgroundColor: AppTheme.warning.withValues(alpha: 0.2),
+                    child: const Icon(Icons.scale, color: AppTheme.warning),
+                  ),
+                  title: Text(lapin.nom),
+                  subtitle: Text(lapin.race),
+                  onTap: () {
+                    Navigator.pop(context);
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => PeseeTrackingScreen(lapin: lapin),
+                      ),
+                    );
+                  },
+                );
+              }),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   Future<void> _afficherRappels() async {
@@ -221,8 +640,8 @@ class _SanteScreenState extends State<SanteScreen> {
 
     if (rappels.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('Aucun rappel de soin en attente'),
+        const SnackBar(
+          content: Text('Aucun rappel de soin en attente'),
           backgroundColor: AppTheme.success,
         ),
       );
@@ -231,163 +650,44 @@ class _SanteScreenState extends State<SanteScreen> {
 
     showModalBottomSheet(
       context: context,
-      builder: (context) => Container(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                const Icon(Icons.notification_important, color: Colors.orange),
-                const SizedBox(width: 8),
-                Text(
-                  'Rappels de soins (${rappels.length})',
-                  style: Theme.of(context).textTheme.titleLarge,
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            ...rappels.map(
-              (soin) => ListTile(
-                leading: const Icon(Icons.medical_services),
-                title: Text(soin.description),
-                subtitle: Text(soin.type),
-                trailing: const Icon(Icons.arrow_forward),
-              ),
-            ),
-          ],
-        ),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
-    );
-  }
-}
-
-/// Card affichant un lapin avec son état de santé
-class _LapinSanteCard extends StatefulWidget {
-  final Lapin lapin;
-  final VoidCallback onTap;
-
-  const _LapinSanteCard({required this.lapin, required this.onTap});
-
-  @override
-  State<_LapinSanteCard> createState() => _LapinSanteCardState();
-}
-
-class _LapinSanteCardState extends State<_LapinSanteCard> {
-  int _nombrePesees = 0;
-  int _nombreSoins = 0;
-
-  @override
-  void initState() {
-    super.initState();
-    // Différer le chargement après le build
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _chargerStatistiques();
-    });
-  }
-
-  Future<void> _chargerStatistiques() async {
-    final santeProvider = Provider.of<SanteProvider>(context, listen: false);
-    final pesees = await santeProvider.getPeseesByLapin(widget.lapin.id!);
-    final soins = await santeProvider.getSoinsByLapin(widget.lapin.id!);
-
-    if (mounted) {
-      setState(() {
-        _nombrePesees = pesees.length;
-        _nombreSoins = soins.length;
-      });
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      child: InkWell(
-        onTap: widget.onTap,
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(
+      builder: (context) => Container(
+        padding: const EdgeInsets.all(24),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              CircleAvatar(
-                radius: 30,
-                backgroundColor: widget.lapin.sexe == 'Mâle'
-                    ? Colors.blue.shade100
-                    : Colors.pink.shade100,
-                child: Icon(
-                  widget.lapin.sexe == 'Mâle' ? Icons.male : Icons.female,
-                  color: widget.lapin.sexe == 'Mâle'
-                      ? Colors.blue
-                      : Colors.pink,
-                  size: 32,
+              Row(
+                children: [
+                  const Icon(
+                    Icons.notification_important,
+                    color: AppTheme.accentAmber,
+                  ),
+                  const SizedBox(width: 12),
+                  Text(
+                    'Rappels de soins (${rappels.length})',
+                    style: AppTheme.titleLarge,
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              ...rappels.map(
+                (soin) => ListTile(
+                  leading: const Icon(
+                    Icons.medical_services,
+                    color: AppTheme.neonGreen,
+                  ),
+                  title: Text(soin.description),
+                  subtitle: Text(soin.type),
+                  trailing: const Icon(Icons.arrow_forward),
                 ),
               ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      widget.lapin.nom,
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      '${widget.lapin.race} • ${widget.lapin.ageFormate}',
-                      style: TextStyle(color: Colors.grey[600], fontSize: 14),
-                    ),
-                    const SizedBox(height: 8),
-                    Row(
-                      children: [
-                        _buildStatChip(
-                          Icons.monitor_weight,
-                          '$_nombrePesees pesées',
-                          Colors.blue,
-                        ),
-                        const SizedBox(width: 8),
-                        _buildStatChip(
-                          Icons.medical_services,
-                          '$_nombreSoins soins',
-                          Colors.green,
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              const Icon(Icons.chevron_right),
             ],
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildStatChip(IconData icon, String label, Color color) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 16, color: color),
-          const SizedBox(width: 4),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 12,
-              color: color,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ],
       ),
     );
   }

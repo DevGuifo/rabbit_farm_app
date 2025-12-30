@@ -6,6 +6,7 @@ import '../../providers/lapin_provider.dart';
 import '../../providers/reproduction_provider.dart';
 import '../../utils/snackbar_helper.dart';
 import 'package:intl/intl.dart';
+import 'package:rabbit_farm_app/theme/app_theme.dart';
 
 /// Écran pour modifier un accouplement existant
 class EditAccouplementScreen extends StatefulWidget {
@@ -84,6 +85,7 @@ class _EditAccouplementScreenState extends State<EditAccouplementScreen> {
       lastDate: DateTime.now().add(const Duration(days: 365)),
       locale: const Locale('fr', 'FR'),
     );
+    if (!mounted) return;
     if (picked != null && picked != _dateAccouplement) {
       setState(() {
         _dateAccouplement = picked;
@@ -129,6 +131,7 @@ class _EditAccouplementScreenState extends State<EditAccouplementScreen> {
       ),
     );
 
+    if (!mounted) return;
     if (selected != null) {
       setState(() {
         _maleSelectionne = selected;
@@ -175,6 +178,7 @@ class _EditAccouplementScreenState extends State<EditAccouplementScreen> {
       ),
     );
 
+    if (!mounted) return;
     if (selected != null) {
       setState(() {
         _femelleSelectionnee = selected;
@@ -244,14 +248,12 @@ class _EditAccouplementScreenState extends State<EditAccouplementScreen> {
     final dateFormat = DateFormat('dd/MM/yyyy');
 
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.background,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
         title: Text(
           'Modifier accouplement',
-          style: TextStyle(
+          style: AppTheme.titleLarge.copyWith(
             color: Theme.of(context).colorScheme.onSurface,
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
           ),
         ),
         backgroundColor: Theme.of(context).colorScheme.surface,
@@ -266,17 +268,19 @@ class _EditAccouplementScreenState extends State<EditAccouplementScreen> {
             // Avertissement si terminé
             if (widget.accouplement.statut == 'termine')
               Card(
-                color: Colors.orange.shade100,
-                child: const Padding(
+                color: AppTheme.warning.withValues(alpha: 0.2),
+                child: Padding(
                   padding: EdgeInsets.all(16),
                   child: Row(
                     children: [
-                      Icon(Icons.warning, color: Colors.orange),
+                      Icon(Icons.warning, color: AppTheme.warning),
                       SizedBox(width: 12),
                       Expanded(
                         child: Text(
                           'Cet accouplement est terminé et ne peut plus être modifié',
-                          style: TextStyle(fontWeight: FontWeight.bold),
+                          style: AppTheme.bodyLarge.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
                     ],
@@ -289,10 +293,10 @@ class _EditAccouplementScreenState extends State<EditAccouplementScreen> {
             // Sélection du mâle
             Card(
               child: ListTile(
-                leading: const Icon(Icons.male, color: Colors.blue),
+                leading: Icon(Icons.male, color: AppTheme.info),
                 title: Text(
                   _maleSelectionne?.nom ?? 'Sélectionner un mâle',
-                  style: TextStyle(
+                  style: AppTheme.bodyLarge.copyWith(
                     fontWeight: _maleSelectionne != null
                         ? FontWeight.bold
                         : FontWeight.normal,
@@ -314,10 +318,10 @@ class _EditAccouplementScreenState extends State<EditAccouplementScreen> {
             // Sélection de la femelle
             Card(
               child: ListTile(
-                leading: const Icon(Icons.female, color: Colors.pink),
+                leading: Icon(Icons.female, color: AppTheme.accentPink),
                 title: Text(
                   _femelleSelectionnee?.nom ?? 'Sélectionner une femelle',
-                  style: TextStyle(
+                  style: AppTheme.bodyLarge.copyWith(
                     fontWeight: _femelleSelectionnee != null
                         ? FontWeight.bold
                         : FontWeight.normal,
@@ -457,12 +461,15 @@ class _EditAccouplementScreenState extends State<EditAccouplementScreen> {
   Widget _buildInfoRow(IconData icon, String label, String value) {
     return Row(
       children: [
-        Icon(icon, size: 20, color: Colors.grey[600]),
+        Icon(icon, size: 20, color: AppTheme.textSecondary),
         const SizedBox(width: 8),
         Expanded(
-          child: Text(label, style: TextStyle(color: Colors.grey[600])),
+          child: Text(label, style: TextStyle(color: AppTheme.textSecondary)),
         ),
-        Text(value, style: const TextStyle(fontWeight: FontWeight.bold)),
+        Text(
+          value,
+          style: AppTheme.bodyMedium.copyWith(fontWeight: FontWeight.bold),
+        ),
       ],
     );
   }

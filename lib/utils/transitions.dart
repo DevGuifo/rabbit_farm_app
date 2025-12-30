@@ -133,11 +133,11 @@ class TapScaleAnimation extends StatefulWidget {
   final double scaleDown;
 
   const TapScaleAnimation({
-    Key? key,
+    super.key,
     required this.child,
     this.onTap,
     this.scaleDown = 0.95,
-  }) : super(key: key);
+  });
 
   @override
   State<TapScaleAnimation> createState() => _TapScaleAnimationState();
@@ -187,8 +187,7 @@ class BounceHoverAnimation extends StatefulWidget {
   final Widget child;
   final VoidCallback? onTap;
 
-  const BounceHoverAnimation({Key? key, required this.child, this.onTap})
-    : super(key: key);
+  const BounceHoverAnimation({super.key, required this.child, this.onTap});
 
   @override
   State<BounceHoverAnimation> createState() => _BounceHoverAnimationState();

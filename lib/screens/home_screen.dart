@@ -70,13 +70,18 @@ class _HomeScreenState extends State<HomeScreen> {
 
     return Container(
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1E2329) : AppTheme.surfaceLight,
+        color: isDark ? AppTheme.cardDark : AppTheme.cardLight,
         border: Border(
-          top: BorderSide(color: AppTheme.border.withOpacity(0.1), width: 1),
+          top: BorderSide(
+            color: isDark
+                ? AppTheme.textSecondary.withValues(alpha: 0.4)
+                : AppTheme.textSecondary.withValues(alpha: 0.2),
+            width: 1,
+          ),
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: AppTheme.textPrimary.withValues(alpha: 0.05),
             blurRadius: 20,
             offset: const Offset(0, -5),
           ),
@@ -84,31 +89,40 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       child: SafeArea(
         child: SizedBox(
-          height: 65,
+          height: 80,
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
               _buildNavItem(
                 icon: Icons.dashboard_rounded,
-                label: 'Tableau',
+                label: 'Dashboard',
                 index: 0,
+                isDark: isDark,
               ),
               _buildNavItem(
-                icon: Icons.pets_rounded,
+                icon: Icons.format_list_bulleted_rounded,
                 label: 'Cheptel',
                 index: 1,
+                isDark: isDark,
               ),
               _buildNavItem(
-                icon: Icons.favorite_rounded,
-                label: 'Repro',
+                icon: Icons.family_restroom,
+                label: 'Reproduction',
                 index: 2,
+                isDark: isDark,
               ),
               _buildNavItem(
-                icon: Icons.medical_services_rounded,
+                icon: Icons.medical_services,
                 label: 'Santé',
                 index: 3,
+                isDark: isDark,
               ),
-              _buildNavItem(icon: Icons.apps_rounded, label: 'Plus', index: 4),
+              _buildNavItem(
+                icon: Icons.handyman,
+                label: 'Utilitaires',
+                index: 4,
+                isDark: isDark,
+              ),
             ],
           ),
         ),
@@ -120,6 +134,7 @@ class _HomeScreenState extends State<HomeScreen> {
     required IconData icon,
     required String label,
     required int index,
+    required bool isDark,
   }) {
     final bool isSelected = _currentIndex == index;
 
@@ -131,44 +146,37 @@ class _HomeScreenState extends State<HomeScreen> {
           });
         },
         behavior: HitTestBehavior.opaque,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          curve: Curves.easeOutCubic,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                curve: Curves.easeOutCubic,
-                padding: EdgeInsets.all(isSelected ? 10 : 8),
-                decoration: BoxDecoration(
-                  color: isSelected
-                      ? AppTheme.primaryGreen.withOpacity(0.15)
-                      : Colors.transparent,
-                  borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
-                ),
-                child: Icon(
-                  icon,
-                  size: isSelected ? 26 : 24,
-                  color: isSelected
-                      ? AppTheme.primaryGreen
-                      : AppTheme.textSecondary,
-                ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              height: 32,
+              width: 64,
+              decoration: BoxDecoration(
+                color: isSelected
+                    ? AppTheme.primaryYellow.withValues(alpha: 0.2)
+                    : Colors.transparent,
+                borderRadius: BorderRadius.circular(999),
               ),
-              const SizedBox(height: 4),
-              AnimatedDefaultTextStyle(
-                duration: const Duration(milliseconds: 200),
-                style: AppTheme.labelSmall.copyWith(
-                  color: isSelected
-                      ? AppTheme.primaryGreen
-                      : AppTheme.textSecondary,
-                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                ),
-                child: Text(label),
+              child: Icon(
+                icon,
+                size: 24,
+                color: isSelected
+                    ? (isDark ? AppTheme.textLight : AppTheme.textPrimary)
+                    : AppTheme.textSecondary,
               ),
-            ],
-          ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              label,
+              style: AppTheme.caption.copyWith(
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                color: isSelected
+                    ? (isDark ? AppTheme.textLight : AppTheme.textPrimary)
+                    : AppTheme.textSecondary,
+              ),
+            ),
+          ],
         ),
       ),
     );

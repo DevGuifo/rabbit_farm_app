@@ -5,6 +5,7 @@ import '../../models/lapin.dart';
 import '../../models/soin.dart';
 import '../../providers/sante_provider.dart';
 import '../../utils/snackbar_helper.dart';
+import '../../theme/app_theme.dart';
 
 /// Écran pour modifier un soin existant
 class EditSoinScreen extends StatefulWidget {
@@ -76,6 +77,7 @@ class _EditSoinScreenState extends State<EditSoinScreen> {
       locale: const Locale('fr', 'FR'),
     );
 
+    if (!mounted) return;
     if (picked != null) {
       setState(() {
         if (isRappel) {
@@ -124,14 +126,12 @@ class _EditSoinScreenState extends State<EditSoinScreen> {
     final dateFormat = DateFormat('dd/MM/yyyy');
 
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.background,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
         title: Text(
           'Modifier soin',
-          style: TextStyle(
+          style: AppTheme.titleLarge.copyWith(
             color: Theme.of(context).colorScheme.onSurface,
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
           ),
         ),
         backgroundColor: Theme.of(context).colorScheme.surface,
@@ -153,13 +153,13 @@ class _EditSoinScreenState extends State<EditSoinScreen> {
                     CircleAvatar(
                       radius: 30,
                       backgroundColor: widget.lapin.sexe == 'Mâle'
-                          ? Colors.blue.shade100
-                          : Colors.pink.shade100,
+                          ? AppTheme.info.withValues(alpha: 0.2)
+                          : AppTheme.accentPink.withValues(alpha: 0.2),
                       child: Icon(
                         widget.lapin.sexe == 'Mâle' ? Icons.male : Icons.female,
                         color: widget.lapin.sexe == 'Mâle'
-                            ? Colors.blue
-                            : Colors.pink,
+                            ? AppTheme.info
+                            : AppTheme.accentPink,
                         size: 32,
                       ),
                     ),
@@ -168,13 +168,7 @@ class _EditSoinScreenState extends State<EditSoinScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            widget.lapin.nom,
-                            style: const TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
+                          Text(widget.lapin.nom, style: AppTheme.titleMedium),
                           Text(
                             '${widget.lapin.race} • ${widget.lapin.ageFormate}',
                           ),
@@ -201,7 +195,7 @@ class _EditSoinScreenState extends State<EditSoinScreen> {
 
             // Type de soin
             DropdownButtonFormField<String>(
-              value: _typeSoin,
+              initialValue: _typeSoin,
               decoration: const InputDecoration(
                 labelText: 'Type de soin',
                 border: OutlineInputBorder(),

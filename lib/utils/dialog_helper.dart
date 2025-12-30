@@ -223,7 +223,7 @@ class DialogHelper {
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: AppTheme.textSecondary.withOpacity(0.3),
+                  color: AppTheme.textSecondary.withValues(alpha: 0.3),
                   borderRadius: BorderRadius.circular(AppTheme.radiusRound),
                 ),
               ),
@@ -291,6 +291,30 @@ class DialogHelper {
   /// Fermer le dialog de chargement
   static void hideLoading(BuildContext context) {
     Navigator.pop(context);
+  }
+
+  /// Méthode rapide pour confirmer une action
+  static Future<void> showConfirmDialog(
+    BuildContext context,
+    String title,
+    String message,
+    VoidCallback onConfirm, {
+    String confirmLabel = 'Confirmer',
+    String cancelLabel = 'Annuler',
+    bool isDangerous = false,
+  }) async {
+    final result = await showConfirmation(
+      context: context,
+      title: title,
+      message: message,
+      confirmLabel: confirmLabel,
+      cancelLabel: cancelLabel,
+      isDangerous: isDangerous,
+    );
+
+    if (result == true) {
+      onConfirm();
+    }
   }
 }
 

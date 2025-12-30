@@ -124,7 +124,7 @@ class SnackbarHelper {
               height: 20,
               child: CircularProgressIndicator(
                 strokeWidth: 2,
-                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                valueColor: AlwaysStoppedAnimation<Color>(AppTheme.textLight),
               ),
             ),
             const SizedBox(width: AppTheme.spacing12),
@@ -159,11 +159,14 @@ class SnackbarHelper {
         content: Row(
           children: [
             if (icon != null) ...[
-              Icon(icon, color: Colors.white, size: 20),
+              Icon(icon, color: AppTheme.textLight, size: 20),
               const SizedBox(width: AppTheme.spacing12),
             ],
             Expanded(
-              child: Text(message, style: const TextStyle(color: Colors.white)),
+              child: Text(
+                message,
+                style: const TextStyle(color: AppTheme.textLight),
+              ),
             ),
           ],
         ),

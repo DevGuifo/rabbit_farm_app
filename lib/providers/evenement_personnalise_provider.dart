@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import '../models/evenement_personnalise.dart';
 import '../services/database_helper.dart';
+import '../utils/logger.dart';
 
 class EvenementPersonnaliseProvider with ChangeNotifier {
   List<EvenementPersonnalise> _evenements = [];
@@ -24,7 +25,7 @@ class EvenementPersonnaliseProvider with ChangeNotifier {
           .map((map) => EvenementPersonnalise.fromMap(map))
           .toList();
     } catch (e) {
-      debugPrint('Erreur chargement événements: $e');
+      logger.error('Erreur chargement événements: $e');
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -44,7 +45,7 @@ class EvenementPersonnaliseProvider with ChangeNotifier {
       notifyListeners();
       return true;
     } catch (e) {
-      debugPrint('Erreur ajout événement: $e');
+      logger.error('Erreur ajout événement: $e');
       return false;
     }
   }
@@ -69,7 +70,7 @@ class EvenementPersonnaliseProvider with ChangeNotifier {
       notifyListeners();
       return true;
     } catch (e) {
-      debugPrint('Erreur modification événement: $e');
+      logger.error('Erreur modification événement: $e');
       return false;
     }
   }
@@ -88,7 +89,7 @@ class EvenementPersonnaliseProvider with ChangeNotifier {
       notifyListeners();
       return true;
     } catch (e) {
-      debugPrint('Erreur suppression événement: $e');
+      logger.error('Erreur suppression événement: $e');
       return false;
     }
   }

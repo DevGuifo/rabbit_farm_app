@@ -11,14 +11,14 @@ class BunnyCard extends StatelessWidget {
   final bool showBorder;
 
   const BunnyCard({
-    Key? key,
+    super.key,
     required this.child,
     this.padding,
     this.onTap,
     this.useGlass = false,
     this.backgroundColor,
     this.showBorder = true,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -26,7 +26,7 @@ class BunnyCard extends StatelessWidget {
       margin: const EdgeInsets.symmetric(vertical: AppTheme.spacing8),
       decoration: BoxDecoration(
         color: useGlass
-            ? Colors.white.withOpacity(0.1)
+            ? Colors.white.withValues(alpha: 0.1)
             : (backgroundColor ?? AppTheme.cardLight),
         borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
         border: showBorder
@@ -59,14 +59,14 @@ class BunnyButton extends StatelessWidget {
   final BunnyButtonType type;
 
   const BunnyButton({
-    Key? key,
+    super.key,
     required this.text,
     this.onPressed,
     this.icon,
     this.isLoading = false,
     this.fullWidth = false,
     this.type = BunnyButtonType.primary,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -76,7 +76,7 @@ class BunnyButton extends StatelessWidget {
             width: 20,
             child: CircularProgressIndicator(
               strokeWidth: 2,
-              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+              valueColor: AlwaysStoppedAnimation<Color>(AppTheme.textLight),
             ),
           )
         : Row(
@@ -127,24 +127,24 @@ class StatusBadge extends StatelessWidget {
   final bool small;
 
   const StatusBadge({
-    Key? key,
+    super.key,
     required this.label,
     required this.type,
     this.small = false,
-  }) : super(key: key);
+  });
 
   Color _getBackgroundColor() {
     switch (type) {
       case StatusBadgeType.success:
-        return AppTheme.success.withOpacity(0.1);
+        return AppTheme.success.withValues(alpha: 0.1);
       case StatusBadgeType.warning:
-        return AppTheme.warning.withOpacity(0.1);
+        return AppTheme.warning.withValues(alpha: 0.1);
       case StatusBadgeType.error:
-        return AppTheme.error.withOpacity(0.1);
+        return AppTheme.error.withValues(alpha: 0.1);
       case StatusBadgeType.info:
-        return AppTheme.info.withOpacity(0.1);
+        return AppTheme.info.withValues(alpha: 0.1);
       case StatusBadgeType.neutral:
-        return AppTheme.textSecondary.withOpacity(0.1);
+        return AppTheme.textSecondary.withValues(alpha: 0.1);
     }
   }
 
@@ -195,12 +195,12 @@ class SectionHeader extends StatelessWidget {
   final Widget? action;
 
   const SectionHeader({
-    Key? key,
+    super.key,
     required this.title,
     this.subtitle,
     this.icon,
     this.action,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -212,7 +212,7 @@ class SectionHeader extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(AppTheme.spacing8),
               decoration: BoxDecoration(
-                color: AppTheme.primaryGreen.withOpacity(0.1),
+                color: AppTheme.primaryGreen.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
               ),
               child: Icon(icon, color: AppTheme.primaryGreen, size: 20),
@@ -250,13 +250,13 @@ class StatCard extends StatelessWidget {
   final VoidCallback? onTap;
 
   const StatCard({
-    Key? key,
+    super.key,
     required this.label,
     required this.value,
     required this.icon,
     this.color,
     this.onTap,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -272,7 +272,7 @@ class StatCard extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(AppTheme.spacing12),
             decoration: BoxDecoration(
-              color: cardColor.withOpacity(0.1),
+              color: cardColor.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
             ),
             child: Icon(icon, color: cardColor, size: 28),
@@ -302,13 +302,13 @@ class EmptyState extends StatelessWidget {
   final VoidCallback? onAction;
 
   const EmptyState({
-    Key? key,
+    super.key,
     required this.icon,
     required this.title,
     required this.message,
     this.actionLabel,
     this.onAction,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -321,13 +321,13 @@ class EmptyState extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(AppTheme.spacing32),
               decoration: BoxDecoration(
-                color: AppTheme.primaryGreen.withOpacity(0.1),
+                color: AppTheme.primaryGreen.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
               child: Icon(
                 icon,
                 size: 64,
-                color: AppTheme.primaryGreen.withOpacity(0.5),
+                color: AppTheme.primaryGreen.withValues(alpha: 0.5),
               ),
             ),
             const SizedBox(height: AppTheme.spacing24),
@@ -369,12 +369,12 @@ class InfoRow extends StatelessWidget {
   final bool bold;
 
   const InfoRow({
-    Key? key,
+    super.key,
     required this.label,
     required this.value,
     this.icon,
     this.bold = false,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -413,13 +413,13 @@ class QuickActionButton extends StatelessWidget {
   final double? iconSize;
 
   const QuickActionButton({
-    Key? key,
+    super.key,
     required this.icon,
     required this.label,
     required this.color,
     required this.onTap,
     this.iconSize,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -432,9 +432,9 @@ class QuickActionButton extends StatelessWidget {
           horizontal: AppTheme.spacing8,
         ),
         decoration: BoxDecoration(
-          color: color.withOpacity(0.1),
+          color: color.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
-          border: Border.all(color: color.withOpacity(0.3), width: 1),
+          border: Border.all(color: color.withValues(alpha: 0.3), width: 1),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -465,13 +465,13 @@ class UtilityCard extends StatelessWidget {
   final VoidCallback onTap;
 
   const UtilityCard({
-    Key? key,
+    super.key,
     required this.title,
     required this.description,
     required this.icon,
     required this.color,
     required this.onTap,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -487,11 +487,8 @@ class UtilityCard extends StatelessWidget {
           padding: const EdgeInsets.all(AppTheme.spacing20),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(AppTheme.radiusLarge),
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [color.withOpacity(0.1), color.withOpacity(0.05)],
-            ),
+            color: color.withValues(alpha: 0.05),
+            border: Border.all(color: color.withValues(alpha: 0.2)),
           ),
           child: Row(
             children: [
@@ -499,7 +496,7 @@ class UtilityCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(AppTheme.spacing16),
                 decoration: BoxDecoration(
-                  color: color.withOpacity(0.2),
+                  color: color.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
                 ),
                 child: Icon(icon, size: 32, color: color),
@@ -551,7 +548,7 @@ class BunnyTextField extends StatelessWidget {
   final bool enabled;
 
   const BunnyTextField({
-    Key? key,
+    super.key,
     this.controller,
     required this.labelText,
     this.hintText,
@@ -563,7 +560,7 @@ class BunnyTextField extends StatelessWidget {
     this.validator,
     this.onChanged,
     this.enabled = true,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -616,7 +613,7 @@ class BunnyDropdown<T> extends StatelessWidget {
   final String? Function(T?)? validator;
 
   const BunnyDropdown({
-    Key? key,
+    super.key,
     required this.value,
     required this.items,
     required this.labelText,
@@ -625,12 +622,12 @@ class BunnyDropdown<T> extends StatelessWidget {
     required this.itemLabel,
     this.onChanged,
     this.validator,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
     return DropdownButtonFormField<T>(
-      value: value,
+      initialValue: value,
       decoration: InputDecoration(
         labelText: labelText,
         hintText: hintText,
@@ -671,7 +668,7 @@ class BunnyDropdown<T> extends StatelessWidget {
 class LoadingScreen extends StatelessWidget {
   final String? message;
 
-  const LoadingScreen({Key? key, this.message}) : super(key: key);
+  const LoadingScreen({super.key, this.message});
 
   @override
   Widget build(BuildContext context) {
@@ -705,11 +702,11 @@ class LoadingOverlay extends StatelessWidget {
   final String? message;
 
   const LoadingOverlay({
-    Key? key,
+    super.key,
     required this.isLoading,
     required this.child,
     this.message,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:sqflite/sqflite.dart';
 import '../models/reforme.dart';
 import '../services/database_helper.dart';
+import '../utils/logger.dart';
 
 class ReformeProvider with ChangeNotifier {
   final List<Reforme> _reformes = [];
@@ -25,7 +26,7 @@ class ReformeProvider with ChangeNotifier {
       _reformes.clear();
       _reformes.addAll(maps.map((map) => Reforme.fromMap(map)));
     } catch (e) {
-      debugPrint('Erreur lors du chargement des réformes: $e');
+      logger.error('Erreur lors du chargement des réformes: $e');
       rethrow;
     } finally {
       _isLoading = false;
@@ -47,7 +48,7 @@ class ReformeProvider with ChangeNotifier {
       _reformes.insert(0, nouvelleReforme);
       notifyListeners();
     } catch (e) {
-      debugPrint('Erreur lors de l\'ajout de la réforme: $e');
+      logger.error('Erreur lors de l\'ajout de la réforme: $e');
       rethrow;
     }
   }
@@ -69,7 +70,7 @@ class ReformeProvider with ChangeNotifier {
         notifyListeners();
       }
     } catch (e) {
-      debugPrint('Erreur lors de la modification de la réforme: $e');
+      logger.error('Erreur lors de la modification de la réforme: $e');
       rethrow;
     }
   }
@@ -83,7 +84,7 @@ class ReformeProvider with ChangeNotifier {
       _reformes.removeWhere((r) => r.id == id);
       notifyListeners();
     } catch (e) {
-      debugPrint('Erreur lors de la suppression de la réforme: $e');
+      logger.error('Erreur lors de la suppression de la réforme: $e');
       rethrow;
     }
   }
@@ -102,7 +103,7 @@ class ReformeProvider with ChangeNotifier {
       if (maps.isEmpty) return null;
       return Reforme.fromMap(maps.first);
     } catch (e) {
-      debugPrint('Erreur lors de la récupération de la réforme du lapin: $e');
+      logger.error('Erreur lors de la récupération de la réforme du lapin: $e');
       return null;
     }
   }
@@ -123,7 +124,9 @@ class ReformeProvider with ChangeNotifier {
 
       return maps.map((map) => Reforme.fromMap(map)).toList();
     } catch (e) {
-      debugPrint('Erreur lors de la récupération des réformes par période: $e');
+      logger.error(
+        'Erreur lors de la récupération des réformes par période: $e',
+      );
       rethrow;
     }
   }
@@ -196,7 +199,7 @@ class ReformeProvider with ChangeNotifier {
         'poids_moyen': poidsMoyen.first['moyenne'] ?? 0.0,
       };
     } catch (e) {
-      debugPrint('Erreur lors du calcul des statistiques: $e');
+      logger.error('Erreur lors du calcul des statistiques: $e');
       rethrow;
     }
   }
@@ -213,7 +216,7 @@ class ReformeProvider with ChangeNotifier {
 
       return (result.first['moyenne'] as num?)?.toDouble() ?? 0.0;
     } catch (e) {
-      debugPrint('Erreur lors du calcul du prix moyen: $e');
+      logger.error('Erreur lors du calcul du prix moyen: $e');
       return 0.0;
     }
   }

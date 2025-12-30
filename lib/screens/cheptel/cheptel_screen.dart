@@ -1,18 +1,20 @@
 import 'package:flutter/material.dart';
+import 'dart:io';
 import 'package:provider/provider.dart';
-import 'package:animate_do/animate_do.dart';
 import '../../models/lapin.dart';
 import '../../providers/lapin_provider.dart';
-import '../../utils/dialog_helper.dart';
-import '../../widgets/lapin_card.dart';
-import '../../widgets/bunny_widgets.dart';
+import '../../providers/sante_provider.dart';
+import '../../providers/alerte_provider.dart';
 import '../../theme/app_theme.dart';
+import '../../widgets/common/common_widgets.dart';
+import '../../widgets/quarantaine/quarantaine_quick_dialog.dart';
+import '../parametres/parametres_screen.dart';
+import '../alertes/alertes_screen.dart';
 import 'add_lapin_screen.dart';
-import 'edit_lapin_screen.dart';
-import 'genealogie_screen.dart';
 import 'lapin_detail_screen.dart';
 
-/// Écran de gestion du cheptel
+/// Écran Cheptel - Stitch Design "My Herd"
+/// Liste complète des lapins avec recherche et filtres
 class CheptelScreen extends StatefulWidget {
   const CheptelScreen({super.key});
 
@@ -21,700 +23,638 @@ class CheptelScreen extends StatefulWidget {
 }
 
 class _CheptelScreenState extends State<CheptelScreen> {
-  bool _afficherDecedes = false;
+  final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
-  String? _filtreRace;
-  String? _filtreStatut;
-  String? _filtreLocalisation;
-  bool _showFilters = false;
+  String _selectedFilter = 'All'; // All, Does, Bucks, Kits, Sick
+
+  final List<String> _filters = ['All', 'Does', 'Bucks', 'Kits', 'Sick'];
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<LapinProvider>().chargerLapins();
+    });
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  Future<List<Lapin>> _appliquerFiltres(List<Lapin> lapins) async {
+    var filtres = lapins.where((l) => l.statut != 'decede').toList();
+
+    // Recherche
+    if (_searchQuery.isNotEmpty) {
+      filtres = filtres.where((l) {
+        final query = _searchQuery.toLowerCase();
+        return l.nom.toLowerCase().contains(query) ||
+            l.race.toLowerCase().contains(query) ||
+            (l.numeroIdentification?.toLowerCase().contains(query) ?? false);
+      }).toList();
+    }
+
+    // Filtres par type
+    switch (_selectedFilter) {
+      case 'Does':
+        filtres = filtres
+            .where(
+              (l) =>
+                  l.sexe == 'Femelle' &&
+                  (l.statut == 'Reproductrice' || l.statut == 'Reproducteur'),
+            )
+            .toList();
+        break;
+      case 'Bucks':
+        filtres = filtres
+            .where((l) => l.sexe == 'Mâle' && l.statut == 'Reproducteur')
+            .toList();
+        break;
+      case 'Kits':
+        // Lapins < 8 semaines
+        filtres = filtres.where((l) {
+          final age = l.ageEnJours;
+          return age < 56; // 8 semaines = 56 jours
+        }).toList();
+        break;
+      case 'Sick':
+        // Filtrer les lapins malades via SanteProvider
+        final santeProvider = Provider.of<SanteProvider>(
+          context,
+          listen: false,
+        );
+        final lapinsMalades = await santeProvider.getLapinsMalades();
+        filtres = filtres.where((l) {
+          return l.id != null && lapinsMalades.contains(l.id);
+        }).toList();
+        break;
+    }
+
+    return filtres;
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.background,
-      appBar: AppBar(
-        title: const Text('Cheptel'),
-        actions: [
-          // Toggle filtres
-          IconButton(
-            icon: Icon(
-              _showFilters ? Icons.filter_alt : Icons.filter_alt_outlined,
-              color: _showFilters
-                  ? AppTheme.primaryGreen
-                  : AppTheme.textSecondary,
-            ),
-            tooltip: 'Filtres avancés',
-            onPressed: () {
-              setState(() {
-                _showFilters = !_showFilters;
-              });
-            },
-          ),
-          // Filtre décédés
-          Consumer<LapinProvider>(
-            builder: (context, lapinProvider, child) {
-              final nbDecedes = lapinProvider.lapins
-                  .where((l) => l.statut == 'decede')
-                  .length;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
-              return IconButton(
-                icon: Icon(
-                  _afficherDecedes ? Icons.visibility_off : Icons.visibility,
-                  color: _afficherDecedes
-                      ? AppTheme.primaryGreen
-                      : AppTheme.textSecondary,
-                ),
-                tooltip: _afficherDecedes
-                    ? 'Masquer les décédés ($nbDecedes)'
-                    : 'Afficher les décédés ($nbDecedes)',
-                onPressed: () {
-                  setState(() {
-                    _afficherDecedes = !_afficherDecedes;
-                  });
-                },
-              );
-            },
-          ),
-          // Compteur
-          Consumer<LapinProvider>(
-            builder: (context, lapinProvider, child) {
-              final lapinsFiltres = _appliquerFiltres(lapinProvider.lapins);
-              return Center(
-                child: Padding(
-                  padding: const EdgeInsets.only(right: AppTheme.spacing16),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: AppTheme.spacing12,
-                      vertical: AppTheme.spacing8,
-                    ),
-                    decoration: BoxDecoration(
-                      color: AppTheme.primaryGreen.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(AppTheme.radiusRound),
-                    ),
-                    child: Text(
-                      '${lapinsFiltres.length}',
-                      style: AppTheme.labelMedium.copyWith(
-                        color: AppTheme.primaryGreen,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                ),
-              );
-            },
+    return Scaffold(
+      backgroundColor: isDark
+          ? AppTheme.backgroundDarkMode
+          : AppTheme.backgroundLight,
+      body: Column(
+        children: [
+          _buildHeader(isDark),
+          _buildSearchBar(isDark),
+          _buildFilterPills(isDark),
+          Expanded(
+            child: Consumer<LapinProvider>(
+              builder: (context, provider, _) {
+                return FutureBuilder<List<Lapin>>(
+                  future: _appliquerFiltres(provider.lapins),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
+                    final lapinsFiltres = snapshot.data ?? [];
+                    return _buildRabbitList(lapinsFiltres, isDark);
+                  },
+                );
+              },
+            ),
           ),
         ],
       ),
-      body: Consumer<LapinProvider>(
-        builder: (context, lapinProvider, child) {
-          final lapinsFiltres = _appliquerFiltres(lapinProvider.lapins);
+      floatingActionButton: _buildFAB(),
+    );
+  }
 
-          return Column(
-            children: [
-              // Barre de recherche
-              Padding(
-                padding: const EdgeInsets.all(AppTheme.spacing16),
-                child: TextField(
-                  onChanged: (value) {
-                    setState(() {
-                      _searchQuery = value;
-                    });
-                  },
-                  decoration: InputDecoration(
-                    hintText: 'Rechercher par nom, race, localisation...',
-                    prefixIcon: const Icon(Icons.search),
-                    suffixIcon: _searchQuery.isNotEmpty
-                        ? IconButton(
-                            icon: const Icon(Icons.clear),
-                            onPressed: () {
-                              setState(() {
-                                _searchQuery = '';
-                              });
-                            },
-                          )
-                        : null,
-                    filled: true,
-                    fillColor: AppTheme.surfaceLight,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(
-                        AppTheme.radiusMedium,
-                      ),
-                      borderSide: BorderSide.none,
-                    ),
-                  ),
-                ),
-              ),
+  /// Header sticky "My Herd" - Utilise StandardHeader
+  Widget _buildHeader(bool isDark) {
+    return StandardHeader(
+      title: 'My Herd',
+      isDark: isDark,
+      onSync: () {
+        context.read<LapinProvider>().chargerLapins();
+      },
+      onNotifications: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const AlertesScreen()),
+        );
+      },
+      onSettings: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const ParametresScreen()),
+        );
+      },
+      showNotificationBadge: true,
+      notificationCount: context.read<AlerteProvider>().nombreAlertesNonLues,
+    );
+  }
 
-              // Filtres avancés (pliable)
-              if (_showFilters) _buildFilterChips(lapinProvider),
+  /// Barre de recherche ronde - Utilise SearchBarWidget
+  Widget _buildSearchBar(bool isDark) {
+    return SearchBarWidget(
+      controller: _searchController,
+      onChanged: (value) {
+        setState(() {
+          _searchQuery = value;
+        });
+      },
+      isDark: isDark,
+      hintText: 'Search by ID, name or breed...',
+    );
+  }
 
-              // Badge résumé des filtres actifs
-              if (_hasFiltresActifs()) _buildFiltresActifsBadge(),
+  /// Pills de filtres horizontaux - Utilise FilterPill
+  Widget _buildFilterPills(bool isDark) {
+    return SizedBox(
+      height: 60,
+      child: ListView.builder(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        scrollDirection: Axis.horizontal,
+        itemCount: _filters.length,
+        itemBuilder: (context, index) {
+          final filter = _filters[index];
+          final isSelected = _selectedFilter == filter;
 
-              // Liste des lapins
-              Expanded(
-                child: lapinsFiltres.isEmpty
-                    ? EmptyState(
-                        icon: Icons.pets_rounded,
-                        title: _hasFiltresActifs() || _searchQuery.isNotEmpty
-                            ? 'Aucun résultat'
-                            : 'Aucun lapin',
-                        message: _hasFiltresActifs() || _searchQuery.isNotEmpty
-                            ? 'Aucun lapin ne correspond à vos critères'
-                            : _afficherDecedes
-                            ? 'Aucun lapin décédé enregistré'
-                            : 'Commencez par ajouter votre premier lapin',
-                        actionLabel:
-                            _hasFiltresActifs() || _searchQuery.isNotEmpty
-                            ? 'Réinitialiser les filtres'
-                            : _afficherDecedes
-                            ? null
-                            : 'Ajouter un lapin',
-                        onAction: _hasFiltresActifs() || _searchQuery.isNotEmpty
-                            ? _reinitialiserFiltres
-                            : _afficherDecedes
-                            ? null
-                            : () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) =>
-                                        const AddLapinScreen(),
-                                  ),
-                                );
-                              },
-                      )
-                    : ListView.builder(
-                        padding: const EdgeInsets.all(AppTheme.spacing16),
-                        itemCount: lapinsFiltres.length,
-                        itemBuilder: (context, index) {
-                          final lapin = lapinsFiltres[index];
-                          return FadeInUp(
-                            duration: Duration(
-                              milliseconds: 300 + (index * 50),
-                            ),
-                            child: LapinCard(
-                              lapin: lapin,
-                              onTap: () {
-                                showModalBottomSheet(
-                                  context: context,
-                                  builder: (BuildContext context) {
-                                    return SafeArea(
-                                      child: Column(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          ListTile(
-                                            leading: const Icon(
-                                              Icons.account_tree,
-                                            ),
-                                            title: const Text(
-                                              'Voir la généalogie',
-                                            ),
-                                            onTap: () {
-                                              Navigator.pop(context);
-                                              Navigator.push(
-                                                context,
-                                                MaterialPageRoute(
-                                                  builder: (context) =>
-                                                      GenealogieScreen(
-                                                        lapin: lapin,
-                                                      ),
-                                                ),
-                                              );
-                                            },
-                                          ),
-                                          ListTile(
-                                            leading: const Icon(Icons.info),
-                                            title: const Text(
-                                              'Voir la fiche complète',
-                                            ),
-                                            onTap: () {
-                                              Navigator.pop(context);
-                                              Navigator.push(
-                                                context,
-                                                MaterialPageRoute(
-                                                  builder: (context) =>
-                                                      LapinDetailScreen(
-                                                        lapin: lapin,
-                                                      ),
-                                                ),
-                                              );
-                                            },
-                                          ),
-                                          ListTile(
-                                            leading: const Icon(Icons.edit),
-                                            title: const Text('Modifier'),
-                                            onTap: () async {
-                                              Navigator.pop(context);
-                                              final result =
-                                                  await Navigator.push(
-                                                    context,
-                                                    MaterialPageRoute(
-                                                      builder: (context) =>
-                                                          EditLapinScreen(
-                                                            lapin: lapin,
-                                                          ),
-                                                    ),
-                                                  );
-                                              // Recharger si modification réussie
-                                              if (result == true &&
-                                                  context.mounted) {
-                                                await Provider.of<
-                                                      LapinProvider
-                                                    >(context, listen: false)
-                                                    .chargerLapins();
-                                              }
-                                            },
-                                          ),
-                                          const Divider(),
-                                          ListTile(
-                                            leading: const Icon(
-                                              Icons.cancel,
-                                              color: Colors.red,
-                                            ),
-                                            title: const Text(
-                                              'Marquer comme décédé',
-                                              style: TextStyle(
-                                                color: Colors.red,
-                                              ),
-                                            ),
-                                            onTap: () async {
-                                              Navigator.pop(context);
-                                              final confirm =
-                                                  await DialogHelper.showConfirmation(
-                                                    context: context,
-                                                    title:
-                                                        'Marquer comme décédé',
-                                                    message:
-                                                        'Voulez-vous marquer ${lapin.nom} comme décédé ?\n\nVous pourrez enregistrer les détails du décès ensuite.',
-                                                    isDangerous: true,
-                                                  );
-
-                                              if (confirm == true &&
-                                                  context.mounted) {
-                                                try {
-                                                  await lapinProvider
-                                                      .updateStatut(
-                                                        lapin.id!,
-                                                        'decede',
-                                                      );
-                                                  if (context.mounted) {
-                                                    ScaffoldMessenger.of(
-                                                      context,
-                                                    ).showSnackBar(
-                                                      SnackBar(
-                                                        content: Text(
-                                                          '${lapin.nom} marqué comme décédé',
-                                                        ),
-                                                        backgroundColor:
-                                                            Colors.orange,
-                                                      ),
-                                                    );
-                                                  }
-                                                } catch (e) {
-                                                  if (context.mounted) {
-                                                    ScaffoldMessenger.of(
-                                                      context,
-                                                    ).showSnackBar(
-                                                      SnackBar(
-                                                        content: Text(
-                                                          'Erreur: $e',
-                                                        ),
-                                                        backgroundColor:
-                                                            Colors.red,
-                                                      ),
-                                                    );
-                                                  }
-                                                }
-                                              }
-                                            },
-                                          ),
-                                          ListTile(
-                                            leading: const Icon(
-                                              Icons.delete,
-                                              color: Colors.red,
-                                            ),
-                                            title: const Text(
-                                              'Supprimer',
-                                              style: TextStyle(
-                                                color: Colors.red,
-                                              ),
-                                            ),
-                                            onTap: () async {
-                                              Navigator.pop(context);
-                                              final confirm = await showDialog<bool>(
-                                                context: context,
-                                                builder: (context) => AlertDialog(
-                                                  title: const Text(
-                                                    'Supprimer le lapin',
-                                                  ),
-                                                  content: Text(
-                                                    'Voulez-vous vraiment supprimer ${lapin.nom} ?\n\nCette action est irréversible.',
-                                                  ),
-                                                  actions: [
-                                                    TextButton(
-                                                      onPressed: () =>
-                                                          Navigator.pop(
-                                                            context,
-                                                            false,
-                                                          ),
-                                                      child: const Text(
-                                                        'Annuler',
-                                                      ),
-                                                    ),
-                                                    TextButton(
-                                                      onPressed: () =>
-                                                          Navigator.pop(
-                                                            context,
-                                                            true,
-                                                          ),
-                                                      style:
-                                                          TextButton.styleFrom(
-                                                            foregroundColor:
-                                                                Colors.red,
-                                                          ),
-                                                      child: const Text(
-                                                        'Supprimer',
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                              );
-
-                                              if (confirm == true &&
-                                                  context.mounted) {
-                                                try {
-                                                  await lapinProvider
-                                                      .supprimerLapin(
-                                                        lapin.id!,
-                                                      );
-                                                  if (context.mounted) {
-                                                    ScaffoldMessenger.of(
-                                                      context,
-                                                    ).showSnackBar(
-                                                      SnackBar(
-                                                        content: Text(
-                                                          '${lapin.nom} supprimé avec succès',
-                                                        ),
-                                                        backgroundColor:
-                                                            Colors.green,
-                                                      ),
-                                                    );
-                                                  }
-                                                } catch (e) {
-                                                  if (context.mounted) {
-                                                    ScaffoldMessenger.of(
-                                                      context,
-                                                    ).showSnackBar(
-                                                      SnackBar(
-                                                        content: Text(
-                                                          'Erreur: $e',
-                                                        ),
-                                                        backgroundColor:
-                                                            Colors.red,
-                                                      ),
-                                                    );
-                                                  }
-                                                }
-                                              }
-                                            },
-                                          ),
-                                        ],
-                                      ),
-                                    );
-                                  },
-                                );
-                              },
-                            ),
-                          );
-                        },
-                      ),
-              ),
-            ],
+          return Padding(
+            padding: EdgeInsets.only(
+              right: index < _filters.length - 1 ? 8 : 0,
+            ),
+            child: FilterPill(
+              label: filter,
+              isSelected: isSelected,
+              onTap: () {
+                setState(() {
+                  _selectedFilter = filter;
+                });
+              },
+              isDark: isDark,
+            ),
           );
         },
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const AddLapinScreen()),
-          );
-        },
-        child: const Icon(Icons.add),
       ),
     );
   }
 
-  /// Appliquer tous les filtres
-  List<Lapin> _appliquerFiltres(List<Lapin> lapins) {
-    var resultat = lapins;
-
-    // Filtre décédés
-    if (!_afficherDecedes) {
-      resultat = resultat.where((l) => l.statut != 'decede').toList();
+  /// Liste des lapins - Utilise EmptyState
+  Widget _buildRabbitList(List<Lapin> lapins, bool isDark) {
+    if (lapins.isEmpty) {
+      return EmptyState(
+        isDark: isDark,
+        icon: Icons.pets_outlined,
+        title: 'Aucun lapin trouvé',
+        subtitle: _searchQuery.isNotEmpty
+            ? 'Essayez avec d\'autres termes'
+            : 'Ajoutez votre premier lapin',
+      );
     }
 
-    // Recherche textuelle
-    if (_searchQuery.isNotEmpty) {
-      final query = _searchQuery.toLowerCase();
-      resultat = resultat.where((l) {
-        return l.nom.toLowerCase().contains(query) ||
-            l.race.toLowerCase().contains(query) ||
-            (l.localisation?.toLowerCase().contains(query) ?? false);
-      }).toList();
-    }
-
-    // Filtre par race
-    if (_filtreRace != null) {
-      resultat = resultat.where((l) => l.race == _filtreRace).toList();
-    }
-
-    // Filtre par statut
-    if (_filtreStatut != null) {
-      resultat = resultat.where((l) => l.statut == _filtreStatut).toList();
-    }
-
-    // Filtre par localisation
-    if (_filtreLocalisation != null) {
-      resultat = resultat
-          .where((l) => l.localisation == _filtreLocalisation)
-          .toList();
-    }
-
-    return resultat;
-  }
-
-  /// Construire les chips de filtres
-  Widget _buildFilterChips(LapinProvider lapinProvider) {
-    // Récupérer les valeurs uniques
-    final races = lapinProvider.lapins.map((l) => l.race).toSet().toList()
-      ..sort();
-    final statuts =
-        lapinProvider.lapins
-            .where((l) => l.statut != null)
-            .map((l) => l.statut!)
-            .toSet()
-            .toList()
-          ..sort();
-    final localisations =
-        lapinProvider.lapins
-            .where((l) => l.localisation != null)
-            .map((l) => l.localisation!)
-            .toSet()
-            .toList()
-          ..sort();
-
-    return FadeInDown(
-      duration: const Duration(milliseconds: 300),
-      child: Container(
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppTheme.spacing16,
-          vertical: AppTheme.spacing12,
-        ),
-        decoration: BoxDecoration(
-          color: AppTheme.surfaceLight,
-          border: Border(
-            top: BorderSide(color: AppTheme.border.withOpacity(0.3)),
-            bottom: BorderSide(color: AppTheme.border.withOpacity(0.3)),
+    return Column(
+      children: [
+        // En-tête section
+        Padding(
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 12),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'ACTIVE HERD',
+                style: AppTheme.caption.copyWith(
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: 1.2,
+                  color: (isDark ? AppTheme.textLight : AppTheme.textSecondary)
+                      .withValues(alpha: 0.7),
+                ),
+              ),
+              Text(
+                '${lapins.length} Rabbits',
+                style: AppTheme.bodyMedium.copyWith(
+                  color: (isDark ? AppTheme.textLight : AppTheme.textSecondary)
+                      .withValues(alpha: 0.7),
+                ),
+              ),
+            ],
           ),
         ),
+
+        // Liste
+        Expanded(
+          child: ListView.builder(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 100),
+            itemCount: lapins.length,
+            itemBuilder: (context, index) {
+              return _buildRabbitCard(lapins[index], isDark);
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// Card d'un lapin
+  Widget _buildRabbitCard(Lapin lapin, bool isDark) {
+    // Vérifier si le lapin est malade via SanteProvider
+    final santeProvider = Provider.of<SanteProvider>(context, listen: false);
+
+    // Utiliser FutureBuilder pour vérifier de manière asynchrone
+    return FutureBuilder<bool>(
+      future: lapin.id != null
+          ? santeProvider.estLapinMalade(lapin.id!)
+          : Future.value(lapin.statut == 'Malade'),
+      builder: (context, snapshot) {
+        final bool isSick = snapshot.data ?? (lapin.statut == 'Malade');
+        return _buildRabbitCardContent(lapin, isDark, isSick);
+      },
+    );
+  }
+
+  Widget _buildRabbitCardContent(Lapin lapin, bool isDark, bool isSick) {
+    // Déterminer le badge statut
+    String badgeText = 'Healthy';
+    Color badgeBg = isDark
+        ? AppTheme.success.withValues(alpha: 0.3)
+        : AppTheme.success.withValues(alpha: 0.2);
+    Color badgeTextColor = isDark ? AppTheme.success : AppTheme.success;
+
+    if (isSick) {
+      badgeText = 'Sick';
+      badgeBg = isDark
+          ? AppTheme.error.withValues(alpha: 0.3)
+          : AppTheme.error.withValues(alpha: 0.2);
+      badgeTextColor = isDark ? AppTheme.error : AppTheme.error;
+    }
+    // TODO: Ajouter logique gestante
+    // else if (lapin.estGestante) {
+    //   badgeText = 'Pregnant';
+    //   badgeBg = isDark ? Colors.yellow.shade900 : Colors.yellow.shade100;
+    //   badgeTextColor = isDark ? Colors.yellow.shade200 : Colors.yellow.shade800;
+    // }
+
+    // Badge sexe (ou medical si malade)
+    IconData sexeIcon = Icons.female;
+    Color sexeColor = AppTheme.primaryYellow;
+    Color sexeBg = AppTheme.primaryYellow;
+
+    if (isSick) {
+      // Badge medical pour les lapins malades
+      sexeIcon = Icons.medical_services;
+      sexeColor = isDark ? AppTheme.error : AppTheme.error;
+      sexeBg = isDark
+          ? AppTheme.error.withValues(alpha: 0.3)
+          : AppTheme.error.withValues(alpha: 0.2);
+    } else if (lapin.sexe == 'Mâle') {
+      sexeIcon = Icons.male;
+      sexeColor = AppTheme.textSecondary;
+      sexeBg = AppTheme.textSecondary.withValues(alpha: 0.2);
+    }
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: isDark ? AppTheme.cardDark : AppTheme.cardLight,
+        borderRadius: BorderRadius.circular(32),
+        border: isSick
+            ? Border(
+                left: const BorderSide(color: AppTheme.error, width: 4),
+                top: BorderSide(
+                  color: isDark
+                      ? Colors.white.withValues(alpha: 0.05)
+                      : Colors.black.withValues(alpha: 0.05),
+                ),
+                right: BorderSide(
+                  color: isDark
+                      ? Colors.white.withValues(alpha: 0.05)
+                      : Colors.black.withValues(alpha: 0.05),
+                ),
+                bottom: BorderSide(
+                  color: isDark
+                      ? Colors.white.withValues(alpha: 0.05)
+                      : Colors.black.withValues(alpha: 0.05),
+                ),
+              )
+            : Border.all(
+                color: isDark
+                    ? Colors.white.withValues(alpha: 0.05)
+                    : Colors.black.withValues(alpha: 0.05),
+              ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 4,
+            offset: const Offset(0, 1),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => LapinDetailScreen(lapin: lapin),
+              ),
+            );
+          },
+          onLongPress: () => _showRabbitContextMenu(lapin),
+          borderRadius: BorderRadius.circular(32),
+          child: Padding(
+            padding: const EdgeInsets.all(12),
+            child: Row(
+              children: [
+                // Photo avec badge sexe
+                Stack(
+                  children: [
+                    Container(
+                      height: 64,
+                      width: 64,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: isDark
+                            ? AppTheme.textSecondary
+                            : AppTheme.border,
+                        border: Border.all(
+                          color: isDark
+                              ? AppTheme.backgroundDarkMode
+                              : AppTheme.cardLight,
+                          width: 2,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.1),
+                            blurRadius: 4,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: ClipOval(
+                        child: ColorFiltered(
+                          colorFilter: isSick
+                              ? ColorFilter.mode(
+                                  Colors.grey.withValues(alpha: 0.3),
+                                  BlendMode.saturation,
+                                )
+                              : const ColorFilter.mode(
+                                  Colors.transparent,
+                                  BlendMode.multiply,
+                                ),
+                          child:
+                              lapin.photoPath != null &&
+                                  File(lapin.photoPath!).existsSync()
+                              ? Image.file(
+                                  File(lapin.photoPath!),
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (_, __, ___) => Icon(
+                                    Icons.pets,
+                                    size: 32,
+                                    color: AppTheme.textSecondary,
+                                  ),
+                                )
+                              : Icon(
+                                  Icons.pets,
+                                  size: 32,
+                                  color: AppTheme.textSecondary,
+                                ),
+                        ),
+                      ),
+                    ),
+                    Positioned(
+                      bottom: -2,
+                      right: -2,
+                      child: Container(
+                        height: 24,
+                        width: 24,
+                        decoration: BoxDecoration(
+                          color: sexeBg,
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: isDark
+                                ? AppTheme.backgroundDarkMode
+                                : AppTheme.cardLight,
+                            width: 2,
+                          ),
+                        ),
+                        child: Icon(
+                          sexeIcon,
+                          size: 14,
+                          color: isSick
+                              ? sexeColor
+                              : (lapin.sexe == 'Mâle'
+                                    ? sexeColor
+                                    : AppTheme.textPrimary),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(width: 16),
+
+                // Infos
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                            child: Text(
+                              lapin.nom,
+                              style: AppTheme.titleMedium.copyWith(
+                                color: isDark
+                                    ? AppTheme.textLight
+                                    : AppTheme.textPrimary,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: badgeBg,
+                              borderRadius: BorderRadius.circular(999),
+                            ),
+                            child: Text(
+                              badgeText,
+                              style: AppTheme.caption.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: badgeTextColor,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        '${lapin.race} • ${lapin.ageFormate}',
+                        style: AppTheme.bodyMedium.copyWith(
+                          color: isDark
+                              ? AppTheme.textLight.withValues(alpha: 0.7)
+                              : AppTheme.textSecondary,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        'ID: ${lapin.numeroIdentification ?? '#${lapin.id}'}',
+                        style: AppTheme.caption.copyWith(
+                          fontFamily: 'monospace',
+                          color: isDark
+                              ? AppTheme.textLight.withValues(alpha: 0.5)
+                              : AppTheme.textSecondary.withValues(alpha: 0.6),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                // Chevron
+                Icon(
+                  Icons.chevron_right,
+                  color: isDark ? AppTheme.textLight : AppTheme.textSecondary,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Menu contextuel pour actions rapides sur un lapin
+  Future<void> _showRabbitContextMenu(Lapin lapin) async {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    await showModalBottomSheet(
+      context: context,
+      backgroundColor: isDark ? AppTheme.cardDark : AppTheme.cardLight,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => SafeArea(
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
           children: [
-            // Race
-            if (races.isNotEmpty) ...[
-              Row(
+            // Handle bar
+            Container(
+              margin: const EdgeInsets.symmetric(vertical: 12),
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: AppTheme.textSecondary,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            // Header
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Row(
                 children: [
-                  Icon(Icons.pets, size: 16, color: AppTheme.textSecondary),
-                  const SizedBox(width: AppTheme.spacing8),
-                  Text(
-                    'Race',
-                    style: AppTheme.labelSmall.copyWith(
-                      color: AppTheme.textSecondary,
-                      fontWeight: FontWeight.w600,
+                  Container(
+                    height: 40,
+                    width: 40,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: isDark ? AppTheme.textSecondary : AppTheme.border,
+                    ),
+                    child:
+                        lapin.photoPath != null &&
+                            File(lapin.photoPath!).existsSync()
+                        ? ClipOval(
+                            child: Image.file(
+                              File(lapin.photoPath!),
+                              fit: BoxFit.cover,
+                            ),
+                          )
+                        : Icon(Icons.pets, color: AppTheme.textSecondary),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          lapin.nom,
+                          style: AppTheme.titleSmall.copyWith(
+                            color: isDark
+                                ? AppTheme.textLight
+                                : AppTheme.textPrimary,
+                          ),
+                        ),
+                        Text(
+                          '${lapin.race} • ${lapin.sexe}',
+                          style: AppTheme.caption.copyWith(
+                            color: AppTheme.textSecondary,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: AppTheme.spacing8),
-              Wrap(
-                spacing: AppTheme.spacing8,
-                runSpacing: AppTheme.spacing8,
-                children: races.map((race) {
-                  final isSelected = _filtreRace == race;
-                  return FilterChip(
-                    label: Text(race),
-                    selected: isSelected,
-                    onSelected: (selected) {
-                      setState(() {
-                        _filtreRace = selected ? race : null;
-                      });
-                    },
-                    selectedColor: AppTheme.primaryGreen.withOpacity(0.2),
-                    checkmarkColor: AppTheme.primaryGreen,
-                  );
-                }).toList(),
-              ),
-              const SizedBox(height: AppTheme.spacing12),
-            ],
-
-            // Statut
-            if (statuts.isNotEmpty) ...[
-              Row(
-                children: [
-                  Icon(
-                    Icons.info_outline,
-                    size: 16,
-                    color: AppTheme.textSecondary,
+            ),
+            const Divider(height: 1),
+            // Actions
+            ListTile(
+              leading: const Icon(Icons.visibility, color: AppTheme.info),
+              title: const Text('Voir la fiche'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => LapinDetailScreen(lapin: lapin),
                   ),
-                  const SizedBox(width: AppTheme.spacing8),
-                  Text(
-                    'Statut',
-                    style: AppTheme.labelSmall.copyWith(
-                      color: AppTheme.textSecondary,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
+                );
+              },
+            ),
+            ListTile(
+              leading: const Icon(
+                Icons.health_and_safety,
+                color: AppTheme.warning,
               ),
-              const SizedBox(height: AppTheme.spacing8),
-              Wrap(
-                spacing: AppTheme.spacing8,
-                runSpacing: AppTheme.spacing8,
-                children: statuts.map((statut) {
-                  final isSelected = _filtreStatut == statut;
-                  return FilterChip(
-                    label: Text(statut),
-                    selected: isSelected,
-                    onSelected: (selected) {
-                      setState(() {
-                        _filtreStatut = selected ? statut : null;
-                      });
-                    },
-                    selectedColor: AppTheme.accentPurple.withOpacity(0.2),
-                    checkmarkColor: AppTheme.accentPurple,
-                  );
-                }).toList(),
-              ),
-              const SizedBox(height: AppTheme.spacing12),
-            ],
-
-            // Localisation
-            if (localisations.isNotEmpty) ...[
-              Row(
-                children: [
-                  Icon(
-                    Icons.location_on,
-                    size: 16,
-                    color: AppTheme.textSecondary,
-                  ),
-                  const SizedBox(width: AppTheme.spacing8),
-                  Text(
-                    'Localisation',
-                    style: AppTheme.labelSmall.copyWith(
-                      color: AppTheme.textSecondary,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: AppTheme.spacing8),
-              Wrap(
-                spacing: AppTheme.spacing8,
-                runSpacing: AppTheme.spacing8,
-                children: localisations.map((localisation) {
-                  final isSelected = _filtreLocalisation == localisation;
-                  return FilterChip(
-                    label: Text(localisation),
-                    selected: isSelected,
-                    onSelected: (selected) {
-                      setState(() {
-                        _filtreLocalisation = selected ? localisation : null;
-                      });
-                    },
-                    selectedColor: AppTheme.accentOrange.withOpacity(0.2),
-                    checkmarkColor: AppTheme.accentOrange,
-                  );
-                }).toList(),
-              ),
-            ],
+              title: const Text('Mettre en quarantaine'),
+              onTap: () async {
+                Navigator.pop(context);
+                final result = await showDialog<bool>(
+                  context: context,
+                  builder: (context) => QuarantaineQuickDialog(lapin: lapin),
+                );
+                if (!context.mounted) return;
+                if (result == true) {
+                  await context.read<LapinProvider>().chargerLapins();
+                }
+              },
+            ),
+            const SizedBox(height: 8),
           ],
         ),
       ),
     );
   }
 
-  /// Badge résumé des filtres actifs
-  Widget _buildFiltresActifsBadge() {
-    final filtresActifs = <String>[];
-    if (_filtreRace != null) filtresActifs.add(_filtreRace!);
-    if (_filtreStatut != null) filtresActifs.add(_filtreStatut!);
-    if (_filtreLocalisation != null) filtresActifs.add(_filtreLocalisation!);
-
-    return Container(
-      margin: const EdgeInsets.symmetric(
-        horizontal: AppTheme.spacing16,
-        vertical: AppTheme.spacing8,
-      ),
-      padding: const EdgeInsets.all(AppTheme.spacing12),
-      decoration: BoxDecoration(
-        color: AppTheme.info.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
-        border: Border.all(color: AppTheme.info.withOpacity(0.3)),
-      ),
-      child: Row(
-        children: [
-          Icon(Icons.filter_list, size: 16, color: AppTheme.info),
-          const SizedBox(width: AppTheme.spacing8),
-          Expanded(
-            child: Text(
-              'Filtres actifs : ${filtresActifs.join(", ")}',
-              style: AppTheme.bodySmall.copyWith(
-                color: AppTheme.info,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ),
-          InkWell(
-            onTap: _reinitialiserFiltres,
-            child: Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppTheme.spacing8,
-                vertical: AppTheme.spacing4,
-              ),
-              decoration: BoxDecoration(
-                color: AppTheme.info,
-                borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
-              ),
-              child: Text(
-                'Effacer',
-                style: AppTheme.labelSmall.copyWith(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
+  /// FAB jaune
+  Widget _buildFAB() {
+    return FloatingActionButton(
+      onPressed: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const AddLapinScreen()),
+        );
+      },
+      backgroundColor: AppTheme.primaryYellow,
+      foregroundColor: AppTheme.textPrimary,
+      elevation: 8,
+      child: const Icon(Icons.add, size: 28),
     );
-  }
-
-  /// Vérifier si des filtres sont actifs
-  bool _hasFiltresActifs() {
-    return _filtreRace != null ||
-        _filtreStatut != null ||
-        _filtreLocalisation != null;
-  }
-
-  /// Réinitialiser tous les filtres
-  void _reinitialiserFiltres() {
-    setState(() {
-      _searchQuery = '';
-      _filtreRace = null;
-      _filtreStatut = null;
-      _filtreLocalisation = null;
-    });
   }
 }

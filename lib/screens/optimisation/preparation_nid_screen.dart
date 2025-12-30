@@ -5,6 +5,7 @@ import '../../providers/preparation_nid_provider.dart';
 import '../../providers/reproduction_provider.dart';
 import '../../providers/lapin_provider.dart';
 import '../../models/preparation_nid.dart';
+import '../../theme/app_theme.dart';
 
 class PreparationNidScreen extends StatefulWidget {
   const PreparationNidScreen({super.key});
@@ -138,15 +139,14 @@ class _PreparationNidScreenState extends State<PreparationNidScreen> {
                                   _filtreType == 'tous'
                                       ? 'Aucune préparation'
                                       : 'Aucune préparation $_filtreType',
-                                  style: const TextStyle(
-                                    fontSize: 18,
+                                  style: AppTheme.titleMedium.copyWith(
                                     color: Colors.grey,
                                   ),
                                 ),
                                 const SizedBox(height: 8),
-                                const Text(
+                                Text(
                                   'Appuyez sur + pour en ajouter',
-                                  style: TextStyle(color: Colors.grey),
+                                  style: AppTheme.bodyMedium.copyWith(color: Colors.grey),
                                 ),
                               ],
                             ),
@@ -200,13 +200,11 @@ class _PreparationNidScreenState extends State<PreparationNidScreen> {
         const SizedBox(height: 4),
         Text(
           value,
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
+          style: AppTheme.titleLarge.copyWith(
             color: color,
           ),
         ),
-        Text(label, style: TextStyle(fontSize: 12, color: Colors.grey[600])),
+        Text(label, style: AppTheme.caption.copyWith(color: Colors.grey[600])),
       ],
     );
   }
@@ -253,7 +251,7 @@ class _PreparationNidScreenState extends State<PreparationNidScreen> {
         ),
         title: Text(
           nomFemelle,
-          style: const TextStyle(fontWeight: FontWeight.bold),
+          style: AppTheme.bodyMedium.copyWith(fontWeight: FontWeight.bold),
         ),
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -287,7 +285,7 @@ class _PreparationNidScreenState extends State<PreparationNidScreen> {
             const SizedBox(height: 4),
             Text(
               'J$joursDepuis • ${_getTypeMateriau(preparation.typeMateriau)} • ${dateFormat.format(preparation.datePreparation)}',
-              style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+              style: AppTheme.caption.copyWith( color: Colors.grey[600]),
             ),
             if (joursAvantMiseBas <= 3 && joursAvantMiseBas > 0) ...[
               const SizedBox(height: 4),
@@ -297,8 +295,7 @@ class _PreparationNidScreenState extends State<PreparationNidScreen> {
                   const SizedBox(width: 4),
                   Text(
                     'Mise bas dans $joursAvantMiseBas jour(s)',
-                    style: TextStyle(
-                      fontSize: 11,
+                    style: AppTheme.caption.copyWith(
                       color: Colors.blue[700],
                       fontWeight: FontWeight.w500,
                     ),
@@ -314,8 +311,7 @@ class _PreparationNidScreenState extends State<PreparationNidScreen> {
                   const SizedBox(width: 4),
                   Text(
                     'Hors période recommandée (J28)',
-                    style: TextStyle(
-                      fontSize: 11,
+                    style: AppTheme.caption.copyWith(
                       color: Colors.orange[700],
                       fontWeight: FontWeight.w500,
                     ),
@@ -426,7 +422,7 @@ class _PreparationNidScreenState extends State<PreparationNidScreen> {
             ),
           ),
           Expanded(
-            child: Text(value, style: const TextStyle(color: Colors.black87)),
+            child: Text(value, style: AppTheme.bodyMedium.copyWith(color: Colors.black87)),
           ),
         ],
       ),
@@ -480,7 +476,7 @@ class _PreparationNidScreenState extends State<PreparationNidScreen> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 DropdownButtonFormField<int>(
-                  value: accouplementSelectionne,
+                  initialValue:  accouplementSelectionne,
                   decoration: const InputDecoration(
                     labelText: 'Accouplement *',
                     border: OutlineInputBorder(),
@@ -532,7 +528,7 @@ class _PreparationNidScreenState extends State<PreparationNidScreen> {
                 ),
                 const SizedBox(height: 12),
                 DropdownButtonFormField<String>(
-                  value: typeMateriau,
+                  initialValue:  typeMateriau,
                   decoration: const InputDecoration(
                     labelText: 'Type de matériau',
                     border: OutlineInputBorder(),
@@ -704,7 +700,7 @@ class _PreparationNidScreenState extends State<PreparationNidScreen> {
                 ),
                 const SizedBox(height: 12),
                 DropdownButtonFormField<String>(
-                  value: typeMateriau,
+                  initialValue:  typeMateriau,
                   decoration: const InputDecoration(
                     labelText: 'Type de matériau',
                     border: OutlineInputBorder(),
@@ -772,7 +768,7 @@ class _PreparationNidScreenState extends State<PreparationNidScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Annuler'),
+              child: Text('Annuler'),
             ),
             ElevatedButton(
               onPressed: () {

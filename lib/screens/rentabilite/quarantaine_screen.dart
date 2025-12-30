@@ -5,6 +5,7 @@ import '../../providers/quarantaine_provider.dart';
 import '../../providers/lapin_provider.dart';
 import '../../utils/dialog_helper.dart';
 import '../../models/quarantaine.dart';
+import '../../theme/app_theme.dart';
 
 class QuarantaineScreen extends StatefulWidget {
   const QuarantaineScreen({super.key});
@@ -29,7 +30,7 @@ class _QuarantaineScreenState extends State<QuarantaineScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Quarantaine'),
-        backgroundColor: const Color(0xFFFF9800),
+        backgroundColor: AppTheme.accentAmber,
         foregroundColor: Colors.white,
         actions: [
           PopupMenuButton<String>(
@@ -87,7 +88,7 @@ class _QuarantaineScreenState extends State<QuarantaineScreen> {
                       Expanded(
                         child: Text(
                           '⚠️ ${enCours.length} lapin(s) actuellement en quarantaine',
-                          style: TextStyle(
+                          style: AppTheme.bodyLarge.copyWith(
                             color: Colors.orange[900],
                             fontWeight: FontWeight.bold,
                           ),
@@ -146,7 +147,7 @@ class _QuarantaineScreenState extends State<QuarantaineScreen> {
                               _filtreStatut == 'tous'
                                   ? 'Aucune quarantaine'
                                   : 'Aucune quarantaine $_filtreStatut',
-                              style: const TextStyle(
+                              style: AppTheme.bodyMedium.copyWith(
                                 fontSize: 18,
                                 color: Colors.grey,
                               ),
@@ -182,7 +183,7 @@ class _QuarantaineScreenState extends State<QuarantaineScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _showAjouterQuarantaineDialog(context),
-        backgroundColor: const Color(0xFFFF9800),
+        backgroundColor: AppTheme.accentAmber,
         child: const Icon(Icons.add),
       ),
     );
@@ -200,13 +201,11 @@ class _QuarantaineScreenState extends State<QuarantaineScreen> {
         const SizedBox(height: 4),
         Text(
           value,
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
+          style: AppTheme.titleLarge.copyWith(
             color: color,
           ),
         ),
-        Text(label, style: TextStyle(fontSize: 12, color: Colors.grey[600])),
+        Text(label, style: AppTheme.caption.copyWith( color: Colors.grey[600])),
       ],
     );
   }
@@ -239,7 +238,7 @@ class _QuarantaineScreenState extends State<QuarantaineScreen> {
         ),
         title: Text(
           nomLapin,
-          style: const TextStyle(fontWeight: FontWeight.bold),
+          style: AppTheme.bodyMedium.copyWith(fontWeight: FontWeight.bold),
         ),
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -267,7 +266,7 @@ class _QuarantaineScreenState extends State<QuarantaineScreen> {
             const SizedBox(height: 4),
             Text(
               '${_getMotifLabel(quarantaine.motif)} • Début: ${dateFormat.format(quarantaine.dateDebut)}',
-              style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+              style: AppTheme.caption.copyWith( color: Colors.grey[600]),
             ),
           ],
         ),
@@ -366,7 +365,7 @@ class _QuarantaineScreenState extends State<QuarantaineScreen> {
             ),
           ),
           Expanded(
-            child: Text(value, style: const TextStyle(color: Colors.black87)),
+            child: Text(value, style: AppTheme.bodyMedium.copyWith(color: Colors.black87)),
           ),
         ],
       ),
@@ -422,7 +421,7 @@ class _QuarantaineScreenState extends State<QuarantaineScreen> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 DropdownButtonFormField<int>(
-                  value: lapinSelectionne,
+                  initialValue: lapinSelectionne,
                   decoration: const InputDecoration(
                     labelText: 'Lapin *',
                     border: OutlineInputBorder(),
@@ -438,7 +437,7 @@ class _QuarantaineScreenState extends State<QuarantaineScreen> {
                 ),
                 const SizedBox(height: 12),
                 DropdownButtonFormField<String>(
-                  value: motif,
+                  initialValue: motif,
                   decoration: const InputDecoration(
                     labelText: 'Motif',
                     border: OutlineInputBorder(),
@@ -600,7 +599,7 @@ class _QuarantaineScreenState extends State<QuarantaineScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Annuler'),
+            child: Text('Annuler'),
           ),
           ElevatedButton(
             onPressed: () {

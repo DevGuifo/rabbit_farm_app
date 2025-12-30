@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:intl/intl.dart';
 import '../../models/lapin.dart';
 import '../../models/soin.dart';
 import '../../providers/sante_provider.dart';
 import '../../utils/snackbar_helper.dart';
+import 'widgets/soin_form_layout.dart';
+import 'package:rabbit_farm_app/theme/app_theme.dart';
+import '../alertes/alertes_screen.dart';
+import '../parametres/parametres_screen.dart';
 
-/// Écran pour ajouter un soin
+/// Écran pour ajouter un soin - Design Stitch "Add Health Record"
+/// Palette: Primary #13ec25, BG #f6f8f6/#102212, Surface #ffffff/#1a2e1d
 class AjouterSoinScreen extends StatefulWidget {
   final Lapin lapin;
 
@@ -21,12 +25,12 @@ class _AjouterSoinScreenState extends State<AjouterSoinScreen> {
   final _descriptionController = TextEditingController();
   final _medicamentController = TextEditingController();
   final _dosageController = TextEditingController();
-  final _notesController = TextEditingController();
 
-  String _typeSoin = 'vaccination';
+  String _typeSoin = 'traitement';
   DateTime _date = DateTime.now();
   DateTime? _dateRappel;
   bool _avecRappel = false;
+  String _outcomeStatus = 'recovered';
 
   final List<String> _typesSoins = [
     'vaccination',
@@ -40,36 +44,75 @@ class _AjouterSoinScreenState extends State<AjouterSoinScreen> {
     _descriptionController.dispose();
     _medicamentController.dispose();
     _dosageController.dispose();
-    _notesController.dispose();
     super.dispose();
   }
 
-  Future<void> _selectionnerDate(BuildContext context, bool isRappel) async {
-    final DateTime? picked = await showDatePicker(
+  Future<void> _selectDate() async {
+    final picked = await showDatePicker(
       context: context,
-      initialDate: isRappel
-          ? (_dateRappel ?? DateTime.now().add(const Duration(days: 30)))
-          : _date,
-      firstDate: isRappel ? DateTime.now() : widget.lapin.dateNaissance,
-      lastDate: DateTime.now().add(const Duration(days: 365)),
+      initialDate: _date,
+      firstDate: widget.lapin.dateNaissance,
+      lastDate: DateTime.now(),
       locale: const Locale('fr', 'FR'),
+      builder: (context, child) {
+        final isDark = Theme.of(context).brightness == Brightness.dark;
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: ColorScheme.light(
+              primary: AppTheme.primaryNeonGreen,
+              onPrimary: AppTheme.cardLight,
+              surface: isDark ? AppTheme.backgroundDark : AppTheme.cardLight,
+            ),
+          ),
+          child: child!,
+        );
+      },
     );
 
     if (picked != null) {
-      setState(() {
-        if (isRappel) {
-          _dateRappel = picked;
-        } else {
-          _date = picked;
-        }
-      });
+      setState(() => _date = picked);
     }
   }
 
-  Future<void> _enregistrerSoin() async {
+  Future<void> _selectRappelDate() async {
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _dateRappel ?? DateTime.now().add(const Duration(days: 30)),
+      firstDate: DateTime.now(),
+      lastDate: DateTime.now().add(const Duration(days: 365)),
+      locale: const Locale('fr', 'FR'),
+      builder: (context, child) {
+        final isDark = Theme.of(context).brightness == Brightness.dark;
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: ColorScheme.light(
+              primary: AppTheme.primaryNeonGreen,
+              onPrimary: AppTheme.cardLight,
+              surface: isDark ? AppTheme.backgroundDark : AppTheme.cardLight,
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+
+    if (picked != null) {
+      setState(() => _dateRappel = picked);
+    }
+  }
+
+  Future<void> _saveSoin() async {
     if (!_formKey.currentState!.validate()) {
       return;
     }
+
+    String outcomeLabel = _outcomeStatus == 'recovered'
+        ? 'Récupéré'
+        : _outcomeStatus == 'ongoing'
+        ? 'En cours'
+        : 'Critique';
+
+    String notes = 'Statut: $outcomeLabel';
 
     final soin = Soin(
       lapinId: widget.lapin.id!,
@@ -81,7 +124,7 @@ class _AjouterSoinScreenState extends State<AjouterSoinScreen> {
           : null,
       dosage: _dosageController.text.isNotEmpty ? _dosageController.text : null,
       dateRappel: _avecRappel ? _dateRappel : null,
-      notes: _notesController.text.isNotEmpty ? _notesController.text : null,
+      notes: notes,
     );
 
     try {
@@ -101,223 +144,97 @@ class _AjouterSoinScreenState extends State<AjouterSoinScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final dateFormat = DateFormat('dd/MM/yyyy');
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final backgroundColor = isDark
+        ? AppTheme.backgroundDark
+        : AppTheme.backgroundLight;
+    final surfaceColor = isDark ? AppTheme.backgroundDark : AppTheme.cardLight;
+    final textPrimary = isDark ? AppTheme.cardLight : AppTheme.textPrimary;
+    final textSecondary = isDark
+        ? AppTheme.textSecondary
+        : AppTheme.textSecondary;
 
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.background,
+      backgroundColor: backgroundColor,
       appBar: AppBar(
+        backgroundColor: surfaceColor,
+        elevation: 0,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back, color: textPrimary),
+          onPressed: () => Navigator.pop(context),
+        ),
         title: Text(
-          'Soin de ${widget.lapin.nom}',
-          style: TextStyle(
-            color: Theme.of(context).colorScheme.onSurface,
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
+          'Add Health Record',
+          style: AppTheme.titleLarge.copyWith(
+            fontSize: 22,
+            fontWeight: FontWeight.w600,
+            color: textPrimary,
           ),
         ),
-        backgroundColor: Theme.of(context).colorScheme.surface,
-        elevation: 0,
-        iconTheme: IconThemeData(color: Theme.of(context).colorScheme.primary),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.sync, color: textSecondary, size: 22),
+            onPressed: () {
+              // Rafraîchir les données
+              setState(() {});
+            },
+          ),
+          IconButton(
+            icon: Icon(
+              Icons.notifications_outlined,
+              color: textSecondary,
+              size: 22,
+            ),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const AlertesScreen(),
+                ),
+              );
+            },
+          ),
+          IconButton(
+            icon: Icon(Icons.settings_outlined, color: textSecondary, size: 22),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const ParametresScreen(),
+                ),
+              );
+            },
+          ),
+        ],
       ),
-      body: Form(
-        key: _formKey,
-        child: ListView(
-          padding: const EdgeInsets.all(16),
-          children: [
-            // Informations du lapin
-            Card(
-              color: Theme.of(context).colorScheme.secondaryContainer,
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Row(
-                  children: [
-                    CircleAvatar(
-                      radius: 30,
-                      backgroundColor: widget.lapin.sexe == 'Mâle'
-                          ? Colors.blue.shade100
-                          : Colors.pink.shade100,
-                      child: Icon(
-                        widget.lapin.sexe == 'Mâle' ? Icons.male : Icons.female,
-                        color: widget.lapin.sexe == 'Mâle'
-                            ? Colors.blue
-                            : Colors.pink,
-                        size: 32,
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            widget.lapin.nom,
-                            style: const TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          Text(
-                            '${widget.lapin.race} • ${widget.lapin.ageFormate}',
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-
-            // Date du soin
-            Card(
-              child: ListTile(
-                leading: const Icon(Icons.calendar_today),
-                title: const Text('Date du soin'),
-                subtitle: Text(dateFormat.format(_date)),
-                trailing: const Icon(Icons.edit),
-                onTap: () => _selectionnerDate(context, false),
-              ),
-            ),
-            const SizedBox(height: 16),
-
-            // Type de soin
-            DropdownButtonFormField<String>(
-              value: _typeSoin,
-              decoration: const InputDecoration(
-                labelText: 'Type de soin',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.category),
-              ),
-              items: _typesSoins.map((type) {
-                return DropdownMenuItem(
-                  value: type,
-                  child: Text(_getTypeLabel(type)),
-                );
-              }).toList(),
-              onChanged: (value) {
-                if (value != null) {
-                  setState(() {
-                    _typeSoin = value;
-                  });
-                }
-              },
-            ),
-            const SizedBox(height: 16),
-
-            // Description
-            TextFormField(
-              controller: _descriptionController,
-              decoration: const InputDecoration(
-                labelText: 'Description',
-                hintText: 'Ex: Vaccination myxomatose',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.description),
-              ),
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Veuillez entrer une description';
-                }
-                return null;
-              },
-            ),
-            const SizedBox(height: 16),
-
-            // Médicament
-            TextFormField(
-              controller: _medicamentController,
-              decoration: const InputDecoration(
-                labelText: 'Médicament (optionnel)',
-                hintText: 'Nom du médicament',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.medication),
-              ),
-            ),
-            const SizedBox(height: 16),
-
-            // Dosage
-            TextFormField(
-              controller: _dosageController,
-              decoration: const InputDecoration(
-                labelText: 'Dosage (optionnel)',
-                hintText: 'Ex: 1ml',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.medication_liquid),
-              ),
-            ),
-            const SizedBox(height: 16),
-
-            // Option rappel
-            Card(
-              child: SwitchListTile(
-                title: const Text('Prévoir un rappel'),
-                subtitle: _avecRappel && _dateRappel != null
-                    ? Text('Rappel le ${dateFormat.format(_dateRappel!)}')
-                    : const Text('Aucun rappel'),
-                value: _avecRappel,
-                onChanged: (value) {
-                  setState(() {
-                    _avecRappel = value;
-                    if (value && _dateRappel == null) {
-                      _dateRappel = _date.add(const Duration(days: 30));
-                    }
-                  });
-                },
-                secondary: const Icon(Icons.notification_add),
-              ),
-            ),
-
-            if (_avecRappel)
-              Padding(
-                padding: const EdgeInsets.only(top: 8),
-                child: OutlinedButton.icon(
-                  onPressed: () => _selectionnerDate(context, true),
-                  icon: const Icon(Icons.calendar_today),
-                  label: Text(
-                    _dateRappel != null
-                        ? 'Modifier la date du rappel'
-                        : 'Choisir la date du rappel',
-                  ),
-                ),
-              ),
-            const SizedBox(height: 16),
-
-            // Notes
-            TextFormField(
-              controller: _notesController,
-              decoration: const InputDecoration(
-                labelText: 'Notes (optionnel)',
-                hintText: 'Observations complémentaires...',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.notes),
-              ),
-              maxLines: 3,
-            ),
-            const SizedBox(height: 24),
-
-            // Bouton enregistrer
-            FilledButton.icon(
-              onPressed: _enregistrerSoin,
-              icon: const Icon(Icons.save),
-              label: const Text('Enregistrer le soin'),
-              style: FilledButton.styleFrom(padding: const EdgeInsets.all(16)),
-            ),
-          ],
-        ),
+      body: SoinFormLayout(
+        formKey: _formKey,
+        lapin: widget.lapin,
+        date: _date,
+        onSelectDate: _selectDate,
+        typeSoin: _typeSoin,
+        onTypeSoinChanged: (value) => setState(() => _typeSoin = value),
+        descriptionController: _descriptionController,
+        typesSoins: _typesSoins,
+        medicamentController: _medicamentController,
+        dosageController: _dosageController,
+        outcomeStatus: _outcomeStatus,
+        onOutcomeStatusChanged: (value) =>
+            setState(() => _outcomeStatus = value),
+        avecRappel: _avecRappel,
+        onAvecRappelChanged: (value) {
+          setState(() {
+            _avecRappel = value;
+            if (!value) {
+              _dateRappel = null;
+            }
+          });
+        },
+        dateRappel: _dateRappel,
+        onSelectRappelDate: _selectRappelDate,
+        onSave: _saveSoin,
+        onCancel: () => Navigator.pop(context),
       ),
     );
-  }
-
-  String _getTypeLabel(String type) {
-    switch (type) {
-      case 'vaccination':
-        return 'Vaccination';
-      case 'traitement':
-        return 'Traitement';
-      case 'vermifuge':
-        return 'Vermifuge';
-      case 'autre':
-        return 'Autre';
-      default:
-        return type;
-    }
   }
 }

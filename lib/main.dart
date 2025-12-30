@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'screens/splash_screen.dart';
@@ -18,8 +19,13 @@ import 'providers/sevrage_provider.dart';
 import 'providers/palpation_provider.dart';
 import 'providers/preparation_nid_provider.dart';
 import 'providers/protocole_soin_provider.dart';
+import 'providers/evenement_personnalise_provider.dart';
+import 'providers/auth_provider.dart';
+import 'providers/connectivity_provider.dart';
+import 'providers/sync_provider.dart';
 import 'services/notification_service.dart';
 import 'services/navigation_service.dart';
+import 'services/supabase_auth_service.dart';
 import 'utils/logger.dart';
 import 'theme/app_theme.dart';
 
@@ -31,6 +37,15 @@ void main() async {
   logger.initialize(isProduction: false);
   logger.info('🚀 Démarrage de BunnyManager');
 
+  // Initialiser Supabase (doit être fait avant tout)
+  try {
+    await SupabaseAuthService().initialize();
+  } catch (e) {
+    logger.error('❌ Erreur lors de l\'initialisation Supabase: $e');
+    // Continuer quand même si Supabase n'est pas configuré
+    // (pour le développement local)
+  }
+
   // Initialiser le service de notifications
   await NotificationService().initialize();
 
@@ -38,25 +53,54 @@ void main() async {
   final themeProvider = ThemeProvider();
   await themeProvider.loadTheme();
 
-  runApp(BunnyManagerApp(themeProvider: themeProvider));
+  // Créer et initialiser les providers d'authentification
+  final authProvider = AuthProvider();
+  await authProvider.initialize();
+
+  final connectivityProvider = ConnectivityProvider();
+  await connectivityProvider.initialize();
+
+  final syncProvider = SyncProvider();
+  await syncProvider.initialize();
+
+  runApp(BunnyManagerApp(
+    themeProvider: themeProvider,
+    authProvider: authProvider,
+    connectivityProvider: connectivityProvider,
+    syncProvider: syncProvider,
+  ));
 }
 
 /// Widget racine de l'application BunnyManager
 class BunnyManagerApp extends StatelessWidget {
   final ThemeProvider themeProvider;
+  final AuthProvider authProvider;
+  final ConnectivityProvider connectivityProvider;
+  final SyncProvider syncProvider;
 
-  const BunnyManagerApp({super.key, required this.themeProvider});
+  const BunnyManagerApp({
+    super.key,
+    required this.themeProvider,
+    required this.authProvider,
+    required this.connectivityProvider,
+    required this.syncProvider,
+  });
 
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider.value(value: themeProvider),
+        ChangeNotifierProvider.value(value: authProvider),
+        ChangeNotifierProvider.value(value: connectivityProvider),
+        ChangeNotifierProvider.value(value: syncProvider),
         ChangeNotifierProvider(
           create: (_) {
             final provider = LapinProvider();
-            // Initialiser les données de manière asynchrone
-            provider.initialiserDonneesTest();
+            // Initialiser les données de test uniquement en mode debug
+            if (kDebugMode) {
+              provider.initialiserDonneesTest();
+            }
             return provider;
           },
         ),
@@ -66,7 +110,7 @@ class BunnyManagerApp extends StatelessWidget {
         ChangeNotifierProvider(
           create: (_) {
             final provider = DecesProvider();
-            provider.loadDeces();
+            provider.chargerDeces();
             return provider;
           },
         ),
@@ -132,6 +176,13 @@ class BunnyManagerApp extends StatelessWidget {
           create: (_) {
             final provider = ProtocoleSoinProvider();
             provider.chargerProtocoles();
+            return provider;
+          },
+        ),
+        ChangeNotifierProvider(
+          create: (_) {
+            final provider = EvenementPersonnaliseProvider();
+            provider.chargerEvenements();
             return provider;
           },
         ),

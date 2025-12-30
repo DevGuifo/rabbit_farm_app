@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import '../models/deces.dart';
 import '../services/database_helper.dart';
+import '../utils/logger.dart';
 
 /// Provider pour la gestion des décès
 class DecesProvider with ChangeNotifier {
@@ -12,14 +13,14 @@ class DecesProvider with ChangeNotifier {
   bool get isLoading => _isLoading;
 
   /// Charger tous les décès
-  Future<void> loadDeces() async {
+  Future<void> chargerDeces() async {
     _isLoading = true;
     notifyListeners();
 
     try {
       _deces = await _dbHelper.getAllDeces();
     } catch (e) {
-      debugPrint('❌ Erreur lors du chargement des décès: $e');
+      logger.error('❌ Erreur lors du chargement des décès: $e');
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -42,10 +43,10 @@ class DecesProvider with ChangeNotifier {
       _deces.insert(0, nouveauDeces);
       notifyListeners();
 
-      debugPrint('✅ Décès enregistré pour le lapin ${deces.lapinId}');
+      logger.error('✅ Décès enregistré pour le lapin ${deces.lapinId}');
       return nouveauDeces;
     } catch (e) {
-      debugPrint('❌ Erreur lors de l\'enregistrement du décès: $e');
+      logger.error('❌ Erreur lors de l\'enregistrement du décès: $e');
       return null;
     }
   }
@@ -55,7 +56,7 @@ class DecesProvider with ChangeNotifier {
     try {
       return await _dbHelper.getDecesByLapin(lapinId);
     } catch (e) {
-      debugPrint('❌ Erreur lors de la récupération du décès: $e');
+      logger.error('❌ Erreur lors de la récupération du décès: $e');
       return null;
     }
   }
@@ -65,7 +66,7 @@ class DecesProvider with ChangeNotifier {
     try {
       return await _dbHelper.getDecesByPeriode(debut, fin);
     } catch (e) {
-      debugPrint('❌ Erreur lors de la récupération des décès: $e');
+      logger.error('❌ Erreur lors de la récupération des décès: $e');
       return [];
     }
   }
@@ -75,7 +76,7 @@ class DecesProvider with ChangeNotifier {
     try {
       return await _dbHelper.getDecesByCause(cause);
     } catch (e) {
-      debugPrint('❌ Erreur lors de la récupération des décès: $e');
+      logger.error('❌ Erreur lors de la récupération des décès: $e');
       return [];
     }
   }
@@ -92,7 +93,7 @@ class DecesProvider with ChangeNotifier {
       if (effectifTotal == 0) return 0.0;
       return (nombreDeces / effectifTotal) * 100;
     } catch (e) {
-      debugPrint('❌ Erreur lors du calcul du taux de mortalité: $e');
+      logger.error('❌ Erreur lors du calcul du taux de mortalité: $e');
       return 0.0;
     }
   }
@@ -121,7 +122,7 @@ class DecesProvider with ChangeNotifier {
 
       return tauxMortalite > seuilPourcentage;
     } catch (e) {
-      debugPrint('❌ Erreur lors de la détection de mortalité anormale: $e');
+      logger.error('❌ Erreur lors de la détection de mortalité anormale: $e');
       return false;
     }
   }
@@ -138,7 +139,7 @@ class DecesProvider with ChangeNotifier {
 
       return stats;
     } catch (e) {
-      debugPrint('❌ Erreur lors du calcul des statistiques: $e');
+      logger.error('❌ Erreur lors du calcul des statistiques: $e');
       return {};
     }
   }
@@ -171,7 +172,7 @@ class DecesProvider with ChangeNotifier {
 
       return stats;
     } catch (e) {
-      debugPrint('❌ Erreur lors du calcul des statistiques par âge: $e');
+      logger.error('❌ Erreur lors du calcul des statistiques par âge: $e');
       return {};
     }
   }
@@ -215,10 +216,10 @@ class DecesProvider with ChangeNotifier {
         notifyListeners();
       }
 
-      debugPrint('✅ Décès mis à jour');
+      logger.error('✅ Décès mis à jour');
       return true;
     } catch (e) {
-      debugPrint('❌ Erreur lors de la mise à jour du décès: $e');
+      logger.error('❌ Erreur lors de la mise à jour du décès: $e');
       return false;
     }
   }
@@ -232,10 +233,10 @@ class DecesProvider with ChangeNotifier {
       _deces.removeWhere((d) => d.id == id);
       notifyListeners();
 
-      debugPrint('✅ Décès supprimé');
+      logger.error('✅ Décès supprimé');
       return true;
     } catch (e) {
-      debugPrint('❌ Erreur lors de la suppression du décès: $e');
+      logger.error('❌ Erreur lors de la suppression du décès: $e');
       return false;
     }
   }

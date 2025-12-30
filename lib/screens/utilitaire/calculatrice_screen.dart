@@ -30,7 +30,7 @@ class _CalculatriceScreenState extends State<CalculatriceScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.background,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
         title: const Text('Calculatrice'),
         bottom: TabBar(
@@ -110,7 +110,7 @@ class _SanteTabState extends State<_SanteTab> {
                       Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFE91E63).withOpacity(0.1),
+                          color: const Color(0xFFE91E63).withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: const Icon(
@@ -135,7 +135,7 @@ class _SanteTabState extends State<_SanteTab> {
                               style: AppTheme.labelSmall.copyWith(
                                 color: Theme.of(
                                   context,
-                                ).colorScheme.onSurface.withOpacity(0.6),
+                                ).colorScheme.onSurface.withValues(alpha: 0.6),
                               ),
                             ),
                           ],
@@ -179,12 +179,12 @@ class _SanteTabState extends State<_SanteTab> {
                     Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFE91E63).withOpacity(0.1),
+                        color: const Color(0xFFE91E63).withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(
                           AppTheme.radiusMedium,
                         ),
                         border: Border.all(
-                          color: const Color(0xFFE91E63).withOpacity(0.3),
+                          color: const Color(0xFFE91E63).withValues(alpha: 0.3),
                         ),
                       ),
                       child: Row(
@@ -322,7 +322,7 @@ class _AlimentationTabState extends State<_AlimentationTab> {
                       Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF4CAF50).withOpacity(0.1),
+                          color: const Color(0xFF4CAF50).withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: const Icon(
@@ -347,7 +347,7 @@ class _AlimentationTabState extends State<_AlimentationTab> {
                               style: AppTheme.labelSmall.copyWith(
                                 color: Theme.of(
                                   context,
-                                ).colorScheme.onSurface.withOpacity(0.6),
+                                ).colorScheme.onSurface.withValues(alpha: 0.6),
                               ),
                             ),
                           ],
@@ -367,7 +367,7 @@ class _AlimentationTabState extends State<_AlimentationTab> {
                   ),
                   const SizedBox(height: 16),
                   DropdownButtonFormField<String>(
-                    value: _statut,
+                    initialValue:  _statut,
                     decoration: const InputDecoration(
                       labelText: 'Statut physiologique',
                       border: OutlineInputBorder(),
@@ -415,12 +415,12 @@ class _AlimentationTabState extends State<_AlimentationTab> {
                     Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF4CAF50).withOpacity(0.1),
+                        color: const Color(0xFF4CAF50).withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(
                           AppTheme.radiusMedium,
                         ),
                         border: Border.all(
-                          color: const Color(0xFF4CAF50).withOpacity(0.3),
+                          color: const Color(0xFF4CAF50).withValues(alpha: 0.3),
                         ),
                       ),
                       child: Column(
@@ -540,7 +540,7 @@ class _PerformanceTabState extends State<_PerformanceTab> {
                       Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFFF9800).withOpacity(0.1),
+                          color: const Color(0xFFFF9800).withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: const Icon(
@@ -565,7 +565,7 @@ class _PerformanceTabState extends State<_PerformanceTab> {
                               style: AppTheme.labelSmall.copyWith(
                                 color: Theme.of(
                                   context,
-                                ).colorScheme.onSurface.withOpacity(0.6),
+                                ).colorScheme.onSurface.withValues(alpha: 0.6),
                               ),
                             ),
                           ],
@@ -619,12 +619,12 @@ class _PerformanceTabState extends State<_PerformanceTab> {
                     Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFFF9800).withOpacity(0.1),
+                        color: const Color(0xFFFF9800).withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(
                           AppTheme.radiusMedium,
                         ),
                         border: Border.all(
-                          color: const Color(0xFFFF9800).withOpacity(0.3),
+                          color: const Color(0xFFFF9800).withValues(alpha: 0.3),
                         ),
                       ),
                       child: Row(
@@ -708,7 +708,7 @@ class _FinanceTab extends StatelessWidget {
                           Container(
                             padding: const EdgeInsets.all(12),
                             decoration: BoxDecoration(
-                              color: const Color(0xFF4CAF50).withOpacity(0.1),
+                              color: const Color(0xFF4CAF50).withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: const Icon(
@@ -733,7 +733,7 @@ class _FinanceTab extends StatelessWidget {
                                   style: AppTheme.labelSmall.copyWith(
                                     color: Theme.of(
                                       context,
-                                    ).colorScheme.onSurface.withOpacity(0.6),
+                                    ).colorScheme.onSurface.withValues(alpha: 0.6),
                                   ),
                                 ),
                               ],
@@ -745,7 +745,7 @@ class _FinanceTab extends StatelessWidget {
                       Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF4CAF50).withOpacity(0.05),
+                          color: const Color(0xFF4CAF50).withValues(alpha: 0.05),
                           borderRadius: BorderRadius.circular(
                             AppTheme.radiusMedium,
                           ),
@@ -805,7 +805,7 @@ class _FinanceTab extends StatelessWidget {
         Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: color.withOpacity(0.1),
+            color: color.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Icon(icon, color: color, size: 20),
@@ -822,7 +822,7 @@ class _FinanceTab extends StatelessWidget {
                   style: AppTheme.labelSmall.copyWith(
                     color: Theme.of(
                       context,
-                    ).colorScheme.onSurface.withOpacity(0.6),
+                    ).colorScheme.onSurface.withValues(alpha: 0.6),
                   ),
                 ),
             ],

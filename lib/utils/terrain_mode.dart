@@ -1,13 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:rabbit_farm_app/theme/app_theme.dart';
 
 /// Configuration du mode terrain pour BunnyManager
 /// Optimisé pour utilisation extérieure avec gros boutons et contraste élevé
 class TerrainMode {
   // Activer/désactiver le mode terrain (persiste via SharedPreferences)
-  static bool _isEnabled = false;
-
-  static bool get isEnabled => _isEnabled;
-  static set isEnabled(bool value) => _isEnabled = value;
+  static bool isEnabled = false;
 
   // ============================================
   // 📏 TAILLES TERRAIN
@@ -168,12 +166,15 @@ class TerrainMode {
         height: cardHeight,
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: AppTheme.cardLight,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.black26, width: 2),
+          border: Border.all(
+            color: AppTheme.textSecondary.withValues(alpha: 0.4),
+            width: 2,
+          ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.1),
+              color: AppTheme.textPrimary.withValues(alpha: 0.1),
               blurRadius: 4,
               offset: const Offset(0, 2),
             ),
@@ -184,7 +185,7 @@ class TerrainMode {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: cardColor.withOpacity(0.2),
+                color: cardColor.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Icon(icon, size: iconSize, color: cardColor),
@@ -207,13 +208,17 @@ class TerrainMode {
                       subtitle,
                       style: const TextStyle(
                         fontSize: 14,
-                        color: Colors.black54,
+                        color: AppTheme.textSecondary,
                       ),
                     ),
                 ],
               ),
             ),
-            Icon(Icons.chevron_right, size: 32, color: Colors.black45),
+            Icon(
+              Icons.chevron_right,
+              size: 32,
+              color: AppTheme.textSecondary.withValues(alpha: 0.7),
+            ),
           ],
         ),
       ),
@@ -231,7 +236,7 @@ class TerrainMode {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: badgeColor.withOpacity(0.1),
+        color: badgeColor.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: badgeColor, width: 2),
       ),
@@ -245,7 +250,7 @@ class TerrainMode {
             style: const TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w600,
-              color: Colors.black87,
+              color: AppTheme.textPrimary,
             ),
           ),
         ],
@@ -269,12 +274,18 @@ class TerrainMode {
       ),
       value: value,
       onChanged: onChanged,
-      activeColor: primaryColor,
+      activeTrackColor: primaryColor.withValues(alpha: 0.5),
+      thumbColor: WidgetStateProperty.resolveWith((states) {
+        if (states.contains(WidgetState.selected)) {
+          return primaryColor;
+        }
+        return null;
+      }),
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       secondary: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: primaryColor.withOpacity(0.1),
+          color: primaryColor.withValues(alpha: 0.1),
           shape: BoxShape.circle,
         ),
         child: Icon(
@@ -299,12 +310,11 @@ class TerrainMode {
         primary: primaryColor,
         secondary: secondaryColor,
         surface: backgroundLight,
-        background: backgroundLight,
+        surfaceContainerHighest: backgroundLight,
         error: error,
         onPrimary: textOnPrimary,
         onSecondary: textOnPrimary,
         onSurface: textPrimary,
-        onBackground: textPrimary,
       ),
 
       scaffoldBackgroundColor: backgroundLight,
@@ -346,10 +356,13 @@ class TerrainMode {
 
       cardTheme: CardThemeData(
         elevation: 2,
-        color: Colors.white,
+        color: AppTheme.cardLight,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
-          side: const BorderSide(color: Colors.black26, width: 2),
+          side: BorderSide(
+            color: AppTheme.textSecondary.withValues(alpha: 0.4),
+            width: 2,
+          ),
         ),
         margin: const EdgeInsets.symmetric(vertical: 10),
       ),

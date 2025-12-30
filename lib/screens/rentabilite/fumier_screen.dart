@@ -5,6 +5,7 @@ import '../../providers/fumier_provider.dart';
 import '../../utils/dialog_helper.dart';
 import '../../utils/snackbar_helper.dart';
 import '../../models/collecte_fumier.dart';
+import '../../theme/app_theme.dart';
 
 class FumierScreen extends StatefulWidget {
   const FumierScreen({super.key});
@@ -43,14 +44,14 @@ class _FumierScreenState extends State<FumierScreen> {
                 children: [
                   Icon(Icons.eco, size: 80, color: Colors.brown[300]),
                   const SizedBox(height: 16),
-                  const Text(
+                  Text(
                     'Aucune collecte enregistrée',
-                    style: TextStyle(fontSize: 18, color: Colors.grey),
+                    style: AppTheme.titleMedium.copyWith(color: Colors.grey),
                   ),
                   const SizedBox(height: 8),
-                  const Text(
+                  Text(
                     'Appuyez sur + pour en ajouter',
-                    style: TextStyle(color: Colors.grey),
+                    style: AppTheme.bodyMedium.copyWith(color: Colors.grey),
                   ),
                 ],
               ),
@@ -87,7 +88,7 @@ class _FumierScreenState extends State<FumierScreen> {
         ),
         title: Text(
           '${collecte.quantite} kg - ${_getTypeLabel(collecte.type)}',
-          style: const TextStyle(fontWeight: FontWeight.bold),
+          style: AppTheme.bodyLarge.copyWith(fontWeight: FontWeight.bold),
         ),
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -100,7 +101,7 @@ class _FumierScreenState extends State<FumierScreen> {
             if (collecte.prixVente != null)
               Text(
                 'Vendu: ${collecte.prixVente!.toStringAsFixed(2)} €',
-                style: const TextStyle(
+                style: AppTheme.bodyMedium.copyWith(
                   color: Colors.green,
                   fontWeight: FontWeight.bold,
                 ),
@@ -247,7 +248,7 @@ class _FumierScreenState extends State<FumierScreen> {
 
                 // Type
                 DropdownButtonFormField<String>(
-                  value: selectedType,
+                  initialValue: selectedType,
                   decoration: const InputDecoration(
                     labelText: 'Type',
                     prefixIcon: Icon(Icons.eco),
@@ -262,7 +263,7 @@ class _FumierScreenState extends State<FumierScreen> {
 
                 // Destination
                 DropdownButtonFormField<String>(
-                  value: selectedDestination,
+                  initialValue: selectedDestination,
                   decoration: const InputDecoration(
                     labelText: 'Destination (optionnel)',
                     prefixIcon: Icon(Icons.near_me),

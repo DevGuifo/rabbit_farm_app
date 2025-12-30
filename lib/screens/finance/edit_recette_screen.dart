@@ -7,6 +7,7 @@ import '../../models/lapin.dart';
 import '../../providers/finance_provider.dart';
 import '../../providers/lapin_provider.dart';
 import '../../utils/snackbar_helper.dart';
+import '../../theme/app_theme.dart';
 
 class EditRecetteScreen extends StatefulWidget {
   final Recette recette;
@@ -72,11 +73,11 @@ class _EditRecetteScreenState extends State<EditRecetteScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.background,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
         title: Text(
           'Modifier une recette',
-          style: TextStyle(
+          style: AppTheme.titleLarge.copyWith(
             color: Theme.of(context).colorScheme.onSurface,
             fontSize: 20,
             fontWeight: FontWeight.bold,
@@ -104,7 +105,7 @@ class _EditRecetteScreenState extends State<EditRecetteScreen> {
 
             // Catégorie
             DropdownButtonFormField<String>(
-              value: _categorieSelectionnee,
+              initialValue:  _categorieSelectionnee,
               decoration: const InputDecoration(
                 labelText: 'Catégorie',
                 prefixIcon: Icon(Icons.category),
@@ -138,7 +139,7 @@ class _EditRecetteScreenState extends State<EditRecetteScreen> {
               Consumer<LapinProvider>(
                 builder: (context, lapinProvider, child) {
                   return DropdownButtonFormField<Lapin>(
-                    value: _lapinSelectionne,
+                    initialValue:  _lapinSelectionne,
                     decoration: const InputDecoration(
                       labelText: 'Lapin vendu (optionnel)',
                       prefixIcon: Icon(Icons.pets),
@@ -246,8 +247,8 @@ class _EditRecetteScreenState extends State<EditRecetteScreen> {
                     label: const Text('Enregistrer'),
                     style: ElevatedButton.styleFrom(
                       padding: const EdgeInsets.all(16),
-                      backgroundColor: Colors.green,
-                      foregroundColor: Colors.white,
+                      backgroundColor: AppTheme.success,
+                      foregroundColor: AppTheme.textOnPrimary,
                     ),
                   ),
                 ),

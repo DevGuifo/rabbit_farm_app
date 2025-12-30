@@ -67,6 +67,6 @@ class Recette {
 
   @override
   String toString() {
-    return 'Recette{id: $id, date: $date, montant: ${montant}€, categorie: $categorie}';
+    return 'Recette{id: $id, date: $date, montant: $montant€, categorie: $categorie}';
   }
 }

@@ -1,4 +1,15 @@
 /// Modèle de données représentant un lapin
+/// 
+/// **Champs de synchronisation (futurs - pour migration Supabase) :**
+/// - `userId` : ID de l'utilisateur propriétaire (UUID Supabase)
+/// - `createdAt` : Date de création de l'enregistrement
+/// - `updatedAt` : Date de dernière modification
+/// - `syncedAt` : Date de dernière synchronisation avec Supabase
+/// - `isDirty` : Flag indiquant si l'enregistrement a des modifications non synchronisées
+/// - `isDeleted` : Soft delete - marqué comme supprimé mais conservé pour sync
+/// - `syncConflict` : JSON contenant les informations de conflit de synchronisation
+/// 
+/// Ces champs seront ajoutés lors de la migration vers Supabase (voir MIGRATION_SUPABASE.md)
 class Lapin {
   final int? id;
   final String nom;
@@ -15,6 +26,16 @@ class Lapin {
   final String? origine;
   final String? notes;
   final String? caracteristiques;
+
+  // Champs de synchronisation (réservés pour migration future Supabase)
+  // TODO: Décommenter lors de la migration
+  // final String? userId;
+  // final DateTime? createdAt;
+  // final DateTime? updatedAt;
+  // final DateTime? syncedAt;
+  // final bool isDirty;
+  // final bool isDeleted;
+  // final Map<String, dynamic>? syncConflict;
 
   Lapin({
     this.id,
