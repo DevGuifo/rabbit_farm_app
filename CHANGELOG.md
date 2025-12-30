@@ -14,7 +14,28 @@ et ce projet adhère au [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ---
 
-## [1.1.3] - 2025-01-XX (Phase 3 - Synchronisation Supabase Robuste)
+## [1.1.4] - 2024-12-30 (Phase 4 - Stabilisation & Qualité)
+
+### Ajouté
+- **Tests minimaux** : Ajout de 10 nouveaux tests
+  - 7 tests pour la méthode `estGestante()` du modèle `Lapin`
+  - 6 tests pour le provider `LapinProvider`
+  - 5 tests pour le service `SupabaseSyncService`
+- **Documentation** : Résumé de la Phase 4 dans `docs/RESUME_PHASE4_STABILISATION_QUALITE.md`
+
+### Amélioré
+- **Qualité du code** : `flutter analyze` : No issues found!
+- **Couverture de tests** : 30 tests au total (20 existants + 10 nouveaux)
+- **Stabilité** : Application prête pour les tests utilisateurs
+
+### Technique
+- Initialisation du logger dans les tests
+- Tests unitaires pour les fonctionnalités critiques
+- Vérification de la robustesse de la synchronisation
+
+---
+
+## [1.1.3] - 2024-12-30 (Phase 3 - Synchronisation Supabase Robuste)
 
 ### Amélioré
 - **Synchronisation Supabase** : Robustesse améliorée

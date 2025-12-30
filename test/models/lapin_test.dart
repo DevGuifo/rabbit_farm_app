@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:rabbit_farm_app/models/lapin.dart';
+import 'package:rabbit_farm_app/models/accouplement.dart';
 
 void main() {
   group('Lapin Model Tests', () {
@@ -93,6 +94,146 @@ void main() {
       expect(clone.sexe, equals(original.sexe));
       expect(clone.race, equals(original.race));
       expect(clone.poids, equals(original.poids));
+    });
+
+    group('estGestante', () {
+      test('Femelle avec accouplement actif est gestante', () {
+        final femelle = Lapin(
+          id: 1,
+          nom: 'Caramel',
+          sexe: 'Femelle',
+          dateNaissance: DateTime(2024, 1, 1),
+          race: 'Rex',
+        );
+
+        final accouplement = Accouplement(
+          id: 1,
+          maleId: 2,
+          femelleId: 1,
+          dateAccouplement: DateTime.now().subtract(const Duration(days: 10)),
+          dateMiseBasPrevue: DateTime.now().add(const Duration(days: 21)),
+          statut: 'confirme',
+        );
+
+        expect(femelle.estGestante([accouplement]), isTrue);
+      });
+
+      test('Femelle avec accouplement en_attente est gestante', () {
+        final femelle = Lapin(
+          id: 1,
+          nom: 'Neige',
+          sexe: 'F',
+          dateNaissance: DateTime(2024, 1, 1),
+          race: 'Nain',
+        );
+
+        final accouplement = Accouplement(
+          id: 1,
+          maleId: 2,
+          femelleId: 1,
+          dateAccouplement: DateTime.now().subtract(const Duration(days: 5)),
+          dateMiseBasPrevue: DateTime.now().add(const Duration(days: 26)),
+          statut: 'en_attente',
+        );
+
+        expect(femelle.estGestante([accouplement]), isTrue);
+      });
+
+      test('Femelle avec accouplement terminé n\'est pas gestante', () {
+        final femelle = Lapin(
+          id: 1,
+          nom: 'Caramel',
+          sexe: 'Femelle',
+          dateNaissance: DateTime(2024, 1, 1),
+          race: 'Rex',
+        );
+
+        final accouplement = Accouplement(
+          id: 1,
+          maleId: 2,
+          femelleId: 1,
+          dateAccouplement: DateTime.now().subtract(const Duration(days: 40)),
+          dateMiseBasPrevue: DateTime.now().subtract(const Duration(days: 9)),
+          statut: 'termine',
+        );
+
+        expect(femelle.estGestante([accouplement]), isFalse);
+      });
+
+      test('Femelle avec date de mise bas passée n\'est pas gestante', () {
+        final femelle = Lapin(
+          id: 1,
+          nom: 'Caramel',
+          sexe: 'Femelle',
+          dateNaissance: DateTime(2024, 1, 1),
+          race: 'Rex',
+        );
+
+        final accouplement = Accouplement(
+          id: 1,
+          maleId: 2,
+          femelleId: 1,
+          dateAccouplement: DateTime.now().subtract(const Duration(days: 40)),
+          dateMiseBasPrevue: DateTime.now().subtract(const Duration(days: 1)),
+          statut: 'confirme',
+        );
+
+        expect(femelle.estGestante([accouplement]), isFalse);
+      });
+
+      test('Mâle n\'est jamais gestante', () {
+        final male = Lapin(
+          id: 2,
+          nom: 'Flocon',
+          sexe: 'Mâle',
+          dateNaissance: DateTime(2024, 1, 1),
+          race: 'Géant',
+        );
+
+        final accouplement = Accouplement(
+          id: 1,
+          maleId: 2,
+          femelleId: 1,
+          dateAccouplement: DateTime.now().subtract(const Duration(days: 10)),
+          dateMiseBasPrevue: DateTime.now().add(const Duration(days: 21)),
+          statut: 'confirme',
+        );
+
+        expect(male.estGestante([accouplement]), isFalse);
+      });
+
+      test('Femelle sans accouplement n\'est pas gestante', () {
+        final femelle = Lapin(
+          id: 1,
+          nom: 'Caramel',
+          sexe: 'Femelle',
+          dateNaissance: DateTime(2024, 1, 1),
+          race: 'Rex',
+        );
+
+        expect(femelle.estGestante([]), isFalse);
+      });
+
+      test('Femelle avec accouplement pour une autre femelle n\'est pas gestante', () {
+        final femelle1 = Lapin(
+          id: 1,
+          nom: 'Caramel',
+          sexe: 'Femelle',
+          dateNaissance: DateTime(2024, 1, 1),
+          race: 'Rex',
+        );
+
+        final accouplement = Accouplement(
+          id: 1,
+          maleId: 2,
+          femelleId: 3, // Autre femelle
+          dateAccouplement: DateTime.now().subtract(const Duration(days: 10)),
+          dateMiseBasPrevue: DateTime.now().add(const Duration(days: 21)),
+          statut: 'confirme',
+        );
+
+        expect(femelle1.estGestante([accouplement]), isFalse);
+      });
     });
   });
 }
