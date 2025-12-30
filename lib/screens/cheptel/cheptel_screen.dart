@@ -5,6 +5,7 @@ import '../../models/lapin.dart';
 import '../../providers/lapin_provider.dart';
 import '../../providers/sante_provider.dart';
 import '../../providers/alerte_provider.dart';
+import '../../providers/reproduction_provider.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/common/common_widgets.dart';
 import '../../widgets/quarantaine/quarantaine_quick_dialog.dart';
@@ -34,6 +35,8 @@ class _CheptelScreenState extends State<CheptelScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<LapinProvider>().chargerLapins();
+      // Charger les accouplements pour la détection des femelles gestantes
+      context.read<ReproductionProvider>().chargerAccouplements();
     });
   }
 
@@ -274,6 +277,13 @@ class _CheptelScreenState extends State<CheptelScreen> {
   }
 
   Widget _buildRabbitCardContent(Lapin lapin, bool isDark, bool isSick) {
+    // Récupérer les accouplements pour vérifier si la femelle est gestante
+    final reproProvider = Provider.of<ReproductionProvider>(context, listen: false);
+    final accouplements = reproProvider.accouplements;
+    
+    // Vérifier si la femelle est gestante
+    final estGestante = lapin.estGestante(accouplements);
+    
     // Déterminer le badge statut
     String badgeText = 'Healthy';
     Color badgeBg = isDark
@@ -287,13 +297,13 @@ class _CheptelScreenState extends State<CheptelScreen> {
           ? AppTheme.error.withValues(alpha: 0.3)
           : AppTheme.error.withValues(alpha: 0.2);
       badgeTextColor = isDark ? AppTheme.error : AppTheme.error;
+    } else if (estGestante) {
+      badgeText = 'Gestante';
+      badgeBg = isDark 
+          ? Colors.pink.shade900.withValues(alpha: 0.3)
+          : Colors.pink.shade100.withValues(alpha: 0.5);
+      badgeTextColor = isDark ? Colors.pink.shade200 : Colors.pink.shade800;
     }
-    // TODO: Ajouter logique gestante
-    // else if (lapin.estGestante) {
-    //   badgeText = 'Pregnant';
-    //   badgeBg = isDark ? Colors.yellow.shade900 : Colors.yellow.shade100;
-    //   badgeTextColor = isDark ? Colors.yellow.shade200 : Colors.yellow.shade800;
-    // }
 
     // Badge sexe (ou medical si malade)
     IconData sexeIcon = Icons.female;

@@ -1,3 +1,5 @@
+import 'accouplement.dart';
+
 /// Modèle de données représentant un lapin
 /// 
 /// **Champs de synchronisation (futurs - pour migration Supabase) :**
@@ -80,6 +82,39 @@ class Lapin {
         return '$annees an${annees > 1 ? 's' : ''} et $moisRestants mois';
       }
     }
+  }
+
+  /// Vérifier si la femelle est gestante
+  /// 
+  /// [accouplements] : Liste des accouplements à vérifier
+  /// 
+  /// Retourne true si la femelle a un accouplement actif (en_attente ou confirme)
+  /// et que la date de mise bas n'est pas encore passée
+  bool estGestante(List<Accouplement> accouplements) {
+    // Seulement pour les femelles
+    if (sexe.toLowerCase() != 'femelle' && sexe.toLowerCase() != 'f') {
+      return false;
+    }
+
+    if (id == null) return false;
+
+    final maintenant = DateTime.now();
+    
+    // Chercher un accouplement actif pour cette femelle
+    for (final acc in accouplements) {
+      // Vérifier que c'est bien un accouplement pour cette femelle
+      if (acc.femelleId != id) continue;
+
+      // Vérifier le statut (en_attente ou confirme)
+      if (acc.statut != 'en_attente' && acc.statut != 'confirme') continue;
+
+      // Vérifier que la date de mise bas n'est pas passée
+      if (maintenant.isBefore(acc.dateMiseBasPrevue)) {
+        return true;
+      }
+    }
+
+    return false;
   }
 
   /// Créer une copie du lapin avec des modifications
