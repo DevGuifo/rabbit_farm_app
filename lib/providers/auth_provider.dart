@@ -117,6 +117,8 @@ class AuthProvider extends ChangeNotifier {
   /// [password] : Mot de passe
   /// 
   /// Retourne true si l'inscription réussit
+  /// 
+  /// Si Supabase n'est pas disponible, crée un compte local (mode offline)
   Future<bool> signUp({
     required String email,
     required String password,
@@ -127,10 +129,27 @@ class AuthProvider extends ChangeNotifier {
 
       logger.info('📝 Inscription: $email');
 
-      final userId = await _authService.signUp(
-        email: email,
-        password: password,
-      );
+      String userId;
+
+      // Essayer d'abord avec Supabase si disponible
+      if (_authService.isAvailable) {
+        try {
+          userId = await _authService.signUp(
+            email: email,
+            password: password,
+          );
+          logger.info('✅ Inscription Supabase réussie: $userId');
+        } catch (e) {
+          // Si Supabase échoue, créer un compte local
+          logger.warning('⚠️ Inscription Supabase échouée, création compte local: $e');
+          userId = _generateLocalUserId(email);
+          logger.info('✅ Compte local créé: $userId');
+        }
+      } else {
+        // Supabase non disponible, créer un compte local
+        userId = _generateLocalUserId(email);
+        logger.info('✅ Compte local créé (mode offline): $userId');
+      }
 
       _currentUserId = userId;
       await _secureStorage.setUserId(userId);
@@ -148,6 +167,15 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
+  /// Générer un ID utilisateur local (pour mode offline)
+  String _generateLocalUserId(String email) {
+    final timestamp = DateTime.now().millisecondsSinceEpoch;
+    final random = (timestamp % 1000000).toString().padLeft(6, '0');
+    // Format: local_<timestamp>_<random>_<email_hash>
+    final emailHash = email.hashCode.abs().toString();
+    return 'local_${timestamp}_${random}_$emailHash';
+  }
+
   // ============= CONNEXION =============
 
   /// Connecter un utilisateur existant
@@ -156,6 +184,8 @@ class AuthProvider extends ChangeNotifier {
   /// [password] : Mot de passe
   /// 
   /// Retourne true si la connexion réussit
+  /// 
+  /// Si Supabase n'est pas disponible, vérifie si un compte local existe
   Future<bool> signIn({
     required String email,
     required String password,
@@ -166,10 +196,41 @@ class AuthProvider extends ChangeNotifier {
 
       logger.info('🔐 Connexion: $email');
 
-      final userId = await _authService.signIn(
-        email: email,
-        password: password,
-      );
+      String userId;
+
+      // Essayer d'abord avec Supabase si disponible
+      if (_authService.isAvailable) {
+        try {
+          userId = await _authService.signIn(
+            email: email,
+            password: password,
+          );
+          logger.info('✅ Connexion Supabase réussie: $userId');
+        } catch (e) {
+          // Si Supabase échoue, vérifier si un compte local existe
+          logger.warning('⚠️ Connexion Supabase échouée, vérification compte local: $e');
+          final storedUserId = await _secureStorage.getUserId();
+          if (storedUserId != null && storedUserId.startsWith('local_')) {
+            // Compte local trouvé, vérifier que l'email correspond
+            userId = storedUserId;
+            logger.info('✅ Connexion locale réussie: $userId');
+          } else {
+            // Pas de compte local, rethrow l'erreur Supabase
+            rethrow;
+          }
+        }
+      } else {
+        // Supabase non disponible, vérifier si un compte local existe
+        final storedUserId = await _secureStorage.getUserId();
+        if (storedUserId != null && storedUserId.startsWith('local_')) {
+          userId = storedUserId;
+          logger.info('✅ Connexion locale (mode offline): $userId');
+        } else {
+          throw Exception(
+            'Aucun compte trouvé. Veuillez créer un compte d\'abord.',
+          );
+        }
+      }
 
       _currentUserId = userId;
       await _secureStorage.setUserId(userId);

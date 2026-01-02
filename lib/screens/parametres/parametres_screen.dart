@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../services/notification_service.dart';
+import '../../services/supabase_auth_service.dart';
+import '../../services/navigation_service.dart';
 import '../../providers/theme_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/sync_provider.dart';
@@ -98,10 +100,24 @@ class _ParametresScreenState extends State<ParametresScreen> {
                   const SizedBox(height: 8),
 
                   // Section Profile
-                  SettingsProfileSection(
-                    profileName: 'Green Valley Rabbits',
-                    profileEmail: 'john@greenvalley.com',
-                    onEditProfilePressed: _handleEditProfile,
+                  Consumer<AuthProvider>(
+                    builder: (context, authProvider, child) {
+                      final supabaseAuthService = SupabaseAuthService();
+                      final userEmail = supabaseAuthService.currentUserEmail;
+                      final userId = authProvider.currentUserId;
+                      
+                      // Utiliser l'email de Supabase ou un nom par défaut
+                      final displayName = userEmail != null 
+                          ? userEmail.split('@').first 
+                          : (userId != null ? 'Utilisateur' : 'Non connecté');
+                      final displayEmail = userEmail ?? (userId != null ? 'Compte local' : 'Non connecté');
+                      
+                      return SettingsProfileSection(
+                        profileName: displayName,
+                        profileEmail: displayEmail,
+                        onEditProfilePressed: _handleEditProfile,
+                      );
+                    },
                   ),
 
                   const SizedBox(height: 24),
@@ -783,6 +799,7 @@ class _ParametresScreenState extends State<ParametresScreen> {
           ),
           TextButton(
             onPressed: () async {
+              // Fermer le dialog de confirmation
               Navigator.pop(context);
 
               final authProvider = Provider.of<AuthProvider>(
@@ -804,13 +821,18 @@ class _ParametresScreenState extends State<ParametresScreen> {
                 await authProvider.signOut();
 
                 // Fermer le dialog de chargement
-                if (context.mounted && Navigator.canPop(context)) {
-                  Navigator.pop(context);
+                if (context.mounted) {
+                  Navigator.of(context, rootNavigator: true).pop();
                 }
 
-                // Naviguer vers l'écran d'authentification
-                if (context.mounted) {
-                  Navigator.of(context).pushAndRemoveUntil(
+                // Attendre un court délai pour s'assurer que le dialog est fermé
+                await Future.delayed(const Duration(milliseconds: 150));
+
+                // Naviguer vers l'écran d'authentification en utilisant le navigationService
+                // pour éviter les problèmes de contexte après déconnexion
+                final navigatorState = navigationService.navigatorKey.currentState;
+                if (navigatorState != null) {
+                  navigatorState.pushAndRemoveUntil(
                     MaterialPageRoute(
                       builder: (_) => const AuthScreen(initialIsSignUp: false),
                     ),
@@ -818,17 +840,24 @@ class _ParametresScreenState extends State<ParametresScreen> {
                   );
                 }
               } catch (e) {
-                // En cas d'erreur, fermer le dialog et afficher un message
-                if (context.mounted && Navigator.canPop(context)) {
-                  Navigator.pop(context);
-                }
+                // En cas d'erreur, fermer le dialog
                 if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Erreur lors de la déconnexion: $e'),
-                      backgroundColor: Colors.red,
-                    ),
-                  );
+                  Navigator.of(context, rootNavigator: true).pop();
+                }
+                
+                // Afficher l'erreur en utilisant le navigationService
+                final navigatorState = navigationService.navigatorKey.currentState;
+                if (navigatorState != null) {
+                  final navContext = navigatorState.context;
+                  if (navContext.mounted) {
+                    ScaffoldMessenger.of(navContext).showSnackBar(
+                      SnackBar(
+                        content: Text('Erreur lors de la déconnexion: $e'),
+                        backgroundColor: Colors.red,
+                        duration: const Duration(seconds: 3),
+                      ),
+                    );
+                  }
                 }
               }
             },

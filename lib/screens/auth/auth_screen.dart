@@ -63,24 +63,9 @@ class _AuthScreenState extends State<AuthScreen> {
     if (!context.mounted) return;
 
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    final connectivityProvider =
-        Provider.of<ConnectivityProvider>(context, listen: false);
-    final supabaseAuthService = SupabaseAuthService();
 
-    // Vérifier si Supabase est disponible
-    if (!supabaseAuthService.isAvailable) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Le service de synchronisation n\'est pas disponible. '
-            'Vous pouvez utiliser l\'application en mode hors ligne avec un PIN.',
-          ),
-          backgroundColor: Colors.orange,
-          duration: Duration(seconds: 5),
-        ),
-      );
-      return;
-    }
+    // Note: On permet la création de compte même si Supabase n'est pas disponible
+    // Un compte local sera créé en mode offline
 
     // Validation basique
     if (_isSignUp) {
@@ -117,18 +102,8 @@ class _AuthScreenState extends State<AuthScreen> {
         return;
       }
 
-      // Vérifier la connectivité pour l'inscription
-      if (!connectivityProvider.isOnline) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-              'Une connexion Internet est requise pour l\'inscription',
-            ),
-            backgroundColor: Colors.orange,
-          ),
-        );
-        return;
-      }
+      // Note: L'inscription fonctionne maintenant en mode offline
+      // Si Supabase est disponible, on l'utilise, sinon on crée un compte local
 
       // Afficher un indicateur de chargement
       showDialog(
@@ -187,33 +162,8 @@ class _AuthScreenState extends State<AuthScreen> {
         return;
       }
 
-      // Vérifier si Supabase est disponible
-      if (!supabaseAuthService.isAvailable) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-              'Le service de synchronisation n\'est pas disponible. '
-              'Vous pouvez utiliser l\'application en mode hors ligne avec un PIN.',
-            ),
-            backgroundColor: Colors.orange,
-            duration: Duration(seconds: 5),
-          ),
-        );
-        return;
-      }
-
-      // Vérifier la connectivité pour la connexion
-      if (!connectivityProvider.isOnline) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-              'Une connexion Internet est requise pour la connexion',
-            ),
-            backgroundColor: Colors.orange,
-          ),
-        );
-        return;
-      }
+      // Note: La connexion fonctionne maintenant en mode offline
+      // Si Supabase est disponible, on l'utilise, sinon on vérifie un compte local
 
       // Afficher un indicateur de chargement
       showDialog(

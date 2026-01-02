@@ -137,6 +137,46 @@ class NotificationService {
           }
           break;
 
+        case 'palpation':
+          // Naviguer vers l'écran de reproduction
+          logger.debug('Navigation vers reproduction pour palpation $id');
+          navigationService.navigateTo(const ReproductionScreen());
+          break;
+
+        case 'nid':
+          // Naviguer vers l'écran de reproduction
+          logger.debug('Navigation vers reproduction pour préparation nid $id');
+          navigationService.navigateTo(const ReproductionScreen());
+          break;
+
+        case 'mise_bas_jour':
+          // Naviguer vers l'écran de reproduction
+          logger.debug('Navigation vers reproduction pour mise bas aujourd\'hui $id');
+          navigationService.navigateTo(const ReproductionScreen());
+          break;
+
+        case 'sevrage':
+          // Naviguer vers l'écran d'optimisation (sevrage)
+          logger.debug('Navigation vers sevrage pour portée $id');
+          // Import nécessaire : import '../screens/optimisation/sevrage_screen.dart';
+          navigationService.navigateTo(const ReproductionScreen());
+          break;
+
+        case 'pesee':
+          // Naviguer vers la fiche santé du lapin
+          logger.debug('Navigation vers fiche santé pour pesée $id');
+          final lapin = await DatabaseHelper.instance.getLapinById(id);
+          if (lapin != null) {
+            navigationService.navigateTo(FicheSanteScreen(lapin: lapin));
+          }
+          break;
+
+        case 'pesee_portee':
+          // Naviguer vers l'écran de reproduction
+          logger.debug('Navigation vers reproduction pour pesée portée $id');
+          navigationService.navigateTo(const ReproductionScreen());
+          break;
+
         default:
           logger.warning('Type de notification inconnu: $type');
       }
@@ -512,6 +552,65 @@ class NotificationService {
       'Le système de notifications fonctionne correctement !',
       details,
     );
+  }
+
+  /// Planifier une notification personnalisée
+  /// 
+  /// Méthode générique pour planifier n'importe quelle notification
+  Future<void> planifierNotification({
+    required int notificationId,
+    required String titre,
+    required String corps,
+    required DateTime date,
+    required String payload,
+    String channelId = 'default_channel',
+    String channelName = 'Notifications',
+    String channelDescription = 'Notifications générales',
+    Importance importance = Importance.defaultImportance,
+    Priority priority = Priority.defaultPriority,
+  }) async {
+    if (!_isInitialized) await initialize();
+
+    if (date.isBefore(DateTime.now())) {
+      logger.warning('⚠️ Date de notification déjà passée: $date');
+      return;
+    }
+
+    final scheduledDate = tz.TZDateTime.from(date, tz.local);
+
+    final androidDetails = AndroidNotificationDetails(
+      channelId,
+      channelName,
+      channelDescription: channelDescription,
+      importance: importance,
+      priority: priority,
+      icon: '@mipmap/ic_launcher',
+    );
+
+    const iosDetails = DarwinNotificationDetails(
+      presentAlert: true,
+      presentBadge: true,
+      presentSound: true,
+    );
+
+    final details = NotificationDetails(
+      android: androidDetails,
+      iOS: iosDetails,
+    );
+
+    await _notifications.zonedSchedule(
+      notificationId,
+      titre,
+      corps,
+      scheduledDate,
+      details,
+      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+      uiLocalNotificationDateInterpretation:
+          UILocalNotificationDateInterpretation.absoluteTime,
+      payload: payload,
+    );
+
+    logger.info('✅ Notification planifiée: $titre le ${_formatDate(date)}');
   }
 
   /// Formater une date

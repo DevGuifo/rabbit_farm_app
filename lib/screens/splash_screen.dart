@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'home_screen.dart';
 import 'welcome_screen.dart';
 import 'auth/auth_screen.dart';
 import 'auth/pin_screen.dart';
@@ -13,6 +12,8 @@ import '../providers/auth_provider.dart';
 import '../providers/connectivity_provider.dart';
 import '../providers/sync_provider.dart';
 import '../services/database_helper.dart';
+import '../services/smart_notification_service.dart';
+import '../utils/logger.dart';
 
 /// Écran de chargement intelligent de BunnyManager
 /// Effectue tous les chargements nécessaires (BD, providers, préférences)
@@ -104,6 +105,13 @@ class _SplashScreenState extends State<SplashScreen> {
         syncProvider.startAutoSync(connectivityProvider);
       }
 
+      // Scanner et planifier toutes les notifications intelligentes
+      // (en arrière-plan pour ne pas bloquer le démarrage)
+      final smartNotificationService = SmartNotificationService();
+      smartNotificationService.scanAndScheduleAllNotifications().catchError((e) {
+        logger.error('Erreur lors du scan des notifications: $e');
+      });
+
       // Naviguer vers le prochain écran
       if (!mounted) return;
       await _navigateToNextScreen();
@@ -176,11 +184,9 @@ class _SplashScreenState extends State<SplashScreen> {
         }
       } else if (authState == AuthState.authenticatedNoPin) {
         // Authentifié mais PIN non configuré
-        // Vérifier si WelcomeScreen a été vu
-        final hasSeenWelcome = await WelcomeScreen.hasSeenWelcome();
-        nextScreen = hasSeenWelcome
-            ? const HomeScreen()
-            : const WelcomeScreen();
+        // Toujours afficher WelcomeScreen pour un nouvel utilisateur
+        // (même s'il a été vu avant, on peut le réafficher pour la première connexion)
+        nextScreen = const WelcomeScreen();
       } else {
         // État initial ou erreur → Vérifier WelcomeScreen
         final hasSeenWelcome = await WelcomeScreen.hasSeenWelcome();

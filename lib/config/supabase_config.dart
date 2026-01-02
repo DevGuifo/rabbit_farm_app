@@ -8,19 +8,17 @@
 /// Ou créer un fichier .env (NON versionné) et utiliser un script de build.
 class SupabaseConfig {
   /// URL de votre projet Supabase
-  /// Définie via --dart-define=SUPABASE_URL=...
+  /// Définie via --dart-define=SUPABASE_URL=... ou valeur par défaut
   static const String url = String.fromEnvironment(
     'SUPABASE_URL',
-    defaultValue:
-        '', // ⚠️ Pas de valeur par défaut - doit être fournie au build
+    defaultValue: 'https://xyufnlmelzzppqjgpxak.supabase.co',
   );
 
   /// Clé publique (anon) de votre projet Supabase
-  /// Définie via --dart-define=SUPABASE_ANON_KEY=...
+  /// Définie via --dart-define=SUPABASE_ANON_KEY=... ou valeur par défaut
   static const String anonKey = String.fromEnvironment(
     'SUPABASE_ANON_KEY',
-    defaultValue:
-        '', // ⚠️ Pas de valeur par défaut - doit être fournie au build
+    defaultValue: 'sb_publishable_sZ7zKSVmMzNfIbPtEGk7dA__JXcre3v',
   );
 
   /// Vérifier si la configuration est valide

@@ -1,7 +1,7 @@
 import 'accouplement.dart';
 
 /// Modèle de données représentant un lapin
-/// 
+///
 /// **Champs de synchronisation (futurs - pour migration Supabase) :**
 /// - `userId` : ID de l'utilisateur propriétaire (UUID Supabase)
 /// - `createdAt` : Date de création de l'enregistrement
@@ -10,7 +10,7 @@ import 'accouplement.dart';
 /// - `isDirty` : Flag indiquant si l'enregistrement a des modifications non synchronisées
 /// - `isDeleted` : Soft delete - marqué comme supprimé mais conservé pour sync
 /// - `syncConflict` : JSON contenant les informations de conflit de synchronisation
-/// 
+///
 /// Ces champs seront ajoutés lors de la migration vers Supabase (voir MIGRATION_SUPABASE.md)
 class Lapin {
   final int? id;
@@ -30,7 +30,7 @@ class Lapin {
   final String? caracteristiques;
 
   // Champs de synchronisation (réservés pour migration future Supabase)
-  // TODO: Décommenter lors de la migration
+  // À décommenter lors de la migration vers Supabase
   // final String? userId;
   // final DateTime? createdAt;
   // final DateTime? updatedAt;
@@ -85,9 +85,9 @@ class Lapin {
   }
 
   /// Vérifier si la femelle est gestante
-  /// 
+  ///
   /// [accouplements] : Liste des accouplements à vérifier
-  /// 
+  ///
   /// Retourne true si la femelle a un accouplement actif (en_attente ou confirme)
   /// et que la date de mise bas n'est pas encore passée
   bool estGestante(List<Accouplement> accouplements) {
@@ -99,7 +99,7 @@ class Lapin {
     if (id == null) return false;
 
     final maintenant = DateTime.now();
-    
+
     // Chercher un accouplement actif pour cette femelle
     for (final acc in accouplements) {
       // Vérifier que c'est bien un accouplement pour cette femelle

@@ -4,11 +4,13 @@ import 'package:provider/provider.dart';
 import '../../providers/lapin_provider.dart';
 import '../../providers/reproduction_provider.dart';
 import '../../providers/sante_provider.dart';
+import '../../services/kpi_service.dart';
 import '../../theme/app_theme.dart';
 import '../parametres/parametres_screen.dart';
 import '../alertes/alertes_screen.dart';
 import '../cheptel/add_lapin_screen.dart';
 import '../../utils/logger.dart';
+import 'kpi_cards_section.dart';
 
 /// Dashboard moderne Stitch Design - Farm Overview
 /// Reconstruction complète UI selon design Stitch
@@ -23,6 +25,9 @@ class ModernDashboardScreen extends StatefulWidget {
 
 class _ModernDashboardScreenState extends State<ModernDashboardScreen> {
   final ScrollController _scrollController = ScrollController();
+  final KpiService _kpiService = KpiService();
+  KpiData? _kpiData;
+  bool _isLoadingKpis = false;
 
   @override
   void initState() {
@@ -45,9 +50,22 @@ class _ModernDashboardScreenState extends State<ModernDashboardScreen> {
         context.read<ReproductionProvider>().chargerTout(),
         context.read<SanteProvider>().chargerTout(),
       ]);
+
+      // Charger les KPIs
+      if (mounted) {
+        setState(() => _isLoadingKpis = true);
+        final kpis = await _kpiService.calculerTousLesKpis();
+        if (mounted) {
+          setState(() {
+            _kpiData = kpis;
+            _isLoadingKpis = false;
+          });
+        }
+      }
     } catch (e) {
       if (mounted) {
         logger.error('❌ Erreur chargement dashboard', e);
+        setState(() => _isLoadingKpis = false);
       }
     }
   }
@@ -76,6 +94,13 @@ class _ModernDashboardScreenState extends State<ModernDashboardScreen> {
                   const SizedBox(height: 16),
                   _buildStatsCardsHorizontal(isDark),
                   const SizedBox(height: 20),
+                  if (_kpiData != null && !_isLoadingKpis) ...[
+                    KpiCardsSection(
+                      kpis: _kpiData!,
+                      isDark: isDark,
+                    ),
+                    const SizedBox(height: 20),
+                  ],
                   _buildHealthAlert(isDark),
                   const SizedBox(height: 20),
                   _buildUpcomingTasks(isDark),

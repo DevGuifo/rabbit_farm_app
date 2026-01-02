@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:animate_do/animate_do.dart';
 import '../../providers/lapin_provider.dart';
+import '../../services/advanced_calculator_service.dart';
 import '../../theme/app_theme.dart';
 
 class CalculatriceScreen extends StatefulWidget {
@@ -18,7 +19,7 @@ class _CalculatriceScreenState extends State<CalculatriceScreen>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 4, vsync: this);
+    _tabController = TabController(length: 5, vsync: this);
   }
 
   @override
@@ -39,6 +40,7 @@ class _CalculatriceScreenState extends State<CalculatriceScreen>
           tabs: const [
             Tab(icon: Icon(Icons.medical_services_rounded), text: 'Santé'),
             Tab(icon: Icon(Icons.restaurant_rounded), text: 'Alimentation'),
+            Tab(icon: Icon(Icons.science_rounded), text: 'Dosages Avancés'),
             Tab(icon: Icon(Icons.analytics_rounded), text: 'Performance'),
             Tab(icon: Icon(Icons.euro_rounded), text: 'Finance'),
           ],
@@ -46,11 +48,12 @@ class _CalculatriceScreenState extends State<CalculatriceScreen>
       ),
       body: TabBarView(
         controller: _tabController,
-        children: const [
-          _SanteTab(),
-          _AlimentationTab(),
-          _PerformanceTab(),
-          _FinanceTab(),
+        children: [
+          const _SanteTab(),
+          const _AlimentationTab(),
+          const _DosagesAvancesTab(),
+          const _PerformanceTab(),
+          const _FinanceTab(),
         ],
       ),
     );
@@ -88,7 +91,11 @@ class _SanteTabState extends State<_SanteTab> {
       return;
     }
 
-    final doseTotal = poids * dosageKg;
+    final calculator = AdvancedCalculatorService();
+    final doseTotal = calculator.calculerDose(
+      poidsKg: poids,
+      dosageParKg: dosageKg,
+    );
     setState(() => _resultat = '${doseTotal.toStringAsFixed(2)} ml');
   }
 
@@ -256,51 +263,14 @@ class _AlimentationTabState extends State<_AlimentationTab> {
       return;
     }
 
-    double gramulePourcentage;
-    double foinMin;
-    double foinMax;
-    double eau;
-
-    switch (_statut) {
-      case 'lapereau':
-        gramulePourcentage = 0.08;
-        foinMin = 50;
-        foinMax = 80;
-        eau = poids * 120;
-        break;
-      case 'jeune':
-        gramulePourcentage = 0.05;
-        foinMin = 80;
-        foinMax = 120;
-        eau = poids * 100;
-        break;
-      case 'gestante':
-        gramulePourcentage = 0.06;
-        foinMin = 100;
-        foinMax = 150;
-        eau = poids * 150;
-        break;
-      case 'allaitante':
-        gramulePourcentage = 0.08;
-        foinMin = 150;
-        foinMax = 200;
-        eau = poids * 200;
-        break;
-      default:
-        gramulePourcentage = 0.03;
-        foinMin = 100;
-        foinMax = 150;
-        eau = poids * 100;
-    }
-
-    final granule = poids * 1000 * gramulePourcentage;
+    final calculator = AdvancedCalculatorService();
+    final ration = calculator.calculerRation(
+      poidsKg: poids,
+      statutPhysiologique: _statut,
+    );
 
     setState(() {
-      _resultat = {
-        'granules': '${granule.toStringAsFixed(0)} g',
-        'foin': '$foinMin-$foinMax g',
-        'eau': '${eau.toStringAsFixed(0)} ml',
-      };
+      _resultat = ration.toMap();
     });
   }
 
@@ -654,6 +624,326 @@ class _PerformanceTabState extends State<_PerformanceTab> {
                               ],
                             ),
                           ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+// ============================================
+// ONGLET DOSAGES AVANCÉS
+// ============================================
+class _DosagesAvancesTab extends StatefulWidget {
+  const _DosagesAvancesTab();
+
+  @override
+  State<_DosagesAvancesTab> createState() => _DosagesAvancesTabState();
+}
+
+class _DosagesAvancesTabState extends State<_DosagesAvancesTab> {
+  final _poidsController = TextEditingController();
+  final _dosageKgController = TextEditingController();
+  final _concentrationController = TextEditingController();
+  String _mode = 'simple'; // 'simple', 'dilution', 'groupe'
+  Map<String, String>? _resultat;
+
+  @override
+  void dispose() {
+    _poidsController.dispose();
+    _dosageKgController.dispose();
+    _concentrationController.dispose();
+    super.dispose();
+  }
+
+  void _calculer() {
+    final calculator = AdvancedCalculatorService();
+
+    switch (_mode) {
+      case 'simple':
+        final poids = double.tryParse(_poidsController.text);
+        final dosageKg = double.tryParse(_dosageKgController.text);
+
+        if (poids == null || dosageKg == null) {
+          setState(() => _resultat = null);
+          return;
+        }
+
+        final dose = calculator.calculerDose(
+          poidsKg: poids,
+          dosageParKg: dosageKg,
+        );
+
+        setState(() {
+          _resultat = {
+            'type': 'Dose simple',
+            'dose': '${dose.toStringAsFixed(2)} ml',
+            'details': 'Pour un lapin de ${poids.toStringAsFixed(2)} kg',
+          };
+        });
+        break;
+
+      case 'dilution':
+        final poids = double.tryParse(_poidsController.text);
+        final dosageKg = double.tryParse(_dosageKgController.text);
+        final concentration = double.tryParse(_concentrationController.text);
+
+        if (poids == null || dosageKg == null || concentration == null) {
+          setState(() => _resultat = null);
+          return;
+        }
+
+        final volume = calculator.calculerDoseAvecDilution(
+          poidsKg: poids,
+          dosageParKg: dosageKg,
+          concentrationMere: concentration,
+        );
+
+        setState(() {
+          _resultat = {
+            'type': 'Dose avec dilution',
+            'dose': '${volume.toStringAsFixed(2)} ml',
+            'concentration': '${concentration.toStringAsFixed(2)} mg/ml',
+            'details': 'Volume à prélever du produit mère',
+          };
+        });
+        break;
+
+      case 'groupe':
+        final poidsTotal = double.tryParse(_poidsController.text);
+        final dosageKg = double.tryParse(_dosageKgController.text);
+
+        if (poidsTotal == null || dosageKg == null) {
+          setState(() => _resultat = null);
+          return;
+        }
+
+        final dose = calculator.calculerDoseGroupe(
+          poidsTotal: poidsTotal,
+          dosageParKg: dosageKg,
+        );
+
+        setState(() {
+          _resultat = {
+            'type': 'Dose pour groupe',
+            'dose': '${dose.toStringAsFixed(2)} ml',
+            'details': 'Pour un poids total de ${poidsTotal.toStringAsFixed(2)} kg',
+          };
+        });
+        break;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView(
+      padding: const EdgeInsets.all(16),
+      children: [
+        FadeInDown(
+          duration: const Duration(milliseconds: 400),
+          child: Card(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF9C27B0).withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Icon(
+                          Icons.science_rounded,
+                          color: Color(0xFF9C27B0),
+                          size: 28,
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Calculs de dosages avancés',
+                              style: AppTheme.bodyLarge.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            Text(
+                              'Dilution, concentration, groupe',
+                              style: AppTheme.labelSmall.copyWith(
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .onSurface
+                                    .withValues(alpha: 0.6),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+                  DropdownButtonFormField<String>(
+                    initialValue: _mode,
+                    decoration: const InputDecoration(
+                      labelText: 'Mode de calcul',
+                      border: OutlineInputBorder(),
+                      prefixIcon: Icon(Icons.tune_rounded),
+                    ),
+                    items: const [
+                      DropdownMenuItem(
+                        value: 'simple',
+                        child: Text('Dosage simple'),
+                      ),
+                      DropdownMenuItem(
+                        value: 'dilution',
+                        child: Text('Dosage avec dilution'),
+                      ),
+                      DropdownMenuItem(
+                        value: 'groupe',
+                        child: Text('Dosage pour groupe'),
+                      ),
+                    ],
+                    onChanged: (value) {
+                      setState(() {
+                        _mode = value!;
+                        _resultat = null;
+                      });
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: _poidsController,
+                    keyboardType: TextInputType.number,
+                    decoration: InputDecoration(
+                      labelText: _mode == 'groupe'
+                          ? 'Poids total du groupe (kg)'
+                          : 'Poids du lapin (kg)',
+                      border: const OutlineInputBorder(),
+                      prefixIcon: const Icon(Icons.scale_rounded),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: _dosageKgController,
+                    keyboardType: TextInputType.number,
+                    decoration: InputDecoration(
+                      labelText: _mode == 'dilution'
+                          ? 'Dosage (mg/kg)'
+                          : 'Dosage (ml/kg)',
+                      border: const OutlineInputBorder(),
+                      prefixIcon: const Icon(Icons.medication_rounded),
+                    ),
+                  ),
+                  if (_mode == 'dilution') ...[
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: _concentrationController,
+                      keyboardType: TextInputType.number,
+                      decoration: const InputDecoration(
+                        labelText: 'Concentration produit mère (mg/ml)',
+                        border: OutlineInputBorder(),
+                        prefixIcon: Icon(Icons.water_drop_rounded),
+                        helperText: 'Concentration du médicament non dilué',
+                      ),
+                    ),
+                  ],
+                  const SizedBox(height: 24),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: _calculer,
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        backgroundColor: const Color(0xFF9C27B0),
+                        foregroundColor: Colors.white,
+                      ),
+                      child: const Text('Calculer'),
+                    ),
+                  ),
+                  if (_resultat != null) ...[
+                    const SizedBox(height: 24),
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF9C27B0).withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(
+                          AppTheme.radiusMedium,
+                        ),
+                        border: Border.all(
+                          color: const Color(0xFF9C27B0).withValues(alpha: 0.3),
+                        ),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            _resultat!['type']!,
+                            style: AppTheme.bodyMedium.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: const Color(0xFF9C27B0),
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          Row(
+                            children: [
+                              const Icon(
+                                Icons.medication_rounded,
+                                color: Color(0xFF9C27B0),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Dose à administrer',
+                                      style: AppTheme.labelSmall.copyWith(
+                                        color: const Color(0xFF9C27B0),
+                                      ),
+                                    ),
+                                    Text(
+                                      _resultat!['dose']!,
+                                      style: AppTheme.headingSmall.copyWith(
+                                        color: const Color(0xFF9C27B0),
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                          if (_resultat!['concentration'] != null) ...[
+                            const SizedBox(height: 8),
+                            Text(
+                              'Concentration: ${_resultat!['concentration']}',
+                              style: AppTheme.labelSmall,
+                            ),
+                          ],
+                          if (_resultat!['details'] != null) ...[
+                            const SizedBox(height: 8),
+                            Text(
+                              _resultat!['details']!,
+                              style: AppTheme.labelSmall.copyWith(
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .onSurface
+                                    .withValues(alpha: 0.6),
+                              ),
+                            ),
+                          ],
                         ],
                       ),
                     ),

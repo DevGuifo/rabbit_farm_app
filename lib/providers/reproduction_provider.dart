@@ -3,6 +3,7 @@ import '../models/accouplement.dart';
 import '../models/portee.dart';
 import '../services/database_helper.dart';
 import '../services/notification_service.dart';
+import '../services/smart_notification_service.dart';
 import '../utils/logger.dart';
 
 /// Provider pour gérer l'état des accouplements et portées
@@ -86,6 +87,13 @@ class ReproductionProvider with ChangeNotifier {
       }
 
       notifyListeners();
+      
+      // Scanner et planifier toutes les notifications après ajout
+      final smartNotificationService = SmartNotificationService();
+      smartNotificationService.scanAndScheduleAllNotifications().catchError((e) {
+        logger.error('Erreur lors du scan des notifications: $e');
+      });
+      
       return nouveauAccouplement;
     } catch (e) {
       logger.error('Erreur lors de l\'ajout de l\'accouplement', e);
@@ -165,6 +173,13 @@ class ReproductionProvider with ChangeNotifier {
       final nouvellePortee = await _db.insertPortee(portee);
       _portees.insert(0, nouvellePortee);
       notifyListeners();
+      
+      // Scanner et planifier toutes les notifications après ajout de portée
+      final smartNotificationService = SmartNotificationService();
+      smartNotificationService.scanAndScheduleAllNotifications().catchError((e) {
+        logger.error('Erreur lors du scan des notifications: $e');
+      });
+      
       return nouvellePortee;
     } catch (e) {
       logger.error('Erreur lors de l\'ajout de la portée', e);

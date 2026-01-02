@@ -24,6 +24,7 @@ import 'providers/auth_provider.dart';
 import 'providers/connectivity_provider.dart';
 import 'providers/sync_provider.dart';
 import 'services/notification_service.dart';
+import 'services/smart_notification_service.dart';
 import 'services/navigation_service.dart';
 import 'services/supabase_auth_service.dart';
 import 'utils/logger.dart';
@@ -48,6 +49,16 @@ void main() async {
 
   // Initialiser le service de notifications
   await NotificationService().initialize();
+  
+  // Initialiser le service intelligent de notifications
+  final smartNotificationService = SmartNotificationService();
+  await smartNotificationService.initialize();
+  
+  // Scanner et planifier toutes les notifications au démarrage
+  // (en arrière-plan pour ne pas bloquer le démarrage)
+  smartNotificationService.scanAndScheduleAllNotifications().catchError((e) {
+    logger.error('Erreur lors du scan initial des notifications: $e');
+  });
 
   // Créer et initialiser le theme provider
   final themeProvider = ThemeProvider();
