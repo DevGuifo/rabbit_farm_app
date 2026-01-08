@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../../l10n/app_localizations.dart';
+import '../../providers/sync_provider.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/common/common_widgets.dart';
+import '../parametres/parametres_screen.dart';
 import '../finance/finance_screen.dart';
 import '../alimentation/inventaire_aliments_screen.dart';
 import '../alertes/alertes_screen.dart';
@@ -13,6 +17,7 @@ import 'export_import_screen.dart';
 import 'calendrier_screen.dart';
 import 'localisation_screen.dart';
 import 'notes_screen.dart';
+import '../taches/gestionnaire_taches_screen.dart';
 
 /// Écran Utilitaire - Hub des fonctionnalités
 class UtilitaireScreen extends StatelessWidget {
@@ -23,13 +28,36 @@ class UtilitaireScreen extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: isDark ? AppTheme.backgroundDark : AppTheme.backgroundLight,
+      backgroundColor: isDark
+          ? AppTheme.backgroundDark
+          : AppTheme.backgroundLight,
       body: Column(
         children: [
-          StandardHeader(title: 'Utilitaires', isDark: isDark),
+          // Header - Utilise StandardHeader unifié
+          StandardHeader(
+            title: AppLocalizations.of(context).utilTitre,
+            isDark: isDark,
+            onSync: () async {
+              // Synchroniser
+              final syncProvider = context.read<SyncProvider>();
+              await syncProvider.syncNow();
+            },
+            onNotifications: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const AlertesScreen()),
+              );
+            },
+            onSettings: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const ParametresScreen()),
+              );
+            },
+          ),
           HeroSection(
-            title: 'Outils de gestion',
-            subtitle: 'Accédez aux différentes fonctionnalités',
+            title: AppLocalizations.of(context).utilOutilsGestion,
+            subtitle: AppLocalizations.of(context).utilOutilsGestionDetail,
             isDark: isDark,
           ),
           Expanded(
@@ -39,109 +67,176 @@ class UtilitaireScreen extends StatelessWidget {
                 ActionCard(
                   isDark: isDark,
                   icon: Icons.account_balance_wallet_rounded,
-                  title: 'Finances',
-                  subtitle: 'Gérez vos recettes et dépenses',
+                  title: AppLocalizations.of(context).utilFinances,
+                  subtitle: AppLocalizations.of(context).utilFinancesDetail,
                   iconColor: AppTheme.primaryGreen,
-                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const FinanceScreen())),
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const FinanceScreen()),
+                  ),
                 ),
                 const SizedBox(height: AppTheme.spacing16),
                 ActionCard(
                   isDark: isDark,
                   icon: Icons.grass_rounded,
-                  title: 'Alimentation',
-                  subtitle: 'Inventaire et distribution',
+                  title: AppLocalizations.of(context).utilAlimentation,
+                  subtitle: AppLocalizations.of(context).utilAlimentationDetail,
                   iconColor: AppTheme.primaryGreenLight,
-                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const InventaireAlimentsScreen())),
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const InventaireAlimentsScreen(),
+                    ),
+                  ),
                 ),
                 const SizedBox(height: AppTheme.spacing16),
                 ActionCard(
                   isDark: isDark,
                   icon: Icons.notifications_active_rounded,
-                  title: 'Alertes',
-                  subtitle: 'Notifications et rappels',
+                  title: AppLocalizations.of(context).utilAlertes,
+                  subtitle: AppLocalizations.of(context).utilAlertesDetail,
                   iconColor: AppTheme.error,
-                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AlertesScreen())),
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const AlertesScreen()),
+                  ),
                 ),
                 _buildSectionTitle('Optimisation', isDark),
                 ActionCard(
                   isDark: isDark,
                   icon: Icons.show_chart_rounded,
-                  title: 'Courbes de croissance',
-                  subtitle: 'Évolution du poids',
+                  title: AppLocalizations.of(context).utilCourbesCroissance,
+                  subtitle: AppLocalizations.of(
+                    context,
+                  ).utilCourbesCroissanceDetail,
                   iconColor: AppTheme.info,
-                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CourbesCroissanceScreen())),
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const CourbesCroissanceScreen(),
+                    ),
+                  ),
                 ),
                 _buildSectionTitle('Rentabilité', isDark),
                 ActionCard(
                   isDark: isDark,
                   icon: Icons.eco_rounded,
-                  title: 'Fumier & Compost',
-                  subtitle: 'Gestion et valorisation',
+                  title: AppLocalizations.of(context).utilFumierCompost,
+                  subtitle: AppLocalizations.of(
+                    context,
+                  ).utilFumierCompostDetail,
                   iconColor: AppTheme.warning,
-                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const FumierScreen())),
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const FumierScreen()),
+                  ),
                 ),
                 const SizedBox(height: AppTheme.spacing16),
                 ActionCard(
                   isDark: isDark,
                   icon: Icons.trending_down_rounded,
-                  title: 'Réforme',
-                  subtitle: 'Gestion des réformes',
+                  title: AppLocalizations.of(context).screenReforme,
+                  subtitle: AppLocalizations.of(context).labelGestionReformes,
                   iconColor: AppTheme.textSecondary,
-                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ReformeScreen())),
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const ReformeScreen()),
+                  ),
                 ),
+                _buildSectionTitle('Organisation', isDark),
+                ActionCard(
+                  isDark: isDark,
+                  icon: Icons.task_alt_rounded,
+                  title: AppLocalizations.of(context).utilGestionnaireTaches,
+                  subtitle: AppLocalizations.of(
+                    context,
+                  ).utilGestionnaireTachesDetail,
+                  iconColor: AppTheme.primaryNeonGreen,
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const GestionnaireTachesScreen(),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: AppTheme.spacing16),
                 _buildSectionTitle('Outils', isDark),
                 ActionCard(
                   isDark: isDark,
                   icon: Icons.calculate_rounded,
-                  title: 'Calculatrice',
-                  subtitle: 'Calculs et estimations',
+                  title: AppLocalizations.of(context).utilCalculatrice,
+                  subtitle: AppLocalizations.of(context).utilCalculatriceDetail,
                   iconColor: AppTheme.info,
-                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CalculatriceScreen())),
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const CalculatriceScreen(),
+                    ),
+                  ),
                 ),
                 const SizedBox(height: AppTheme.spacing16),
                 ActionCard(
                   isDark: isDark,
                   icon: Icons.assessment_rounded,
-                  title: 'Rapports',
-                  subtitle: 'Générez des rapports',
+                  title: AppLocalizations.of(context).utilRapports,
+                  subtitle: AppLocalizations.of(context).utilRapportsDetail,
                   iconColor: AppTheme.accentPink,
-                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const RapportsScreen())),
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const RapportsScreen()),
+                  ),
                 ),
                 const SizedBox(height: AppTheme.spacing16),
                 ActionCard(
                   isDark: isDark,
                   icon: Icons.calendar_today_rounded,
-                  title: 'Calendrier',
-                  subtitle: 'Planifiez vos activités',
+                  title: AppLocalizations.of(context).utilCalendrier,
+                  subtitle: AppLocalizations.of(context).utilCalendrierDetail,
                   iconColor: AppTheme.accentTeal,
-                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CalendrierScreen())),
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const CalendrierScreen()),
+                  ),
                 ),
                 const SizedBox(height: AppTheme.spacing16),
                 ActionCard(
                   isDark: isDark,
                   icon: Icons.note_rounded,
-                  title: 'Notes',
-                  subtitle: 'Prenez des notes',
+                  title: AppLocalizations.of(context).utilNotes,
+                  subtitle: AppLocalizations.of(context).utilNotesDetail,
                   iconColor: AppTheme.error,
-                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const NotesScreen())),
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const NotesScreen()),
+                  ),
                 ),
                 const SizedBox(height: AppTheme.spacing16),
                 ActionCard(
                   isDark: isDark,
                   icon: Icons.import_export_rounded,
-                  title: 'Export / Import',
-                  subtitle: 'Sauvegardez vos données',
+                  title: AppLocalizations.of(context).utilExportImport,
+                  subtitle: AppLocalizations.of(context).utilExportImportDetail,
                   iconColor: AppTheme.info,
-                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ExportImportScreen())),
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const ExportImportScreen(),
+                    ),
+                  ),
                 ),
                 const SizedBox(height: AppTheme.spacing16),
                 ActionCard(
                   isDark: isDark,
                   icon: Icons.location_on_rounded,
-                  title: 'Localisation',
-                  subtitle: 'Gérez vos emplacements',
+                  title: AppLocalizations.of(context).utilLocalisation,
+                  subtitle: AppLocalizations.of(context).utilLocalisationDetail,
                   iconColor: AppTheme.accentTeal,
-                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const LocalisationScreen())),
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const LocalisationScreen(),
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -153,7 +248,10 @@ class UtilitaireScreen extends StatelessWidget {
 
   Widget _buildSectionTitle(String title, bool isDark) {
     return Padding(
-      padding: const EdgeInsets.only(top: AppTheme.spacing24, bottom: AppTheme.spacing16),
+      padding: const EdgeInsets.only(
+        top: AppTheme.spacing24,
+        bottom: AppTheme.spacing16,
+      ),
       child: Text(
         title,
         style: AppTheme.titleMedium.copyWith(

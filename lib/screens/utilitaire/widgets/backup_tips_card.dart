@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:rabbit_farm_app/theme/app_theme.dart';
 
 class BackupTipsCard extends StatelessWidget {
   const BackupTipsCard({super.key});
@@ -6,7 +7,7 @@ class BackupTipsCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      color: Colors.blue[50],
+      color: AppTheme.info.withValues(alpha: 0.1),
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -14,13 +15,15 @@ class BackupTipsCard extends StatelessWidget {
           children: [
             Row(
               children: [
-                Icon(Icons.info_outline, color: Colors.blue[700]),
+                Icon(Icons.info_outline, color: AppTheme.info),
                 const SizedBox(width: 8),
-                Text(
-                  'Conseils de sauvegarde',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: Colors.blue[900],
+                Expanded(
+                  child: Text(
+                    'Conseils de sauvegarde',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: AppTheme.primaryGreen,
+                    ),
                   ),
                 ),
               ],

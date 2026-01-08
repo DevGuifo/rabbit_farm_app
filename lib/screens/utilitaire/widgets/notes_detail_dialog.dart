@@ -30,19 +30,19 @@ class NotesDetailDialog extends StatelessWidget {
   Color _getTagColor(String tag) {
     switch (tag) {
       case 'Santé':
-        return Colors.red[100]!;
+        return AppTheme.error.withValues(alpha: 0.1);
       case 'Comportement':
-        return Colors.orange[100]!;
+        return AppTheme.warning.withValues(alpha: 0.1);
       case 'Reproduction':
-        return Colors.pink[100]!;
+        return AppTheme.accentPink50;
       case 'Alimentation':
-        return Colors.green[100]!;
+        return AppTheme.success.withValues(alpha: 0.1);
       case 'Génétique':
-        return Colors.purple[100]!;
+        return AppTheme.purpleLight;
       case 'Administratif':
-        return Colors.blue[100]!;
+        return AppTheme.info.withValues(alpha: 0.1);
       default:
-        return Colors.grey[200]!;
+        return AppTheme.neutral100;
     }
   }
 
@@ -57,27 +57,27 @@ class NotesDetailDialog extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.blue[700],
+                color: AppTheme.info,
                 borderRadius: const BorderRadius.vertical(
                   top: Radius.circular(4),
                 ),
               ),
               child: Row(
                 children: [
-                  Icon(Icons.description, color: Colors.white),
+                  Icon(Icons.description, color: AppTheme.textOnPrimary),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
                       titre,
-                      style: AppTheme.titleLarge.copyWith(color: Colors.white),
+                      style: AppTheme.titleLarge.copyWith(color: AppTheme.textOnPrimary),
                     ),
                   ),
                   IconButton(
-                    icon: const Icon(Icons.edit, color: Colors.white),
+                    icon: const Icon(Icons.edit, color: AppTheme.textOnPrimary),
                     onPressed: onEdit,
                   ),
                   IconButton(
-                    icon: const Icon(Icons.delete, color: Colors.white),
+                    icon: const Icon(Icons.delete, color: AppTheme.textOnPrimary),
                     onPressed: () async {
                       final confirm = await DialogHelper.showConfirmation(
                         context: context,
@@ -91,7 +91,7 @@ class NotesDetailDialog extends StatelessWidget {
                     },
                   ),
                   IconButton(
-                    icon: const Icon(Icons.close, color: Colors.white),
+                    icon: const Icon(Icons.close, color: AppTheme.textOnPrimary),
                     onPressed: () => Navigator.pop(context),
                   ),
                 ],
@@ -110,18 +110,18 @@ class NotesDetailDialog extends StatelessWidget {
                       Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: Colors.blue[50],
+                          color: AppTheme.info.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Row(
                           children: [
-                            Icon(Icons.pets, color: Colors.blue[700]),
+                            Icon(Icons.pets, color: AppTheme.info),
                             const SizedBox(width: 8),
                             Text(
                               '${lapin!.nom} (ID: ${lapin!.id})',
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
-                                color: Colors.blue[700],
+                                color: AppTheme.info,
                               ),
                             ),
                           ],
@@ -136,7 +136,7 @@ class NotesDetailDialog extends StatelessWidget {
                         Icon(
                           Icons.calendar_today,
                           size: 16,
-                          color: Colors.grey[600],
+                          color: AppTheme.textSecondary,
                         ),
                         const SizedBox(width: 8),
                         Text(
@@ -144,7 +144,7 @@ class NotesDetailDialog extends StatelessWidget {
                             'dd MMMM yyyy à HH:mm',
                             'fr_FR',
                           ).format(date),
-                          style: TextStyle(color: Colors.grey[600]),
+                          style: TextStyle(color: AppTheme.textSecondary),
                         ),
                       ],
                     ),
@@ -213,7 +213,7 @@ class NotesDetailDialog extends StatelessWidget {
                             },
                             child: Container(
                               decoration: BoxDecoration(
-                                border: Border.all(color: Colors.grey[300]!),
+                                border: Border.all(color: AppTheme.neutral200),
                                 borderRadius: BorderRadius.circular(8),
                                 image: DecorationImage(
                                   image: FileImage(File(photos[index])),

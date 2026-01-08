@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:rabbit_farm_app/l10n/app_localizations.dart';
 import 'package:rabbit_farm_app/theme/app_theme.dart';
 
 /// AppBar personnalisée - Design Stitch Notifications
@@ -33,7 +34,7 @@ class AlertesAppBar extends StatelessWidget implements PreferredSizeWidget {
         color: bgColor,
         border: Border(
           bottom: BorderSide(
-            color: isDark ? Colors.grey.shade800 : Colors.grey.shade100,
+            color: isDark ? AppTheme.neutral800 : AppTheme.neutral100,
             width: 1,
           ),
         ),
@@ -55,10 +56,8 @@ class AlertesAppBar extends StatelessWidget implements PreferredSizeWidget {
               const SizedBox(width: 12),
               // Title
               Text(
-                'Notifications',
-                style: AppTheme.titleLarge.copyWith(
-                  color: textColor,
-                ),
+                AppLocalizations.of(context).notifications,
+                style: AppTheme.titleLarge.copyWith(color: textColor),
               ),
               const Spacer(),
               // Action buttons
@@ -69,14 +68,16 @@ class AlertesAppBar extends StatelessWidget implements PreferredSizeWidget {
                 hoverColor: hoverColor,
                 iconColor: textColor,
               ),
-              const SizedBox(width: 4),
-              _buildNotificationButton(
-                context,
-                onPressed: onNotifications ?? () {},
-                hoverColor: hoverColor,
-                iconColor: textColor,
-                hasUnread: hasUnreadNotifications,
-              ),
+              if (onNotifications != null) ...[
+                const SizedBox(width: 4),
+                _buildNotificationButton(
+                  context,
+                  onPressed: onNotifications!,
+                  hoverColor: hoverColor,
+                  iconColor: textColor,
+                  hasUnread: hasUnreadNotifications,
+                ),
+              ],
               const SizedBox(width: 4),
               _buildIconButton(
                 context,
@@ -126,8 +127,8 @@ class AlertesAppBar extends StatelessWidget implements PreferredSizeWidget {
   }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final surfaceColor = isDark
-        ? const Color(0xFF1A2C1E)
-        : const Color(0xFFFFFFFF);
+        ? AppTheme.stitchSurfaceDarkAlt
+        : AppTheme.white;
 
     return Material(
       color: Colors.transparent,

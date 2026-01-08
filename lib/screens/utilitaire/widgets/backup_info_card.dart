@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:rabbit_farm_app/l10n/app_localizations.dart';
+import 'package:rabbit_farm_app/theme/app_theme.dart';
 
 class BackupInfoCard extends StatelessWidget {
   final String? backupPath;
@@ -20,14 +22,18 @@ class BackupInfoCard extends StatelessWidget {
     }
 
     return Card(
-      color: Colors.green[50],
+      color: AppTheme.success.withValues(alpha: 0.1),
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
             Row(
               children: [
-                const Icon(Icons.check_circle, color: Colors.green, size: 32),
+                const Icon(
+                  Icons.check_circle,
+                  color: AppTheme.success,
+                  size: 32,
+                ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(
@@ -39,7 +45,7 @@ class BackupInfoCard extends StatelessWidget {
                       ),
                       Text(
                         DateFormat('dd/MM/yyyy à HH:mm').format(backupDate!),
-                        style: TextStyle(color: Colors.grey[700]),
+                        style: TextStyle(color: AppTheme.textPrimary),
                       ),
                     ],
                   ),
@@ -53,10 +59,9 @@ class BackupInfoCard extends StatelessWidget {
                 child: ElevatedButton.icon(
                   onPressed: onShare,
                   icon: const Icon(Icons.share, size: 18),
-                  label: const Text('Partager la sauvegarde'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.green,
-                    foregroundColor: Colors.white,
+                  label: Text(AppLocalizations.of(context).partagerSauvegarde),
+                  style: AppTheme.primaryButtonStyle.copyWith(
+                    backgroundColor: WidgetStateProperty.all(AppTheme.success),
                   ),
                 ),
               ),

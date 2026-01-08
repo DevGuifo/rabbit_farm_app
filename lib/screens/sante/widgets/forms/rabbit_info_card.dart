@@ -4,7 +4,7 @@ import '../../../../models/lapin.dart';
 import '../../../../theme/app_theme.dart';
 
 /// Widget d'information du lapin sélectionné
-/// 
+///
 /// Usage:
 /// ```dart
 /// RabbitInfoCard(lapin: selectedRabbit)
@@ -21,17 +21,17 @@ class RabbitInfoCard extends StatelessWidget {
     final surfaceColor = isDark ? AppTheme.backgroundDark : AppTheme.cardLight;
     final textPrimary = isDark ? AppTheme.cardLight : AppTheme.textPrimary;
     final textSecondary = isDark
-        ? const Color(0xFFB4C4B7)
+        ? AppTheme.stitchGreenLight
         : AppTheme.textSecondary;
 
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: AppTheme.paddingAllMedium,
       decoration: BoxDecoration(
         color: surfaceColor,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: AppTheme.borderRadiusLarge,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.05),
+            color: AppTheme.textPrimary.withValues(alpha: isDark ? 0.3 : 0.05),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -53,7 +53,7 @@ class RabbitInfoCard extends StatelessWidget {
                   : Icon(Icons.pets, size: 32, color: textSecondary),
             ),
           ),
-          const SizedBox(width: 16),
+          AppTheme.horizontalSpace16,
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -65,7 +65,7 @@ class RabbitInfoCard extends StatelessWidget {
                   ),
                   decoration: BoxDecoration(
                     color: primaryColor.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(6),
+                    borderRadius: AppTheme.borderRadiusSmall,
                   ),
                   child: Text(
                     'SELECTED RABBIT',
@@ -78,7 +78,7 @@ class RabbitInfoCard extends StatelessWidget {
                     ),
                   ),
                 ),
-                const SizedBox(height: 8),
+                AppTheme.verticalSpace8,
                 Text(
                   lapin.nom,
                   style: TextStyle(
@@ -88,7 +88,7 @@ class RabbitInfoCard extends StatelessWidget {
                     color: textPrimary,
                   ),
                 ),
-                const SizedBox(height: 4),
+                AppTheme.verticalSpace4,
                 Text(
                   'ID: ${lapin.numeroIdentification}',
                   style: TextStyle(
@@ -105,4 +105,3 @@ class RabbitInfoCard extends StatelessWidget {
     );
   }
 }
-

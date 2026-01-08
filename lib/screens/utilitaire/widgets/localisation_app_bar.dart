@@ -93,8 +93,8 @@ class LocalisationAppBar extends StatelessWidget {
         ? AppTheme.stitchTextMainDark
         : AppTheme.stitchTextMainLight;
     final hoverColor = isDark
-        ? Colors.white.withValues(alpha: 0.05)
-        : Colors.black.withValues(alpha: 0.05);
+        ? AppTheme.textOnPrimary.withValues(alpha: 0.05)
+        : AppTheme.divider;
 
     return Material(
       color: Colors.transparent,
@@ -119,8 +119,8 @@ class LocalisationAppBar extends StatelessWidget {
         ? AppTheme.stitchTextMainDark
         : AppTheme.stitchTextMainLight;
     final hoverColor = isDark
-        ? Colors.white.withValues(alpha: 0.05)
-        : Colors.black.withValues(alpha: 0.05);
+        ? AppTheme.textOnPrimary.withValues(alpha: 0.05)
+        : AppTheme.divider;
 
     return Material(
       color: Colors.transparent,
@@ -143,7 +143,7 @@ class LocalisationAppBar extends StatelessWidget {
                     width: 8,
                     height: 8,
                     decoration: const BoxDecoration(
-                      color: Colors.red,
+                      color: AppTheme.error,
                       shape: BoxShape.circle,
                     ),
                   ),

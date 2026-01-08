@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:animate_do/animate_do.dart';
 import '../../../../theme/app_theme.dart';
+import '../../../../l10n/app_localizations.dart';
 
 /// Page 1 du formulaire d'ajout de lapin : Informations de base
 class LapinFormPage1Identity extends StatefulWidget {
@@ -186,7 +187,7 @@ class _LapinFormPage1IdentityState extends State<LapinFormPage1Identity> {
               TextButton.icon(
                 onPressed: widget.onPhotoRemove,
                 icon: const Icon(Icons.delete_outline, size: 20),
-                label: const Text('Supprimer'),
+                label: Text(AppLocalizations.of(context).commonDelete),
                 style: TextButton.styleFrom(foregroundColor: AppTheme.error),
               ),
             ],
@@ -202,8 +203,8 @@ class _LapinFormPage1IdentityState extends State<LapinFormPage1Identity> {
       child: TextFormField(
         controller: widget.nomController,
         decoration: InputDecoration(
-          labelText: 'Nom',
-          hintText: 'Ex: Flocon, Caramel...',
+          labelText: AppLocalizations.of(context).cheptelFormNom,
+          hintText: AppLocalizations.of(context).hintExFlocon,
           prefixIcon: const Icon(Icons.badge_outlined),
           filled: true,
           fillColor: Theme.of(context).colorScheme.surface,
@@ -219,8 +220,10 @@ class _LapinFormPage1IdentityState extends State<LapinFormPage1Identity> {
       child: TextFormField(
         controller: widget.numeroIdController,
         decoration: InputDecoration(
-          labelText: 'N° Identification *',
-          hintText: 'Tatouage, puce...',
+          labelText: AppLocalizations.of(
+            context,
+          ).cheptelFormNumeroIdentification,
+          hintText: AppLocalizations.of(context).hintTatouagePuce,
           prefixIcon: const Icon(Icons.qr_code_2),
           filled: true,
           fillColor: Theme.of(context).colorScheme.surface,
@@ -228,7 +231,7 @@ class _LapinFormPage1IdentityState extends State<LapinFormPage1Identity> {
         textCapitalization: TextCapitalization.characters,
         validator: (value) {
           if (value == null || value.trim().isEmpty) {
-            return 'Le numéro d\'identification est obligatoire';
+            return AppLocalizations.of(context).validationNumeroIdObligatoire;
           }
           return null;
         },
@@ -242,7 +245,7 @@ class _LapinFormPage1IdentityState extends State<LapinFormPage1Identity> {
       child: DropdownButtonFormField<String>(
         initialValue: widget.raceSelectionnee,
         decoration: InputDecoration(
-          labelText: 'Race *',
+          labelText: AppLocalizations.of(context).cheptelFormRace,
           prefixIcon: const Icon(Icons.pets),
           filled: true,
           fillColor: Theme.of(context).colorScheme.surface,
@@ -263,13 +266,16 @@ class _LapinFormPage1IdentityState extends State<LapinFormPage1Identity> {
       child: DropdownButtonFormField<String>(
         initialValue: widget.couleurSelectionnee,
         decoration: InputDecoration(
-          labelText: 'Couleur',
+          labelText: AppLocalizations.of(context).cheptelFormCouleur,
           prefixIcon: const Icon(Icons.palette_outlined),
           filled: true,
           fillColor: Theme.of(context).colorScheme.surface,
         ),
         items: [
-          const DropdownMenuItem(value: null, child: Text('Non spécifié')),
+          DropdownMenuItem(
+            value: null,
+            child: Text(AppLocalizations.of(context).commonNonSpecifie),
+          ),
           ..._couleurs.map((couleur) {
             return DropdownMenuItem(value: couleur, child: Text(couleur));
           }),
@@ -310,7 +316,7 @@ class _LapinFormPage1IdentityState extends State<LapinFormPage1Identity> {
                     child: OutlinedButton.icon(
                       onPressed: () => widget.onSexeChanged('Mâle'),
                       icon: const Icon(Icons.male),
-                      label: Text('Mâle'),
+                      label: Text(AppLocalizations.of(context).labelMale),
                       style: OutlinedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 16),
                         backgroundColor: widget.sexeSelectionne == 'Mâle'
@@ -333,7 +339,7 @@ class _LapinFormPage1IdentityState extends State<LapinFormPage1Identity> {
                     child: OutlinedButton.icon(
                       onPressed: () => widget.onSexeChanged('Femelle'),
                       icon: const Icon(Icons.female),
-                      label: Text('Femelle'),
+                      label: Text(AppLocalizations.of(context).labelFemelle),
                       style: OutlinedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 16),
                         backgroundColor: widget.sexeSelectionne == 'Femelle'
@@ -368,7 +374,7 @@ class _LapinFormPage1IdentityState extends State<LapinFormPage1Identity> {
         borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
         child: InputDecorator(
           decoration: InputDecoration(
-            labelText: 'Date de naissance *',
+            labelText: AppLocalizations.of(context).cheptelFormDateNaissance,
             prefixIcon: const Icon(Icons.cake_outlined),
             filled: true,
             fillColor: Theme.of(context).colorScheme.surface,

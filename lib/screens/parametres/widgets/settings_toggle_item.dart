@@ -48,8 +48,8 @@ class SettingsToggleItem extends StatelessWidget {
                 fontSize: 16,
                 fontWeight: FontWeight.w500,
                 color: isDark
-                    ? Colors.white
-                    : const Color(0xFF111812),
+                    ? AppTheme.textOnPrimary
+                    : AppTheme.stitchTextDark,
               ),
             ),
           ),
@@ -58,12 +58,12 @@ class SettingsToggleItem extends StatelessWidget {
           Switch(
             value: value,
             onChanged: onChanged,
-            activeThumbColor: Colors.white,
+            activeThumbColor: AppTheme.textOnPrimary,
             activeTrackColor: AppTheme.primaryNeonGreen,
-            inactiveThumbColor: Colors.white,
+            inactiveThumbColor: AppTheme.textOnPrimary,
             inactiveTrackColor: isDark
-                ? Colors.white.withValues(alpha: 0.2)
-                : Colors.grey.shade300,
+                ? AppTheme.textOnPrimary.withValues(alpha: 0.2)
+                : AppTheme.borderLight,
           ),
         ],
       ),

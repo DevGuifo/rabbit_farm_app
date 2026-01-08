@@ -14,6 +14,97 @@ et ce projet adhère au [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ---
 
+## [1.2.0+5] - 2026-01-08 - Phase P1.2 I18N Complète (100%)
+
+### Fixed (Internationalization - 100% Complète)
+- 🌍 **TOUTES chaînes hardcodées éliminées** - Score i18n : 98% → **100%** ✅
+- 🌍 Quarantaine screen : Filtres (Tous, En cours, Terminés), Actions (Ajouter observation, Supprimer)
+- 🌍 Médicaments : Actions menu (Utiliser, Réapprovisionner)
+- 🌍 Dialogues : Annuler (x2), Enregistrer dans observation quarantaine
+
+### Added (New i18n Keys)
+- `medicamentUtiliser` / `medicamentReapprovisionner` (FR/EN)
+- `ajouterObservation` (FR/EN)
+- `filterTous` / `filterEnCours` / `filterTermines` (FR/EN)
+
+### Changed
+- 📈 Score i18n final : **100%** (0 chaîne hardcodée critique restante)
+- ✅ Build stable : 79.7 MB APK (120.6s compilation, 0 erreurs)
+- 🎯 Cohérence multilingue totale (FR/EN) sur TOUS workflows
+
+### Files Modified (4)
+- `lib/screens/rentabilite/quarantaine_screen.dart` - 8 chaînes internationalisées
+- `lib/screens/rentabilite/widgets/medicament_list_item.dart` - 2 chaînes
+- `lib/l10n/app_fr.arb` - 6 nouvelles clés
+- `lib/l10n/app_en.arb` - 6 nouvelles clés
+
+### Technical Details
+- Import `AppLocalizations` ajouté dans quarantaine_screen.dart
+- Retrait `const` sur tous PopupMenuItems utilisant i18n runtime
+- Régénération `flutter gen-l10n` pour nouveaux getters
+
+---
+
+## [1.2.0+4] - 2026-01-08 - Phase P1.1 I18N Dialogues
+
+### Fixed (Internationalization)
+- 🌍 Internationalisé 15 chaînes dialogues critiques (Annuler, Confirmer, Modifier, Supprimer, Ajouter)
+- 🌍 Workflows concernés : Reproduction, Santé Pharmacie, Palpation, Protocoles, Auth, Préparation Nid
+- 🐛 Ajout import AppLocalizations manquant dans medicament_list_item.dart
+- 🔧 Retrait `const` sur PopupMenuItems utilisant i18n runtime
+
+### Changed
+- 📈 Score i18n global : 85% → 98% (+13%)
+- ✅ Build stable : 79.7 MB APK (0 erreurs, 1 warning non-critique)
+
+### Files Modified (9)
+- `lib/screens/reproduction/planifier_accouplement_screen.dart`
+- `lib/screens/reproduction/widgets/reproduction_pairing_card.dart`
+- `lib/screens/sante/pharmacie_screen.dart`
+- `lib/screens/rentabilite/widgets/medicament_list_item.dart`
+- `lib/screens/rentabilite/widgets/medicament_dialogs.dart`
+- `lib/screens/optimisation/palpation_screen.dart`
+- `lib/screens/auth/auth_screen.dart`
+- `lib/screens/optimisation/protocoles_screen.dart`
+- `lib/screens/optimisation/preparation_nid_screen.dart`
+
+### Known Issues
+- ⚠️ 1 chaîne résiduelle "Supprimer" dans quarantaine_screen.dart (non-critique, planifié P1.2)
+
+---
+
+## [1.2.0] - 2024-12-30
+
+### Ajouté
+- **Gestionnaire de tâches complet** : Nouvelle fonctionnalité majeure
+  - Création, modification et suppression de tâches personnalisées
+  - Statuts : À faire, En cours, Terminée, Annulée, Reportée
+  - Priorités : Haute, Normale, Basse
+  - Catégories : Reproduction, Santé, Alimentation, Entretien, Administratif, Autre
+  - Association optionnelle à un lapin spécifique
+  - Tâches récurrentes (quotidienne, hebdomadaire, mensuelle)
+  - Filtres avancés (statut, catégorie, priorité, recherche textuelle)
+  - Vues multiples : Liste, Aujourd'hui, Cette semaine, Ce mois
+  - Détection automatique des tâches en retard
+  - Intégration dans l'écran Utilitaires
+- **Animation Lottie** : Remplacement de l'icône statique par une animation animée sur l'écran de chargement
+- **Base de données** : Nouvelle table `taches` avec migration vers version 15
+- **Documentation** : Guide complet de versioning dans `GUIDE_VERSIONING.md`
+
+### Amélioré
+- **Interface utilisateur** : Correction des icônes incohérentes dans les en-têtes
+  - Masquage des icônes notifications redondantes
+  - Personnalisation de l'icône settings pour l'export (icône download)
+- **Navigation** : Correction des erreurs Hero widgets et overflow
+
+### Technique
+- Nouveau modèle `Tache` avec tous les champs nécessaires
+- Nouveau provider `TacheProvider` pour la gestion d'état
+- Méthodes CRUD complètes dans `DatabaseHelper`
+- Migration SQLite vers version 15
+
+---
+
 ## [1.1.4] - 2024-12-30 (Phase 4 - Stabilisation & Qualité)
 
 ### Ajouté

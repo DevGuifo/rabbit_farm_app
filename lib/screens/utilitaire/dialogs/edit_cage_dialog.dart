@@ -3,6 +3,7 @@ import '../../../models/cage.dart';
 import '../../../services/database_helper.dart';
 import '../../../utils/logger.dart';
 import 'package:rabbit_farm_app/theme/app_theme.dart';
+import '../../../l10n/app_localizations.dart';
 
 /// Dialog pour modifier une cage
 class EditCageDialog {
@@ -12,6 +13,7 @@ class EditCageDialog {
       text: cage.capacite.toString(),
     );
     String typeSelectionne = cage.type;
+    final l10n = AppLocalizations.of(context);
 
     final result = await showDialog<Map<String, dynamic>>(
       context: context,
@@ -20,7 +22,7 @@ class EditCageDialog {
           backgroundColor: Theme.of(context).brightness == Brightness.dark
               ? AppTheme.backgroundDark
               : AppTheme.cardLight,
-          title: const Text('Modifier la cage'),
+          title: Text(l10n.modifierCage),
           content: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -66,7 +68,7 @@ class EditCageDialog {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Annuler'),
+              child: Text(l10n.annuler),
             ),
             ElevatedButton(
               onPressed: () {
@@ -76,7 +78,7 @@ class EditCageDialog {
                   'capacite': int.tryParse(capaciteController.text) ?? 1,
                 });
               },
-              child: const Text('Modifier'),
+              child: Text(l10n.modifier),
             ),
           ],
         ),
@@ -102,9 +104,9 @@ class EditCageDialog {
         whereArgs: [cageModifiee.id],
       );
       if (context.mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('✓ Cage modifiée')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(AppLocalizations.of(context).msgCageModifiee)),
+        );
       }
       return true;
     } catch (e) {

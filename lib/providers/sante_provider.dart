@@ -1,14 +1,17 @@
 import 'package:flutter/foundation.dart';
 import '../models/pesee.dart';
 import '../models/soin.dart';
+import '../models/journal_entry.dart';
 import '../services/database_helper.dart';
 import '../services/notification_service.dart';
+import '../services/journal_service.dart';
 import '../utils/logger.dart';
 
 /// Provider pour gérer l'état des pesées et soins
 class SanteProvider with ChangeNotifier {
   final DatabaseHelper _db = DatabaseHelper.instance;
   final NotificationService _notificationService = NotificationService();
+  final JournalService _journal = JournalService();
 
   List<Pesee> _pesees = [];
   List<Soin> _soins = [];
@@ -74,6 +77,14 @@ class SanteProvider with ChangeNotifier {
           nomLapin: lapin.nom,
           dateDernierePesee: pesee.date,
         );
+
+        // 📝 Journal automatique
+        await _journal.pesee(
+          action: TypeAction.creation,
+          peseeId: nouvellePesee.id!,
+          lapinNom: lapin.nom,
+          poids: pesee.poids,
+        );
       }
 
       notifyListeners();
@@ -138,6 +149,20 @@ class SanteProvider with ChangeNotifier {
 
       invaliderCacheScore();
       notifyListeners();
+
+      // 📝 Journal automatique
+      final lapinPourJournal = await _db.getLapinById(nouveauSoin.lapinId);
+      await _journal.soin(
+        action: TypeAction.creation,
+        soinId: nouveauSoin.id!,
+        lapinNom: lapinPourJournal?.nom ?? 'Lapin #${nouveauSoin.lapinId}',
+        typeSoin: nouveauSoin.type,
+        contexte: {
+          'date': nouveauSoin.date.toIso8601String(),
+          if (nouveauSoin.notes != null) 'notes': nouveauSoin.notes,
+        },
+      );
+
       return nouveauSoin;
     } catch (e) {
       logger.error('Erreur lors de l\'ajout du soin', e);

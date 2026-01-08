@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../l10n/app_localizations.dart';
 import '../../models/medicament.dart';
 import '../../providers/medicament_provider.dart';
 import 'package:rabbit_farm_app/theme/app_theme.dart';
+import '../../widgets/uniform_app_bar.dart';
 
 /// Écran d'ajout/édition de médicament
 class AjouterMedicamentScreen extends StatefulWidget {
@@ -104,14 +106,20 @@ class _AjouterMedicamentScreenState extends State<AjouterMedicamentScreen> {
         await medicamentProvider.ajouterMedicament(medicament);
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Médicament ajouté avec succès')),
+            SnackBar(
+              content: Text(AppLocalizations.of(context).santeMedicamentAjoute),
+            ),
           );
         }
       } else {
         await medicamentProvider.modifierMedicament(medicament);
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Médicament modifié avec succès')),
+            SnackBar(
+              content: Text(
+                AppLocalizations.of(context).santeMedicamentModifie,
+              ),
+            ),
           );
         }
       }
@@ -123,7 +131,9 @@ class _AjouterMedicamentScreenState extends State<AjouterMedicamentScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Erreur: ${e.toString()}'),
+            content: Text(
+              AppLocalizations.of(context).msgErreurGenerique(e.toString()),
+            ),
             backgroundColor: AppTheme.error,
           ),
         );
@@ -138,7 +148,6 @@ class _AjouterMedicamentScreenState extends State<AjouterMedicamentScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final primaryColor = AppTheme.info; // Blue
     final backgroundColor = isDark
         ? AppTheme.backgroundDarkMode
         : AppTheme.backgroundLight;
@@ -147,72 +156,65 @@ class _AjouterMedicamentScreenState extends State<AjouterMedicamentScreen> {
 
     return Scaffold(
       backgroundColor: backgroundColor,
-      appBar: AppBar(
-        backgroundColor: surfaceColor,
-        elevation: 0,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: textPrimary),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: Text(
-          widget.medicament == null
-              ? 'Ajouter un médicament'
-              : 'Modifier le médicament',
-          style: AppTheme.titleMedium.copyWith(color: textPrimary),
-        ),
+      appBar: UniformAppBar(
+        title: widget.medicament == null
+            ? AppLocalizations.of(context).santeAjouterSoin
+            : AppLocalizations.of(context).santeModifierSoin,
+        icon: Icons.medication_rounded,
+        iconColor: AppTheme.error,
       ),
       body: Form(
         key: _formKey,
         child: ListView(
-          padding: const EdgeInsets.all(16),
+          padding: AppTheme.paddingAllMedium,
           children: [
             _buildTextField(
               controller: _nomController,
-              label: 'Nom du médicament *',
+              label: AppLocalizations.of(context).santeNomMedicament,
               icon: Icons.medication,
               isDark: isDark,
               surfaceColor: surfaceColor,
               textPrimary: textPrimary,
               validator: (value) {
                 if (value == null || value.trim().isEmpty) {
-                  return 'Le nom est obligatoire';
+                  return AppLocalizations.of(context).erreurNomMedicamentRequis;
                 }
                 return null;
               },
             ),
-            const SizedBox(height: 16),
+            AppTheme.verticalSpace16,
             _buildTextField(
               controller: _typeController,
-              label: 'Type * (Vaccin, Antibiotique, Antiparasitaire...)',
+              label: AppLocalizations.of(context).santeTypeSoin,
               icon: Icons.category,
               isDark: isDark,
               surfaceColor: surfaceColor,
               textPrimary: textPrimary,
               validator: (value) {
                 if (value == null || value.trim().isEmpty) {
-                  return 'Le type est obligatoire';
+                  return AppLocalizations.of(context).erreurDescriptionRequise;
                 }
                 return null;
               },
             ),
-            const SizedBox(height: 16),
+            AppTheme.verticalSpace16,
             _buildTextField(
               controller: _posologieController,
-              label: 'Posologie (ex: 0.5ml/kg, 2 fois par jour)',
+              label: AppLocalizations.of(context).santePosologie,
               icon: Icons.medical_information,
               isDark: isDark,
               surfaceColor: surfaceColor,
               textPrimary: textPrimary,
               maxLines: 2,
             ),
-            const SizedBox(height: 16),
+            AppTheme.verticalSpace16,
             Row(
               children: [
                 Expanded(
                   flex: 2,
                   child: _buildTextField(
                     controller: _quantiteStockController,
-                    label: 'Quantité en stock *',
+                    label: AppLocalizations.of(context).santeQuantite,
                     icon: Icons.inventory,
                     isDark: isDark,
                     surfaceColor: surfaceColor,
@@ -220,27 +222,33 @@ class _AjouterMedicamentScreenState extends State<AjouterMedicamentScreen> {
                     keyboardType: TextInputType.number,
                     validator: (value) {
                       if (value == null || value.trim().isEmpty) {
-                        return 'Quantité obligatoire';
+                        return AppLocalizations.of(
+                          context,
+                        ).erreurQuantiteInvalide;
                       }
                       if (double.tryParse(value) == null) {
-                        return 'Nombre invalide';
+                        return AppLocalizations.of(
+                          context,
+                        ).erreurQuantiteInvalide;
                       }
                       return null;
                     },
                   ),
                 ),
-                const SizedBox(width: 12),
+                AppTheme.horizontalSpace12,
                 Expanded(
                   child: _buildTextField(
                     controller: _uniteController,
-                    label: 'Unité *',
+                    label: AppLocalizations.of(context).santeUnite,
                     icon: Icons.scale,
                     isDark: isDark,
                     surfaceColor: surfaceColor,
                     textPrimary: textPrimary,
                     validator: (value) {
                       if (value == null || value.trim().isEmpty) {
-                        return 'Unité requise';
+                        return AppLocalizations.of(
+                          context,
+                        ).erreurDescriptionRequise;
                       }
                       return null;
                     },
@@ -248,13 +256,13 @@ class _AjouterMedicamentScreenState extends State<AjouterMedicamentScreen> {
                 ),
               ],
             ),
-            const SizedBox(height: 16),
+            AppTheme.verticalSpace16,
             Row(
               children: [
                 Expanded(
                   child: _buildTextField(
                     controller: _seuilAlerteController,
-                    label: 'Seuil d\'alerte',
+                    label: AppLocalizations.of(context).santeSeuilAlerte,
                     icon: Icons.warning_amber,
                     isDark: isDark,
                     surfaceColor: surfaceColor,
@@ -264,17 +272,17 @@ class _AjouterMedicamentScreenState extends State<AjouterMedicamentScreen> {
                       if (value != null &&
                           value.isNotEmpty &&
                           double.tryParse(value) == null) {
-                        return 'Nombre invalide';
+                        return AppLocalizations.of(context).erreurSeuilInvalide;
                       }
                       return null;
                     },
                   ),
                 ),
-                const SizedBox(width: 12),
+                AppTheme.horizontalSpace12,
                 Expanded(
                   child: _buildTextField(
                     controller: _prixUnitaireController,
-                    label: 'Prix unitaire (€)',
+                    label: AppLocalizations.of(context).santePrixUnitaire,
                     icon: Icons.euro,
                     isDark: isDark,
                     surfaceColor: surfaceColor,
@@ -284,7 +292,7 @@ class _AjouterMedicamentScreenState extends State<AjouterMedicamentScreen> {
                       if (value != null &&
                           value.isNotEmpty &&
                           double.tryParse(value) == null) {
-                        return 'Nombre invalide';
+                        return AppLocalizations.of(context).erreurPrixInvalide;
                       }
                       return null;
                     },
@@ -292,32 +300,24 @@ class _AjouterMedicamentScreenState extends State<AjouterMedicamentScreen> {
                 ),
               ],
             ),
-            const SizedBox(height: 16),
+            AppTheme.verticalSpace16,
             _buildDateField(isDark, surfaceColor, textPrimary),
-            const SizedBox(height: 16),
+            AppTheme.verticalSpace16,
             _buildTextField(
               controller: _notesController,
-              label: 'Notes supplémentaires',
+              label: AppLocalizations.of(context).santeNotes,
               icon: Icons.note,
               isDark: isDark,
               surfaceColor: surfaceColor,
               textPrimary: textPrimary,
               maxLines: 4,
             ),
-            const SizedBox(height: 32),
+            AppTheme.verticalSpace32,
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: _isLoading ? null : _enregistrer,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: primaryColor,
-                  foregroundColor: AppTheme.cardLight,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  elevation: 2,
-                ),
+                style: AppTheme.primaryButtonStyle,
                 child: _isLoading
                     ? const SizedBox(
                         height: 20,
@@ -328,7 +328,9 @@ class _AjouterMedicamentScreenState extends State<AjouterMedicamentScreen> {
                         ),
                       )
                     : Text(
-                        widget.medicament == null ? 'Ajouter' : 'Enregistrer',
+                        widget.medicament == null
+                            ? AppLocalizations.of(context).santeAjouter
+                            : AppLocalizations.of(context).santeEnregistrer,
                         style: AppTheme.titleSmall,
                       ),
               ),
@@ -342,7 +344,7 @@ class _AjouterMedicamentScreenState extends State<AjouterMedicamentScreen> {
   Widget _buildDateField(bool isDark, Color surfaceColor, Color textPrimary) {
     final borderColor = isDark
         ? AppTheme.cardLight.withValues(alpha: 0.1)
-        : Colors.black.withValues(alpha: 0.1);
+        : AppTheme.textPrimary.withValues(alpha: 0.1);
 
     return InkWell(
       onTap: () async {
@@ -359,7 +361,7 @@ class _AjouterMedicamentScreenState extends State<AjouterMedicamentScreen> {
       },
       child: InputDecorator(
         decoration: InputDecoration(
-          labelText: 'Date d\'expiration',
+          labelText: AppLocalizations.of(context).santeDateExpiration,
           labelStyle: AppTheme.bodyMedium.copyWith(
             color: textPrimary.withValues(alpha: 0.7),
           ),
@@ -371,18 +373,18 @@ class _AjouterMedicamentScreenState extends State<AjouterMedicamentScreen> {
           filled: true,
           fillColor: surfaceColor,
           border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: AppTheme.borderRadiusMedium,
             borderSide: BorderSide(color: borderColor),
           ),
           enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: AppTheme.borderRadiusMedium,
             borderSide: BorderSide(color: borderColor),
           ),
         ),
         child: Text(
           _dateExpiration != null
               ? '${_dateExpiration!.day}/${_dateExpiration!.month}/${_dateExpiration!.year}'
-              : 'Sélectionner une date',
+              : AppLocalizations.of(context).santeSelectionnerDate,
           style: AppTheme.bodyLarge.copyWith(
             color: _dateExpiration != null
                 ? textPrimary
@@ -406,7 +408,7 @@ class _AjouterMedicamentScreenState extends State<AjouterMedicamentScreen> {
   }) {
     final borderColor = isDark
         ? AppTheme.cardLight.withValues(alpha: 0.1)
-        : Colors.black.withValues(alpha: 0.1);
+        : AppTheme.textPrimary.withValues(alpha: 0.1);
     final focusedBorderColor = AppTheme.info;
 
     return TextFormField(
@@ -428,23 +430,23 @@ class _AjouterMedicamentScreenState extends State<AjouterMedicamentScreen> {
         filled: true,
         fillColor: surfaceColor,
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: AppTheme.borderRadiusMedium,
           borderSide: BorderSide(color: borderColor),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: AppTheme.borderRadiusMedium,
           borderSide: BorderSide(color: borderColor),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: AppTheme.borderRadiusMedium,
           borderSide: BorderSide(color: focusedBorderColor, width: 2),
         ),
         errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: AppTheme.borderRadiusMedium,
           borderSide: const BorderSide(color: AppTheme.error),
         ),
         focusedErrorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: AppTheme.borderRadiusMedium,
           borderSide: const BorderSide(color: AppTheme.error, width: 2),
         ),
       ),

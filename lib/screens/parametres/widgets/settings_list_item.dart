@@ -56,8 +56,8 @@ class SettingsListItem extends StatelessWidget {
                     fontSize: 16,
                     fontWeight: FontWeight.w500,
                     color: isDark
-                        ? Colors.white
-                        : const Color(0xFF111812),
+                        ? AppTheme.textOnPrimary
+                        : AppTheme.stitchTextDark,
                   ),
                 ),
                 if (subtitle != null) ...[
@@ -83,8 +83,8 @@ class SettingsListItem extends StatelessWidget {
               style: TextStyle(
                 fontSize: 14,
                 color: isDark
-                    ? Colors.grey.shade400
-                    : Colors.grey.shade500,
+                    ? AppTheme.neutral400
+                    : AppTheme.neutral500,
               ),
             ),
             const SizedBox(width: 8),
@@ -95,8 +95,8 @@ class SettingsListItem extends StatelessWidget {
                   Icons.chevron_right,
                   size: 20,
                   color: isDark
-                      ? Colors.grey.shade600
-                      : Colors.grey.shade400,
+                      ? AppTheme.neutral600
+                      : AppTheme.neutral400,
                 ),
         ],
       ),

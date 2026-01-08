@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../../../../theme/app_theme.dart';
-import '../constants/stitch_theme_constants.dart';
 
 /// Contrôle de navigation par segments (Stitch Design)
 class DetailSegmentedControl extends StatelessWidget {
@@ -18,17 +17,17 @@ class DetailSegmentedControl extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final surfaceColor = StitchTheme.getSurfaceColor(context);
-    final outlineColor = StitchTheme.getOutlineColor(context);
+    final surfaceColor = AppTheme.getSurfaceColor(context);
+    final outlineColor = AppTheme.getOutlineColor(context);
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
         color: surfaceColor,
-        borderRadius: BorderRadius.circular(StitchTheme.radiusFull),
+        borderRadius: BorderRadius.circular(AppTheme.radiusFull),
         border: Border.all(color: outlineColor),
-        boxShadow: StitchTheme.cardShadow(context),
+        boxShadow: AppTheme.cardShadow(isDark: isDark),
       ),
       child: Row(
         children: tabs.asMap().entries.map((entry) {
@@ -61,12 +60,12 @@ class DetailSegmentedControl extends StatelessWidget {
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
         decoration: BoxDecoration(
-          color: isSelected ? StitchTheme.primaryYellow : Colors.transparent,
-          borderRadius: BorderRadius.circular(StitchTheme.radiusFull),
+          color: isSelected ? AppTheme.primaryYellow : Colors.transparent,
+          borderRadius: BorderRadius.circular(AppTheme.radiusFull),
           boxShadow: isSelected
               ? [
                   BoxShadow(
-                    color: StitchTheme.primaryYellow.withValues(alpha: 0.2),
+                    color: AppTheme.primaryYellow.withValues(alpha: 0.2),
                     blurRadius: 8,
                     offset: const Offset(0, 2),
                   ),
@@ -83,8 +82,8 @@ class DetailSegmentedControl extends StatelessWidget {
             style: AppTheme.bodySmall.copyWith(
               fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
               color: isSelected
-                  ? Colors.black
-                  : (isDark ? StitchTheme.neutral400 : StitchTheme.neutral500),
+                  ? AppTheme.textPrimary
+                  : (isDark ? AppTheme.neutral400 : AppTheme.neutral500),
             ),
           ),
         ),

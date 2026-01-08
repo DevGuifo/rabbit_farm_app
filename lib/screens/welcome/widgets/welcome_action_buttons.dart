@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../theme/app_theme.dart';
 
 /// Widget pour les boutons d'action (Get Started + Log in)
@@ -16,6 +17,7 @@ class WelcomeActionButtons extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final l10n = AppLocalizations.of(context);
 
     return Column(
       children: [
@@ -27,7 +29,7 @@ class WelcomeActionButtons extends StatelessWidget {
             onPressed: onGetStarted,
             style: ElevatedButton.styleFrom(
               backgroundColor: AppTheme.primaryNeonGreen,
-              foregroundColor: const Color(0xFF0a2e12), // primary-content
+              foregroundColor: AppTheme.authContent, // primary-content
               elevation: 0,
               shadowColor: AppTheme.primaryNeonGreen.withValues(alpha: 0.2),
               shape: RoundedRectangleBorder(
@@ -38,18 +40,18 @@ class WelcomeActionButtons extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  'Get Started',
+                  l10n.welcomeGetStarted,
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: const Color(0xFF0a2e12),
+                    color: AppTheme.authContent,
                   ),
                 ),
                 const SizedBox(width: 8),
                 const Icon(
                   Icons.arrow_forward,
                   size: 20,
-                  color: Color(0xFF0a2e12),
+                  color: AppTheme.authContent,
                 ),
               ],
             ),
@@ -73,10 +75,10 @@ class WelcomeActionButtons extends StatelessWidget {
                     : AppTheme.stitchTextSecLight,
               ),
               children: [
-                const TextSpan(text: 'Already have an account? '),
+                TextSpan(text: l10n.welcomeAlreadyAccount),
                 WidgetSpan(
                   child: Text(
-                    'Log in',
+                    l10n.welcomeLogIn,
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
@@ -96,4 +98,3 @@ class WelcomeActionButtons extends StatelessWidget {
     );
   }
 }
-

@@ -3,11 +3,13 @@ import '../../../models/batiment.dart';
 import '../../../services/database_helper.dart';
 import '../../../utils/logger.dart';
 import 'package:rabbit_farm_app/theme/app_theme.dart';
+import '../../../l10n/app_localizations.dart';
 
 /// Dialog pour modifier un bâtiment
 class EditBuildingDialog {
   static Future<bool> show(BuildContext context, Batiment batiment) async {
     final controller = TextEditingController(text: batiment.nom);
+    final l10n = AppLocalizations.of(context);
 
     final nom = await showDialog<String>(
       context: context,
@@ -15,22 +17,22 @@ class EditBuildingDialog {
         backgroundColor: Theme.of(context).brightness == Brightness.dark
             ? AppTheme.backgroundDark
             : AppTheme.cardLight,
-        title: const Text('Modifier bâtiment'),
+        title: Text(l10n.modifierBatiment),
         content: TextField(
           controller: controller,
-          decoration: const InputDecoration(
-            hintText: 'Nom du bâtiment',
-            border: OutlineInputBorder(),
+          decoration: InputDecoration(
+            hintText: l10n.hintBuildingName,
+            border: const OutlineInputBorder(),
           ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Annuler'),
+            child: Text(l10n.annuler),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, controller.text),
-            child: const Text('OK'),
+            child: Text(l10n.ok),
           ),
         ],
       ),
@@ -47,9 +49,11 @@ class EditBuildingDialog {
         whereArgs: [batiment.id],
       );
       if (context.mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('✓ Bâtiment modifié')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(AppLocalizations.of(context).msgBatimentModifie),
+          ),
+        );
       }
       return true;
     } catch (e) {

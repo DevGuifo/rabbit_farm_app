@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
+import '../../l10n/app_localizations.dart';
 import '../../models/lapin.dart';
 import '../../models/pesee.dart';
 import '../../providers/sante_provider.dart';
 import '../../utils/snackbar_helper.dart';
 import '../../theme/app_theme.dart';
+import '../../widgets/uniform_app_bar.dart';
 
 /// Écran pour ajouter une pesée
 class AjouterPeseeScreen extends StatefulWidget {
@@ -67,7 +69,10 @@ class _AjouterPeseeScreenState extends State<AjouterPeseeScreen> {
       await santeProvider.ajouterPesee(pesee);
 
       if (mounted) {
-        SnackbarHelper.showSuccess(context, 'Pesée enregistrée avec succès');
+        SnackbarHelper.showSuccess(
+          context,
+          AppLocalizations.of(context).santePeseeEnregistree,
+        );
         Navigator.of(context).pop();
       }
     } catch (e) {
@@ -83,21 +88,15 @@ class _AjouterPeseeScreenState extends State<AjouterPeseeScreen> {
 
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
-      appBar: AppBar(
-        title: Text(
-          'Pesée de ${widget.lapin.nom}',
-          style: AppTheme.titleLarge.copyWith(
-            color: Theme.of(context).colorScheme.onSurface,
-          ),
-        ),
-        backgroundColor: Theme.of(context).colorScheme.surface,
-        elevation: 0,
-        iconTheme: IconThemeData(color: Theme.of(context).colorScheme.primary),
+      appBar: UniformAppBar(
+        title: AppLocalizations.of(context).santePeseeDe(widget.lapin.nom),
+        icon: Icons.monitor_weight_rounded,
+        iconColor: AppTheme.info,
       ),
       body: Form(
         key: _formKey,
         child: ListView(
-          padding: const EdgeInsets.all(16),
+          padding: AppTheme.paddingAllMedium,
           children: [
             // Informations du lapin
             Card(
@@ -119,7 +118,7 @@ class _AjouterPeseeScreenState extends State<AjouterPeseeScreen> {
                         size: 32,
                       ),
                     ),
-                    const SizedBox(width: 16),
+                    AppTheme.horizontalSpace16,
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -135,28 +134,27 @@ class _AjouterPeseeScreenState extends State<AjouterPeseeScreen> {
                 ),
               ),
             ),
-            const SizedBox(height: 16),
+            AppTheme.verticalSpace16,
 
             // Date de la pesée
             Card(
               child: ListTile(
                 leading: const Icon(Icons.calendar_today),
-                title: const Text('Date de la pesée'),
+                title: Text(AppLocalizations.of(context).santeDatePesee),
                 subtitle: Text(dateFormat.format(_date)),
                 trailing: const Icon(Icons.edit),
                 onTap: () => _selectionnerDate(context),
               ),
             ),
-            const SizedBox(height: 16),
+            AppTheme.verticalSpace16,
 
             // Poids
             TextFormField(
               controller: _poidsController,
-              decoration: const InputDecoration(
-                labelText: 'Poids (kg)',
-                hintText: 'Ex: 2.5',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.monitor_weight),
+              decoration: AppTheme.inputDecoration(
+                label: AppLocalizations.of(context).santePoids,
+                hint: 'Ex: 2.5',
+                prefixIcon: Icons.monitor_weight,
                 suffixText: 'kg',
               ),
               keyboardType: const TextInputType.numberWithOptions(
@@ -167,39 +165,38 @@ class _AjouterPeseeScreenState extends State<AjouterPeseeScreen> {
               ],
               validator: (value) {
                 if (value == null || value.isEmpty) {
-                  return 'Veuillez entrer le poids';
+                  return AppLocalizations.of(context).erreurPoidsInvalide;
                 }
                 final poids = double.tryParse(value.replaceAll(',', '.'));
                 if (poids == null || poids <= 0) {
-                  return 'Veuillez entrer un poids valide';
+                  return AppLocalizations.of(context).erreurPoidsInvalide;
                 }
                 if (poids > 10) {
-                  return 'Le poids semble trop élevé';
+                  return AppLocalizations.of(context).erreurPoidsInvalide;
                 }
                 return null;
               },
             ),
-            const SizedBox(height: 16),
+            AppTheme.verticalSpace16,
 
             // Notes
             TextFormField(
               controller: _notesController,
-              decoration: const InputDecoration(
-                labelText: 'Notes (optionnel)',
-                hintText: 'Observations, état général...',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.notes),
+              decoration: AppTheme.inputDecoration(
+                label: AppLocalizations.of(context).santeNotes,
+                hint: 'Observations, état général...',
+                prefixIcon: Icons.notes,
               ),
               maxLines: 3,
             ),
-            const SizedBox(height: 24),
+            AppTheme.verticalSpace24,
 
             // Bouton enregistrer
             FilledButton.icon(
               onPressed: _enregistrerPesee,
               icon: const Icon(Icons.save),
-              label: const Text('Enregistrer la pesée'),
-              style: FilledButton.styleFrom(padding: const EdgeInsets.all(16)),
+              label: Text(AppLocalizations.of(context).santeEnregistrerPesee),
+              style: FilledButton.styleFrom(padding: AppTheme.paddingAllMedium),
             ),
           ],
         ),

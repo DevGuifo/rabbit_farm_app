@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../../services/pdf_service.dart';
 import '../../../../utils/snackbar_helper.dart';
 import '../../../../theme/app_theme.dart';
@@ -37,7 +38,9 @@ class AnalyseGenetiqueRapport extends StatelessWidget {
                   Text(
                     'Analyse de la consanguinité du cheptel',
                     style: AppTheme.bodyMedium.copyWith(
-                      color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.onSurface.withValues(alpha: 0.6),
                     ),
                     textAlign: TextAlign.center,
                   ),
@@ -46,34 +49,36 @@ class AnalyseGenetiqueRapport extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 24),
-          ElevatedButton.icon(
-            onPressed: () async {
-              try {
-                await pdfService.genererRapportAnalyseGenetique();
-                if (context.mounted) {
-                  SnackbarHelper.showSuccess(
-                    context,
-                    '✅ Rapport analyse génétique généré',
-                  );
-                }
-              } catch (e) {
-                if (context.mounted) {
-                  SnackbarHelper.showError(
-                    context,
-                    '❌ Erreur: ${e.toString()}',
-                  );
-                }
-              }
+          Builder(
+            builder: (context) {
+              final l10n = AppLocalizations.of(context);
+              return ElevatedButton.icon(
+                onPressed: () async {
+                  try {
+                    await pdfService.genererRapportAnalyseGenetique();
+                    if (context.mounted) {
+                      SnackbarHelper.showSuccess(
+                        context,
+                        '✅ Rapport analyse génétique généré',
+                      );
+                    }
+                  } catch (e) {
+                    if (context.mounted) {
+                      SnackbarHelper.showError(
+                        context,
+                        '❌ Erreur: ${e.toString()}',
+                      );
+                    }
+                  }
+                },
+                icon: const Icon(Icons.picture_as_pdf),
+                label: Text(l10n.genererRapport),
+                style: AppTheme.primaryButtonStyle,
+              );
             },
-            icon: const Icon(Icons.picture_as_pdf),
-            label: const Text('Générer le rapport'),
-            style: ElevatedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(vertical: 16),
-            ),
           ),
         ],
       ),
     );
   }
 }
-

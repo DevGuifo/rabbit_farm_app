@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
+import '../../l10n/app_localizations.dart';
 import '../../providers/lapin_provider.dart';
 import '../../models/lapin.dart';
 import '../../theme/app_theme.dart';
+import '../../widgets/uniform_app_bar.dart';
 import 'widgets/notes_search_bar.dart';
 import 'widgets/note_card.dart';
 import 'widgets/notes_detail_dialog.dart';
@@ -47,8 +49,10 @@ class _NotesScreenState extends State<NotesScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Notes & Observations'),
+      appBar: UniformAppBar(
+        title: AppLocalizations.of(context).utilNotesObservations,
+        icon: Icons.note_alt_rounded,
+        iconColor: AppTheme.accentAmber,
         bottom: TabBar(
           controller: _tabController,
           tabs: const [
@@ -64,7 +68,11 @@ class _NotesScreenState extends State<NotesScreen>
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _ajouterNote(),
         icon: const Icon(Icons.add),
-        label: Text(_tabController.index == 0 ? 'Note Lapin' : 'Note Générale'),
+        label: Text(
+          _tabController.index == 0
+              ? AppLocalizations.of(context).utilNoteLapin
+              : AppLocalizations.of(context).utilNoteGenerale,
+        ),
       ),
     );
   }
@@ -198,7 +206,7 @@ class _NotesScreenState extends State<NotesScreen>
           padding: const EdgeInsets.all(16.0),
           child: TextField(
             decoration: InputDecoration(
-              hintText: 'Rechercher dans les notes...',
+              hintText: AppLocalizations.of(context).hintSearchNotes,
               prefixIcon: const Icon(Icons.search),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
@@ -304,9 +312,11 @@ class _NotesScreenState extends State<NotesScreen>
       onTap: () => _afficherDetailNote(note, lapin),
       onDelete: () {
         _supprimerNote(note);
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Note supprimée')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(AppLocalizations.of(context).msgNoteSupprimee),
+          ),
+        );
       },
     );
   }

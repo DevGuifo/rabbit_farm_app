@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../models/lapin.dart';
 import 'forms/soin_form_widgets.dart';
+import '../../../l10n/app_localizations.dart';
 
 /// Widget d'organisation du formulaire de soin
 class SoinFormLayout extends StatelessWidget {
@@ -12,7 +13,9 @@ class SoinFormLayout extends StatelessWidget {
   final ValueChanged<String> onTypeSoinChanged;
   final TextEditingController descriptionController;
   final List<String> typesSoins;
-  final TextEditingController medicamentController;
+  // Phase 4: Remplacer TextEditingController par FK callback
+  final int? medicamentIdInitial;
+  final Function(int?, String?) onMedicamentChanged;
   final TextEditingController dosageController;
   final String outcomeStatus;
   final ValueChanged<String> onOutcomeStatusChanged;
@@ -33,7 +36,8 @@ class SoinFormLayout extends StatelessWidget {
     required this.onTypeSoinChanged,
     required this.descriptionController,
     required this.typesSoins,
-    required this.medicamentController,
+    this.medicamentIdInitial,
+    required this.onMedicamentChanged,
     required this.dosageController,
     required this.outcomeStatus,
     required this.onOutcomeStatusChanged,
@@ -54,7 +58,11 @@ class SoinFormLayout extends StatelessWidget {
         children: [
           RabbitInfoCard(lapin: lapin),
           const SizedBox(height: 24),
-          DateFieldWidget(label: 'Event Date', date: date, onTap: onSelectDate),
+          DateFieldWidget(
+            label: AppLocalizations.of(context).labelEventDate,
+            date: date,
+            onTap: onSelectDate,
+          ),
           const SizedBox(height: 20),
           EventTypeSelector(typeSoin: typeSoin, onChanged: onTypeSoinChanged),
           const SizedBox(height: 20),
@@ -66,7 +74,10 @@ class SoinFormLayout extends StatelessWidget {
             typesSoins: typesSoins,
           ),
           const SizedBox(height: 20),
-          MedicationField(controller: medicamentController),
+          MedicationField(
+            medicamentIdInitial: medicamentIdInitial,
+            onMedicamentChanged: onMedicamentChanged,
+          ),
           const SizedBox(height: 20),
           DosageField(controller: dosageController),
           const SizedBox(height: 20),

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../l10n/app_localizations.dart';
 import '../../providers/lapin_provider.dart';
 import '../../providers/sante_provider.dart';
+import '../../providers/sync_provider.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/common/common_widgets.dart';
 import 'fiche_sante_screen.dart';
@@ -10,9 +12,8 @@ import 'ajouter_pesee_screen.dart';
 import 'pesee_tracking_screen.dart';
 import 'treatments_care_screen.dart';
 import 'pharmacie_screen.dart';
-import '../alertes/alertes_screen.dart';
 
-/// Écran Santé Overview - Design Stitch "Health Hub"
+/// Écran Santé Overview - Design Stitch "Centre de Santé"
 class SanteScreen extends StatefulWidget {
   const SanteScreen({super.key});
 
@@ -52,9 +53,9 @@ class _SanteScreenState extends State<SanteScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _buildHeroSection(isDark),
-                  const SizedBox(height: 24),
+                  AppTheme.verticalSpace24,
                   _buildActionGrid(isDark),
-                  const SizedBox(height: 24),
+                  AppTheme.verticalSpace24,
                   _buildUpcomingTasks(isDark),
                 ],
               ),
@@ -66,12 +67,17 @@ class _SanteScreenState extends State<SanteScreen> {
     );
   }
 
-  /// Header Stitch avec actions - Utilise StandardHeader
+  /// Header Stitch avec actions - Utilise StandardHeader unifié
   Widget _buildHeader(bool isDark) {
     return StandardHeader(
-      title: 'Santé Overview',
+      title: AppLocalizations.of(context).suiviSante,
       isDark: isDark,
-      onSync: _chargerDonnees,
+      onSync: () async {
+        // Synchroniser puis recharger
+        final syncProvider = context.read<SyncProvider>();
+        await syncProvider.syncNow();
+        _chargerDonnees();
+      },
       onNotifications: () => _afficherRappels(),
       onSettings: () {
         // Navigation vers paramètres
@@ -79,11 +85,11 @@ class _SanteScreenState extends State<SanteScreen> {
     );
   }
 
-  /// Section héro "Health Hub" - Utilise HeroSection
+  /// Section héro "Centre de Santé" - Utilise HeroSection
   Widget _buildHeroSection(bool isDark) {
     return HeroSection(
-      title: 'Health Hub',
-      subtitle: 'Manage herd wellness and records',
+      title: AppLocalizations.of(context).centreSante,
+      subtitle: AppLocalizations.of(context).santeSubtitle,
       isDark: isDark,
     );
   }
@@ -91,7 +97,7 @@ class _SanteScreenState extends State<SanteScreen> {
   /// Grille 2x2 des cartes d'action
   Widget _buildActionGrid(bool isDark) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      padding: AppTheme.paddingHorizontal,
       child: GridView.count(
         shrinkWrap: true,
         physics: const NeverScrollableScrollPhysics(),
@@ -103,16 +109,16 @@ class _SanteScreenState extends State<SanteScreen> {
           _buildActionCard(
             isDark: isDark,
             icon: Icons.monitor_heart,
-            title: 'Health\nTracking',
-            subtitle: 'Vitals & Logs',
+            title: AppLocalizations.of(context).santeSuiviSante,
+            subtitle: AppLocalizations.of(context).santeParametresVitaux,
             color: AppTheme.primaryGreen,
             onTap: () => _showRabbitSelector(context),
           ),
           _buildActionCard(
             isDark: isDark,
             icon: Icons.healing,
-            title: 'Treatments\n& Care',
-            subtitle: 'Active & History',
+            title: AppLocalizations.of(context).santeSoinsTraitements,
+            subtitle: AppLocalizations.of(context).santeActifsHistorique,
             color: AppTheme.success,
             onTap: () {
               Navigator.push(
@@ -124,16 +130,16 @@ class _SanteScreenState extends State<SanteScreen> {
           _buildActionCard(
             isDark: isDark,
             icon: Icons.scale,
-            title: 'Weight\nTracking',
-            subtitle: 'Growth Charts',
+            title: AppLocalizations.of(context).santeSuiviPonderal,
+            subtitle: AppLocalizations.of(context).santeCourbesCroissance,
             color: AppTheme.warning,
             onTap: () => _showWeightTracking(),
           ),
           _buildActionCard(
             isDark: isDark,
             icon: Icons.medication,
-            title: 'Pharmacie',
-            subtitle: 'Stock & Inventory',
+            title: AppLocalizations.of(context).santePharmacie,
+            subtitle: AppLocalizations.of(context).santeGestionStock,
             color: AppTheme.info,
             onTap: () {
               Navigator.push(
@@ -168,7 +174,7 @@ class _SanteScreenState extends State<SanteScreen> {
   /// Section "Upcoming Tasks"
   Widget _buildUpcomingTasks(bool isDark) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      padding: AppTheme.paddingHorizontal,
       child: Consumer<SanteProvider>(
         builder: (context, santeProvider, _) {
           final rappels = santeProvider.soinsAvecRappel;
@@ -177,7 +183,7 @@ class _SanteScreenState extends State<SanteScreen> {
           return Container(
             decoration: BoxDecoration(
               color: isDark ? AppTheme.cardDark : AppTheme.cardLight,
-              borderRadius: BorderRadius.circular(40),
+              borderRadius: AppTheme.borderRadiusLarge,
               border: Border.all(
                 color: isDark ? AppTheme.divider : AppTheme.border,
               ),
@@ -214,7 +220,7 @@ class _SanteScreenState extends State<SanteScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        'Upcoming Tasks',
+                        AppLocalizations.of(context).santeTachesVenir,
                         style: AppTheme.titleMedium.copyWith(
                           color: isDark
                               ? AppTheme.textLight
@@ -231,7 +237,7 @@ class _SanteScreenState extends State<SanteScreen> {
                           borderRadius: BorderRadius.circular(999),
                         ),
                         child: Text(
-                          '$pendingCount Pending',
+                          '$pendingCount ${AppLocalizations.of(context).enAttente}',
                           style: AppTheme.caption.copyWith(
                             fontWeight: FontWeight.bold,
                             color: isDark
@@ -243,42 +249,28 @@ class _SanteScreenState extends State<SanteScreen> {
                     ],
                   ),
                 ),
-                // Liste des tâches (MOCK DATA pour design)
-                if (pendingCount == 0) ...[
-                  _buildTaskItem(
-                    isDark: isDark,
-                    icon: Icons.vaccines,
-                    color: AppTheme.error,
-                    badge: 'TOMORROW',
-                    title: 'VHD Vaccination',
-                    subtitle: 'Rabbit Buck-042',
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const AlertesScreen(),
+                if (pendingCount == 0)
+                  Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.check_circle_rounded,
+                          color: AppTheme.primaryGreen,
                         ),
-                      );
-                    },
-                  ),
-                  _buildTaskDivider(isDark),
-                  _buildTaskItem(
-                    isDark: isDark,
-                    icon: Icons.healing,
-                    color: AppTheme.warning,
-                    badge: 'TODAY',
-                    title: 'Wound Check',
-                    subtitle: 'Doe-015',
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const AlertesScreen(),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            AppLocalizations.of(context).commonAucunRappel,
+                            style: AppTheme.bodyMedium.copyWith(
+                              color: AppTheme.textSecondary,
+                            ),
+                          ),
                         ),
-                      );
-                    },
-                  ),
-                ] else
+                      ],
+                    ),
+                  )
+                else
                   ...rappels.take(3).map((soin) {
                     return Column(
                       children: [
@@ -291,13 +283,19 @@ class _SanteScreenState extends State<SanteScreen> {
                           subtitle: soin.type,
                           onTap: () {
                             // Naviguer vers la fiche santé du lapin concerné
-                            final lapinProvider = Provider.of<LapinProvider>(context, listen: false);
-                            final lapin = lapinProvider.getLapinById(soin.lapinId);
+                            final lapinProvider = Provider.of<LapinProvider>(
+                              context,
+                              listen: false,
+                            );
+                            final lapin = lapinProvider.getLapinById(
+                              soin.lapinId,
+                            );
                             if (lapin != null) {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (_) => FicheSanteScreen(lapin: lapin),
+                                  builder: (_) =>
+                                      FicheSanteScreen(lapin: lapin),
                                 ),
                               );
                             }
@@ -344,7 +342,7 @@ class _SanteScreenState extends State<SanteScreen> {
               ),
               child: Icon(icon, color: color, size: 20),
             ),
-            const SizedBox(width: 16),
+            AppTheme.horizontalSpace16,
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -359,7 +357,7 @@ class _SanteScreenState extends State<SanteScreen> {
                           : AppTheme.textTertiary,
                     ),
                   ),
-                  const SizedBox(height: 2),
+                  AppTheme.verticalSpace4,
                   Text(
                     title,
                     style: AppTheme.titleSmall.copyWith(
@@ -439,7 +437,7 @@ class _SanteScreenState extends State<SanteScreen> {
                   Icons.monitor_weight,
                   color: AppTheme.accentCyan,
                 ),
-                title: const Text('Ajouter une pesée'),
+                title: Text(AppLocalizations.of(context).santeAjouterPesee),
                 onTap: () {
                   Navigator.pop(context);
                   _showRabbitSelectorForPesee();
@@ -450,7 +448,7 @@ class _SanteScreenState extends State<SanteScreen> {
                   Icons.medical_services,
                   color: AppTheme.neonGreen,
                 ),
-                title: const Text('Ajouter un soin'),
+                title: Text(AppLocalizations.of(context).santeAjouterSoin),
                 onTap: () {
                   Navigator.pop(context);
                   // Navigation vers ajout soin
@@ -458,7 +456,7 @@ class _SanteScreenState extends State<SanteScreen> {
               ),
               ListTile(
                 leading: const Icon(Icons.science, color: AppTheme.accentTeal),
-                title: const Text('Protocole de soins'),
+                title: Text(AppLocalizations.of(context).santeProtocoleSoins),
                 onTap: () {
                   Navigator.pop(context);
                   Navigator.push(
@@ -492,8 +490,8 @@ class _SanteScreenState extends State<SanteScreen> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                'Sélectionner un lapin',
+              Text(
+                AppLocalizations.of(context).santeSelectionnerLapin,
                 style: AppTheme.titleLarge,
               ),
               const SizedBox(height: 16),
@@ -545,8 +543,8 @@ class _SanteScreenState extends State<SanteScreen> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                'Peser un lapin',
+              Text(
+                AppLocalizations.of(context).labelPeserLapin,
                 style: AppTheme.titleLarge,
               ),
               const SizedBox(height: 16),
@@ -581,8 +579,10 @@ class _SanteScreenState extends State<SanteScreen> {
 
     if (lapinProvider.lapins.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Aucun lapin disponible'),
+        SnackBar(
+          content: Text(
+            AppLocalizations.of(context).commonAucunLapinDisponible,
+          ),
           backgroundColor: AppTheme.warning,
         ),
       );
@@ -640,8 +640,8 @@ class _SanteScreenState extends State<SanteScreen> {
 
     if (rappels.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Aucun rappel de soin en attente'),
+        SnackBar(
+          content: Text(AppLocalizations.of(context).commonAucunRappel),
           backgroundColor: AppTheme.success,
         ),
       );

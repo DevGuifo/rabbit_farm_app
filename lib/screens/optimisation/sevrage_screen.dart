@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:animate_do/animate_do.dart';
+import '../../l10n/app_localizations.dart';
 import '../../models/portee.dart';
 import '../../models/lapin.dart';
 import '../../models/accouplement.dart';
@@ -101,7 +102,10 @@ class _SevrageScreenState extends State<SevrageScreen> {
   }
 
   Widget _buildHeader(bool isDark) {
-    return StandardHeader(title: 'Sevrages', isDark: isDark);
+    return StandardHeader(
+      title: AppLocalizations.of(context).screenSevrages,
+      isDark: isDark,
+    );
   }
 
   Widget _buildStats(bool isDark) {
@@ -119,20 +123,20 @@ class _SevrageScreenState extends State<SevrageScreen> {
           Expanded(
             child: StatsCard(
               isDark: isDark,
-              label: 'Portées totales',
+              label: AppLocalizations.of(context).labelPorteesTotales,
               value: '${_porteesASevrer.length}',
               icon: Icons.pets,
-              color: Colors.blue,
+              color: AppTheme.info,
             ),
           ),
           const SizedBox(width: AppTheme.spacing12),
           Expanded(
             child: StatsCard(
               isDark: isDark,
-              label: 'Prêtes (35+ jours)',
+              label: AppLocalizations.of(context).labelPretes35Jours,
               value: '$porteesPretes',
               icon: Icons.check_circle,
-              color: Colors.green,
+              color: AppTheme.success,
             ),
           ),
         ],
@@ -175,7 +179,7 @@ class _SevrageScreenState extends State<SevrageScreen> {
   Widget _buildPorteeCard(Portee portee, Lapin mere, bool isDark) {
     final estPrete = portee.doitEtreSevres;
     final joursRestants = 35 - portee.ageEnJours;
-    final couleurStatut = estPrete ? Colors.green : Colors.orange;
+    final couleurStatut = estPrete ? AppTheme.success : AppTheme.warning;
 
     return Container(
       margin: const EdgeInsets.only(bottom: AppTheme.spacing16),
@@ -220,6 +224,7 @@ class _SevrageScreenState extends State<SevrageScreen> {
                               ? AppTheme.textLight
                               : AppTheme.textPrimary,
                         ),
+                        overflow: TextOverflow.ellipsis,
                       ),
                       Text(
                         'Mere: ${mere.nom}',
@@ -228,6 +233,7 @@ class _SevrageScreenState extends State<SevrageScreen> {
                               ? AppTheme.textLight.withValues(alpha: 0.7)
                               : AppTheme.textSecondary,
                         ),
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ],
                   ),
@@ -244,7 +250,7 @@ class _SevrageScreenState extends State<SevrageScreen> {
                   child: Text(
                     estPrete ? 'Prete' : '$joursRestants j',
                     style: AppTheme.caption.copyWith(
-                      color: Colors.white,
+                      color: AppTheme.textOnPrimary,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -322,7 +328,7 @@ class _SevrageScreenState extends State<SevrageScreen> {
                   label: const Text('Demarrer le sevrage'),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppTheme.primaryGreen,
-                    foregroundColor: Colors.white,
+                    foregroundColor: AppTheme.textOnPrimary,
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(
@@ -343,20 +349,14 @@ class _SevrageScreenState extends State<SevrageScreen> {
               ),
               child: Row(
                 children: [
-                  const Icon(
-                    Icons.info_outline,
-                    color: Colors.orange,
-                    size: 16,
-                  ),
+                  Icon(Icons.info_outline, color: AppTheme.warning, size: 16),
                   const SizedBox(width: AppTheme.spacing8),
                   Expanded(
                     child: Text(
                       estPrete
                           ? 'Prete a etre sevree'
                           : 'Sevrage recommande dans $joursRestants jour${joursRestants > 1 ? 's' : ''}',
-                      style: AppTheme.caption.copyWith(
-                        color: Colors.orange,
-                      ),
+                      style: AppTheme.caption.copyWith(color: AppTheme.warning),
                     ),
                   ),
                 ],
@@ -410,5 +410,4 @@ class _SevrageScreenState extends State<SevrageScreen> {
       }
     });
   }
-
 }

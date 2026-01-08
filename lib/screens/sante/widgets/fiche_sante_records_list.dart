@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import '../../../models/soin.dart';
 import '../../../models/pesee.dart';
 import 'package:rabbit_farm_app/theme/app_theme.dart';
+import '../../../l10n/app_localizations.dart';
 
 class FicheSanteRecordsList extends StatelessWidget {
   final List<Soin> soins;
@@ -47,7 +48,7 @@ class FicheSanteRecordsList extends StatelessWidget {
                 size: 64,
                 color: textSub.withValues(alpha: 0.5),
               ),
-              const SizedBox(height: 16),
+              AppTheme.verticalSpace16,
               Text(
                 'Aucun enregistrement',
                 style: TextStyle(color: textSub, fontSize: 16),
@@ -59,7 +60,7 @@ class FicheSanteRecordsList extends StatelessWidget {
     }
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      padding: AppTheme.paddingHorizontal,
       child: Column(
         children: filteredRecords.map((record) {
           if (record['type'] == 'soin') {
@@ -177,10 +178,10 @@ class _SoinCard extends StatelessWidget {
         opacity: opacity,
         child: Container(
           margin: const EdgeInsets.only(bottom: 16),
-          padding: const EdgeInsets.all(16),
+          padding: AppTheme.paddingAllMedium,
           decoration: BoxDecoration(
             color: surfaceColor,
-            borderRadius: BorderRadius.circular(24),
+            borderRadius: AppTheme.borderRadiusLarge,
             boxShadow: [
               BoxShadow(
                 color: AppTheme.backgroundDark.withValues(alpha: 0.03),
@@ -207,7 +208,7 @@ class _SoinCard extends StatelessWidget {
                     ),
                     child: Icon(typeIcon, color: typeColor, size: 24),
                   ),
-                  const SizedBox(width: 12),
+                  AppTheme.horizontalSpace12,
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -220,7 +221,7 @@ class _SoinCard extends StatelessWidget {
                             fontWeight: FontWeight.w500,
                           ),
                         ),
-                        const SizedBox(height: 4),
+                        AppTheme.verticalSpace4,
                         Text(
                           soin.description,
                           style: TextStyle(
@@ -239,7 +240,7 @@ class _SoinCard extends StatelessWidget {
                     ),
                     decoration: BoxDecoration(
                       color: typeColor.withValues(alpha: isDark ? 0.2 : 0.1),
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: AppTheme.borderRadiusSmall,
                     ),
                     child: Text(
                       typeLabel,
@@ -255,7 +256,7 @@ class _SoinCard extends StatelessWidget {
                 ],
               ),
               if (soin.notes != null && soin.notes!.isNotEmpty) ...[
-                const SizedBox(height: 12),
+                AppTheme.verticalSpace12,
                 Padding(
                   padding: const EdgeInsets.only(left: 52),
                   child: Text(
@@ -265,7 +266,7 @@ class _SoinCard extends StatelessWidget {
                 ),
               ],
               if (soin.type.toLowerCase() == 'vaccination') ...[
-                const SizedBox(height: 12),
+                AppTheme.verticalSpace12,
                 Padding(
                   padding: const EdgeInsets.only(left: 52),
                   child: Row(
@@ -275,9 +276,9 @@ class _SoinCard extends StatelessWidget {
                         color: AppTheme.primaryGreen,
                         size: 18,
                       ),
-                      const SizedBox(width: 6),
+                      AppTheme.horizontalSpace4,
                       Text(
-                        'Completed Successfully',
+                        'Terminé avec succès',
                         style: TextStyle(
                           color: AppTheme.primaryGreen,
                           fontSize: 12,
@@ -330,7 +331,7 @@ class _SoinCard extends StatelessWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Fermer'),
+            child: Text(AppLocalizations.of(context).btnFermer),
           ),
         ],
       ),
@@ -370,7 +371,7 @@ class _SoinCard extends StatelessWidget {
             if (onEdit != null)
               ListTile(
                 leading: const Icon(Icons.edit, color: AppTheme.info),
-                title: const Text('Éditer'),
+                title: Text(AppLocalizations.of(context).titleEditer),
                 onTap: () {
                   Navigator.pop(context);
                   onEdit!(soin);
@@ -379,7 +380,7 @@ class _SoinCard extends StatelessWidget {
             if (onDelete != null)
               ListTile(
                 leading: const Icon(Icons.delete, color: AppTheme.error),
-                title: const Text('Supprimer'),
+                title: Text(AppLocalizations.of(context).commonDelete),
                 onTap: () {
                   Navigator.pop(context);
                   onDelete!(soin);
@@ -430,13 +431,13 @@ class _PeseeCard extends StatelessWidget {
       onLongPress: () => _showPeseeActions(context),
       child: Container(
         margin: const EdgeInsets.only(bottom: 16),
-        padding: const EdgeInsets.all(16),
+        padding: AppTheme.paddingAllMedium,
         decoration: BoxDecoration(
           color: surfaceColor,
-          borderRadius: BorderRadius.circular(24),
+          borderRadius: AppTheme.borderRadiusLarge,
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.03),
+              color: AppTheme.textPrimary.withValues(alpha: 0.03),
               blurRadius: 4,
               offset: const Offset(0, 1),
             ),
@@ -466,7 +467,7 @@ class _PeseeCard extends StatelessWidget {
                     size: 24,
                   ),
                 ),
-                const SizedBox(width: 12),
+                AppTheme.horizontalSpace12,
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -479,7 +480,7 @@ class _PeseeCard extends StatelessWidget {
                           fontWeight: FontWeight.w500,
                         ),
                       ),
-                      const SizedBox(height: 4),
+                      AppTheme.verticalSpace4,
                       const Text(
                         'Routine Weigh-in',
                         style: AppTheme.titleSmall,
@@ -496,7 +497,7 @@ class _PeseeCard extends StatelessWidget {
                     color: AppTheme.warning.withValues(
                       alpha: isDark ? 0.2 : 0.1,
                     ),
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: AppTheme.borderRadiusSmall,
                   ),
                   child: Text(
                     'Weight',
@@ -584,7 +585,7 @@ class _PeseeCard extends StatelessWidget {
             if (onEdit != null)
               ListTile(
                 leading: const Icon(Icons.edit, color: AppTheme.info),
-                title: const Text('Éditer'),
+                title: Text(AppLocalizations.of(context).titleEditer),
                 onTap: () {
                   Navigator.pop(context);
                   onEdit!(pesee);
@@ -593,7 +594,7 @@ class _PeseeCard extends StatelessWidget {
             if (onDelete != null)
               ListTile(
                 leading: const Icon(Icons.delete, color: AppTheme.error),
-                title: const Text('Supprimer'),
+                title: Text(AppLocalizations.of(context).commonDelete),
                 onTap: () {
                   Navigator.pop(context);
                   onDelete!(pesee);

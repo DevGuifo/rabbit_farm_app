@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../theme/app_theme.dart';
 
 /// Widget pour les boutons de connexion sociale (Google, Apple)
 class AuthSocialButtons extends StatelessWidget {
@@ -25,10 +26,12 @@ class AuthSocialButtons extends StatelessWidget {
             Expanded(
               child: Container(
                 height: 1,
-                color: isDark ? const Color(0xFF2a4e2d) : const Color(0xFFdbe6dc),
+                color: isDark
+                    ? AppTheme.stitchSurfaceDarkElevated
+                    : AppTheme.stitchSurfaceLightCard,
               ),
             ),
-              Padding(
+            Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Text(
                 isSignUp ? 'OR JOIN WITH' : 'OR CONTINUE WITH',
@@ -36,14 +39,16 @@ class AuthSocialButtons extends StatelessWidget {
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
                   letterSpacing: 1.2,
-                  color: Colors.grey.shade400,
+                  color: AppTheme.neutral400,
                 ),
               ),
             ),
             Expanded(
               child: Container(
                 height: 1,
-                color: isDark ? const Color(0xFF2a4e2d) : const Color(0xFFdbe6dc),
+                color: isDark
+                    ? AppTheme.stitchSurfaceDarkElevated
+                    : AppTheme.stitchSurfaceLightCard,
               ),
             ),
           ],
@@ -70,7 +75,7 @@ class AuthSocialButtons extends StatelessWidget {
                 icon: Icon(
                   Icons.apple,
                   size: 20,
-                  color: isDark ? Colors.white : Colors.black,
+                  color: isDark ? AppTheme.textOnPrimary : AppTheme.textPrimary,
                 ),
                 isDark: isDark,
                 onPressed: onApplePressed,
@@ -93,10 +98,10 @@ class AuthSocialButtons extends StatelessWidget {
       child: Container(
         height: 48,
         decoration: BoxDecoration(
-          color: isDark ? const Color(0xFF1a2e1c) : Colors.white,
+          color: isDark ? AppTheme.surfaceDarkForest : AppTheme.textOnPrimary,
           borderRadius: BorderRadius.circular(8),
           border: Border.all(
-            color: isDark ? const Color(0xFF2a4e2d) : const Color(0xFFdbe6dc),
+            color: isDark ? AppTheme.stitchSurfaceDarkElevated : AppTheme.stitchSurfaceLightCard,
           ),
         ),
         child: Row(
@@ -109,7 +114,9 @@ class AuthSocialButtons extends StatelessWidget {
               style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
-                color: isDark ? Colors.white : const Color(0xFF111812),
+                color: isDark
+                    ? AppTheme.textOnPrimary
+                    : AppTheme.stitchTextDark,
               ),
             ),
           ],
@@ -124,7 +131,7 @@ class AuthSocialButtons extends StatelessWidget {
       width: 20,
       height: 20,
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppTheme.textOnPrimary,
         shape: BoxShape.circle,
       ),
       child: Center(
@@ -133,11 +140,10 @@ class AuthSocialButtons extends StatelessWidget {
           style: TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.bold,
-            color: Colors.grey.shade700,
+            color: AppTheme.neutral700,
           ),
         ),
       ),
     );
   }
 }
-

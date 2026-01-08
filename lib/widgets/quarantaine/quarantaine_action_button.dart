@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../l10n/app_localizations.dart';
 import '../../models/lapin.dart';
 import 'quarantaine_quick_dialog.dart';
 import 'package:rabbit_farm_app/theme/app_theme.dart';
@@ -30,14 +31,14 @@ class QuarantaineActionButton extends StatelessWidget {
           color: iconColor ?? AppTheme.warning,
         ),
         onPressed: () => _showQuarantaineDialog(context),
-        tooltip: 'Mettre en quarantaine',
+        tooltip: AppLocalizations.of(context).quarantaineMettreEnQuarantaine,
       );
     }
 
     return ElevatedButton.icon(
       onPressed: () => _showQuarantaineDialog(context),
       icon: const Icon(Icons.health_and_safety),
-      label: const Text('Quarantaine'),
+      label: Text(AppLocalizations.of(context).quarantaineBoutonQuarantaine),
       style:
           style ??
           ElevatedButton.styleFrom(
@@ -71,7 +72,7 @@ class QuarantaineMenuButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListTile(
       leading: const Icon(Icons.health_and_safety, color: AppTheme.warning),
-      title: const Text('Mettre en quarantaine'),
+      title: Text(AppLocalizations.of(context).quarantaineMettreEnQuarantaine),
       onTap: () async {
         Navigator.pop(context); // Fermer le menu
         final result = await showDialog<bool>(

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:rabbit_farm_app/theme/app_theme.dart';
+import 'package:rabbit_farm_app/l10n/app_localizations.dart';
 
 /// Filtres de type (All Items, Treatments, Care Routine, Vaccines)
 /// Design: Tabs horizontaux avec underline Stitch
@@ -23,6 +24,7 @@ class TreatmentsFilterTabs extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 8),
       decoration: BoxDecoration(
@@ -39,13 +41,13 @@ class TreatmentsFilterTabs extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 16),
         child: Row(
           children: [
-            _buildFilterTab('All Items', 'all'),
+            _buildFilterTab(l10n.filtreTous, 'all'),
             const SizedBox(width: 24),
-            _buildFilterTab('Treatments', 'treatments'),
+            _buildFilterTab(l10n.filtreTraitements, 'treatments'),
             const SizedBox(width: 24),
-            _buildFilterTab('Care Routine', 'care'),
+            _buildFilterTab(l10n.filtreRoutineSoins, 'care'),
             const SizedBox(width: 24),
-            _buildFilterTab('Vaccines', 'vaccines'),
+            _buildFilterTab(l10n.filtreVaccins, 'vaccines'),
           ],
         ),
       ),

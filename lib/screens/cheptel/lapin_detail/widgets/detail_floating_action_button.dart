@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../constants/stitch_theme_constants.dart';
+import '../../../../theme/app_theme.dart';
 
 /// Floating Action Button pour l'édition (Stitch Design)
 class DetailFloatingActionButton extends StatelessWidget {
@@ -9,16 +9,16 @@ class DetailFloatingActionButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final surfaceColor = StitchTheme.getSurfaceColor(context);
+    final surfaceColor = AppTheme.getSurfaceColor(context);
 
     return Container(
       width: 64,
       height: 64,
       decoration: BoxDecoration(
-        color: StitchTheme.primaryYellow,
+        color: AppTheme.primaryYellow,
         shape: BoxShape.circle,
         border: Border.all(color: surfaceColor, width: 4),
-        boxShadow: StitchTheme.fabShadow(StitchTheme.primaryYellow),
+        boxShadow: AppTheme.fabShadow(AppTheme.primaryYellow),
       ),
       child: Material(
         color: Colors.transparent,
@@ -26,7 +26,7 @@ class DetailFloatingActionButton extends StatelessWidget {
           onTap: onPressed,
           customBorder: const CircleBorder(),
           child: const Center(
-            child: Icon(Icons.edit, color: Colors.black, size: 28),
+            child: Icon(Icons.edit, color: AppTheme.textPrimary, size: 28),
           ),
         ),
       ),

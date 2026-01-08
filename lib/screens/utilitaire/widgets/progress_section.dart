@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:rabbit_farm_app/theme/app_theme.dart';
 
 class ProgressSection extends StatelessWidget {
   final bool isExporting;
@@ -21,7 +22,7 @@ class ProgressSection extends StatelessWidget {
             const SizedBox(height: 12),
             Text(
               isExporting ? 'Export en cours...' : 'Import en cours...',
-              style: TextStyle(color: Colors.grey[600]),
+              style: TextStyle(color: AppTheme.textSecondary),
             ),
           ],
         ),

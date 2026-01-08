@@ -4,6 +4,7 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 import 'package:intl/intl.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../../providers/lapin_provider.dart';
 import '../../../../providers/reproduction_provider.dart';
 import '../../../../providers/finance_provider.dart';
@@ -29,7 +30,7 @@ class _BilanMensuelRapportState extends State<BilanMensuelRapport> {
           padding: const EdgeInsets.all(16),
           children: [
             Text(
-              'Bilan mensuel complet',
+              AppLocalizations.of(context).titleMonthlyReport,
               style: AppTheme.headingMedium.copyWith(
                 fontWeight: FontWeight.bold,
               ),
@@ -41,10 +42,9 @@ class _BilanMensuelRapportState extends State<BilanMensuelRapport> {
               children: [
                 Expanded(
                   child: DropdownButtonFormField<int>(
-                    initialValue:  _moisSelectionne,
-                    decoration: const InputDecoration(
-                      labelText: 'Mois',
-                      border: OutlineInputBorder(),
+                    initialValue: _moisSelectionne,
+                    decoration: AppTheme.inputDecoration(
+                      label: AppLocalizations.of(context).labelMonth,
                     ),
                     items: List.generate(12, (i) => i + 1).map((m) {
                       return DropdownMenuItem(
@@ -64,10 +64,9 @@ class _BilanMensuelRapportState extends State<BilanMensuelRapport> {
                 const SizedBox(width: 12),
                 Expanded(
                   child: DropdownButtonFormField<int>(
-                    initialValue:  _anneeSelectionnee,
-                    decoration: const InputDecoration(
-                      labelText: 'Année',
-                      border: OutlineInputBorder(),
+                    initialValue: _anneeSelectionnee,
+                    decoration: AppTheme.inputDecoration(
+                      label: AppLocalizations.of(context).labelYear,
                     ),
                     items: List.generate(5, (i) => DateTime.now().year - i).map(
                       (y) {
@@ -91,13 +90,16 @@ class _BilanMensuelRapportState extends State<BilanMensuelRapport> {
             // Bouton
             SizedBox(
               width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: () => _genererPDF(context),
-                icon: const Icon(Icons.picture_as_pdf_rounded),
-                label: const Text('Générer le PDF'),
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                ),
+              child: Builder(
+                builder: (context) {
+                  final l10n = AppLocalizations.of(context);
+                  return ElevatedButton.icon(
+                    onPressed: () => _genererPDF(context),
+                    icon: const Icon(Icons.picture_as_pdf_rounded),
+                    label: Text(l10n.genererPdf),
+                    style: AppTheme.primaryButtonStyle,
+                  );
+                },
               ),
             ),
           ],
@@ -129,9 +131,9 @@ class _BilanMensuelRapportState extends State<BilanMensuelRapport> {
       onLayout: (PdfPageFormat format) async => pdf.save(),
     );
     if (context.mounted) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Bilan généré')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(AppLocalizations.of(context).msgBilanGenere)),
+      );
     }
   }
 }

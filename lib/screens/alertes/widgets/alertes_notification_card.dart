@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:rabbit_farm_app/l10n/app_localizations.dart';
 import '../../../models/alerte.dart';
 import 'package:rabbit_farm_app/theme/app_theme.dart';
 
@@ -102,7 +103,9 @@ class AlertesNotificationCard extends StatelessWidget {
     final surfaceDimColor = isDark
         ? AppTheme.cardDark
         : AppTheme.backgroundLight;
-    final shadowColor = isDark ? Colors.black45 : Colors.black12;
+    final shadowColor = isDark
+        ? AppTheme.textPrimary45
+        : AppTheme.textPrimary12;
 
     // État "read" : fond dim + opacité réduite
     if (!isUnread) {
@@ -182,7 +185,7 @@ class AlertesNotificationCard extends StatelessWidget {
 
   Color _getIconBackgroundColor(TypeAlerte type, bool isDark, bool isUnread) {
     if (!isUnread) {
-      return isDark ? Colors.grey.shade800 : Colors.grey.shade100;
+      return isDark ? AppTheme.neutral800 : AppTheme.neutral100;
     }
 
     switch (type) {
@@ -203,15 +206,15 @@ class AlertesNotificationCard extends StatelessWidget {
             : AppTheme.warning.withValues(alpha: 0.1);
       case TypeAlerte.stockFaible:
       case TypeAlerte.peremption:
-        return isDark ? Colors.grey.shade800 : Colors.grey.shade100;
+        return isDark ? AppTheme.neutral800 : AppTheme.neutral100;
       default:
-        return isDark ? Colors.grey.shade800 : Colors.grey.shade100;
+        return isDark ? AppTheme.neutral800 : AppTheme.neutral100;
     }
   }
 
   Color _getIconColor(TypeAlerte type, bool isDark, bool isUnread) {
     if (!isUnread) {
-      return isDark ? Colors.grey.shade400 : Colors.grey.shade500;
+      return isDark ? AppTheme.neutral400 : AppTheme.neutral500;
     }
 
     switch (type) {
@@ -229,7 +232,7 @@ class AlertesNotificationCard extends StatelessWidget {
             ? AppTheme.warning.withValues(alpha: 0.8)
             : AppTheme.warning;
       default:
-        return isDark ? Colors.grey.shade400 : Colors.grey.shade600;
+        return isDark ? AppTheme.neutral400 : AppTheme.neutral600;
     }
   }
 
@@ -307,13 +310,13 @@ class AlertesNotificationCard extends StatelessWidget {
                 height: 4,
                 margin: const EdgeInsets.only(bottom: 20),
                 decoration: BoxDecoration(
-                  color: Colors.grey.shade400,
+                  color: AppTheme.neutral400,
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
               ListTile(
                 leading: const Icon(Icons.delete, color: AppTheme.error),
-                title: const Text('Supprimer'),
+                title: Text(AppLocalizations.of(context).titleSupprimer),
                 onTap: () {
                   Navigator.pop(context);
                   if (onDelete != null) onDelete!();

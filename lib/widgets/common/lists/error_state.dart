@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../theme/app_theme.dart';
 
 /// État d'erreur standardisé avec bouton de retry
-/// 
+///
 /// Usage:
 /// ```dart
 /// ErrorState(
@@ -36,7 +37,7 @@ class ErrorState extends StatelessWidget {
           ),
           const SizedBox(height: AppTheme.spacing16),
           Text(
-            'Erreur',
+            AppLocalizations.of(context).widgetErreur,
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w600,
@@ -60,7 +61,7 @@ class ErrorState extends StatelessWidget {
             ElevatedButton.icon(
               onPressed: onRetry,
               icon: const Icon(Icons.refresh),
-              label: const Text('Réessayer'),
+              label: Text(AppLocalizations.of(context).widgetReessayer),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppTheme.primaryGreen,
                 foregroundColor: AppTheme.textOnPrimary,
@@ -72,4 +73,3 @@ class ErrorState extends StatelessWidget {
     );
   }
 }
-

@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../l10n/app_localizations.dart';
 import '../../models/aliment.dart';
 import '../../providers/alimentation_provider.dart';
 import '../../theme/app_theme.dart';
+import '../../widgets/uniform_app_bar.dart';
 
 /// Écran pour ajouter un nouvel aliment
 class AjouterAlimentScreen extends StatefulWidget {
@@ -104,7 +106,7 @@ class _AjouterAlimentScreenState extends State<AjouterAlimentScreen> {
       if (result != null) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Text('Aliment ajouté avec succès'),
+            content: Text(AppLocalizations.of(context).alimentAjouteSucces),
             backgroundColor: AppTheme.success,
           ),
         );
@@ -115,7 +117,12 @@ class _AjouterAlimentScreenState extends State<AjouterAlimentScreen> {
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erreur: $e'), backgroundColor: AppTheme.error),
+        SnackBar(
+          content: Text(
+            AppLocalizations.of(context).msgErrorPrefix(e.toString()),
+          ),
+          backgroundColor: AppTheme.error,
+        ),
       );
     } finally {
       if (mounted) {
@@ -131,9 +138,10 @@ class _AjouterAlimentScreenState extends State<AjouterAlimentScreen> {
     final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Ajouter un aliment'),
-        backgroundColor: theme.colorScheme.surface,
+      appBar: UniformAppBar(
+        title: AppLocalizations.of(context).screenAjouterAliment,
+        icon: Icons.add_circle_rounded,
+        iconColor: AppTheme.primaryGreen,
       ),
       backgroundColor: theme.colorScheme.surface,
       body: SingleChildScrollView(
@@ -146,9 +154,9 @@ class _AjouterAlimentScreenState extends State<AjouterAlimentScreen> {
               // Nom
               TextFormField(
                 controller: _nomController,
-                decoration: const InputDecoration(
-                  labelText: 'Nom de l\'aliment *',
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  labelText: AppLocalizations.of(context).labelNomAliment,
+                  border: const OutlineInputBorder(),
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -162,9 +170,9 @@ class _AjouterAlimentScreenState extends State<AjouterAlimentScreen> {
               // Type
               DropdownButtonFormField<String>(
                 initialValue: _type,
-                decoration: const InputDecoration(
-                  labelText: 'Type *',
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  labelText: AppLocalizations.of(context).labelType,
+                  border: const OutlineInputBorder(),
                 ),
                 items: TypeAliment.values.map((type) {
                   return DropdownMenuItem(
@@ -185,9 +193,9 @@ class _AjouterAlimentScreenState extends State<AjouterAlimentScreen> {
               // Marque
               TextFormField(
                 controller: _marqueController,
-                decoration: const InputDecoration(
-                  labelText: 'Marque (optionnel)',
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  labelText: AppLocalizations.of(context).labelMarque,
+                  border: const OutlineInputBorder(),
                 ),
               ),
               const SizedBox(height: 16),
@@ -195,10 +203,10 @@ class _AjouterAlimentScreenState extends State<AjouterAlimentScreen> {
               // Conditionnement
               TextFormField(
                 controller: _conditionnementController,
-                decoration: const InputDecoration(
-                  labelText: 'Conditionnement *',
-                  hintText: 'Ex: Sac 25kg, vrac',
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  labelText: AppLocalizations.of(context).labelConditionnement,
+                  hintText: AppLocalizations.of(context).hintExSac25kg,
+                  border: const OutlineInputBorder(),
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -212,9 +220,9 @@ class _AjouterAlimentScreenState extends State<AjouterAlimentScreen> {
               // Quantité
               TextFormField(
                 controller: _quantiteController,
-                decoration: const InputDecoration(
-                  labelText: 'Quantité (kg) *',
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  labelText: AppLocalizations.of(context).labelQuantiteKg,
+                  border: const OutlineInputBorder(),
                   suffixText: 'kg',
                 ),
                 keyboardType: const TextInputType.numberWithOptions(
@@ -235,9 +243,9 @@ class _AjouterAlimentScreenState extends State<AjouterAlimentScreen> {
               // Prix unitaire
               TextFormField(
                 controller: _prixUnitaireController,
-                decoration: const InputDecoration(
-                  labelText: 'Prix unitaire (€/kg) *',
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  labelText: AppLocalizations.of(context).labelPrixUnitaire,
+                  border: const OutlineInputBorder(),
                   suffixText: '€/kg',
                 ),
                 keyboardType: const TextInputType.numberWithOptions(
@@ -259,9 +267,9 @@ class _AjouterAlimentScreenState extends State<AjouterAlimentScreen> {
               InkWell(
                 onTap: _selectDateAchat,
                 child: InputDecorator(
-                  decoration: const InputDecoration(
-                    labelText: 'Date d\'achat',
-                    border: OutlineInputBorder(),
+                  decoration: InputDecoration(
+                    labelText: AppLocalizations.of(context).labelDateAchat,
+                    border: const OutlineInputBorder(),
                   ),
                   child: Row(
                     children: [
@@ -280,9 +288,9 @@ class _AjouterAlimentScreenState extends State<AjouterAlimentScreen> {
               InkWell(
                 onTap: _selectDatePeremption,
                 child: InputDecorator(
-                  decoration: const InputDecoration(
-                    labelText: 'Date de péremption (optionnel)',
-                    border: OutlineInputBorder(),
+                  decoration: InputDecoration(
+                    labelText: AppLocalizations.of(context).labelDatePeremption,
+                    border: const OutlineInputBorder(),
                   ),
                   child: Row(
                     children: [
@@ -304,11 +312,7 @@ class _AjouterAlimentScreenState extends State<AjouterAlimentScreen> {
                 width: double.infinity,
                 child: ElevatedButton(
                   onPressed: _isSubmitting ? null : _ajouterAliment,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppTheme.primaryGreen,
-                    foregroundColor: AppTheme.textLight,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                  ),
+                  style: AppTheme.primaryButtonStyle,
                   child: _isSubmitting
                       ? SizedBox(
                           height: 20,

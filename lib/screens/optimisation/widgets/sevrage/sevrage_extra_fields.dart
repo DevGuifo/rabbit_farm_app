@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:rabbit_farm_app/theme/app_theme.dart';
+import 'package:rabbit_farm_app/l10n/app_localizations.dart';
 
 class SevrageExtraFields extends StatelessWidget {
   final TextEditingController observationsController;
@@ -16,12 +17,12 @@ class SevrageExtraFields extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppTheme.textOnPrimary,
         borderRadius: BorderRadius.circular(8),
         border: Border.all(color: AppTheme.border),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
+            color: AppTheme.textPrimary.withValues(alpha: 0.04),
             blurRadius: 4,
             offset: const Offset(0, 1),
           ),
@@ -43,7 +44,9 @@ class SevrageExtraFields extends StatelessWidget {
             controller: observationsController,
             maxLines: 3,
             decoration: InputDecoration(
-              labelText: 'Observations',
+              labelText: AppLocalizations.of(
+                context,
+              ).optimisationFormObservations,
               hintText: 'État de santé, comportement...',
               prefixIcon: Icon(Icons.notes, color: AppTheme.textSecondary),
               border: OutlineInputBorder(),
@@ -57,7 +60,9 @@ class SevrageExtraFields extends StatelessWidget {
             controller: alimentationController,
             maxLines: 2,
             decoration: InputDecoration(
-              labelText: 'Alimentation post-sevrage',
+              labelText: AppLocalizations.of(
+                context,
+              ).optimisationFormAlimentationPost,
               hintText: 'Granulés, foin, légumes...',
               prefixIcon: Icon(Icons.restaurant, color: AppTheme.textSecondary),
               border: OutlineInputBorder(),

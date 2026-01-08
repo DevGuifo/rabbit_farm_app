@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../l10n/app_localizations.dart';
 import '../../models/lapin.dart';
 import '../../providers/sante_provider.dart';
 import '../../providers/lapin_provider.dart';
@@ -84,7 +85,7 @@ class _TreatmentsCareScreenState extends State<TreatmentsCareScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const SizedBox(height: 16),
+                  AppTheme.verticalSpace16,
                   TreatmentsStatsCards(
                     selectedTab: _selectedTab,
                     onTabChanged: (tab) => setState(() => _selectedTab = tab),
@@ -94,7 +95,7 @@ class _TreatmentsCareScreenState extends State<TreatmentsCareScreen> {
                     textPrimary: textPrimary,
                     textSecondary: textSecondary,
                   ),
-                  const SizedBox(height: 16),
+                  AppTheme.verticalSpace16,
                   TreatmentsSearchBar(
                     controller: _searchController,
                     isDark: isDark,
@@ -102,7 +103,7 @@ class _TreatmentsCareScreenState extends State<TreatmentsCareScreen> {
                     textPrimary: textPrimary,
                     textSecondary: textSecondary,
                   ),
-                  const SizedBox(height: 12),
+                  AppTheme.verticalSpace12,
                   TreatmentsFilterTabs(
                     selectedFilter: _selectedFilter,
                     onFilterChanged: (filter) =>
@@ -112,7 +113,7 @@ class _TreatmentsCareScreenState extends State<TreatmentsCareScreen> {
                     textPrimary: textPrimary,
                     textSecondary: textSecondary,
                   ),
-                  const SizedBox(height: 24),
+                  AppTheme.verticalSpace24,
                   _buildContent(
                     isDark,
                     surfaceColor,
@@ -189,10 +190,8 @@ class _TreatmentsCareScreenState extends State<TreatmentsCareScreen> {
           elevation: 8,
           icon: Icon(Icons.add, color: primaryColor, size: 26),
           label: Text(
-            'New Treatment',
-            style: AppTheme.titleSmall.copyWith(
-              color: primaryColor,
-            ),
+            AppLocalizations.of(context).santeNewTreatment,
+            style: AppTheme.titleSmall.copyWith(color: primaryColor),
           ),
         );
       },
@@ -218,16 +217,16 @@ class _TreatmentsCareScreenState extends State<TreatmentsCareScreen> {
               width: 40,
               height: 4,
               decoration: BoxDecoration(
-                color: Colors.grey.withValues(alpha: 0.3),
+                color: AppTheme.neutral500.withValues(alpha: 0.3),
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
             Padding(
               padding: const EdgeInsets.all(20),
               child: Text(
-                'Select Rabbit',
+                AppLocalizations.of(context).santeSelectRabbit,
                 style: AppTheme.titleMedium.copyWith(
-                  color: isDark ? AppTheme.cardLight : Colors.black,
+                  color: isDark ? AppTheme.cardLight : AppTheme.textPrimary,
                 ),
               ),
             ),

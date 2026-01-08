@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../models/accouplement.dart';
 import '../../../models/lapin.dart';
 import '../../../models/portee.dart';
@@ -45,11 +46,13 @@ class ReproductionPairingCard extends StatelessWidget {
           border: Border.all(
             color: isDark
                 ? AppTheme.cardLight.withValues(alpha: 0.1)
-                : Colors.black.withValues(alpha: 0.08),
+                : AppTheme.textPrimary.withValues(alpha: 0.08),
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: isDark ? 0.15 : 0.08),
+              color: AppTheme.textPrimary.withValues(
+                alpha: isDark ? 0.15 : 0.08,
+              ),
               blurRadius: 8,
               offset: const Offset(0, 2),
             ),
@@ -62,7 +65,7 @@ class ReproductionPairingCard extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                _buildStatusBadge(),
+                _buildStatusBadge(context),
                 Text(
                   DateFormat('dd MMM yyyy').format(pairing.dateAccouplement),
                   style: AppTheme.caption.copyWith(
@@ -81,7 +84,7 @@ class ReproductionPairingCard extends StatelessWidget {
                 Expanded(
                   child: _buildLapinInfo(
                     icon: Icons.female,
-                    name: femelle?.nom ?? 'Doe #${pairing.femelleId}',
+                    name: femelle?.nom ?? 'Femelle #${pairing.femelleId}',
                     race: femelle?.race ?? '?',
                     color: AppTheme.accentPink,
                   ),
@@ -97,7 +100,7 @@ class ReproductionPairingCard extends StatelessWidget {
                 Expanded(
                   child: _buildLapinInfo(
                     icon: Icons.male,
-                    name: male?.nom ?? 'Buck #${pairing.maleId}',
+                    name: male?.nom ?? 'Mâle #${pairing.maleId}',
                     race: male?.race ?? '?',
                     color: AppTheme.info,
                   ),
@@ -128,7 +131,7 @@ class ReproductionPairingCard extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Expected Kidding',
+                          'Mise bas prévue',
                           style: AppTheme.caption.copyWith(
                             fontWeight: FontWeight.w600,
                             color: isDark
@@ -171,7 +174,7 @@ class ReproductionPairingCard extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 12),
-            
+
             // Boutons d'action rapides
             _buildActionButtons(context),
           ],
@@ -179,12 +182,19 @@ class ReproductionPairingCard extends StatelessWidget {
       ),
     );
   }
-  
+
   Widget _buildActionButtons(BuildContext context) {
-    final joursDepuisAccouplement = DateTime.now().difference(pairing.dateAccouplement).inDays;
-    final joursAvantMiseBas = pairing.dateMiseBasPrevue.difference(DateTime.now()).inDays;
-    final reproductionProvider = Provider.of<ReproductionProvider>(context, listen: false);
-    
+    final joursDepuisAccouplement = DateTime.now()
+        .difference(pairing.dateAccouplement)
+        .inDays;
+    final joursAvantMiseBas = pairing.dateMiseBasPrevue
+        .difference(DateTime.now())
+        .inDays;
+    final reproductionProvider = Provider.of<ReproductionProvider>(
+      context,
+      listen: false,
+    );
+
     // Vérifier si une portée existe
     Portee? portee;
     try {
@@ -194,9 +204,9 @@ class ReproductionPairingCard extends StatelessWidget {
     } catch (e) {
       portee = null;
     }
-    
+
     final List<Widget> actions = [];
-    
+
     // Bouton Confirmer (si en attente)
     if (pairing.statut == 'en_attente') {
       actions.add(
@@ -204,96 +214,111 @@ class ReproductionPairingCard extends StatelessWidget {
           child: ElevatedButton.icon(
             onPressed: () => _confirmerAccouplement(context),
             icon: const Icon(Icons.check_circle, size: 18),
-            label: const Text('Confirmer', style: TextStyle(fontSize: 12)),
+            label: Text(
+              AppLocalizations.of(context).reproductionConfirmer,
+              style: const TextStyle(fontSize: 12),
+            ),
             style: ElevatedButton.styleFrom(
               backgroundColor: AppTheme.primaryNeonGreen,
-              foregroundColor: Colors.white,
+              foregroundColor: AppTheme.textOnPrimary,
               padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
             ),
           ),
         ),
       );
     }
-    
+
     // Bouton Palper (si en attente et entre 10-14 jours)
-    if (pairing.statut == 'en_attente' && joursDepuisAccouplement >= 10 && joursDepuisAccouplement <= 14) {
-      actions.add(
-        const SizedBox(width: 8),
-      );
+    if (pairing.statut == 'en_attente' &&
+        joursDepuisAccouplement >= 10 &&
+        joursDepuisAccouplement <= 14) {
+      actions.add(const SizedBox(width: 8));
       actions.add(
         Expanded(
           child: ElevatedButton.icon(
             onPressed: () => _palper(context),
             icon: const Icon(Icons.healing, size: 18),
-            label: const Text('Palper', style: TextStyle(fontSize: 12)),
+            label: Text(
+              AppLocalizations.of(context).labelPalper,
+              style: AppTheme.bodySmall,
+            ),
             style: ElevatedButton.styleFrom(
               backgroundColor: AppTheme.warning,
-              foregroundColor: Colors.white,
+              foregroundColor: AppTheme.textOnPrimary,
               padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
             ),
           ),
         ),
       );
     }
-    
+
     // Bouton Préparer le nid (si confirmé et proche de la mise bas)
-    if (pairing.statut == 'confirme' && joursAvantMiseBas <= 3 && joursAvantMiseBas >= 0) {
-      actions.add(
-        const SizedBox(width: 8),
-      );
+    if (pairing.statut == 'confirme' &&
+        joursAvantMiseBas <= 3 &&
+        joursAvantMiseBas >= 0) {
+      actions.add(const SizedBox(width: 8));
       actions.add(
         Expanded(
           child: ElevatedButton.icon(
             onPressed: () => _preparerNid(context),
             icon: const Icon(Icons.home_work, size: 18),
-            label: const Text('Nid', style: TextStyle(fontSize: 12)),
+            label: Text(
+              AppLocalizations.of(context).labelNid,
+              style: AppTheme.bodySmall,
+            ),
             style: ElevatedButton.styleFrom(
               backgroundColor: AppTheme.info,
-              foregroundColor: Colors.white,
+              foregroundColor: AppTheme.textOnPrimary,
               padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
             ),
           ),
         ),
       );
     }
-    
+
     // Bouton Enregistrer portée (si confirmé et après la date de mise bas)
-    if (pairing.statut == 'confirme' && joursAvantMiseBas < 0 && portee == null) {
-      actions.add(
-        const SizedBox(width: 8),
-      );
+    if (pairing.statut == 'confirme' &&
+        joursAvantMiseBas < 0 &&
+        portee == null) {
+      actions.add(const SizedBox(width: 8));
       actions.add(
         Expanded(
           child: ElevatedButton.icon(
             onPressed: () => _enregistrerPortee(context),
             icon: const Icon(Icons.child_care, size: 18),
-            label: const Text('Portée', style: TextStyle(fontSize: 12)),
+            label: Text(
+              AppLocalizations.of(context).labelPortee,
+              style: AppTheme.bodySmall,
+            ),
             style: ElevatedButton.styleFrom(
               backgroundColor: AppTheme.accentPink,
-              foregroundColor: Colors.white,
+              foregroundColor: AppTheme.textOnPrimary,
               padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
             ),
           ),
         ),
       );
     }
-    
+
     // Bouton Sevrer (si terminé et portée existe)
     if (pairing.statut == 'termine' && portee != null) {
-      final ageEnJours = DateTime.now().difference(portee.dateMiseBasReelle).inDays;
+      final ageEnJours = DateTime.now()
+          .difference(portee.dateMiseBasReelle)
+          .inDays;
       if (ageEnJours >= 28 && ageEnJours <= 56) {
-        actions.add(
-          const SizedBox(width: 8),
-        );
+        actions.add(const SizedBox(width: 8));
         actions.add(
           Expanded(
             child: ElevatedButton.icon(
               onPressed: () => _sevrer(context),
               icon: const Icon(Icons.pets, size: 18),
-              label: const Text('Sevrer', style: TextStyle(fontSize: 12)),
+              label: Text(
+                AppLocalizations.of(context).labelSevrer,
+                style: AppTheme.bodySmall,
+              ),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppTheme.warning,
-                foregroundColor: Colors.white,
+                foregroundColor: AppTheme.textOnPrimary,
                 padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
               ),
             ),
@@ -301,19 +326,20 @@ class ReproductionPairingCard extends StatelessWidget {
         );
       }
     }
-    
+
     if (actions.isEmpty) {
       return const SizedBox.shrink();
     }
-    
-    return Row(
-      children: actions,
-    );
+
+    return Row(children: actions);
   }
-  
+
   Future<void> _confirmerAccouplement(BuildContext context) async {
     try {
-      final provider = Provider.of<ReproductionProvider>(context, listen: false);
+      final provider = Provider.of<ReproductionProvider>(
+        context,
+        listen: false,
+      );
       await provider.confirmerAccouplement(pairing.id!);
       if (context.mounted) {
         SnackbarHelper.showSuccess(context, 'Accouplement confirmé');
@@ -324,27 +350,26 @@ class ReproductionPairingCard extends StatelessWidget {
       }
     }
   }
-  
+
   void _palper(BuildContext context) {
     Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (_) => const PalpationScreen(),
-      ),
+      MaterialPageRoute(builder: (_) => const PalpationScreen()),
     );
   }
-  
+
   void _preparerNid(BuildContext context) {
     Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (_) => const PreparationNidScreen(),
-      ),
+      MaterialPageRoute(builder: (_) => const PreparationNidScreen()),
     );
   }
-  
+
   void _enregistrerPortee(BuildContext context) {
-    final reproductionProvider = Provider.of<ReproductionProvider>(context, listen: false);
+    final reproductionProvider = Provider.of<ReproductionProvider>(
+      context,
+      listen: false,
+    );
     final accouplement = reproductionProvider.accouplements.firstWhere(
       (a) => a.id == pairing.id,
     );
@@ -355,26 +380,26 @@ class ReproductionPairingCard extends StatelessWidget {
       ),
     );
   }
-  
+
   void _sevrer(BuildContext context) {
     Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (_) => const SevrageScreen(),
-      ),
+      MaterialPageRoute(builder: (_) => const SevrageScreen()),
     );
   }
 
-  Widget _buildStatusBadge() {
+  Widget _buildStatusBadge(BuildContext context) {
+    final loc = AppLocalizations.of(context);
     final statusMap = {
-      'en_attente': ('Pending', AppTheme.warning),
-      'confirme': ('Confirmed', AppTheme.primaryNeonGreen),
-      'en_cours': ('In Progress', AppTheme.info),
-      'termine': ('Completed', AppTheme.textSecondary),
+      'en_attente': (loc.reproductionPending, AppTheme.warning),
+      'confirme': (loc.reproductionConfirmed, AppTheme.primaryNeonGreen),
+      'en_cours': (loc.reproductionInProgress, AppTheme.info),
+      'termine': (loc.reproductionCompleted, AppTheme.textSecondary),
     };
 
     final (label, color) =
-        statusMap[pairing.statut] ?? ('Unknown', AppTheme.textSecondary);
+        statusMap[pairing.statut] ??
+        (loc.reproductionUnknown, AppTheme.textSecondary);
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
@@ -447,15 +472,21 @@ class ReproductionPairingCard extends StatelessWidget {
             children: [
               ListTile(
                 leading: const Icon(Icons.edit_rounded),
-                title: const Text('Modifier'),
+                title: Text(AppLocalizations.of(context).commonEdit),
                 onTap: () {
                   Navigator.pop(context);
                   onEditTap();
                 },
               ),
               ListTile(
-                leading: const Icon(Icons.delete_rounded, color: AppTheme.error),
-                title: const Text('Supprimer', style: TextStyle(color: AppTheme.error)),
+                leading: const Icon(
+                  Icons.delete_rounded,
+                  color: AppTheme.error,
+                ),
+                title: Text(
+                  AppLocalizations.of(context).supprimer,
+                  style: const TextStyle(color: AppTheme.error),
+                ),
                 onTap: () {
                   Navigator.pop(context);
                   onDeleteTap();

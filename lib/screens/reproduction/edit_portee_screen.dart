@@ -2,12 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
+import 'package:rabbit_farm_app/l10n/app_localizations.dart';
 import '../../models/portee.dart';
 import '../../models/lapin.dart';
 import '../../providers/reproduction_provider.dart';
 import '../../utils/snackbar_helper.dart';
 import '../../services/database_helper.dart';
 import '../../theme/app_theme.dart';
+import '../../widgets/uniform_app_bar.dart';
 
 /// Écran pour modifier une portée existante
 class EditPorteeScreen extends StatefulWidget {
@@ -138,7 +140,10 @@ class _EditPorteeScreenState extends State<EditPorteeScreen> {
       await reproductionProvider.modifierPortee(porteeModifiee);
 
       if (mounted) {
-        SnackbarHelper.showSuccess(context, 'Portée modifiée avec succès');
+        SnackbarHelper.showSuccess(
+          context,
+          AppLocalizations.of(context).reproPorteeModifiee,
+        );
         Navigator.of(context).pop(true);
       }
     } catch (e) {
@@ -158,16 +163,10 @@ class _EditPorteeScreenState extends State<EditPorteeScreen> {
 
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
-      appBar: AppBar(
-        title: Text(
-          'Modifier portée',
-          style: AppTheme.titleLarge.copyWith(
-            color: Theme.of(context).colorScheme.onSurface,
-          ),
-        ),
-        backgroundColor: Theme.of(context).colorScheme.surface,
-        elevation: 0,
-        iconTheme: IconThemeData(color: Theme.of(context).colorScheme.primary),
+      appBar: UniformAppBar(
+        title: AppLocalizations.of(context).reproModifierPortee,
+        icon: Icons.child_care_rounded,
+        iconColor: AppTheme.accentPink,
       ),
       body: Form(
         key: _formKey,
@@ -182,7 +181,10 @@ class _EditPorteeScreenState extends State<EditPorteeScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('Parents', style: AppTheme.titleSmall),
+                    Text(
+                      AppLocalizations.of(context).reproParents,
+                      style: AppTheme.titleSmall,
+                    ),
                     const SizedBox(height: 12),
                     Row(
                       children: [
@@ -223,7 +225,9 @@ class _EditPorteeScreenState extends State<EditPorteeScreen> {
             Card(
               child: ListTile(
                 leading: const Icon(Icons.calendar_today),
-                title: const Text('Date de mise bas réelle'),
+                title: Text(
+                  AppLocalizations.of(context).reproDateMiseBasReelle,
+                ),
                 subtitle: Text(dateFormat.format(_dateMiseBasReelle)),
                 trailing: const Icon(Icons.edit),
                 onTap: () => _selectionnerDate(context),
@@ -234,21 +238,20 @@ class _EditPorteeScreenState extends State<EditPorteeScreen> {
             // Nombre de nés
             TextFormField(
               controller: _nombreNesController,
-              decoration: const InputDecoration(
-                labelText: 'Nombre de lapereaux nés',
-                prefixIcon: Icon(Icons.baby_changing_station),
-                border: OutlineInputBorder(),
+              decoration: AppTheme.inputDecoration(
+                label: AppLocalizations.of(context).reproNombreLapereaux,
+                prefixIcon: Icons.baby_changing_station,
               ),
               keyboardType: TextInputType.number,
               inputFormatters: [FilteringTextInputFormatter.digitsOnly],
               onChanged: (_) => _calculerMorts(),
               validator: (value) {
                 if (value == null || value.isEmpty) {
-                  return 'Veuillez entrer le nombre de nés';
+                  return AppLocalizations.of(context).reproVeuillezEntrerNes;
                 }
                 final nombre = int.tryParse(value);
                 if (nombre == null || nombre < 0) {
-                  return 'Veuillez entrer un nombre valide';
+                  return AppLocalizations.of(context).reproNombreInvalide;
                 }
                 return null;
               },
@@ -258,25 +261,32 @@ class _EditPorteeScreenState extends State<EditPorteeScreen> {
             // Nombre de vivants
             TextFormField(
               controller: _nombreVivantsController,
-              decoration: const InputDecoration(
-                labelText: 'Nombre de vivants',
-                prefixIcon: Icon(Icons.favorite, color: AppTheme.neonGreen),
-                border: OutlineInputBorder(),
-              ),
+              decoration:
+                  AppTheme.inputDecoration(
+                    label: AppLocalizations.of(context).reproNombreVivants,
+                    prefixIcon: Icons.favorite,
+                  ).copyWith(
+                    prefixIcon: const Icon(
+                      Icons.favorite,
+                      color: AppTheme.neonGreen,
+                    ),
+                  ),
               keyboardType: TextInputType.number,
               inputFormatters: [FilteringTextInputFormatter.digitsOnly],
               onChanged: (_) => _calculerMorts(),
               validator: (value) {
                 if (value == null || value.isEmpty) {
-                  return 'Veuillez entrer le nombre de vivants';
+                  return AppLocalizations.of(
+                    context,
+                  ).reproVeuillezEntrerVivants;
                 }
                 final nombre = int.tryParse(value);
                 if (nombre == null || nombre < 0) {
-                  return 'Veuillez entrer un nombre valide';
+                  return AppLocalizations.of(context).reproNombreInvalide;
                 }
                 final nes = int.tryParse(_nombreNesController.text) ?? 0;
                 if (nombre > nes) {
-                  return 'Ne peut pas être supérieur au nombre de nés';
+                  return AppLocalizations.of(context).reproNombreSuperieurTotal;
                 }
                 return null;
               },
@@ -286,11 +296,16 @@ class _EditPorteeScreenState extends State<EditPorteeScreen> {
             // Nombre de morts (calculé automatiquement)
             TextFormField(
               controller: _nombreMortsController,
-              decoration: const InputDecoration(
-                labelText: 'Nombre de morts (calculé auto)',
-                prefixIcon: Icon(Icons.heart_broken, color: AppTheme.error),
-                border: OutlineInputBorder(),
-              ),
+              decoration:
+                  AppTheme.inputDecoration(
+                    label: AppLocalizations.of(context).reproNombreMorts,
+                    prefixIcon: Icons.heart_broken,
+                  ).copyWith(
+                    prefixIcon: const Icon(
+                      Icons.heart_broken,
+                      color: AppTheme.error,
+                    ),
+                  ),
               keyboardType: TextInputType.number,
               inputFormatters: [FilteringTextInputFormatter.digitsOnly],
               enabled: false,
@@ -321,11 +336,10 @@ class _EditPorteeScreenState extends State<EditPorteeScreen> {
             // Notes
             TextFormField(
               controller: _notesController,
-              decoration: const InputDecoration(
-                labelText: 'Notes (optionnel)',
-                hintText: 'Observations sur la mise bas...',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.notes),
+              decoration: AppTheme.inputDecoration(
+                label: AppLocalizations.of(context).reproNotesOptionnel,
+                hint: 'Observations sur la mise bas...',
+                prefixIcon: Icons.notes,
               ),
               maxLines: 3,
             ),
@@ -338,7 +352,7 @@ class _EditPorteeScreenState extends State<EditPorteeScreen> {
                   child: OutlinedButton.icon(
                     onPressed: () => Navigator.pop(context),
                     icon: const Icon(Icons.close),
-                    label: const Text('Annuler'),
+                    label: Text(AppLocalizations.of(context).actionAnnuler),
                     style: OutlinedButton.styleFrom(
                       padding: const EdgeInsets.all(16),
                     ),
@@ -350,7 +364,7 @@ class _EditPorteeScreenState extends State<EditPorteeScreen> {
                   child: FilledButton.icon(
                     onPressed: _modifierPortee,
                     icon: const Icon(Icons.save),
-                    label: const Text('Enregistrer'),
+                    label: Text(AppLocalizations.of(context).actionEnregistrer),
                     style: FilledButton.styleFrom(
                       padding: const EdgeInsets.all(16),
                     ),

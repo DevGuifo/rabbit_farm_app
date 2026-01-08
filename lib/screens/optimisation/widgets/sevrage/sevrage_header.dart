@@ -18,7 +18,7 @@ class SevrageHeader extends StatelessWidget {
         children: [
           IconButton(
             onPressed: onBack,
-            icon: const Icon(Icons.arrow_back, color: Colors.white),
+            icon: const Icon(Icons.arrow_back, color: AppTheme.textOnPrimary),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -29,7 +29,7 @@ class SevrageHeader extends StatelessWidget {
                 Text(
                   'Née le ${DateFormat('dd/MM/yyyy').format(portee.dateMiseBasReelle)} • ${portee.ageEnJours} jours',
                   style: AppTheme.bodyMedium.copyWith(
-                    color: Colors.white70,
+                    color: AppTheme.textOnPrimary70,
                     fontSize: 14,
                   ),
                 ),

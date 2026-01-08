@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'dart:io';
 import 'package:provider/provider.dart';
+import '../../l10n/app_localizations.dart';
 import '../../models/lapin.dart';
 import '../../providers/lapin_provider.dart';
 import '../../providers/sante_provider.dart';
 import '../../providers/alerte_provider.dart';
 import '../../providers/reproduction_provider.dart';
+import '../../providers/sync_provider.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/common/common_widgets.dart';
 import '../../widgets/quarantaine/quarantaine_quick_dialog.dart';
@@ -14,7 +16,7 @@ import '../alertes/alertes_screen.dart';
 import 'add_lapin_screen.dart';
 import 'lapin_detail_screen.dart';
 
-/// Écran Cheptel - Stitch Design "My Herd"
+/// Écran Cheptel - Stitch Design "Mon Élevage"
 /// Liste complète des lapins avec recherche et filtres
 class CheptelScreen extends StatefulWidget {
   const CheptelScreen({super.key});
@@ -26,9 +28,17 @@ class CheptelScreen extends StatefulWidget {
 class _CheptelScreenState extends State<CheptelScreen> {
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
-  String _selectedFilter = 'All'; // All, Does, Bucks, Kits, Sick
+  String _selectedFilter = ''; // Vide par défaut = Tous
 
-  final List<String> _filters = ['All', 'Does', 'Bucks', 'Kits', 'Sick'];
+  List<String> _getFilters(BuildContext context) {
+    return [
+      AppLocalizations.of(context).cheptelTous,
+      AppLocalizations.of(context).cheptelFemelles,
+      AppLocalizations.of(context).cheptelMales,
+      AppLocalizations.of(context).cheptelLapereaux,
+      AppLocalizations.of(context).cheptelMalades,
+    ];
+  }
 
   @override
   void initState() {
@@ -60,39 +70,40 @@ class _CheptelScreenState extends State<CheptelScreen> {
     }
 
     // Filtres par type
-    switch (_selectedFilter) {
-      case 'Does':
-        filtres = filtres
-            .where(
-              (l) =>
-                  l.sexe == 'Femelle' &&
-                  (l.statut == 'Reproductrice' || l.statut == 'Reproducteur'),
-            )
-            .toList();
-        break;
-      case 'Bucks':
-        filtres = filtres
-            .where((l) => l.sexe == 'Mâle' && l.statut == 'Reproducteur')
-            .toList();
-        break;
-      case 'Kits':
-        // Lapins < 8 semaines
-        filtres = filtres.where((l) {
-          final age = l.ageEnJours;
-          return age < 56; // 8 semaines = 56 jours
-        }).toList();
-        break;
-      case 'Sick':
-        // Filtrer les lapins malades via SanteProvider
-        final santeProvider = Provider.of<SanteProvider>(
-          context,
-          listen: false,
-        );
-        final lapinsMalades = await santeProvider.getLapinsMalades();
-        filtres = filtres.where((l) {
-          return l.id != null && lapinsMalades.contains(l.id);
-        }).toList();
-        break;
+    final filters = _getFilters(context);
+    if (_selectedFilter.isEmpty) {
+      _selectedFilter = filters[0]; // Tous
+    }
+
+    if (_selectedFilter == filters[1]) {
+      // Femelles
+      filtres = filtres
+          .where(
+            (l) =>
+                l.sexe == 'Femelle' &&
+                (l.statut == 'Reproductrice' || l.statut == 'Reproducteur'),
+          )
+          .toList();
+    } else if (_selectedFilter == filters[2]) {
+      // Mâles
+      filtres = filtres
+          .where((l) => l.sexe == 'Mâle' && l.statut == 'Reproducteur')
+          .toList();
+    } else if (_selectedFilter == filters[3]) {
+      // Lapereaux
+      // Lapins < 8 semaines
+      filtres = filtres.where((l) {
+        final age = l.ageEnJours;
+        return age < 56; // 8 semaines = 56 jours
+      }).toList();
+    } else if (_selectedFilter == filters[4]) {
+      // Malades
+      // Filtrer les lapins malades via SanteProvider
+      final santeProvider = Provider.of<SanteProvider>(context, listen: false);
+      final lapinsMalades = await santeProvider.getLapinsMalades();
+      filtres = filtres.where((l) {
+        return l.id != null && lapinsMalades.contains(l.id);
+      }).toList();
     }
 
     return filtres;
@@ -104,7 +115,7 @@ class _CheptelScreenState extends State<CheptelScreen> {
 
     return Scaffold(
       backgroundColor: isDark
-          ? AppTheme.backgroundDarkMode
+          ? AppTheme.backgroundDark
           : AppTheme.backgroundLight,
       body: Column(
         children: [
@@ -133,12 +144,16 @@ class _CheptelScreenState extends State<CheptelScreen> {
     );
   }
 
-  /// Header sticky "My Herd" - Utilise StandardHeader
+  /// Header sticky "Mon Élevage" - Utilise StandardHeader unifié
   Widget _buildHeader(bool isDark) {
     return StandardHeader(
-      title: 'My Herd',
+      title: AppLocalizations.of(context).monElevage,
       isDark: isDark,
-      onSync: () {
+      onSync: () async {
+        // Synchroniser puis recharger
+        final syncProvider = context.read<SyncProvider>();
+        await syncProvider.syncNow();
+        if (!mounted) return;
         context.read<LapinProvider>().chargerLapins();
       },
       onNotifications: () {
@@ -168,26 +183,26 @@ class _CheptelScreenState extends State<CheptelScreen> {
         });
       },
       isDark: isDark,
-      hintText: 'Search by ID, name or breed...',
+      hintText: AppLocalizations.of(context).cheptelRechercher,
     );
   }
 
   /// Pills de filtres horizontaux - Utilise FilterPill
   Widget _buildFilterPills(bool isDark) {
+    final filters = _getFilters(context);
+
     return SizedBox(
       height: 60,
       child: ListView.builder(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         scrollDirection: Axis.horizontal,
-        itemCount: _filters.length,
+        itemCount: filters.length,
         itemBuilder: (context, index) {
-          final filter = _filters[index];
+          final filter = filters[index];
           final isSelected = _selectedFilter == filter;
 
           return Padding(
-            padding: EdgeInsets.only(
-              right: index < _filters.length - 1 ? 8 : 0,
-            ),
+            padding: EdgeInsets.only(right: index < filters.length - 1 ? 8 : 0),
             child: FilterPill(
               label: filter,
               isSelected: isSelected,
@@ -210,10 +225,10 @@ class _CheptelScreenState extends State<CheptelScreen> {
       return EmptyState(
         isDark: isDark,
         icon: Icons.pets_outlined,
-        title: 'Aucun lapin trouvé',
+        title: AppLocalizations.of(context).cheptelAucunLapinTrouve,
         subtitle: _searchQuery.isNotEmpty
-            ? 'Essayez avec d\'autres termes'
-            : 'Ajoutez votre premier lapin',
+            ? AppLocalizations.of(context).cheptelAutresTermes
+            : AppLocalizations.of(context).cheptelAjouterPremier,
       );
     }
 
@@ -226,8 +241,8 @@ class _CheptelScreenState extends State<CheptelScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'ACTIVE HERD',
-                style: AppTheme.caption.copyWith(
+                AppLocalizations.of(context).cheptelActif,
+                style: AppTheme.labelLarge.copyWith(
                   fontWeight: FontWeight.w600,
                   letterSpacing: 1.2,
                   color: (isDark ? AppTheme.textLight : AppTheme.textSecondary)
@@ -235,7 +250,7 @@ class _CheptelScreenState extends State<CheptelScreen> {
                 ),
               ),
               Text(
-                '${lapins.length} Rabbits',
+                '${lapins.length} Lapins',
                 style: AppTheme.bodyMedium.copyWith(
                   color: (isDark ? AppTheme.textLight : AppTheme.textSecondary)
                       .withValues(alpha: 0.7),
@@ -278,31 +293,34 @@ class _CheptelScreenState extends State<CheptelScreen> {
 
   Widget _buildRabbitCardContent(Lapin lapin, bool isDark, bool isSick) {
     // Récupérer les accouplements pour vérifier si la femelle est gestante
-    final reproProvider = Provider.of<ReproductionProvider>(context, listen: false);
+    final reproProvider = Provider.of<ReproductionProvider>(
+      context,
+      listen: false,
+    );
     final accouplements = reproProvider.accouplements;
-    
+
     // Vérifier si la femelle est gestante
     final estGestante = lapin.estGestante(accouplements);
-    
+
     // Déterminer le badge statut
-    String badgeText = 'Healthy';
+    String badgeText = AppLocalizations.of(context).cheptelSain;
     Color badgeBg = isDark
         ? AppTheme.success.withValues(alpha: 0.3)
         : AppTheme.success.withValues(alpha: 0.2);
-    Color badgeTextColor = isDark ? AppTheme.success : AppTheme.success;
+    Color badgeTextColor = AppTheme.success;
 
     if (isSick) {
-      badgeText = 'Sick';
+      badgeText = AppLocalizations.of(context).cheptelMalade;
       badgeBg = isDark
           ? AppTheme.error.withValues(alpha: 0.3)
           : AppTheme.error.withValues(alpha: 0.2);
-      badgeTextColor = isDark ? AppTheme.error : AppTheme.error;
+      badgeTextColor = AppTheme.error;
     } else if (estGestante) {
-      badgeText = 'Gestante';
-      badgeBg = isDark 
-          ? Colors.pink.shade900.withValues(alpha: 0.3)
-          : Colors.pink.shade100.withValues(alpha: 0.5);
-      badgeTextColor = isDark ? Colors.pink.shade200 : Colors.pink.shade800;
+      badgeText = AppLocalizations.of(context).cheptelGestante;
+      badgeBg = isDark
+          ? AppTheme.accentPink.withValues(alpha: 0.3)
+          : AppTheme.accentPink.withValues(alpha: 0.1);
+      badgeTextColor = AppTheme.accentPink;
     }
 
     // Badge sexe (ou medical si malade)
@@ -313,7 +331,7 @@ class _CheptelScreenState extends State<CheptelScreen> {
     if (isSick) {
       // Badge medical pour les lapins malades
       sexeIcon = Icons.medical_services;
-      sexeColor = isDark ? AppTheme.error : AppTheme.error;
+      sexeColor = AppTheme.error;
       sexeBg = isDark
           ? AppTheme.error.withValues(alpha: 0.3)
           : AppTheme.error.withValues(alpha: 0.2);
@@ -332,33 +350,17 @@ class _CheptelScreenState extends State<CheptelScreen> {
             ? Border(
                 left: const BorderSide(color: AppTheme.error, width: 4),
                 top: BorderSide(
-                  color: isDark
-                      ? Colors.white.withValues(alpha: 0.05)
-                      : Colors.black.withValues(alpha: 0.05),
+                  color: isDark ? AppTheme.borderDark : AppTheme.border,
                 ),
                 right: BorderSide(
-                  color: isDark
-                      ? Colors.white.withValues(alpha: 0.05)
-                      : Colors.black.withValues(alpha: 0.05),
+                  color: isDark ? AppTheme.borderDark : AppTheme.border,
                 ),
                 bottom: BorderSide(
-                  color: isDark
-                      ? Colors.white.withValues(alpha: 0.05)
-                      : Colors.black.withValues(alpha: 0.05),
+                  color: isDark ? AppTheme.borderDark : AppTheme.border,
                 ),
               )
-            : Border.all(
-                color: isDark
-                    ? Colors.white.withValues(alpha: 0.05)
-                    : Colors.black.withValues(alpha: 0.05),
-              ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
-            blurRadius: 4,
-            offset: const Offset(0, 1),
-          ),
-        ],
+            : Border.all(color: isDark ? AppTheme.borderDark : AppTheme.border),
+        boxShadow: AppTheme.cardShadow(isDark: isDark),
       ),
       child: Material(
         color: Colors.transparent,
@@ -390,13 +392,13 @@ class _CheptelScreenState extends State<CheptelScreen> {
                             : AppTheme.border,
                         border: Border.all(
                           color: isDark
-                              ? AppTheme.backgroundDarkMode
+                              ? AppTheme.backgroundDark
                               : AppTheme.cardLight,
                           width: 2,
                         ),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.1),
+                            color: AppTheme.textPrimary.withValues(alpha: 0.1),
                             blurRadius: 4,
                             offset: const Offset(0, 2),
                           ),
@@ -406,7 +408,7 @@ class _CheptelScreenState extends State<CheptelScreen> {
                         child: ColorFiltered(
                           colorFilter: isSick
                               ? ColorFilter.mode(
-                                  Colors.grey.withValues(alpha: 0.3),
+                                  AppTheme.textSecondary.withValues(alpha: 0.3),
                                   BlendMode.saturation,
                                 )
                               : const ColorFilter.mode(
@@ -444,7 +446,7 @@ class _CheptelScreenState extends State<CheptelScreen> {
                           shape: BoxShape.circle,
                           border: Border.all(
                             color: isDark
-                                ? AppTheme.backgroundDarkMode
+                                ? AppTheme.backgroundDark
                                 : AppTheme.cardLight,
                             width: 2,
                           ),
@@ -475,29 +477,34 @@ class _CheptelScreenState extends State<CheptelScreen> {
                           Expanded(
                             child: Text(
                               lapin.nom,
-                              style: AppTheme.titleMedium.copyWith(
+                              style: AppTheme.headingMedium.copyWith(
                                 color: isDark
                                     ? AppTheme.textLight
                                     : AppTheme.textPrimary,
+                                fontSize: 18,
                               ),
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
                           const SizedBox(width: 8),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 10,
-                              vertical: 4,
-                            ),
-                            decoration: BoxDecoration(
-                              color: badgeBg,
-                              borderRadius: BorderRadius.circular(999),
-                            ),
-                            child: Text(
-                              badgeText,
-                              style: AppTheme.caption.copyWith(
-                                fontWeight: FontWeight.bold,
-                                color: badgeTextColor,
+                          Flexible(
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 4,
+                              ),
+                              decoration: BoxDecoration(
+                                color: badgeBg,
+                                borderRadius: BorderRadius.circular(999),
+                              ),
+                              child: Text(
+                                badgeText,
+                                style: AppTheme.labelLarge.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color: badgeTextColor,
+                                  fontSize: 11,
+                                ),
+                                overflow: TextOverflow.ellipsis,
                               ),
                             ),
                           ),
@@ -516,11 +523,12 @@ class _CheptelScreenState extends State<CheptelScreen> {
                       const SizedBox(height: 2),
                       Text(
                         'ID: ${lapin.numeroIdentification ?? '#${lapin.id}'}',
-                        style: AppTheme.caption.copyWith(
+                        style: AppTheme.labelLarge.copyWith(
                           fontFamily: 'monospace',
                           color: isDark
                               ? AppTheme.textLight.withValues(alpha: 0.5)
                               : AppTheme.textSecondary.withValues(alpha: 0.6),
+                          fontSize: 11,
                         ),
                       ),
                     ],
@@ -594,7 +602,7 @@ class _CheptelScreenState extends State<CheptelScreen> {
                       children: [
                         Text(
                           lapin.nom,
-                          style: AppTheme.titleSmall.copyWith(
+                          style: AppTheme.headingSmall.copyWith(
                             color: isDark
                                 ? AppTheme.textLight
                                 : AppTheme.textPrimary,
@@ -602,7 +610,7 @@ class _CheptelScreenState extends State<CheptelScreen> {
                         ),
                         Text(
                           '${lapin.race} • ${lapin.sexe}',
-                          style: AppTheme.caption.copyWith(
+                          style: AppTheme.bodySmall.copyWith(
                             color: AppTheme.textSecondary,
                           ),
                         ),
@@ -616,7 +624,7 @@ class _CheptelScreenState extends State<CheptelScreen> {
             // Actions
             ListTile(
               leading: const Icon(Icons.visibility, color: AppTheme.info),
-              title: const Text('Voir la fiche'),
+              title: Text(AppLocalizations.of(context).cheptelVoirFiche),
               onTap: () {
                 Navigator.pop(context);
                 Navigator.push(
@@ -632,7 +640,9 @@ class _CheptelScreenState extends State<CheptelScreen> {
                 Icons.health_and_safety,
                 color: AppTheme.warning,
               ),
-              title: const Text('Mettre en quarantaine'),
+              title: Text(
+                AppLocalizations.of(context).cheptelMettreQuarantaine,
+              ),
               onTap: () async {
                 Navigator.pop(context);
                 final result = await showDialog<bool>(
@@ -655,6 +665,7 @@ class _CheptelScreenState extends State<CheptelScreen> {
   /// FAB jaune
   Widget _buildFAB() {
     return FloatingActionButton(
+      heroTag: 'fab_cheptel',
       onPressed: () {
         Navigator.push(
           context,

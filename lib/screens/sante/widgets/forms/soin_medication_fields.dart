@@ -1,24 +1,26 @@
 import 'package:flutter/material.dart';
 import '../../../../theme/app_theme.dart';
+import '../../../../widgets/medicament_selector.dart';
+import '../../../../l10n/app_localizations.dart';
 
-/// Widget de champ de médicament
+/// Widget de champ de médicament avec sélecteur FK
 class MedicationField extends StatelessWidget {
-  final TextEditingController controller;
+  final int? medicamentIdInitial;
+  final Function(int?, String?)
+  onMedicamentChanged; // (medicamentId, medicamentNom)
 
-  const MedicationField({super.key, required this.controller});
+  const MedicationField({
+    super.key,
+    this.medicamentIdInitial,
+    required this.onMedicamentChanged,
+  });
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final primaryColor = AppTheme.primaryNeonGreen;
-    final surfaceColor = isDark ? AppTheme.backgroundDark : AppTheme.cardLight;
-    final textPrimary = isDark ? AppTheme.cardLight : AppTheme.textPrimary;
     final textSecondary = isDark
-        ? const Color(0xFFB4C4B7)
+        ? AppTheme.stitchGreenLight
         : AppTheme.textSecondary;
-    final borderColor = isDark
-        ? const Color(0xFF2A422E)
-        : const Color(0xFFDBE6DC);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -32,39 +34,10 @@ class MedicationField extends StatelessWidget {
             color: textSecondary,
           ),
         ),
-        const SizedBox(height: 8),
-        Container(
-          decoration: BoxDecoration(
-            color: surfaceColor,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: borderColor, width: 1),
-          ),
-          child: TextFormField(
-            controller: controller,
-            style: TextStyle(
-              fontFamily: 'Manrope',
-              fontSize: 16,
-              color: textPrimary,
-            ),
-            decoration: InputDecoration(
-              hintText: 'Enter medication name',
-              hintStyle: TextStyle(
-                fontFamily: 'Manrope',
-                fontSize: 16,
-                color: textSecondary.withValues(alpha: 0.6),
-              ),
-              prefixIcon: Icon(
-                Icons.medication_outlined,
-                size: 20,
-                color: primaryColor,
-              ),
-              border: InputBorder.none,
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 14,
-              ),
-            ),
-          ),
+        AppTheme.verticalSpace8,
+        MedicamentSelector(
+          medicamentIdInitial: medicamentIdInitial,
+          onMedicamentSelected: onMedicamentChanged,
         ),
       ],
     );
@@ -84,11 +57,11 @@ class DosageField extends StatelessWidget {
     final surfaceColor = isDark ? AppTheme.backgroundDark : AppTheme.cardLight;
     final textPrimary = isDark ? AppTheme.cardLight : AppTheme.textPrimary;
     final textSecondary = isDark
-        ? const Color(0xFFB4C4B7)
+        ? AppTheme.stitchGreenLight
         : AppTheme.textSecondary;
     final borderColor = isDark
-        ? const Color(0xFF2A422E)
-        : const Color(0xFFDBE6DC);
+        ? AppTheme.stitchSurfaceDarkCard
+        : AppTheme.stitchSurfaceLightAlt;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -102,11 +75,11 @@ class DosageField extends StatelessWidget {
             color: textSecondary,
           ),
         ),
-        const SizedBox(height: 8),
+        AppTheme.verticalSpace8,
         Container(
           decoration: BoxDecoration(
             color: surfaceColor,
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: AppTheme.borderRadiusMedium,
             border: Border.all(color: borderColor, width: 1),
           ),
           child: TextFormField(
@@ -117,7 +90,7 @@ class DosageField extends StatelessWidget {
               color: textPrimary,
             ),
             decoration: InputDecoration(
-              hintText: 'Ex: 2 ml, 1 comprimé...',
+              hintText: AppLocalizations.of(context).hintExDosage,
               hintStyle: TextStyle(
                 fontFamily: 'Manrope',
                 fontSize: 16,
@@ -140,4 +113,3 @@ class DosageField extends StatelessWidget {
     );
   }
 }
-

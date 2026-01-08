@@ -44,12 +44,12 @@ class SettingsSectionCard extends StatelessWidget {
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
               color: isDark
-                  ? Colors.white.withValues(alpha: 0.05)
-                  : Colors.black.withValues(alpha: 0.05),
+                  ? AppTheme.textOnPrimary.withValues(alpha: 0.05)
+                  : AppTheme.textPrimary.withValues(alpha: 0.05),
             ),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.05),
+                color: AppTheme.textPrimary.withValues(alpha: 0.05),
                 blurRadius: 4,
                 offset: const Offset(0, 2),
               ),
@@ -76,8 +76,8 @@ class SettingsSectionCard extends StatelessWidget {
             height: 1,
             thickness: 1,
             color: isDark
-                ? Colors.white.withValues(alpha: 0.05)
-                : Colors.black.withValues(alpha: 0.05),
+                ? AppTheme.textOnPrimary.withValues(alpha: 0.05)
+                : AppTheme.textPrimary.withValues(alpha: 0.05),
           ),
         );
       }

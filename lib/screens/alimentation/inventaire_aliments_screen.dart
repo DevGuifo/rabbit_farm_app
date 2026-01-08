@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../l10n/app_localizations.dart';
 import '../../models/aliment.dart';
 import '../../providers/alimentation_provider.dart';
+import '../../providers/sync_provider.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/common/common_widgets.dart';
 import 'ajouter_aliment_screen.dart';
@@ -35,6 +37,23 @@ class _InventaireAlimentsScreenState extends State<InventaireAlimentsScreen> {
     super.dispose();
   }
 
+  /// Header - Utilise StandardHeader unifié
+  Widget _buildHeader(bool isDark) {
+    return StandardHeader(
+      title: AppLocalizations.of(context).alimentationTitre,
+      isDark: isDark,
+      onSync: () async {
+        // Synchroniser puis recharger
+        final syncProvider = context.read<SyncProvider>();
+        await syncProvider.syncNow();
+        if (!mounted) return;
+        context.read<AlimentationProvider>().loadAliments();
+      },
+      onNotifications: null,
+      onSettings: null,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -45,8 +64,8 @@ class _InventaireAlimentsScreenState extends State<InventaireAlimentsScreen> {
           : AppTheme.backgroundLight,
       body: Column(
         children: [
-          // Header Standard
-          StandardHeader(title: 'Alimentation', isDark: isDark),
+          // Header Standard - Utilise StandardHeader unifié
+          _buildHeader(isDark),
 
           // Search Bar
           SearchBarWidget(
@@ -57,7 +76,7 @@ class _InventaireAlimentsScreenState extends State<InventaireAlimentsScreen> {
               });
             },
             isDark: isDark,
-            hintText: 'Rechercher un aliment...',
+            hintText: AppLocalizations.of(context).alimentationRechercher,
           ),
 
           // Filtres par type
@@ -75,7 +94,7 @@ class _InventaireAlimentsScreenState extends State<InventaireAlimentsScreen> {
                 }
 
                 // Filtrer par type
-                var aliments = _filtreType == 'Tous'
+                var aliments = _filtreType.isEmpty
                     ? provider.alimentsEnStock
                     : provider
                           .getAlimentsByType(_filtreType)
@@ -97,11 +116,15 @@ class _InventaireAlimentsScreenState extends State<InventaireAlimentsScreen> {
                     isDark: isDark,
                     icon: Icons.inventory_2_outlined,
                     title: _searchQuery.isNotEmpty
-                        ? 'Aucun résultat'
-                        : 'Aucun aliment en stock',
+                        ? AppLocalizations.of(context).alimentationAucunResultat
+                        : AppLocalizations.of(context).alimentationAucunAliment,
                     subtitle: _searchQuery.isNotEmpty
-                        ? 'Essayez une autre recherche'
-                        : 'Ajoutez votre premier aliment',
+                        ? AppLocalizations.of(
+                            context,
+                          ).alimentationAutreRecherche
+                        : AppLocalizations.of(
+                            context,
+                          ).alimentationAjouterPremier,
                   );
                 }
 
@@ -118,6 +141,7 @@ class _InventaireAlimentsScreenState extends State<InventaireAlimentsScreen> {
         ],
       ),
       floatingActionButton: FloatingActionButton(
+        heroTag: 'fab_aliment',
         onPressed: () async {
           final result = await Navigator.push(
             context,
@@ -137,7 +161,8 @@ class _InventaireAlimentsScreenState extends State<InventaireAlimentsScreen> {
   }
 
   Widget _buildFiltres(bool isDark) {
-    final types = ['Tous', ...TypeAliment.values];
+    final allLabel = AppLocalizations.of(context).alimentationTous;
+    final types = [allLabel, ...TypeAliment.values];
 
     return Container(
       height: 50,
@@ -148,12 +173,13 @@ class _InventaireAlimentsScreenState extends State<InventaireAlimentsScreen> {
         itemCount: types.length,
         itemBuilder: (context, index) {
           final type = types[index];
+          final allLabel = AppLocalizations.of(context).alimentationTous;
           final isSelected = _filtreType == type;
 
           return Padding(
             padding: const EdgeInsets.only(right: AppTheme.spacing8),
             child: FilterPill(
-              label: type == 'Tous' ? type : TypeAliment.getLabel(type),
+              label: type == allLabel ? type : TypeAliment.getLabel(type),
               isSelected: isSelected,
               onTap: () {
                 setState(() {
@@ -186,7 +212,7 @@ class _InventaireAlimentsScreenState extends State<InventaireAlimentsScreen> {
                   Expanded(
                     child: StatsCard(
                       isDark: isDark,
-                      label: 'En stock',
+                      label: AppLocalizations.of(context).alimentationEnStock,
                       value: '${provider.alimentsEnStock.length}',
                       icon: Icons.inventory_2,
                       color: AppTheme.primaryGreen,
@@ -196,10 +222,10 @@ class _InventaireAlimentsScreenState extends State<InventaireAlimentsScreen> {
                   Expanded(
                     child: StatsCard(
                       isDark: isDark,
-                      label: 'Valeur',
+                      label: AppLocalizations.of(context).alimentationValeur,
                       value: '${valeurStock.toStringAsFixed(0)} €',
                       icon: Icons.euro,
-                      color: Colors.amber,
+                      color: AppTheme.accentAmber,
                     ),
                   ),
                 ],
@@ -224,11 +250,11 @@ class _InventaireAlimentsScreenState extends State<InventaireAlimentsScreen> {
 
     Color stockColor;
     if (pourcentageStock < 20) {
-      stockColor = Colors.red;
+      stockColor = AppTheme.error;
     } else if (pourcentageStock < 50) {
-      stockColor = Colors.orange;
+      stockColor = AppTheme.warning;
     } else {
-      stockColor = Colors.green;
+      stockColor = AppTheme.success;
     }
 
     return Container(
@@ -322,7 +348,7 @@ class _InventaireAlimentsScreenState extends State<InventaireAlimentsScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        'Stock',
+                        AppLocalizations.of(context).alimentationStock,
                         style: AppTheme.caption.copyWith(
                           color: isDark
                               ? AppTheme.textLight.withValues(alpha: 0.7)
@@ -343,8 +369,11 @@ class _InventaireAlimentsScreenState extends State<InventaireAlimentsScreen> {
                     borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
                     child: LinearProgressIndicator(
                       value: pourcentageStock / 100,
-                      backgroundColor: (isDark ? Colors.white : Colors.black)
-                          .withValues(alpha: 0.1),
+                      backgroundColor:
+                          (isDark
+                                  ? AppTheme.textOnPrimary
+                                  : AppTheme.textPrimary)
+                              .withValues(alpha: 0.1),
                       valueColor: AlwaysStoppedAnimation<Color>(stockColor),
                       minHeight: 8,
                     ),
@@ -388,7 +417,8 @@ class _InventaireAlimentsScreenState extends State<InventaireAlimentsScreen> {
         vertical: 6,
       ),
       decoration: BoxDecoration(
-        color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.05),
+        color: (isDark ? AppTheme.textOnPrimary : AppTheme.textPrimary)
+            .withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
       ),
       child: Row(

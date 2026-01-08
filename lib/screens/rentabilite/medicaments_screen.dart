@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../l10n/app_localizations.dart';
 import '../../providers/medicament_provider.dart';
+import '../../providers/sync_provider.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/common/common_widgets.dart';
 import 'widgets/medicaments_alert_banner.dart';
@@ -33,6 +35,23 @@ class _MedicamentsScreenState extends State<MedicamentsScreen> {
     super.dispose();
   }
 
+  /// Header - Utilise StandardHeader unifié
+  Widget _buildHeader(bool isDark) {
+    return StandardHeader(
+      title: AppLocalizations.of(context).screenPharmacie,
+      isDark: isDark,
+      onSync: () async {
+        // Synchroniser puis recharger
+        final syncProvider = context.read<SyncProvider>();
+        await syncProvider.syncNow();
+        if (!mounted) return;
+        context.read<MedicamentProvider>().chargerMedicaments();
+      },
+      onNotifications: null,
+      onSettings: null,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -43,8 +62,8 @@ class _MedicamentsScreenState extends State<MedicamentsScreen> {
           : AppTheme.backgroundLight,
       body: Column(
         children: [
-          // Header Standard
-          StandardHeader(title: 'Pharmacie', isDark: isDark),
+          // Header Standard - Utilise StandardHeader unifié
+          _buildHeader(isDark),
 
           // Search Bar
           SearchBarWidget(
@@ -150,6 +169,7 @@ class _MedicamentsScreenState extends State<MedicamentsScreen> {
         ],
       ),
       floatingActionButton: FloatingActionButton(
+        heroTag: 'fab_medicament',
         onPressed: () => MedicamentDialogs.showAjouterMedicamentDialog(context),
         backgroundColor: AppTheme.primaryGreen,
         child: const Icon(Icons.add),
@@ -209,7 +229,7 @@ class _MedicamentsScreenState extends State<MedicamentsScreen> {
           Expanded(
             child: StatsCard(
               isDark: isDark,
-              label: 'Stock total',
+              label: AppLocalizations.of(context).labelStockTotal,
               value: '${provider.medicaments.length}',
               icon: Icons.inventory_2,
               color: AppTheme.primaryGreen,
@@ -219,20 +239,20 @@ class _MedicamentsScreenState extends State<MedicamentsScreen> {
           Expanded(
             child: StatsCard(
               isDark: isDark,
-              label: 'Valeur',
+              label: AppLocalizations.of(context).labelValue,
               value: '${valeurStock.toStringAsFixed(0)}€',
               icon: Icons.euro,
-              color: Colors.amber,
+              color: AppTheme.accentAmber,
             ),
           ),
           const SizedBox(width: AppTheme.spacing12),
           Expanded(
             child: StatsCard(
               isDark: isDark,
-              label: 'Alertes',
+              label: AppLocalizations.of(context).labelAlertes,
               value: '$alertes',
               icon: Icons.warning,
-              color: alertes > 0 ? Colors.red : Colors.grey,
+              color: alertes > 0 ? AppTheme.error : AppTheme.neutral500,
             ),
           ),
         ],

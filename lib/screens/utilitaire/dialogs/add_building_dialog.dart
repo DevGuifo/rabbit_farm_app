@@ -3,6 +3,7 @@ import '../../../models/batiment.dart';
 import '../../../services/database_helper.dart';
 import '../../../services/localisation_service.dart'; // Extension methods
 import 'package:rabbit_farm_app/theme/app_theme.dart';
+import '../../../l10n/app_localizations.dart';
 
 /// Dialog Stitch pour ajout d'un nouveau bâtiment
 /// Design: Google Stitch - palette neon green #13EC25
@@ -55,7 +56,11 @@ class _AddBuildingDialogState extends State<AddBuildingDialog> {
         widget.onBuildingAdded();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('✓ Building "${_nameController.text}" added'),
+            content: Text(
+              AppLocalizations.of(
+                context,
+              ).msgBatimentAjoute(_nameController.text),
+            ),
             backgroundColor: AppTheme.primaryNeonGreen,
             behavior: SnackBarBehavior.floating,
           ),
@@ -64,7 +69,10 @@ class _AddBuildingDialogState extends State<AddBuildingDialog> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e'), backgroundColor: AppTheme.error),
+          SnackBar(
+            content: Text(AppLocalizations.of(context).msgErreur(e.toString())),
+            backgroundColor: AppTheme.error,
+          ),
         );
       }
     }
@@ -143,7 +151,7 @@ class _AddBuildingDialogState extends State<AddBuildingDialog> {
         children: [
           Flexible(
             child: Text(
-              'Add New Building',
+              AppLocalizations.of(context).titleAddNewBuilding,
               style: AppTheme.titleMedium.copyWith(
                 color: isDark ? AppTheme.textLight : AppTheme.textPrimary,
               ),
@@ -157,8 +165,10 @@ class _AddBuildingDialogState extends State<AddBuildingDialog> {
                 onPressed: () {
                   // Simulate sync action
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Sync feature coming soon'),
+                    SnackBar(
+                      content: Text(
+                        AppLocalizations.of(context).msgSyncBientot,
+                      ),
                       duration: Duration(seconds: 1),
                     ),
                   );
@@ -173,8 +183,10 @@ class _AddBuildingDialogState extends State<AddBuildingDialog> {
               IconButton(
                 onPressed: () {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('No new notifications'),
+                    SnackBar(
+                      content: Text(
+                        AppLocalizations.of(context).msgPasNouvellesNotifs,
+                      ),
                       duration: Duration(seconds: 1),
                     ),
                   );
@@ -189,8 +201,10 @@ class _AddBuildingDialogState extends State<AddBuildingDialog> {
               IconButton(
                 onPressed: () {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Settings not available in dialog'),
+                    SnackBar(
+                      content: Text(
+                        AppLocalizations.of(context).msgParametresNonDispo,
+                      ),
                       duration: Duration(seconds: 1),
                     ),
                   );
@@ -236,13 +250,16 @@ class _AddBuildingDialogState extends State<AddBuildingDialog> {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [Colors.transparent, Colors.black.withValues(alpha: 0.7)],
+            colors: [
+              Colors.transparent,
+              AppTheme.textPrimary.withValues(alpha: 0.7),
+            ],
           ),
         ),
         padding: const EdgeInsets.all(16),
         alignment: Alignment.bottomLeft,
         child: Text(
-          'Building Information',
+          AppLocalizations.of(context).titleBuildingInformation,
           style: AppTheme.bodyMedium.copyWith(
             fontWeight: FontWeight.w500,
             color: AppTheme.textLight,
@@ -259,7 +276,7 @@ class _AddBuildingDialogState extends State<AddBuildingDialog> {
         Row(
           children: [
             Text(
-              'Building Name',
+              AppLocalizations.of(context).labelBuildingName,
               style: AppTheme.bodyMedium.copyWith(
                 fontWeight: FontWeight.w600,
                 color: isDark ? AppTheme.textLight : AppTheme.textPrimary,
@@ -273,7 +290,7 @@ class _AddBuildingDialogState extends State<AddBuildingDialog> {
         TextFormField(
           controller: _nameController,
           decoration: InputDecoration(
-            hintText: 'e.g., Breeding Barn A',
+            hintText: AppLocalizations.of(context).hintBreedingBarnA,
             hintStyle: TextStyle(
               color: AppTheme.textSecondary.withValues(alpha: 0.5),
             ),
@@ -291,8 +308,9 @@ class _AddBuildingDialogState extends State<AddBuildingDialog> {
           style: TextStyle(
             color: isDark ? AppTheme.textLight : AppTheme.textPrimary,
           ),
-          validator: (value) =>
-              value?.trim().isEmpty ?? true ? 'Building name required' : null,
+          validator: (value) => value?.trim().isEmpty ?? true
+              ? AppLocalizations.of(context).validationBuildingNameRequired
+              : null,
         ),
       ],
     );
@@ -303,7 +321,7 @@ class _AddBuildingDialogState extends State<AddBuildingDialog> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Capacity',
+          AppLocalizations.of(context).labelCapacity,
           style: AppTheme.bodyMedium.copyWith(
             fontWeight: FontWeight.w600,
             color: isDark ? AppTheme.textLight : AppTheme.textPrimary,
@@ -319,7 +337,7 @@ class _AddBuildingDialogState extends State<AddBuildingDialog> {
               color: AppTheme.textSecondary.withValues(alpha: 0.5),
             ),
             prefixIcon: Icon(Icons.grid_view, color: AppTheme.textSecondary),
-            suffixText: 'units',
+            suffixText: AppLocalizations.of(context).suffixUnits,
             suffixStyle: AppTheme.caption.copyWith(
               color: AppTheme.textSecondary,
             ),
@@ -374,7 +392,7 @@ class _AddBuildingDialogState extends State<AddBuildingDialog> {
           controller: _descriptionController,
           maxLines: 4,
           decoration: InputDecoration(
-            hintText: 'Enter location details or notes...',
+            hintText: AppLocalizations.of(context).hintLocationDetails,
             hintStyle: TextStyle(
               color: AppTheme.textSecondary.withValues(alpha: 0.5),
             ),
@@ -413,31 +431,28 @@ class _AddBuildingDialogState extends State<AddBuildingDialog> {
           SizedBox(
             width: double.infinity,
             height: 56,
-            child: ElevatedButton.icon(
-              onPressed: _saveBuilding,
-              icon: const Icon(Icons.add_circle, size: 20),
-              label: const Text('Add Building', style: AppTheme.titleSmall),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppTheme.primaryNeonGreen,
-                foregroundColor: AppTheme.textPrimary,
-                elevation: 8,
-                shadowColor: AppTheme.primaryNeonGreen.withValues(alpha: 0.3),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
+            child: Builder(
+              builder: (context) {
+                final l10n = AppLocalizations.of(context);
+                return ElevatedButton.icon(
+                  onPressed: _saveBuilding,
+                  icon: const Icon(Icons.add_circle, size: 20),
+                  label: Text(l10n.ajouterBatiment, style: AppTheme.titleSmall),
+                  style: AppTheme.primaryButtonStyle,
+                );
+              },
             ),
           ),
           const SizedBox(height: 12),
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(
-              'Cancel',
-              style: AppTheme.bodyMedium.copyWith(
-                fontWeight: FontWeight.w500,
-                color: AppTheme.textSecondary,
-              ),
-            ),
+          Builder(
+            builder: (context) {
+              final l10n = AppLocalizations.of(context);
+              return TextButton(
+                onPressed: () => Navigator.pop(context),
+                style: AppTheme.textButtonStyle,
+                child: Text(l10n.annuler),
+              );
+            },
           ),
         ],
       ),

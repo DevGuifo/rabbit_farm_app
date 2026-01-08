@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../l10n/app_localizations.dart';
 import '../../models/alerte.dart';
 import '../../providers/alerte_provider.dart';
 import 'widgets/alertes_app_bar.dart';
@@ -18,7 +19,7 @@ class AlertesScreen extends StatefulWidget {
 }
 
 class _AlertesScreenState extends State<AlertesScreen> {
-  String _filtrePriorite = 'Tous';
+  String _filtrePriorite = '';
 
   @override
   void initState() {
@@ -47,9 +48,8 @@ class _AlertesScreenState extends State<AlertesScreen> {
         child: AlertesAppBar(
           onBack: () => Navigator.of(context).pop(),
           onSync: _chargerAlertes,
-          onNotifications: () {
-            // Navigation vers notifications (déjà sur la page)
-          },
+          onNotifications:
+              null, // Masquer car on est déjà sur la page des notifications
           onSettings: () {
             // Navigation vers paramètres
           },
@@ -84,9 +84,12 @@ class _AlertesScreenState extends State<AlertesScreen> {
 
                 // Filtrer par priorité
                 List<Alerte> alertes;
-                if (_filtrePriorite == 'Tous') {
+                if (_filtrePriorite == '' ||
+                    _filtrePriorite ==
+                        AppLocalizations.of(context).alertesTous) {
                   alertes = provider.alertes;
-                } else if (_filtrePriorite == 'Stock') {
+                } else if (_filtrePriorite ==
+                    AppLocalizations.of(context).alertesStock) {
                   // Filtre custom "Stock" = stockFaible + peremption
                   alertes = provider.alertes
                       .where(
@@ -134,7 +137,7 @@ class _AlertesScreenState extends State<AlertesScreen> {
                     if (todayAlertes.isNotEmpty) ...[
                       _buildSectionHeader(
                         context,
-                        'Today',
+                        AppLocalizations.of(context).alertesAujourdhui,
                         hasMarkAllRead: true,
                         onMarkAllRead: () =>
                             _markAllAsRead(provider, todayAlertes),
@@ -151,7 +154,9 @@ class _AlertesScreenState extends State<AlertesScreen> {
                             provider.supprimerAlerte(alerte.id);
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
-                                content: const Text('Alerte supprimée'),
+                                content: Text(
+                                  AppLocalizations.of(context).alerteSupprimee,
+                                ),
                                 backgroundColor: isDark
                                     ? AppTheme.backgroundDark
                                     : AppTheme.textSecondary,
@@ -165,7 +170,10 @@ class _AlertesScreenState extends State<AlertesScreen> {
 
                     // Section: Yesterday
                     if (yesterdayAlertes.isNotEmpty) ...[
-                      _buildSectionHeader(context, 'Yesterday'),
+                      _buildSectionHeader(
+                        context,
+                        AppLocalizations.of(context).alertesHier,
+                      ),
                       const SizedBox(height: 12),
                       ...yesterdayAlertes.map((alerte) {
                         return AlertesNotificationCard(
@@ -178,7 +186,9 @@ class _AlertesScreenState extends State<AlertesScreen> {
                             provider.supprimerAlerte(alerte.id);
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
-                                content: const Text('Alerte supprimée'),
+                                content: Text(
+                                  AppLocalizations.of(context).alerteSupprimee,
+                                ),
                                 backgroundColor: isDark
                                     ? AppTheme.backgroundDark
                                     : AppTheme.textSecondary,
@@ -205,10 +215,12 @@ class _AlertesScreenState extends State<AlertesScreen> {
                             provider.supprimerAlerte(alerte.id);
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
-                                content: const Text('Alerte supprimée'),
+                                content: Text(
+                                  AppLocalizations.of(context).alerteSupprimee,
+                                ),
                                 backgroundColor: isDark
                                     ? AppTheme.bgDark
-                                    : Colors.grey.shade800,
+                                    : AppTheme.neutral800,
                               ),
                             );
                           },
@@ -241,16 +253,13 @@ class _AlertesScreenState extends State<AlertesScreen> {
       children: [
         Text(
           title,
-          style: AppTheme.titleMedium.copyWith(
-            color: textColor,
-            height: 1.2,
-          ),
+          style: AppTheme.titleMedium.copyWith(color: textColor, height: 1.2),
         ),
         if (hasMarkAllRead)
           GestureDetector(
             onTap: onMarkAllRead,
             child: Text(
-              'MARK ALL READ',
+              AppLocalizations.of(context).alertesMarquerLues,
               style: AppTheme.caption.copyWith(
                 fontWeight: FontWeight.bold,
                 color: AppTheme.primaryGreen,

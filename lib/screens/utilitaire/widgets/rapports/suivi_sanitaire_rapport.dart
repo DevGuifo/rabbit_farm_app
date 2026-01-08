@@ -4,9 +4,11 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 import 'package:intl/intl.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../../providers/lapin_provider.dart';
 import '../../../../providers/sante_provider.dart';
 import '../../../../theme/app_theme.dart';
+import '../../../../theme/pdf_app_theme.dart';
 
 /// Rapport annuel de suivi sanitaire du cheptel
 class SuiviSanitaireRapport extends StatelessWidget {
@@ -26,7 +28,10 @@ class SuiviSanitaireRapport extends StatelessWidget {
               color: Theme.of(context).colorScheme.primary,
             ),
             const SizedBox(height: 16),
-            Text('Suivi Sanitaire', style: AppTheme.headingSmall),
+            Text(
+              AppLocalizations.of(context).titleSuiviSanitaire,
+              style: AppTheme.headingSmall,
+            ),
             const SizedBox(height: 8),
             Text(
               'Rapport annuel de santé',
@@ -34,10 +39,15 @@ class SuiviSanitaireRapport extends StatelessWidget {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),
-            ElevatedButton.icon(
-              onPressed: () => _genererPDF(context),
-              icon: const Icon(Icons.picture_as_pdf_rounded),
-              label: const Text('Générer le PDF'),
+            Builder(
+              builder: (context) {
+                final l10n = AppLocalizations.of(context);
+                return ElevatedButton.icon(
+                  onPressed: () => _genererPDF(context),
+                  icon: const Icon(Icons.picture_as_pdf_rounded),
+                  label: Text(l10n.genererPdf),
+                );
+              },
             ),
           ],
         ),
@@ -46,6 +56,7 @@ class SuiviSanitaireRapport extends StatelessWidget {
   }
 
   Future<void> _genererPDF(BuildContext context) async {
+    final l10n = AppLocalizations.of(context);
     final lapinProvider = Provider.of<LapinProvider>(context, listen: false);
     final santeProvider = Provider.of<SanteProvider>(context, listen: false);
 
@@ -66,13 +77,16 @@ class SuiviSanitaireRapport extends StatelessWidget {
                     style: pw.TextStyle(
                       fontSize: 24,
                       fontWeight: pw.FontWeight.bold,
-                      color: PdfColors.pink900,
+                      color: PdfAppTheme.accentPink900,
                     ),
                   ),
                   pw.SizedBox(height: 8),
                   pw.Text(
                     'Généré le ${DateFormat('dd/MM/yyyy à HH:mm').format(DateTime.now())}',
-                    style: pw.TextStyle(fontSize: 10, color: PdfColors.grey700),
+                    style: pw.TextStyle(
+                      fontSize: 10,
+                      color: PdfAppTheme.neutral500700,
+                    ),
                   ),
                   pw.Divider(thickness: 2),
                 ],
@@ -88,10 +102,12 @@ class SuiviSanitaireRapport extends StatelessWidget {
             ),
             pw.SizedBox(height: 10),
             pw.Table(
-              border: pw.TableBorder.all(color: PdfColors.grey400),
+              border: pw.TableBorder.all(color: PdfAppTheme.neutral500400),
               children: [
                 pw.TableRow(
-                  decoration: const pw.BoxDecoration(color: PdfColors.grey300),
+                  decoration: const pw.BoxDecoration(
+                    color: PdfAppTheme.neutral500300,
+                  ),
                   children: [
                     pw.Padding(
                       padding: const pw.EdgeInsets.all(8),
@@ -113,7 +129,7 @@ class SuiviSanitaireRapport extends StatelessWidget {
                   children: [
                     pw.Padding(
                       padding: const pw.EdgeInsets.all(8),
-                      child: pw.Text('Soins effectués (total)'),
+                      child: pw.Text(l10n.pdfCarePerformed),
                     ),
                     pw.Padding(
                       padding: const pw.EdgeInsets.all(8),
@@ -125,7 +141,7 @@ class SuiviSanitaireRapport extends StatelessWidget {
                   children: [
                     pw.Padding(
                       padding: const pw.EdgeInsets.all(8),
-                      child: pw.Text('Pesées enregistrées'),
+                      child: pw.Text(l10n.pdfWeighingsRecorded),
                     ),
                     pw.Padding(
                       padding: const pw.EdgeInsets.all(8),
@@ -137,7 +153,7 @@ class SuiviSanitaireRapport extends StatelessWidget {
                   children: [
                     pw.Padding(
                       padding: const pw.EdgeInsets.all(8),
-                      child: pw.Text('Lapins actifs'),
+                      child: pw.Text(l10n.pdfActiveRabbits),
                     ),
                     pw.Padding(
                       padding: const pw.EdgeInsets.all(8),
@@ -167,7 +183,7 @@ class SuiviSanitaireRapport extends StatelessWidget {
                 margin: const pw.EdgeInsets.only(bottom: 6),
                 padding: const pw.EdgeInsets.all(8),
                 decoration: pw.BoxDecoration(
-                  border: pw.Border.all(color: PdfColors.grey300),
+                  border: pw.Border.all(color: PdfAppTheme.neutral500300),
                   borderRadius: const pw.BorderRadius.all(
                     pw.Radius.circular(4),
                   ),
@@ -190,7 +206,7 @@ class SuiviSanitaireRapport extends StatelessWidget {
                             soin.type,
                             style: const pw.TextStyle(
                               fontSize: 9,
-                              color: PdfColors.grey700,
+                              color: PdfAppTheme.neutral500700,
                             ),
                           ),
                           if (soin.notes != null && soin.notes!.isNotEmpty)
@@ -198,7 +214,7 @@ class SuiviSanitaireRapport extends StatelessWidget {
                               soin.notes!,
                               style: const pw.TextStyle(
                                 fontSize: 8,
-                                color: PdfColors.grey600,
+                                color: PdfAppTheme.neutral500600,
                               ),
                             ),
                         ],
@@ -208,7 +224,7 @@ class SuiviSanitaireRapport extends StatelessWidget {
                       DateFormat('dd/MM/yyyy').format(soin.date),
                       style: const pw.TextStyle(
                         fontSize: 9,
-                        color: PdfColors.grey700,
+                        color: PdfAppTheme.neutral500700,
                       ),
                     ),
                   ],
@@ -225,7 +241,7 @@ class SuiviSanitaireRapport extends StatelessWidget {
     );
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Rapport sanitaire généré ✓')),
+        SnackBar(content: Text(AppLocalizations.of(context).msgRapportGenere)),
       );
     }
   }

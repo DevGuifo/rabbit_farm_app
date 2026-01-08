@@ -23,7 +23,7 @@ class JournalGeneralTab extends StatelessWidget {
       return const Center(
         child: Text(
           'Aucune note générale',
-          style: TextStyle(fontSize: 16, color: Colors.grey),
+          style: TextStyle(fontSize: 16, color: AppTheme.textSecondary),
         ),
       );
     }
@@ -53,13 +53,13 @@ class JournalGeneralTab extends StatelessWidget {
                     Icon(
                       Icons.calendar_today,
                       size: 20,
-                      color: Colors.blue[700],
+                      color: AppTheme.info,
                     ),
                     const SizedBox(width: 8),
                     Text(
                       dateKey,
                       style: AppTheme.titleSmall.copyWith(
-                        color: Colors.blue[700],
+                        color: AppTheme.info,
                       ),
                     ),
                   ],

@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
+import '../../l10n/app_localizations.dart';
 import '../../models/depense.dart';
 import '../../providers/finance_provider.dart';
 import '../../theme/app_theme.dart';
+import '../../widgets/uniform_app_bar.dart';
 
 class AjouterDepenseScreen extends StatefulWidget {
   const AjouterDepenseScreen({super.key});
@@ -35,18 +37,10 @@ class _AjouterDepenseScreenState extends State<AjouterDepenseScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
-      appBar: AppBar(
-        title: Text(
-          'Ajouter une dépense',
-          style: AppTheme.titleLarge.copyWith(
-            color: Theme.of(context).colorScheme.onSurface,
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        backgroundColor: Theme.of(context).colorScheme.surface,
-        elevation: 0,
-        iconTheme: IconThemeData(color: Theme.of(context).colorScheme.primary),
+      appBar: UniformAppBar(
+        title: AppLocalizations.of(context).financeAjouterDepense,
+        icon: Icons.remove_circle_rounded,
+        iconColor: AppTheme.error,
       ),
       body: Form(
         key: _formKey,
@@ -57,7 +51,7 @@ class _AjouterDepenseScreenState extends State<AjouterDepenseScreen> {
             Card(
               child: ListTile(
                 leading: const Icon(Icons.calendar_today),
-                title: const Text('Date'),
+                title: Text(AppLocalizations.of(context).financeDate),
                 subtitle: Text(_formatDate.format(_dateSelectionnee)),
                 onTap: _selectionnerDate,
               ),
@@ -67,25 +61,36 @@ class _AjouterDepenseScreenState extends State<AjouterDepenseScreen> {
             // Catégorie
             DropdownButtonFormField<String>(
               initialValue: _categorieSelectionnee,
-              decoration: const InputDecoration(
-                labelText: 'Catégorie',
-                prefixIcon: Icon(Icons.category),
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                labelText: AppLocalizations.of(context).financeCategorie,
+                prefixIcon: const Icon(Icons.category),
+                border: const OutlineInputBorder(),
               ),
-              items: const [
+              items: [
                 DropdownMenuItem(
                   value: 'alimentation',
-                  child: Text('Alimentation'),
+                  child: Text(
+                    AppLocalizations.of(context).financeCategorieAlimentation,
+                  ),
                 ),
                 DropdownMenuItem(
                   value: 'veterinaire',
-                  child: Text('Vétérinaire'),
+                  child: Text(
+                    AppLocalizations.of(context).financeCategorieSante,
+                  ),
                 ),
                 DropdownMenuItem(
                   value: 'equipement',
-                  child: Text('Équipement'),
+                  child: Text(
+                    AppLocalizations.of(context).financeCategorieEquipement,
+                  ),
                 ),
-                DropdownMenuItem(value: 'autre', child: Text('Autre')),
+                DropdownMenuItem(
+                  value: 'autre',
+                  child: Text(
+                    AppLocalizations.of(context).financesCategorieAutre,
+                  ),
+                ),
               ],
               onChanged: (value) {
                 setState(() {
@@ -98,10 +103,10 @@ class _AjouterDepenseScreenState extends State<AjouterDepenseScreen> {
             // Montant
             TextFormField(
               controller: _montantController,
-              decoration: const InputDecoration(
-                labelText: 'Montant (€)',
-                prefixIcon: Icon(Icons.euro),
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                labelText: AppLocalizations.of(context).financeMontant,
+                prefixIcon: const Icon(Icons.euro),
+                border: const OutlineInputBorder(),
               ),
               keyboardType: const TextInputType.numberWithOptions(
                 decimal: true,
@@ -111,11 +116,11 @@ class _AjouterDepenseScreenState extends State<AjouterDepenseScreen> {
               ],
               validator: (value) {
                 if (value == null || value.isEmpty) {
-                  return 'Veuillez saisir un montant';
+                  return AppLocalizations.of(context).erreurMontantInvalide;
                 }
                 final montant = double.tryParse(value);
                 if (montant == null || montant <= 0) {
-                  return 'Veuillez saisir un montant valide';
+                  return AppLocalizations.of(context).erreurMontantInvalide;
                 }
                 return null;
               },
@@ -125,15 +130,15 @@ class _AjouterDepenseScreenState extends State<AjouterDepenseScreen> {
             // Description
             TextFormField(
               controller: _descriptionController,
-              decoration: const InputDecoration(
-                labelText: 'Description',
-                prefixIcon: Icon(Icons.description),
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                labelText: AppLocalizations.of(context).financeDescription,
+                prefixIcon: const Icon(Icons.description),
+                border: const OutlineInputBorder(),
               ),
               maxLines: 2,
               validator: (value) {
                 if (value == null || value.isEmpty) {
-                  return 'Veuillez saisir une description';
+                  return AppLocalizations.of(context).erreurDescriptionRequise;
                 }
                 return null;
               },
@@ -143,10 +148,10 @@ class _AjouterDepenseScreenState extends State<AjouterDepenseScreen> {
             // Notes
             TextFormField(
               controller: _notesController,
-              decoration: const InputDecoration(
-                labelText: 'Notes (optionnel)',
-                prefixIcon: Icon(Icons.note),
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                labelText: AppLocalizations.of(context).financeNotes,
+                prefixIcon: const Icon(Icons.note),
+                border: const OutlineInputBorder(),
               ),
               maxLines: 3,
             ),
@@ -156,12 +161,8 @@ class _AjouterDepenseScreenState extends State<AjouterDepenseScreen> {
             ElevatedButton.icon(
               onPressed: _enregistrer,
               icon: const Icon(Icons.check),
-              label: const Text('Enregistrer la dépense'),
-              style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.all(16),
-                backgroundColor: AppTheme.error,
-                foregroundColor: AppTheme.textLight,
-              ),
+              label: Text(AppLocalizations.of(context).commonSave),
+              style: AppTheme.dangerButtonStyle,
             ),
           ],
         ),

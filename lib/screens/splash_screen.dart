@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:lottie/lottie.dart';
 import 'welcome_screen.dart';
 import 'auth/auth_screen.dart';
 import 'auth/pin_screen.dart';
@@ -98,7 +99,10 @@ class _SplashScreenState extends State<SplashScreen> {
       // Démarrer la synchronisation automatique si l'utilisateur est authentifié
       if (!mounted) return;
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
-      final connectivityProvider = Provider.of<ConnectivityProvider>(context, listen: false);
+      final connectivityProvider = Provider.of<ConnectivityProvider>(
+        context,
+        listen: false,
+      );
       final syncProvider = Provider.of<SyncProvider>(context, listen: false);
 
       if (authProvider.state != AuthState.unauthenticated) {
@@ -108,7 +112,9 @@ class _SplashScreenState extends State<SplashScreen> {
       // Scanner et planifier toutes les notifications intelligentes
       // (en arrière-plan pour ne pas bloquer le démarrage)
       final smartNotificationService = SmartNotificationService();
-      smartNotificationService.scanAndScheduleAllNotifications().catchError((e) {
+      smartNotificationService.scanAndScheduleAllNotifications().catchError((
+        e,
+      ) {
         logger.error('Erreur lors du scan des notifications: $e');
       });
 
@@ -136,7 +142,7 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   /// Navigation vers le prochain écran selon l'état d'authentification
-  /// 
+  ///
   /// Flux :
   /// 1. Vérifier l'état d'authentification
   /// 2. Si non authentifié → AuthScreen
@@ -147,8 +153,10 @@ class _SplashScreenState extends State<SplashScreen> {
 
     try {
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
-      final connectivityProvider =
-          Provider.of<ConnectivityProvider>(context, listen: false);
+      final connectivityProvider = Provider.of<ConnectivityProvider>(
+        context,
+        listen: false,
+      );
 
       // Attendre que les providers soient initialisés
       await Future.delayed(const Duration(milliseconds: 100));
@@ -254,7 +262,9 @@ class _SplashScreenState extends State<SplashScreen> {
                           shape: BoxShape.circle,
                           boxShadow: [
                             BoxShadow(
-                              color: AppTheme.primaryNeonGreen.withValues(alpha: 0.1),
+                              color: AppTheme.primaryNeonGreen.withValues(
+                                alpha: 0.1,
+                              ),
                               blurRadius: 80,
                               spreadRadius: 20,
                             ),
@@ -279,7 +289,9 @@ class _SplashScreenState extends State<SplashScreen> {
                           shape: BoxShape.circle,
                           boxShadow: [
                             BoxShadow(
-                              color: AppTheme.primaryNeonGreen.withValues(alpha: 0.1),
+                              color: AppTheme.primaryNeonGreen.withValues(
+                                alpha: 0.1,
+                              ),
                               blurRadius: 80,
                               spreadRadius: 20,
                             ),
@@ -324,12 +336,9 @@ class _SplashScreenState extends State<SplashScreen> {
                         const SizedBox(height: 8),
                         Text(
                           'Smart Farm Management',
-                          style: TextStyle(
-                            fontSize: 14,
+                          style: AppTheme.bodyMedium.copyWith(
                             fontWeight: FontWeight.w500,
-                            color: isDark
-                                ? Colors.grey.shade400
-                                : Colors.grey.shade500,
+                            color: AppTheme.textSecondary,
                           ),
                         ),
                       ],
@@ -351,13 +360,10 @@ class _SplashScreenState extends State<SplashScreen> {
 
                       // Version
                       Text(
-                        'v1.1.0',
-                        style: TextStyle(
-                          fontSize: 12,
+                        'v1.2.0',
+                        style: AppTheme.bodySmall.copyWith(
                           fontWeight: FontWeight.w500,
-                          color: isDark
-                              ? Colors.grey.shade600
-                              : Colors.grey.shade400,
+                          color: AppTheme.textTertiary,
                         ),
                       ),
                     ],
@@ -371,11 +377,11 @@ class _SplashScreenState extends State<SplashScreen> {
     );
   }
 
-  /// Construit le logo avec effet de glow
+  /// Construit le logo avec animation Lottie
   Widget _buildLogoWithGlow(bool isDark) {
     return Container(
-      width: 128,
-      height: 128,
+      width: 250,
+      height: 250,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
@@ -389,28 +395,22 @@ class _SplashScreenState extends State<SplashScreen> {
       child: Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(24),
-          color: isDark
-              ? AppTheme.stitchSurfaceDark
-              : AppTheme.stitchSurfaceLight,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
-              blurRadius: 20,
-              offset: const Offset(0, 4),
-            ),
-          ],
-          border: Border.all(
-            color: isDark
-                ? Colors.white.withValues(alpha: 0.1)
-                : Colors.black.withValues(alpha: 0.05),
-            width: 1,
-          ),
+          color: Colors.transparent,
         ),
         child: Center(
-          child: Icon(
-            Icons.cruelty_free,
-            size: 64,
-            color: AppTheme.primaryNeonGreen,
+          child: ColorFiltered(
+            colorFilter: ColorFilter.mode(
+              isDark ? AppTheme.surfaceWhite : AppTheme.primaryNeonGreen,
+              BlendMode.srcIn,
+            ),
+            child: Lottie.asset(
+              'assets/animations/davsan.json',
+              width: 250,
+              height: 250,
+              fit: BoxFit.contain,
+              repeat: true,
+              animate: true,
+            ),
           ),
         ),
       ),
@@ -428,21 +428,16 @@ class _SplashScreenState extends State<SplashScreen> {
           children: [
             Text(
               'LOADING',
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
+              style: AppTheme.labelMedium.copyWith(
                 letterSpacing: 1.2,
                 color: AppTheme.primaryNeonGreen,
               ),
             ),
             Text(
               '${(_progress * 100).toInt()}%',
-              style: TextStyle(
-                fontSize: 12,
+              style: AppTheme.bodySmall.copyWith(
                 fontWeight: FontWeight.w500,
-                color: isDark
-                    ? Colors.grey.shade500
-                    : Colors.grey.shade400,
+                color: AppTheme.textTertiary,
               ),
             ),
           ],
@@ -456,7 +451,7 @@ class _SplashScreenState extends State<SplashScreen> {
             borderRadius: BorderRadius.circular(4),
             color: isDark
                 ? AppTheme.stitchSurfaceDark
-                : const Color(0xFFcfe7d1),
+                : AppTheme.splashGreen,
           ),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(4),
@@ -468,7 +463,7 @@ class _SplashScreenState extends State<SplashScreen> {
                   height: 8,
                   color: isDark
                       ? AppTheme.stitchSurfaceDark
-                      : const Color(0xFFcfe7d1),
+                      : AppTheme.splashGreen,
                 ),
                 // Barre de progression
                 LayoutBuilder(
@@ -483,7 +478,9 @@ class _SplashScreenState extends State<SplashScreen> {
                         color: AppTheme.primaryNeonGreen,
                         boxShadow: [
                           BoxShadow(
-                            color: AppTheme.primaryNeonGreen.withValues(alpha: 0.5),
+                            color: AppTheme.primaryNeonGreen.withValues(
+                              alpha: 0.5,
+                            ),
                             blurRadius: 10,
                             spreadRadius: 2,
                           ),
@@ -532,7 +529,7 @@ class _SplashScreenState extends State<SplashScreen> {
                       end: Alignment.centerRight,
                       colors: [
                         Colors.transparent,
-                        Colors.white.withValues(alpha: 0.3),
+                        AppTheme.surfaceWhite.withValues(alpha: 0.3),
                         Colors.transparent,
                       ],
                       stops: const [0.0, 0.5, 1.0],

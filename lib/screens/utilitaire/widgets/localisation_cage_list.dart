@@ -3,6 +3,7 @@ import '../../../models/cage.dart';
 import '../../../models/clapier.dart';
 import '../../../models/batiment.dart';
 import 'package:rabbit_farm_app/theme/app_theme.dart';
+import '../../../l10n/app_localizations.dart';
 
 /// Liste des cages avec recherche et filtres
 /// Design Stitch avec border-left coloré selon statut
@@ -86,7 +87,7 @@ class _LocalisationCageListState extends State<LocalisationCageList> {
             'All Cages',
             style: AppTheme.titleMedium.copyWith(
               color: isDark
-                  ? const Color(0xFFE0E6E0)
+                  ? AppTheme.stitchTextLight
                   : AppTheme.stitchTextMainLight,
             ),
           ),
@@ -118,14 +119,16 @@ class _LocalisationCageListState extends State<LocalisationCageList> {
       child: Container(
         height: 48,
         decoration: BoxDecoration(
-          color: isDark ? const Color(0xFF1A2C1E) : Colors.white,
+          color: isDark
+              ? AppTheme.stitchSurfaceDarkAlt
+              : AppTheme.textOnPrimary,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: isDark ? const Color(0xFF3A3A3A) : const Color(0xFFCCCCCC),
+            color: isDark ? AppTheme.greyDarkAlt : AppTheme.greyMedium,
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.04),
+              color: AppTheme.divider,
               blurRadius: 4,
               offset: const Offset(0, 1),
             ),
@@ -138,7 +141,7 @@ class _LocalisationCageListState extends State<LocalisationCageList> {
               Icons.search_rounded,
               size: 20,
               color: isDark
-                  ? const Color(0xFF8BA88E)
+                  ? AppTheme.stitchGreen
                   : AppTheme.stitchTextSecLight,
             ),
             const SizedBox(width: 12),
@@ -148,14 +151,14 @@ class _LocalisationCageListState extends State<LocalisationCageList> {
                 style: TextStyle(
                   fontSize: 15,
                   color: isDark
-                      ? const Color(0xFFE0E6E0)
+                      ? AppTheme.stitchTextLight
                       : AppTheme.stitchTextMainLight,
                 ),
                 decoration: InputDecoration(
-                  hintText: 'Search cage ID or location...',
+                  hintText: AppLocalizations.of(context).hintSearchCageLocation,
                   hintStyle: TextStyle(
                     color: isDark
-                        ? const Color(0xFF8BA88E)
+                        ? AppTheme.stitchGreen
                         : AppTheme.stitchTextSecLight,
                   ),
                   border: InputBorder.none,
@@ -196,14 +199,14 @@ class _LocalisationCageListState extends State<LocalisationCageList> {
                 decoration: BoxDecoration(
                   color: isSelected
                       ? AppTheme.primaryNeonGreen
-                      : (isDark ? const Color(0xFF1A2C1E) : Colors.white),
+                      : (isDark
+                            ? AppTheme.stitchSurfaceDarkAlt
+                            : AppTheme.textOnPrimary),
                   borderRadius: BorderRadius.circular(18),
                   border: Border.all(
                     color: isSelected
                         ? AppTheme.primaryNeonGreen
-                        : (isDark
-                              ? const Color(0xFF3A3A3A)
-                              : const Color(0xFFCCCCCC)),
+                        : (isDark ? AppTheme.greyDarkAlt : AppTheme.greyMedium),
                   ),
                 ),
                 child: Row(
@@ -213,11 +216,11 @@ class _LocalisationCageListState extends State<LocalisationCageList> {
                       filter['icon'] as IconData,
                       size: 18,
                       color: isSelected
-                          ? Colors.black
+                          ? AppTheme.textPrimary
                           : (filter['id'] == 'Cleaning'
-                                ? const Color(0xFFF97316)
+                                ? AppTheme.accentOrangeVivid
                                 : (isDark
-                                      ? const Color(0xFF8BA88E)
+                                      ? AppTheme.stitchGreen
                                       : AppTheme.stitchTextSecLight)),
                     ),
                     const SizedBox(width: 8),
@@ -228,9 +231,9 @@ class _LocalisationCageListState extends State<LocalisationCageList> {
                             ? FontWeight.bold
                             : FontWeight.w500,
                         color: isSelected
-                            ? Colors.black
+                            ? AppTheme.textPrimary
                             : (isDark
-                                  ? const Color(0xFFE0E6E0)
+                                  ? AppTheme.stitchTextLight
                                   : AppTheme.stitchTextMainLight),
                       ),
                     ),
@@ -264,14 +267,16 @@ class _LocalisationCageListState extends State<LocalisationCageList> {
       child: Container(
         margin: const EdgeInsets.only(bottom: 12),
         decoration: BoxDecoration(
-          color: isDark ? const Color(0xFF1A2C1E) : Colors.white,
+          color: isDark
+              ? AppTheme.stitchSurfaceDarkAlt
+              : AppTheme.textOnPrimary,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: isDark ? const Color(0xFF1F1F1F) : const Color(0xFFE5E5E5),
+            color: isDark ? AppTheme.greyDarkest : AppTheme.greyE5,
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.04),
+              color: AppTheme.divider,
               blurRadius: 4,
               offset: const Offset(0, 1),
             ),
@@ -288,9 +293,9 @@ class _LocalisationCageListState extends State<LocalisationCageList> {
                 width: 4,
                 decoration: BoxDecoration(
                   color: needsCleaning
-                      ? const Color(0xFFF97316)
+                      ? AppTheme.accentOrangeVivid
                       : (statut == 'vide'
-                            ? const Color(0xFF9E9E9E)
+                            ? AppTheme.grey9E
                             : AppTheme.primaryNeonGreen),
                   borderRadius: const BorderRadius.only(
                     topLeft: Radius.circular(12),
@@ -311,23 +316,21 @@ class _LocalisationCageListState extends State<LocalisationCageList> {
                     height: 64,
                     decoration: BoxDecoration(
                       color: statut == 'vide'
-                          ? (isDark
-                                ? const Color(0xFF2A2A2A)
-                                : const Color(0xFFE5E5E5))
-                          : const Color(0xFF4A5568),
+                          ? (isDark ? AppTheme.greyDark : AppTheme.greyE5)
+                          : AppTheme.greySlate,
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: statut == 'vide'
                         ? Icon(
                             Icons.cottage_rounded,
                             color: isDark
-                                ? const Color(0xFF666666)
-                                : const Color(0xFF999999),
+                                ? AppTheme.greyMuted
+                                : AppTheme.grey999,
                             size: 28,
                           )
                         : const Icon(
                             Icons.pets_rounded,
-                            color: Colors.white70,
+                            color: AppTheme.textOnPrimary70,
                             size: 28,
                           ),
                   ),
@@ -345,7 +348,7 @@ class _LocalisationCageListState extends State<LocalisationCageList> {
                                 'Cage ${cage.numero}',
                                 style: AppTheme.titleMedium.copyWith(
                                   color: isDark
-                                      ? const Color(0xFFE0E6E0)
+                                      ? AppTheme.stitchTextLight
                                       : AppTheme.stitchTextMainLight,
                                 ),
                               ),
@@ -357,7 +360,7 @@ class _LocalisationCageListState extends State<LocalisationCageList> {
                                   vertical: 4,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: const Color(0xFFFFF7ED),
+                                  color: AppTheme.warmLight,
                                   borderRadius: BorderRadius.circular(6),
                                   border: Border.all(
                                     color: const Color(
@@ -381,8 +384,8 @@ class _LocalisationCageListState extends State<LocalisationCageList> {
                                 ),
                                 decoration: BoxDecoration(
                                   color: isDark
-                                      ? const Color(0xFF2A2A2A)
-                                      : const Color(0xFFF5F5F5),
+                                      ? AppTheme.greyDark
+                                      : AppTheme.lightF5,
                                   borderRadius: BorderRadius.circular(6),
                                   border: Border.all(
                                     color: const Color(
@@ -395,8 +398,8 @@ class _LocalisationCageListState extends State<LocalisationCageList> {
                                   style: AppTheme.caption.copyWith(
                                     fontWeight: FontWeight.w600,
                                     color: isDark
-                                        ? const Color(0xFF8BA88E)
-                                        : const Color(0xFF666666),
+                                        ? AppTheme.stitchGreen
+                                        : AppTheme.greyMuted,
                                   ),
                                 ),
                               ),
@@ -408,7 +411,7 @@ class _LocalisationCageListState extends State<LocalisationCageList> {
                           style: AppTheme.bodyMedium.copyWith(
                             fontWeight: FontWeight.w600,
                             color: isDark
-                                ? const Color(0xFF8BA88E)
+                                ? AppTheme.stitchGreen
                                 : AppTheme.stitchTextSecLight,
                           ),
                         ),
@@ -420,7 +423,7 @@ class _LocalisationCageListState extends State<LocalisationCageList> {
                               fontWeight: FontWeight.w600,
                               color: isDark
                                   ? AppTheme.primaryNeonGreen
-                                  : const Color(0xFF10B01D),
+                                  : AppTheme.successVivid,
                             ),
                           )
                         else if (occupants > 0)
@@ -447,20 +450,19 @@ class _LocalisationCageListState extends State<LocalisationCageList> {
                                 Icons.check_circle_rounded,
                                 size: 14,
                                 color: isDark
-                                    ? const Color(0xFF4ADE80)
-                                    : const Color(0xFF22C55E),
+                                    ? AppTheme.success400
+                                    : AppTheme.success500,
                               ),
                               const SizedBox(width: 4),
-                              Text(
-                                cageData['lastCleaned'] as String,
-                                style: AppTheme.caption.copyWith(
-                                  color: isDark
-                                      ? const Color(
-                                          0xFFE0E6E0,
-                                        ).withValues(alpha: 0.8)
-                                      : const Color(
-                                          0xFF111812,
-                                        ).withValues(alpha: 0.8),
+                              Flexible(
+                                child: Text(
+                                  cageData['lastCleaned'] as String,
+                                  style: AppTheme.caption.copyWith(
+                                    color: isDark
+                                        ? AppTheme.textPrimary80
+                                        : AppTheme.textPrimary80,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
                                 ),
                               ),
                             ],
@@ -476,7 +478,7 @@ class _LocalisationCageListState extends State<LocalisationCageList> {
                       Icons.more_vert_rounded,
                       size: 24,
                       color: isDark
-                          ? const Color(0xFF8BA88E)
+                          ? AppTheme.stitchGreen
                           : AppTheme.stitchTextSecLight,
                     ),
                     padding: EdgeInsets.zero,
@@ -499,7 +501,7 @@ class _LocalisationCageListState extends State<LocalisationCageList> {
           Icon(
             Icons.search_off_rounded,
             size: 80,
-            color: isDark ? const Color(0xFF3A3A3A) : const Color(0xFFCCCCCC),
+            color: isDark ? AppTheme.greyDarkAlt : AppTheme.greyMedium,
           ),
           const SizedBox(height: 16),
           Text(
@@ -508,7 +510,7 @@ class _LocalisationCageListState extends State<LocalisationCageList> {
               fontSize: 18,
               fontWeight: FontWeight.w600,
               color: isDark
-                  ? const Color(0xFF8BA88E)
+                  ? AppTheme.stitchGreen
                   : AppTheme.stitchTextSecLight,
             ),
           ),
@@ -517,7 +519,7 @@ class _LocalisationCageListState extends State<LocalisationCageList> {
             'Try adjusting your filters',
             style: AppTheme.bodyMedium.copyWith(
               color: isDark
-                  ? const Color(0xFF8BA88E)
+                  ? AppTheme.stitchGreen
                   : AppTheme.stitchTextSecLight,
             ),
           ),

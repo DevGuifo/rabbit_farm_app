@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../../l10n/app_localizations.dart';
+import 'package:rabbit_farm_app/theme/app_theme.dart';
 
 class MigrationFormatDialog extends StatelessWidget {
   final VoidCallback onSelectCsv;
@@ -16,7 +18,12 @@ class MigrationFormatDialog extends StatelessWidget {
         children: [
           Icon(Icons.sync_alt, color: Theme.of(context).primaryColor),
           const SizedBox(width: 12),
-          const Text('Importer des données'),
+          const Expanded(
+            child: Text(
+              'Importer des données',
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
         ],
       ),
       content: Column(
@@ -30,11 +37,11 @@ class MigrationFormatDialog extends StatelessWidget {
           Card(
             child: ListTile(
               leading: CircleAvatar(
-                backgroundColor: Colors.green.withValues(alpha: 0.2),
-                child: const Icon(Icons.table_chart, color: Colors.green),
+                backgroundColor: AppTheme.success.withValues(alpha: 0.2),
+                child: const Icon(Icons.table_chart, color: AppTheme.success),
               ),
-              title: const Text('Fichier CSV'),
-              subtitle: const Text('Tableur Excel, Google Sheets...'),
+              title: Text(AppLocalizations.of(context).fichierCsv),
+              subtitle: Text(AppLocalizations.of(context).tableurExcel),
               trailing: const Icon(Icons.arrow_forward_ios, size: 16),
               onTap: () {
                 Navigator.pop(context);
@@ -46,11 +53,11 @@ class MigrationFormatDialog extends StatelessWidget {
           Card(
             child: ListTile(
               leading: CircleAvatar(
-                backgroundColor: Colors.blue.withValues(alpha: 0.2),
-                child: const Icon(Icons.code, color: Colors.blue),
+                backgroundColor: AppTheme.info.withValues(alpha: 0.2),
+                child: const Icon(Icons.code, color: AppTheme.info),
               ),
-              title: const Text('Fichier JSON'),
-              subtitle: const Text('Export d\'autres apps'),
+              title: Text(AppLocalizations.of(context).fichierJson),
+              subtitle: Text(AppLocalizations.of(context).exportAutresApps),
               trailing: const Icon(Icons.arrow_forward_ios, size: 16),
               onTap: () {
                 Navigator.pop(context);
@@ -62,13 +69,13 @@ class MigrationFormatDialog extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: Colors.blue.withValues(alpha: 0.1),
+              color: AppTheme.info.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.blue.withValues(alpha: 0.3)),
+              border: Border.all(color: AppTheme.info.withValues(alpha: 0.3)),
             ),
             child: Row(
               children: [
-                Icon(Icons.info_outline, color: Colors.blue[700], size: 20),
+                Icon(Icons.info_outline, color: AppTheme.info, size: 20),
                 const SizedBox(width: 8),
                 const Expanded(
                   child: Text(
@@ -82,9 +89,14 @@ class MigrationFormatDialog extends StatelessWidget {
         ],
       ),
       actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: const Text('Annuler'),
+        Builder(
+          builder: (context) {
+            final l10n = AppLocalizations.of(context);
+            return TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(l10n.annuler),
+            );
+          },
         ),
       ],
     );

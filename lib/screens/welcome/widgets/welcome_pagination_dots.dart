@@ -29,8 +29,8 @@ class WelcomePaginationDots extends StatelessWidget {
           height: 6,
           decoration: BoxDecoration(
             color: isDark
-                ? Colors.grey.shade700
-                : Colors.grey.shade300,
+                ? AppTheme.neutral700
+                : AppTheme.borderLight,
             shape: BoxShape.circle,
           ),
         ),
@@ -40,8 +40,8 @@ class WelcomePaginationDots extends StatelessWidget {
           height: 6,
           decoration: BoxDecoration(
             color: isDark
-                ? Colors.grey.shade700
-                : Colors.grey.shade300,
+                ? AppTheme.neutral700
+                : AppTheme.borderLight,
             shape: BoxShape.circle,
           ),
         ),

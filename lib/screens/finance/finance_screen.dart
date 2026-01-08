@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
+import '../../l10n/app_localizations.dart';
 import '../../providers/finance_provider.dart';
+import '../../providers/sync_provider.dart';
 import '../../models/recette.dart';
 import '../../models/depense.dart';
 import '../../theme/app_theme.dart';
@@ -54,15 +56,15 @@ class _FinanceScreenState extends State<FinanceScreen> {
           _buildHeader(isDark),
           Expanded(
             child: Consumer<FinanceProvider>(
-        builder: (context, financeProvider, _) {
-          if (_selectedView == 'dashboard') {
-            return _buildDashboard(financeProvider, isDark);
-          } else if (_selectedView == 'recettes') {
-            return _buildRecettesList(financeProvider, isDark);
-          } else {
-            return _buildDepensesList(financeProvider, isDark);
-          }
-        },
+              builder: (context, financeProvider, _) {
+                if (_selectedView == 'dashboard') {
+                  return _buildDashboard(financeProvider, isDark);
+                } else if (_selectedView == 'recettes') {
+                  return _buildRecettesList(financeProvider, isDark);
+                } else {
+                  return _buildDepensesList(financeProvider, isDark);
+                }
+              },
             ),
           ),
         ],
@@ -71,16 +73,21 @@ class _FinanceScreenState extends State<FinanceScreen> {
     );
   }
 
-  /// Header - Utilise StandardHeader
+  /// Header - Utilise StandardHeader unifié
   Widget _buildHeader(bool isDark) {
     return StandardHeader(
-      title: 'Finances',
+      title: AppLocalizations.of(context).screenFinances,
       isDark: isDark,
-      onSync: () {
+      onSync: () async {
+        // Synchroniser puis recharger
+        final syncProvider = context.read<SyncProvider>();
+        await syncProvider.syncNow();
+        if (!mounted) return;
         context.read<FinanceProvider>().chargerTout();
       },
       onNotifications: null,
       onSettings: _exporterRapport,
+      settingsIcon: Icons.download_rounded, // Icône export au lieu de settings
     );
   }
 
@@ -100,7 +107,7 @@ class _FinanceScreenState extends State<FinanceScreen> {
               Expanded(
                 child: StatsCard(
                   isDark: isDark,
-                  label: 'Recettes',
+                  label: AppLocalizations.of(context).financeRecettes,
                   value: _formatMontant.format(totalRecettes),
                   icon: Icons.trending_up,
                   color: AppTheme.primaryGreen,
@@ -110,7 +117,7 @@ class _FinanceScreenState extends State<FinanceScreen> {
               Expanded(
                 child: StatsCard(
                   isDark: isDark,
-                  label: 'Dépenses',
+                  label: AppLocalizations.of(context).financeDepenses,
                   value: _formatMontant.format(totalDepenses),
                   icon: Icons.trending_down,
                   color: AppTheme.error,
@@ -121,7 +128,7 @@ class _FinanceScreenState extends State<FinanceScreen> {
           const SizedBox(height: 12),
           StatsCard(
             isDark: isDark,
-            label: 'Bénéfice',
+            label: AppLocalizations.of(context).financeBenefice,
             value: _formatMontant.format(benefice),
             icon: Icons.account_balance_wallet,
             color: benefice >= 0 ? AppTheme.primaryGreen : AppTheme.error,
@@ -131,7 +138,7 @@ class _FinanceScreenState extends State<FinanceScreen> {
           // Graphique Recettes si données
           if (provider.recettes.isNotEmpty) ...[
             SectionHeader(
-              title: 'Recettes par catégorie',
+              title: AppLocalizations.of(context).financeRecettesParCategorie,
               isDark: isDark,
               icon: Icons.pie_chart,
             ),
@@ -143,8 +150,8 @@ class _FinanceScreenState extends State<FinanceScreen> {
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(
                   color: isDark
-                      ? Colors.white.withValues(alpha: 0.1)
-                      : Colors.black.withValues(alpha: 0.08),
+                      ? AppTheme.surfaceWhite.withValues(alpha: 0.1)
+                      : AppTheme.textPrimary.withValues(alpha: 0.08),
                 ),
               ),
               child: SizedBox(
@@ -153,7 +160,11 @@ class _FinanceScreenState extends State<FinanceScreen> {
                   future: provider.getTotalRecettesByCategorie(),
                   builder: (context, snapshot) {
                     if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                      return const Center(child: Text('Aucune donnée'));
+                      return Center(
+                        child: Text(
+                          AppLocalizations.of(context).emptyAucuneDonnee,
+                        ),
+                      );
                     }
                     return _buildPieChart(snapshot.data!, isDark);
                   },
@@ -165,7 +176,7 @@ class _FinanceScreenState extends State<FinanceScreen> {
 
           // Actions rapides
           SectionHeader(
-            title: 'Actions rapides',
+            title: AppLocalizations.of(context).financeActionsRapides,
             isDark: isDark,
             icon: Icons.flash_on,
           ),
@@ -176,7 +187,7 @@ class _FinanceScreenState extends State<FinanceScreen> {
                 child: _buildActionButton(
                   isDark,
                   Icons.add,
-                  'Ajouter Recette',
+                  AppLocalizations.of(context).financeAjouterRecette,
                   AppTheme.success,
                   () => _ajouterRecette(),
                 ),
@@ -186,7 +197,7 @@ class _FinanceScreenState extends State<FinanceScreen> {
                 child: _buildActionButton(
                   isDark,
                   Icons.remove,
-                  'Ajouter Dépense',
+                  AppLocalizations.of(context).financeAjouterDepense,
                   AppTheme.error,
                   () => _ajouterDepense(),
                 ),
@@ -200,11 +211,11 @@ class _FinanceScreenState extends State<FinanceScreen> {
 
   Widget _buildRecettesList(FinanceProvider provider, bool isDark) {
     if (provider.recettes.isEmpty) {
-      return const EmptyState(
+      return EmptyState(
         isDark: false,
         icon: Icons.inbox_outlined,
-        title: 'Aucune recette',
-        subtitle: 'Ajoutez une recette pour commencer',
+        title: AppLocalizations.of(context).financeAucuneRecette,
+        subtitle: AppLocalizations.of(context).financeAucuneRecetteDetail,
       );
     }
 
@@ -218,7 +229,7 @@ class _FinanceScreenState extends State<FinanceScreen> {
           recette.montant.toString(),
           recette.categorie,
           recette.date,
-          Colors.green,
+          AppTheme.success,
           () => _editRecette(recette),
           () => _deleteRecette(recette.id!),
         );
@@ -228,11 +239,11 @@ class _FinanceScreenState extends State<FinanceScreen> {
 
   Widget _buildDepensesList(FinanceProvider provider, bool isDark) {
     if (provider.depenses.isEmpty) {
-      return const EmptyState(
+      return EmptyState(
         isDark: false,
         icon: Icons.inbox_outlined,
-        title: 'Aucune dépense',
-        subtitle: 'Ajoutez une dépense pour suivre vos coûts',
+        title: AppLocalizations.of(context).financeAucuneDepense,
+        subtitle: AppLocalizations.of(context).financeAucuneDepenseDetail,
       );
     }
 
@@ -309,8 +320,8 @@ class _FinanceScreenState extends State<FinanceScreen> {
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
               color: isDark
-                  ? Colors.white.withValues(alpha: 0.1)
-                  : Colors.black.withValues(alpha: 0.08),
+                  ? AppTheme.textOnPrimary.withValues(alpha: 0.1)
+                  : AppTheme.textPrimary.withValues(alpha: 0.08),
             ),
           ),
           child: Row(
@@ -353,8 +364,11 @@ class _FinanceScreenState extends State<FinanceScreen> {
                 ),
               ),
               Text(
-                '${color == Colors.green ? '+' : '-'}${_formatMontant.format(double.tryParse(montant) ?? 0)}',
-                style: AppTheme.bodyLarge.copyWith(fontWeight: FontWeight.bold, color: color),
+                '${color == AppTheme.success ? '+' : '-'}${_formatMontant.format(double.tryParse(montant) ?? 0)}',
+                style: AppTheme.bodyLarge.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: color,
+                ),
               ),
             ],
           ),
@@ -380,17 +394,19 @@ class _FinanceScreenState extends State<FinanceScreen> {
       mainAxisSize: MainAxisSize.min,
       children: [
         FloatingActionButton(
+          heroTag: 'fab_depense',
           mini: true,
           backgroundColor: AppTheme.error,
           onPressed: _ajouterDepense,
-          tooltip: 'Ajouter dépense',
+          tooltip: AppLocalizations.of(context).financeAjouterDepense,
           child: const Icon(Icons.remove),
         ),
         const SizedBox(height: 8),
         FloatingActionButton(
+          heroTag: 'fab_recette',
           backgroundColor: AppTheme.success,
           onPressed: _ajouterRecette,
-          tooltip: 'Ajouter recette',
+          tooltip: AppLocalizations.of(context).financeAjouterRecette,
           child: const Icon(Icons.add),
         ),
       ],
@@ -446,7 +462,10 @@ class _FinanceScreenState extends State<FinanceScreen> {
         try {
           await context.read<FinanceProvider>().supprimerRecette(id);
           if (!mounted) return;
-          SnackbarHelper.showSuccess(context, 'Recette supprimée');
+          SnackbarHelper.showSuccess(
+            context,
+            AppLocalizations.of(context).financeRecetteSupprimee,
+          );
         } catch (e) {
           if (!mounted) return;
           SnackbarHelper.showError(context, 'Erreur: $e');
@@ -464,7 +483,10 @@ class _FinanceScreenState extends State<FinanceScreen> {
         try {
           await context.read<FinanceProvider>().supprimerDepense(id);
           if (!mounted) return;
-          SnackbarHelper.showSuccess(context, 'Dépense supprimée');
+          SnackbarHelper.showSuccess(
+            context,
+            AppLocalizations.of(context).financeDepenseSupprimee,
+          );
         } catch (e) {
           if (!mounted) return;
           SnackbarHelper.showError(context, 'Erreur: $e');
@@ -509,7 +531,8 @@ class _FinanceScreenState extends State<FinanceScreen> {
       }
 
       // Utiliser la période complète si disponible, sinon la période actuelle
-      final dateDebut = debut ?? DateTime.now().subtract(const Duration(days: 30));
+      final dateDebut =
+          debut ?? DateTime.now().subtract(const Duration(days: 30));
       final dateFin = fin ?? DateTime.now();
 
       SnackbarHelper.show(context, 'Génération du rapport PDF...');
@@ -523,7 +546,10 @@ class _FinanceScreenState extends State<FinanceScreen> {
       );
 
       if (mounted) {
-        SnackbarHelper.showSuccess(context, '✅ Rapport financier généré avec succès');
+        SnackbarHelper.showSuccess(
+          context,
+          '✅ Rapport financier généré avec succès',
+        );
       }
     } catch (e) {
       if (mounted) {

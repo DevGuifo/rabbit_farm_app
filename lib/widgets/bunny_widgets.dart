@@ -26,7 +26,7 @@ class BunnyCard extends StatelessWidget {
       margin: const EdgeInsets.symmetric(vertical: AppTheme.spacing8),
       decoration: BoxDecoration(
         color: useGlass
-            ? Colors.white.withValues(alpha: 0.1)
+            ? AppTheme.textOnPrimary.withValues(alpha: 0.1)
             : (backgroundColor ?? AppTheme.cardLight),
         borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
         border: showBorder
@@ -280,7 +280,7 @@ class StatCard extends StatelessWidget {
           const SizedBox(height: AppTheme.spacing12),
           Text(
             value,
-            style: AppTheme.displayMedium.copyWith(color: AppTheme.textPrimary),
+            style: AppTheme.titleLarge.copyWith(color: AppTheme.textPrimary),
           ),
           const SizedBox(height: AppTheme.spacing4),
           Text(
@@ -715,7 +715,7 @@ class LoadingOverlay extends StatelessWidget {
         child,
         if (isLoading)
           Container(
-            color: Colors.black54,
+            color: AppTheme.textPrimary54,
             child: Center(
               child: Card(
                 margin: const EdgeInsets.all(AppTheme.spacing32),

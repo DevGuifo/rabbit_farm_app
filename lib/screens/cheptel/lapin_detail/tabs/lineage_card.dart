@@ -1,8 +1,8 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../../models/lapin.dart';
 import '../../../../theme/app_theme.dart';
-import '../constants/stitch_theme_constants.dart';
 
 /// Card "Lineage" pour afficher père et mère (Stitch Design)
 class LineageCard extends StatelessWidget {
@@ -18,15 +18,15 @@ class LineageCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final surfaceColor = StitchTheme.getSurfaceColor(context);
-    final outlineColor = StitchTheme.getOutlineColor(context);
+    final surfaceColor = AppTheme.getSurfaceColor(context);
+    final outlineColor = AppTheme.getOutlineColor(context);
 
     return Container(
       decoration: BoxDecoration(
         color: surfaceColor,
         borderRadius: BorderRadius.circular(40),
         border: Border.all(color: outlineColor),
-        boxShadow: StitchTheme.cardShadow(context),
+        boxShadow: AppTheme.cardShadow(isDark: isDark),
       ),
       child: Column(
         children: [
@@ -36,7 +36,7 @@ class LineageCard extends StatelessWidget {
             decoration: BoxDecoration(
               color: isDark
                   ? AppTheme.textLight.withValues(alpha: 0.05)
-                  : StitchTheme.neutral50.withValues(alpha: 0.5),
+                  : AppTheme.neutral50.withValues(alpha: 0.5),
               borderRadius: const BorderRadius.only(
                 topLeft: Radius.circular(40),
                 topRight: Radius.circular(40),
@@ -47,7 +47,7 @@ class LineageCard extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'Lineage',
+                  AppLocalizations.of(context).cheptelLineage,
                   style: AppTheme.titleMedium.copyWith(
                     color: isDark ? AppTheme.textLight : AppTheme.textPrimary,
                   ),
@@ -58,7 +58,7 @@ class LineageCard extends StatelessWidget {
                     color: isDark
                         ? AppTheme.textLight.withValues(alpha: 0.1)
                         : AppTheme.cardLight,
-                    borderRadius: BorderRadius.circular(StitchTheme.radiusFull),
+                    borderRadius: BorderRadius.circular(AppTheme.radiusFull),
                     boxShadow: [
                       BoxShadow(
                         color: AppTheme.textPrimary.withValues(alpha: 0.05),
@@ -70,7 +70,7 @@ class LineageCard extends StatelessWidget {
                   child: Icon(
                     Icons.account_tree,
                     size: 20,
-                    color: StitchTheme.neutral400,
+                    color: AppTheme.neutral400,
                   ),
                 ),
               ],
@@ -86,7 +86,7 @@ class LineageCard extends StatelessWidget {
                   _buildParentTile(
                     context: context,
                     isDark: isDark,
-                    label: 'FATHER',
+                    label: AppLocalizations.of(context).cheptelFather,
                     parent: parents['pere']!,
                   ),
                 // Divider
@@ -98,15 +98,15 @@ class LineageCard extends StatelessWidget {
                       horizontal: 48,
                     ),
                     color: isDark
-                        ? StitchTheme.outlineDark
-                        : StitchTheme.outlineLight,
+                        ? AppTheme.outlineDark
+                        : AppTheme.outlineLight,
                   ),
                 // Mother
                 if (parents['mere'] != null)
                   _buildParentTile(
                     context: context,
                     isDark: isDark,
-                    label: 'MOTHER',
+                    label: AppLocalizations.of(context).cheptelMother,
                     parent: parents['mere']!,
                   ),
                 // No parents message
@@ -114,11 +114,11 @@ class LineageCard extends StatelessWidget {
                   Padding(
                     padding: const EdgeInsets.all(32),
                     child: Text(
-                      'Aucun parent enregistré',
+                      AppLocalizations.of(context).cheptelAucunParent,
                       style: AppTheme.bodyMedium.copyWith(
                         color: isDark
-                            ? StitchTheme.neutral500
-                            : StitchTheme.neutral400,
+                            ? AppTheme.neutral500
+                            : AppTheme.neutral400,
                       ),
                     ),
                   ),
@@ -151,9 +151,7 @@ class LineageCard extends StatelessWidget {
                 height: 48,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: isDark
-                      ? StitchTheme.neutral700
-                      : StitchTheme.neutral200,
+                  color: isDark ? AppTheme.neutral700 : AppTheme.neutral200,
                   border: Border.all(
                     color: isDark
                         ? AppTheme.stitchTextSecDark
@@ -194,8 +192,8 @@ class LineageCard extends StatelessWidget {
                         fontWeight: FontWeight.bold,
                         letterSpacing: 1.2,
                         color: isDark
-                            ? StitchTheme.neutral400
-                            : StitchTheme.neutral500,
+                            ? AppTheme.neutral400
+                            : AppTheme.neutral500,
                       ),
                     ),
                     const SizedBox(height: 2),
@@ -211,11 +209,7 @@ class LineageCard extends StatelessWidget {
                 ),
               ),
               // Chevron
-              Icon(
-                Icons.chevron_right,
-                color: StitchTheme.neutral300,
-                size: 24,
-              ),
+              Icon(Icons.chevron_right, color: AppTheme.neutral300, size: 24),
             ],
           ),
         ),
@@ -225,7 +219,7 @@ class LineageCard extends StatelessWidget {
 
   Widget _buildPlaceholderIcon() {
     return const Center(
-      child: Icon(Icons.pets, size: 24, color: StitchTheme.neutral400),
+      child: Icon(Icons.pets, size: 24, color: AppTheme.neutral400),
     );
   }
 }

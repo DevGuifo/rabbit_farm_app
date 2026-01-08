@@ -61,7 +61,7 @@ class AuthHeroSection extends StatelessWidget {
                           end: Alignment.bottomCenter,
                           colors: [
                             Colors.transparent,
-                            Colors.black.withValues(alpha: 0.6),
+                            AppTheme.textPrimary.withValues(alpha: 0.6),
                           ],
                         ),
                       ),
@@ -86,7 +86,7 @@ class AuthHeroSection extends StatelessWidget {
                   Text(
                     'BUNNYTRACK',
                     style: TextStyle(
-                      color: Colors.white,
+                      color: AppTheme.textOnPrimary,
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
                       letterSpacing: 1.2,

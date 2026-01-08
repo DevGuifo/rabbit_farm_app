@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:rabbit_farm_app/theme/app_theme.dart';
+import '../../l10n/app_localizations.dart';
 import '../../models/aliment.dart';
 import '../../models/aliment.dart' as model;
 import '../../providers/alimentation_provider.dart';
+import '../../widgets/uniform_app_bar.dart';
 
 /// Écran pour distribuer un aliment
 class DistribuerAlimentScreen extends StatefulWidget {
@@ -84,9 +86,11 @@ class _DistribuerAlimentScreenState extends State<DistribuerAlimentScreen> {
 
       if (result) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Distribution enregistrée'),
-            backgroundColor: Colors.green,
+          SnackBar(
+            content: Text(
+              AppLocalizations.of(context).msgDistributionEnregistree,
+            ),
+            backgroundColor: AppTheme.success,
           ),
         );
         Navigator.pop(context, true);
@@ -96,7 +100,12 @@ class _DistribuerAlimentScreenState extends State<DistribuerAlimentScreen> {
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erreur: $e'), backgroundColor: Colors.red),
+        SnackBar(
+          content: Text(
+            AppLocalizations.of(context).msgErrorPrefix(e.toString()),
+          ),
+          backgroundColor: AppTheme.error,
+        ),
       );
     } finally {
       if (mounted) {
@@ -112,9 +121,10 @@ class _DistribuerAlimentScreenState extends State<DistribuerAlimentScreen> {
     final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Distribuer aliment'),
-        backgroundColor: theme.colorScheme.surface,
+      appBar: UniformAppBar(
+        title: AppLocalizations.of(context).screenDistribuerAliment,
+        icon: Icons.grass_rounded,
+        iconColor: AppTheme.primaryGreen,
       ),
       backgroundColor: theme.colorScheme.surface,
       body: SingleChildScrollView(
@@ -152,8 +162,8 @@ class _DistribuerAlimentScreenState extends State<DistribuerAlimentScreen> {
                         'Stock disponible: ${widget.aliment.quantiteRestante.toStringAsFixed(1)} kg',
                         style: AppTheme.bodyMedium.copyWith(
                           color: widget.aliment.quantiteRestante < 5
-                              ? Colors.red
-                              : Colors.green,
+                              ? AppTheme.error
+                              : AppTheme.success,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -167,9 +177,11 @@ class _DistribuerAlimentScreenState extends State<DistribuerAlimentScreen> {
               InkWell(
                 onTap: _selectDate,
                 child: InputDecorator(
-                  decoration: const InputDecoration(
-                    labelText: 'Date de distribution',
-                    border: OutlineInputBorder(),
+                  decoration: InputDecoration(
+                    labelText: AppLocalizations.of(
+                      context,
+                    ).labelDateDistribution,
+                    border: const OutlineInputBorder(),
                   ),
                   child: Row(
                     children: [
@@ -190,7 +202,9 @@ class _DistribuerAlimentScreenState extends State<DistribuerAlimentScreen> {
               TextFormField(
                 controller: _quantiteController,
                 decoration: InputDecoration(
-                  labelText: 'Quantité distribuée *',
+                  labelText: AppLocalizations.of(
+                    context,
+                  ).labelQuantiteDistribuee,
                   border: const OutlineInputBorder(),
                   suffixText: 'kg',
                   helperText:
@@ -221,10 +235,10 @@ class _DistribuerAlimentScreenState extends State<DistribuerAlimentScreen> {
               // Cages concernées
               TextFormField(
                 controller: _cagesController,
-                decoration: const InputDecoration(
-                  labelText: 'Cages concernées (optionnel)',
-                  hintText: 'Ex: A1, A2, B3',
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  labelText: AppLocalizations.of(context).labelCagesConcernees,
+                  hintText: AppLocalizations.of(context).hintExA1A2B3,
+                  border: const OutlineInputBorder(),
                 ),
               ),
               const SizedBox(height: 16),
@@ -232,9 +246,9 @@ class _DistribuerAlimentScreenState extends State<DistribuerAlimentScreen> {
               // Observations
               TextFormField(
                 controller: _observationsController,
-                decoration: const InputDecoration(
-                  labelText: 'Observations (optionnel)',
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  labelText: AppLocalizations.of(context).labelObservations,
+                  border: const OutlineInputBorder(),
                 ),
                 maxLines: 3,
               ),
@@ -245,11 +259,7 @@ class _DistribuerAlimentScreenState extends State<DistribuerAlimentScreen> {
                 width: double.infinity,
                 child: ElevatedButton(
                   onPressed: _isSubmitting ? null : _distribuerAliment,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppTheme.primaryGreen,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                  ),
+                  style: AppTheme.primaryButtonStyle,
                   child: _isSubmitting
                       ? const SizedBox(
                           height: 20,
@@ -257,7 +267,7 @@ class _DistribuerAlimentScreenState extends State<DistribuerAlimentScreen> {
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
                             valueColor: AlwaysStoppedAnimation<Color>(
-                              Colors.white,
+                              AppTheme.textOnPrimary,
                             ),
                           ),
                         )

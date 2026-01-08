@@ -37,7 +37,7 @@ class CageCardWidget extends StatelessWidget {
     if (needsCleaning) {
       borderColor = AppTheme.warning;
     } else if (statut == 'vide') {
-      borderColor = isDark ? const Color(0xFF6B7280) : const Color(0xFF9CA3AF);
+      borderColor = isDark ? AppTheme.grey600 : AppTheme.grey500;
     } else {
       borderColor = AppTheme.primaryNeonGreen;
     }
@@ -50,11 +50,11 @@ class CageCardWidget extends StatelessWidget {
           color: isDark ? AppTheme.stitchSurfaceDark : AppTheme.cardLight,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: isDark ? const Color(0xFF1F2937) : const Color(0xFFF3F4F6),
+            color: isDark ? AppTheme.greyCardDark : AppTheme.greyLight,
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.04),
+              color: AppTheme.divider,
               blurRadius: 4,
               offset: const Offset(0, 1),
             ),
@@ -96,7 +96,7 @@ class CageCardWidget extends StatelessWidget {
                   Icons.more_vert_rounded,
                   size: 24,
                   color: isDark
-                      ? const Color(0xFF8BA88E)
+                      ? AppTheme.stitchGreen
                       : AppTheme.stitchTextSecLight,
                 ),
                 padding: const EdgeInsets.all(12),
@@ -115,7 +115,7 @@ class CageCardWidget extends StatelessWidget {
       margin: const EdgeInsets.symmetric(vertical: 12),
       decoration: BoxDecoration(
         color: statut == 'vide'
-            ? (isDark ? const Color(0xFF2E2D15) : const Color(0xFFF3F4F6))
+            ? (isDark ? AppTheme.surfaceDarkOlive : AppTheme.greyLight)
             : null,
         borderRadius: BorderRadius.circular(8),
       ),
@@ -123,7 +123,7 @@ class CageCardWidget extends StatelessWidget {
           ? Icon(
               Icons.cottage_rounded,
               size: 28,
-              color: isDark ? const Color(0xFF6B7280) : const Color(0xFF9CA3AF),
+              color: isDark ? AppTheme.grey600 : AppTheme.grey500,
             )
           : ClipRRect(
               borderRadius: BorderRadius.circular(8),
@@ -149,54 +149,53 @@ class CageCardWidget extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Row(
+        Wrap(
+          spacing: 4,
+          runSpacing: 4,
+          crossAxisAlignment: WrapCrossAlignment.center,
           children: [
             Text(
               'Cage ${cage.numero}',
               style: AppTheme.titleSmall.copyWith(
                 color: isDark
-                    ? const Color(0xFFE0E6E0)
+                    ? AppTheme.stitchTextLight
                     : AppTheme.stitchTextMainLight,
               ),
             ),
-            if (needsCleaning) ...[
-              const SizedBox(width: 8),
+            if (needsCleaning)
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                 decoration: BoxDecoration(
                   color: AppTheme.warning.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(4),
                 ),
                 child: Text(
-                  'Needs Cleaning',
+                  '🧹',
                   style: AppTheme.caption.copyWith(
                     fontWeight: FontWeight.w600,
                     color: AppTheme.warning,
                   ),
                 ),
               ),
-            ],
-            if (statut == 'vide') ...[
-              const SizedBox(width: 8),
+            if (statut == 'vide')
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                 decoration: BoxDecoration(
                   color: isDark
-                      ? const Color(0xFF2E2D15)
-                      : const Color(0xFFF3F4F6),
+                      ? AppTheme.surfaceDarkOlive
+                      : AppTheme.greyLight,
                   borderRadius: BorderRadius.circular(4),
                 ),
                 child: Text(
-                  'Empty',
+                  '○',
                   style: AppTheme.caption.copyWith(
                     fontWeight: FontWeight.w600,
                     color: isDark
-                        ? const Color(0xFF9CA3AF)
-                        : const Color(0xFF6B7280),
+                        ? AppTheme.grey500
+                        : AppTheme.grey600,
                   ),
                 ),
               ),
-            ],
           ],
         ),
         const SizedBox(height: 4),
@@ -206,7 +205,7 @@ class CageCardWidget extends StatelessWidget {
             fontSize: 13,
             fontWeight: FontWeight.w500,
             color: isDark
-                ? const Color(0xFF8BA88E)
+                ? AppTheme.stitchGreen
                 : AppTheme.stitchTextSecLight,
           ),
         ),
@@ -216,7 +215,7 @@ class CageCardWidget extends StatelessWidget {
             'Doe + ${occupants - 1} Kits',
             style: AppTheme.caption.copyWith(
               color: isDark
-                  ? const Color(0xFFE0E6E0).withValues(alpha: 0.8)
+                  ? AppTheme.stitchTextLight.withValues(alpha: 0.8)
                   : AppTheme.stitchTextMainLight.withValues(alpha: 0.8),
             ),
           ),
@@ -238,14 +237,14 @@ class CageCardWidget extends StatelessWidget {
               Icon(
                 Icons.check_circle_rounded,
                 size: 14,
-                color: Color(0xFF22C55E),
+                color: AppTheme.success500,
               ),
               const SizedBox(width: 4),
               Text(
                 lastCleaned,
                 style: AppTheme.caption.copyWith(
                   color: isDark
-                      ? const Color(0xFFE0E6E0).withValues(alpha: 0.8)
+                      ? AppTheme.stitchTextLight.withValues(alpha: 0.8)
                       : AppTheme.stitchTextMainLight.withValues(alpha: 0.8),
                 ),
               ),

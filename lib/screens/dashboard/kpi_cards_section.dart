@@ -1,17 +1,15 @@
 import 'package:flutter/material.dart';
+import '../../l10n/app_localizations.dart';
 import '../../services/kpi_service.dart';
 import '../../theme/app_theme.dart';
+import '../../widgets/glossaire/glossaire_cuniculture.dart';
 
 /// Section de cartes KPI détaillées pour le dashboard
 class KpiCardsSection extends StatelessWidget {
   final KpiData kpis;
   final bool isDark;
 
-  const KpiCardsSection({
-    super.key,
-    required this.kpis,
-    required this.isDark,
-  });
+  const KpiCardsSection({super.key, required this.kpis, required this.isDark});
 
   @override
   Widget build(BuildContext context) {
@@ -21,7 +19,7 @@ class KpiCardsSection extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Indicateurs de Performance',
+            AppLocalizations.of(context).dashIndicateursPerformance,
             style: AppTheme.titleLarge.copyWith(
               fontSize: 22,
               color: isDark ? AppTheme.textLight : AppTheme.textPrimary,
@@ -38,45 +36,56 @@ class KpiCardsSection extends StatelessWidget {
             childAspectRatio: 1.3,
             children: [
               _buildKpiCard(
+                context: context,
                 icon: Icons.trending_up_rounded,
-                label: 'Taux Reproduction',
+                label: AppLocalizations.of(context).dashTauxReproductionLabel,
                 value: '${kpis.tauxReproduction.toStringAsFixed(1)}%',
-                color: Colors.green,
+                color: AppTheme.success,
                 isDark: isDark,
               ),
               _buildKpiCard(
+                context: context,
                 icon: Icons.child_care_rounded,
-                label: 'Taux Sevrage',
+                label: AppLocalizations.of(context).dashTauxSevrageLabel,
                 value: '${kpis.tauxSevrage.toStringAsFixed(1)}%',
-                color: Colors.blue,
+                color: AppTheme.info,
                 isDark: isDark,
+                tooltipTerme: 'sevrage',
               ),
               _buildKpiCard(
+                context: context,
                 icon: Icons.warning_rounded,
-                label: 'Taux Mortalité',
+                label: AppLocalizations.of(context).dashTauxMortaliteLabel,
                 value: '${kpis.tauxMortalite.toStringAsFixed(2)}%',
-                color: Colors.red,
+                color: AppTheme.error,
                 isDark: isDark,
               ),
               _buildKpiCard(
+                context: context,
                 icon: Icons.speed_rounded,
-                label: 'GMQ Moyen',
+                label: AppLocalizations.of(context).dashGMQMoyenLabel,
                 value: '${kpis.gmqMoyen.toStringAsFixed(1)} g/j',
-                color: Colors.orange,
+                color: AppTheme.warning,
                 isDark: isDark,
+                tooltipTerme: 'gmq',
               ),
               _buildKpiCard(
+                context: context,
                 icon: Icons.family_restroom_rounded,
-                label: 'Portées Actives',
+                label: AppLocalizations.of(context).dashPorteesActivesLabel,
                 value: '${kpis.porteesActives}',
-                color: Colors.purple,
+                color: AppTheme.accentPurple,
                 isDark: isDark,
+                tooltipTerme: 'portee',
               ),
               _buildKpiCard(
+                context: context,
                 icon: Icons.euro_rounded,
-                label: 'Bénéfice Mensuel',
+                label: AppLocalizations.of(context).dashBeneficeMensuelLabel,
                 value: '${kpis.beneficeMensuel.toStringAsFixed(2)} €',
-                color: kpis.beneficeMensuel >= 0 ? Colors.green : Colors.red,
+                color: kpis.beneficeMensuel >= 0
+                    ? AppTheme.success
+                    : AppTheme.error,
                 isDark: isDark,
               ),
             ],
@@ -87,23 +96,25 @@ class KpiCardsSection extends StatelessWidget {
   }
 
   Widget _buildKpiCard({
+    required BuildContext context,
     required IconData icon,
     required String label,
     required String value,
     required Color color,
     required bool isDark,
+    String? tooltipTerme,
   }) {
     return Container(
       decoration: BoxDecoration(
         color: isDark ? AppTheme.cardDark : AppTheme.cardLight,
         borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
         border: Border.all(
-          color: isDark ? Colors.grey.shade800 : Colors.grey.shade100,
+          color: isDark ? AppTheme.neutral800 : AppTheme.neutral100,
           width: 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
+            color: AppTheme.textPrimary.withValues(alpha: 0.03),
             blurRadius: 4,
             offset: const Offset(0, 1),
           ),
@@ -122,25 +133,28 @@ class KpiCardsSection extends StatelessWidget {
                   color: color.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: Icon(
-                  icon,
-                  size: 20,
-                  color: color,
-                ),
+                child: Icon(icon, size: 20, color: color),
               ),
             ],
           ),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                label,
-                style: AppTheme.caption.copyWith(
-                  color: (isDark
-                          ? AppTheme.textLight
-                          : AppTheme.textSecondary)
-                      .withValues(alpha: 0.7),
-                ),
+              Row(
+                children: [
+                  Text(
+                    label,
+                    style: AppTheme.caption.copyWith(
+                      color:
+                          (isDark ? AppTheme.textLight : AppTheme.textSecondary)
+                              .withValues(alpha: 0.7),
+                    ),
+                  ),
+                  if (tooltipTerme != null) ...[
+                    const SizedBox(width: 4),
+                    TooltipGlossaire(terme: tooltipTerme, iconSize: 12),
+                  ],
+                ],
               ),
               const SizedBox(height: 4),
               Text(
@@ -148,7 +162,7 @@ class KpiCardsSection extends StatelessWidget {
                 style: AppTheme.titleMedium.copyWith(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
-                  color: isDark ? Colors.white : AppTheme.textPrimary,
+                  color: isDark ? AppTheme.textOnPrimary : AppTheme.textPrimary,
                 ),
               ),
             ],
@@ -158,4 +172,3 @@ class KpiCardsSection extends StatelessWidget {
     );
   }
 }
-

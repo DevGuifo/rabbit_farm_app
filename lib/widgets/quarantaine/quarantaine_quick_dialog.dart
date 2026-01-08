@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
+import '../../l10n/app_localizations.dart';
 import '../../models/lapin.dart';
 import '../../models/quarantaine.dart';
 import '../../providers/quarantaine_provider.dart';
@@ -26,30 +27,13 @@ class _QuarantaineQuickDialogState extends State<QuarantaineQuickDialog> {
   bool _isLoading = false;
 
   static const Map<String, Map<String, dynamic>> _motifsInfo = {
-    'nouveau': {
-      'label': 'Nouveau lapin',
-      'icon': Icons.fiber_new,
-      'color': AppTheme.info,
-      'description': 'Quarantaine préventive (14 jours recommandés)',
-    },
-    'maladie': {
-      'label': 'Maladie',
-      'icon': Icons.sick,
-      'color': AppTheme.error,
-      'description': 'Isolement pour maladie contagieuse',
-    },
+    'nouveau': {'icon': Icons.fiber_new, 'color': AppTheme.info},
+    'maladie': {'icon': Icons.sick, 'color': AppTheme.error},
     'isolement_sanitaire': {
-      'label': 'Isolement sanitaire',
       'icon': Icons.cleaning_services,
       'color': AppTheme.warning,
-      'description': 'Mesure préventive sanitaire',
     },
-    'observation': {
-      'label': 'Observation',
-      'icon': Icons.visibility,
-      'color': AppTheme.accentPink,
-      'description': 'Surveillance particulière',
-    },
+    'observation': {'icon': Icons.visibility, 'color': AppTheme.accentPink},
   };
 
   @override
@@ -57,6 +41,38 @@ class _QuarantaineQuickDialogState extends State<QuarantaineQuickDialog> {
     _symptomesController.dispose();
     _notesController.dispose();
     super.dispose();
+  }
+
+  String _getMotifLabel(BuildContext context, String motif) {
+    final l10n = AppLocalizations.of(context);
+    switch (motif) {
+      case 'nouveau':
+        return l10n.quarantaineNouveauLapin;
+      case 'maladie':
+        return l10n.quarantaineMaladie;
+      case 'isolement_sanitaire':
+        return l10n.quarantaineIsolementSanitaire;
+      case 'observation':
+        return l10n.quarantaineObservation;
+      default:
+        return motif;
+    }
+  }
+
+  String _getMotifDescription(BuildContext context, String motif) {
+    final l10n = AppLocalizations.of(context);
+    switch (motif) {
+      case 'nouveau':
+        return l10n.quarantaineDescriptionNouveau;
+      case 'maladie':
+        return l10n.quarantaineDescriptionMaladie;
+      case 'isolement_sanitaire':
+        return l10n.quarantaineDescriptionIsolement;
+      case 'observation':
+        return l10n.quarantaineDescriptionObservation;
+      default:
+        return '';
+    }
   }
 
   @override
@@ -83,9 +99,12 @@ class _QuarantaineQuickDialogState extends State<QuarantaineQuickDialog> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'Mise en quarantaine',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                Text(
+                  AppLocalizations.of(context).quarantaineMiseEnQuarantaine,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 Text(
                   widget.lapin.nom,
@@ -114,7 +133,7 @@ class _QuarantaineQuickDialogState extends State<QuarantaineQuickDialog> {
                   Icons.calendar_today,
                   color: AppTheme.warning,
                 ),
-                title: const Text('Date de début'),
+                title: Text(AppLocalizations.of(context).quarantaineDateDebut),
                 subtitle: Text(DateFormat('dd/MM/yyyy').format(_dateDebut)),
                 trailing: IconButton(
                   icon: const Icon(Icons.edit),
@@ -124,11 +143,14 @@ class _QuarantaineQuickDialogState extends State<QuarantaineQuickDialog> {
               const Divider(),
 
               // Motif
-              const Padding(
-                padding: EdgeInsets.symmetric(vertical: 8),
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8),
                 child: Text(
-                  'Motif de la quarantaine',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                  AppLocalizations.of(context).quarantaineMotifQuarantaine,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                  ),
                 ),
               ),
               ..._motifsInfo.entries.map((entry) {
@@ -141,7 +163,9 @@ class _QuarantaineQuickDialogState extends State<QuarantaineQuickDialog> {
                     border: Border.all(
                       color: isSelected
                           ? motifData['color']
-                          : (isDark ? Colors.grey[700]! : Colors.grey[300]!),
+                          : (isDark
+                                ? AppTheme.neutral700
+                                : AppTheme.borderLight),
                       width: isSelected ? 2 : 1,
                     ),
                     borderRadius: BorderRadius.circular(12),
@@ -157,11 +181,11 @@ class _QuarantaineQuickDialogState extends State<QuarantaineQuickDialog> {
                       size: 20,
                     ),
                     title: Text(
-                      motifData['label'],
+                      _getMotifLabel(context, entry.key),
                       style: const TextStyle(fontWeight: FontWeight.w600),
                     ),
                     subtitle: Text(
-                      motifData['description'],
+                      _getMotifDescription(context, entry.key),
                       style: const TextStyle(fontSize: 12),
                     ),
                     trailing: isSelected
@@ -177,8 +201,10 @@ class _QuarantaineQuickDialogState extends State<QuarantaineQuickDialog> {
               TextField(
                 controller: _symptomesController,
                 decoration: InputDecoration(
-                  labelText: 'Symptômes observés (optionnel)',
-                  hintText: 'Ex: Éternuements, léthargie...',
+                  labelText: AppLocalizations.of(context).quarantaineSymptomes,
+                  hintText: AppLocalizations.of(
+                    context,
+                  ).quarantaineHintSymptomes,
                   prefixIcon: const Icon(Icons.medical_information),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
@@ -192,8 +218,10 @@ class _QuarantaineQuickDialogState extends State<QuarantaineQuickDialog> {
               TextField(
                 controller: _notesController,
                 decoration: InputDecoration(
-                  labelText: 'Notes additionnelles (optionnel)',
-                  hintText: 'Observations, précautions...',
+                  labelText: AppLocalizations.of(
+                    context,
+                  ).quarantaineNotesAdditionnelles,
+                  hintText: AppLocalizations.of(context).quarantaineHintNotes,
                   prefixIcon: const Icon(Icons.note_alt),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
@@ -207,22 +235,27 @@ class _QuarantaineQuickDialogState extends State<QuarantaineQuickDialog> {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: Colors.blue.withValues(alpha: 0.1),
+                  color: AppTheme.info.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.blue.withValues(alpha: 0.3)),
+                  border: Border.all(
+                    color: AppTheme.info.withValues(alpha: 0.3),
+                  ),
                 ),
                 child: Row(
                   children: [
                     const Icon(
                       Icons.info_outline,
-                      color: Colors.blue,
+                      color: AppTheme.info,
                       size: 20,
                     ),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
-                        'Durée recommandée : 14 jours\nVous pourrez lever la quarantaine depuis l\'écran dédié.',
-                        style: TextStyle(fontSize: 12, color: Colors.blue[900]),
+                        AppLocalizations.of(context).quarantaineInfoDuree,
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: AppTheme.info900,
+                        ),
                       ),
                     ),
                   ],
@@ -235,7 +268,7 @@ class _QuarantaineQuickDialogState extends State<QuarantaineQuickDialog> {
       actions: [
         TextButton(
           onPressed: _isLoading ? null : () => Navigator.pop(context, false),
-          child: const Text('Annuler'),
+          child: Text(AppLocalizations.of(context).quarantaineAnnuler),
         ),
         ElevatedButton.icon(
           onPressed: _isLoading ? null : _confirmerQuarantaine,
@@ -246,7 +279,11 @@ class _QuarantaineQuickDialogState extends State<QuarantaineQuickDialog> {
                   child: CircularProgressIndicator(strokeWidth: 2),
                 )
               : const Icon(Icons.health_and_safety),
-          label: Text(_isLoading ? 'En cours...' : 'Confirmer'),
+          label: Text(
+            _isLoading
+                ? AppLocalizations.of(context).quarantaineEnCours
+                : AppLocalizations.of(context).quarantaineConfirmer,
+          ),
           style: ElevatedButton.styleFrom(
             backgroundColor: AppTheme.warning,
             foregroundColor: AppTheme.textLight,
@@ -295,7 +332,7 @@ class _QuarantaineQuickDialogState extends State<QuarantaineQuickDialog> {
         if (mounted) {
           SnackbarHelper.showSuccess(
             context,
-            '🏥 ${widget.lapin.nom} mis en quarantaine avec succès',
+            AppLocalizations.of(context).quarantaineSucces(widget.lapin.nom),
           );
           Navigator.pop(context, true);
         }
@@ -305,7 +342,7 @@ class _QuarantaineQuickDialogState extends State<QuarantaineQuickDialog> {
         setState(() => _isLoading = false);
         SnackbarHelper.showError(
           context,
-          'Erreur lors de la mise en quarantaine: ${e.toString()}',
+          AppLocalizations.of(context).quarantaineErreur(e.toString()),
         );
       }
     }

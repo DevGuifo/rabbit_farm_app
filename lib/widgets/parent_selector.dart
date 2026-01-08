@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../l10n/app_localizations.dart';
 import '../models/lapin.dart';
 import 'package:rabbit_farm_app/theme/app_theme.dart';
 
@@ -38,7 +39,8 @@ class ParentSelector extends StatelessWidget {
                     Text(label, style: Theme.of(context).textTheme.titleSmall),
                     const SizedBox(height: 4),
                     Text(
-                      parentSelectionne?.nom ?? 'Aucun',
+                      parentSelectionne?.nom ??
+                          AppLocalizations.of(context).widgetAucun,
                       style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                         color: parentSelectionne != null
                             ? Theme.of(context).colorScheme.primary
@@ -78,7 +80,7 @@ class ParentSelector extends StatelessWidget {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Sélectionner $label'),
+          title: Text(AppLocalizations.of(context).widgetSelectionner(label)),
           content: SizedBox(
             width: double.maxFinite,
             child: Column(
@@ -87,7 +89,7 @@ class ParentSelector extends StatelessWidget {
                 // Option "Aucun"
                 ListTile(
                   leading: const Icon(Icons.clear),
-                  title: const Text('Aucun'),
+                  title: Text(AppLocalizations.of(context).widgetAucun),
                   selected: parentSelectionne == null,
                   onTap: () {
                     onChanged(null);
@@ -98,9 +100,13 @@ class ParentSelector extends StatelessWidget {
                 // Liste des lapins disponibles
                 Flexible(
                   child: lapinsDisponibles.isEmpty
-                      ? const Padding(
-                          padding: EdgeInsets.all(16.0),
-                          child: Text('Aucun lapin disponible'),
+                      ? Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Text(
+                            AppLocalizations.of(
+                              context,
+                            ).widgetAucunLapinDisponible,
+                          ),
                         )
                       : ListView.builder(
                           shrinkWrap: true,
@@ -137,7 +143,7 @@ class ParentSelector extends StatelessWidget {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Annuler'),
+              child: Text(AppLocalizations.of(context).commonCancel),
             ),
           ],
         );

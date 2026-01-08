@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../theme/app_theme.dart';
 
 class NoteCard extends StatelessWidget {
@@ -19,19 +20,19 @@ class NoteCard extends StatelessWidget {
   Color _getTagColor(String tag) {
     switch (tag) {
       case 'Santé':
-        return Colors.red[100]!;
+        return AppTheme.error.withValues(alpha: 0.1);
       case 'Comportement':
-        return Colors.orange[100]!;
+        return AppTheme.warning.withValues(alpha: 0.1);
       case 'Reproduction':
-        return Colors.pink[100]!;
+        return AppTheme.accentPink50;
       case 'Alimentation':
-        return Colors.green[100]!;
+        return AppTheme.success.withValues(alpha: 0.1);
       case 'Génétique':
-        return Colors.purple[100]!;
+        return AppTheme.purpleLight;
       case 'Administratif':
-        return Colors.blue[100]!;
+        return AppTheme.info.withValues(alpha: 0.1);
       default:
-        return Colors.grey[200]!;
+        return AppTheme.neutral100;
     }
   }
 
@@ -40,27 +41,28 @@ class NoteCard extends StatelessWidget {
     return Dismissible(
       key: Key(note.id.toString()),
       background: Container(
-        color: Colors.red,
+        color: AppTheme.error,
         alignment: Alignment.centerRight,
         padding: const EdgeInsets.only(right: 16),
-        child: const Icon(Icons.delete, color: Colors.white),
+        child: const Icon(Icons.delete, color: AppTheme.textOnPrimary),
       ),
       direction: DismissDirection.endToStart,
       confirmDismiss: onDelete != null
           ? (direction) async {
+              final l10n = AppLocalizations.of(context);
               final confirm = await showDialog<bool>(
                 context: context,
                 builder: (context) => AlertDialog(
-                  title: const Text('Confirmer'),
-                  content: const Text('Supprimer cette note ?'),
+                  title: Text(l10n.confirmer),
+                  content: Text(l10n.supprimerCetteNote),
                   actions: [
                     TextButton(
                       onPressed: () => Navigator.pop(context, false),
-                      child: const Text('Annuler'),
+                      child: Text(l10n.annuler),
                     ),
                     TextButton(
                       onPressed: () => Navigator.pop(context, true),
-                      child: const Text('Supprimer'),
+                      child: Text(l10n.supprimer),
                     ),
                   ],
                 ),
@@ -86,10 +88,7 @@ class NoteCard extends StatelessWidget {
                       runSpacing: 4,
                       children: (note.tags as List<dynamic>).map((tag) {
                         return Chip(
-                          label: Text(
-                            tag.toString(),
-                            style: AppTheme.bodyMedium.copyWith(fontSize: 11),
-                          ),
+                          label: Text(tag.toString(), style: AppTheme.caption),
                           backgroundColor: _getTagColor(tag.toString()),
                           padding: const EdgeInsets.all(4),
                           materialTapTargetSize:
@@ -100,24 +99,27 @@ class NoteCard extends StatelessWidget {
                   ),
                   Text(
                     DateFormat('HH:mm', 'fr_FR').format(note.date),
-                    style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                    style: AppTheme.caption.copyWith(
+                      color: AppTheme.textSecondary,
+                    ),
                   ),
                 ],
               ),
               const SizedBox(height: 8),
               Text(
                 note.titre.toString(),
-                style: AppTheme.bodyMedium.copyWith(
+                style: AppTheme.titleSmall.copyWith(
                   fontWeight: FontWeight.bold,
-                  fontSize: 15,
                 ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
               ),
               const SizedBox(height: 4),
               Text(
                 note.contenu.toString(),
                 maxLines: 3,
                 overflow: TextOverflow.ellipsis,
-                style: TextStyle(color: Colors.grey[700]),
+                style: TextStyle(color: AppTheme.textPrimary),
               ),
               if (note.photos != null && (note.photos as List).isNotEmpty) ...[
                 const SizedBox(height: 8),
@@ -126,12 +128,14 @@ class NoteCard extends StatelessWidget {
                     Icon(
                       Icons.photo_library,
                       size: 16,
-                      color: Colors.grey[600],
+                      color: AppTheme.textSecondary,
                     ),
                     const SizedBox(width: 4),
                     Text(
                       '${(note.photos as List).length} photo(s)',
-                      style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                      style: AppTheme.caption.copyWith(
+                        color: AppTheme.textSecondary,
+                      ),
                     ),
                   ],
                 ),

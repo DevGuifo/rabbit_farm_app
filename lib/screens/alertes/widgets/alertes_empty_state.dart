@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:rabbit_farm_app/l10n/app_localizations.dart';
 import 'package:rabbit_farm_app/theme/app_theme.dart';
 
 /// Empty state "All Caught Up" - Design Stitch
@@ -33,14 +34,12 @@ class AlertesEmptyState extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           Text(
-            'All Caught Up',
-            style: AppTheme.titleMedium.copyWith(
-              color: textColor,
-            ),
+            AppLocalizations.of(context).alertesAucune,
+            style: AppTheme.titleMedium.copyWith(color: textColor),
           ),
           const SizedBox(height: 4),
           Text(
-            'No new notifications at this time.',
+            AppLocalizations.of(context).alertesAucuneDescription,
             style: AppTheme.bodyMedium.copyWith(color: textSubColor),
           ),
         ],

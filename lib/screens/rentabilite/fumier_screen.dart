@@ -6,6 +6,8 @@ import '../../utils/dialog_helper.dart';
 import '../../utils/snackbar_helper.dart';
 import '../../models/collecte_fumier.dart';
 import '../../theme/app_theme.dart';
+import '../../widgets/uniform_app_bar.dart';
+import '../../l10n/app_localizations.dart';
 
 class FumierScreen extends StatefulWidget {
   const FumierScreen({super.key});
@@ -26,10 +28,10 @@ class _FumierScreenState extends State<FumierScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Gestion du Fumier'),
-        backgroundColor: Colors.brown,
-        foregroundColor: Colors.white,
+      appBar: UniformAppBar(
+        title: AppLocalizations.of(context).screenGestionFumier,
+        icon: Icons.eco_rounded,
+        iconColor: AppTheme.accentAmber,
       ),
       body: Consumer<FumierProvider>(
         builder: (context, provider, child) {
@@ -42,16 +44,24 @@ class _FumierScreenState extends State<FumierScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.eco, size: 80, color: Colors.brown[300]),
+                  Icon(
+                    Icons.eco,
+                    size: 80,
+                    color: AppTheme.accentAmber.withValues(alpha: 0.6),
+                  ),
                   const SizedBox(height: 16),
                   Text(
                     'Aucune collecte enregistrée',
-                    style: AppTheme.titleMedium.copyWith(color: Colors.grey),
+                    style: AppTheme.titleMedium.copyWith(
+                      color: AppTheme.neutral500,
+                    ),
                   ),
                   const SizedBox(height: 8),
                   Text(
                     'Appuyez sur + pour en ajouter',
-                    style: AppTheme.bodyMedium.copyWith(color: Colors.grey),
+                    style: AppTheme.bodyMedium.copyWith(
+                      color: AppTheme.neutral500,
+                    ),
                   ),
                 ],
               ),
@@ -69,8 +79,9 @@ class _FumierScreenState extends State<FumierScreen> {
         },
       ),
       floatingActionButton: FloatingActionButton(
+        heroTag: 'fab_fumier',
         onPressed: () => _showAjouterCollecteDialog(context),
-        backgroundColor: Colors.brown,
+        backgroundColor: AppTheme.accentAmber,
         child: const Icon(Icons.add),
       ),
     );
@@ -84,11 +95,15 @@ class _FumierScreenState extends State<FumierScreen> {
       child: ListTile(
         leading: CircleAvatar(
           backgroundColor: _getTypeColor(collecte.type),
-          child: Icon(_getTypeIcon(collecte.type), color: Colors.white),
+          child: Icon(
+            _getTypeIcon(collecte.type),
+            color: AppTheme.textOnPrimary,
+          ),
         ),
         title: Text(
           '${collecte.quantite} kg - ${_getTypeLabel(collecte.type)}',
           style: AppTheme.bodyLarge.copyWith(fontWeight: FontWeight.bold),
+          overflow: TextOverflow.ellipsis,
         ),
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -102,14 +117,14 @@ class _FumierScreenState extends State<FumierScreen> {
               Text(
                 'Vendu: ${collecte.prixVente!.toStringAsFixed(2)} €',
                 style: AppTheme.bodyMedium.copyWith(
-                  color: Colors.green,
+                  color: AppTheme.success,
                   fontWeight: FontWeight.bold,
                 ),
               ),
           ],
         ),
         trailing: IconButton(
-          icon: const Icon(Icons.delete, color: Colors.red),
+          icon: Icon(Icons.delete, color: AppTheme.error),
           onPressed: () => _confirmDelete(collecte),
         ),
       ),
@@ -132,13 +147,13 @@ class _FumierScreenState extends State<FumierScreen> {
   Color _getTypeColor(String type) {
     switch (type) {
       case 'crottes':
-        return Colors.brown;
+        return AppTheme.accentOrange;
       case 'urine':
-        return Colors.amber[800]!;
+        return AppTheme.warning;
       case 'mixte':
-        return Colors.brown[700]!;
+        return AppTheme.accentTeal;
       default:
-        return Colors.grey;
+        return AppTheme.neutral500;
     }
   }
 
@@ -202,7 +217,7 @@ class _FumierScreenState extends State<FumierScreen> {
     await showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Nouvelle collecte de fumier'),
+        title: Text(AppLocalizations.of(context).titleNouvelleCollecteFumier),
         content: SingleChildScrollView(
           child: Form(
             key: formKey,
@@ -229,17 +244,21 @@ class _FumierScreenState extends State<FumierScreen> {
 
                 // Quantité
                 TextFormField(
-                  decoration: const InputDecoration(
-                    labelText: 'Quantité (kg)',
-                    prefixIcon: Icon(Icons.scale),
+                  decoration: InputDecoration(
+                    labelText: AppLocalizations.of(
+                      context,
+                    ).rentabiliteFormQuantite,
+                    prefixIcon: const Icon(Icons.scale),
                   ),
                   keyboardType: TextInputType.number,
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Requis';
+                      return AppLocalizations.of(context).validationRequis;
                     }
                     if (double.tryParse(value) == null) {
-                      return 'Nombre invalide';
+                      return AppLocalizations.of(
+                        context,
+                      ).validationNombreInvalide;
                     }
                     return null;
                   },
@@ -249,14 +268,25 @@ class _FumierScreenState extends State<FumierScreen> {
                 // Type
                 DropdownButtonFormField<String>(
                   initialValue: selectedType,
-                  decoration: const InputDecoration(
-                    labelText: 'Type',
-                    prefixIcon: Icon(Icons.eco),
+                  decoration: InputDecoration(
+                    labelText: AppLocalizations.of(context).rentabiliteFormType,
+                    prefixIcon: const Icon(Icons.eco),
                   ),
-                  items: const [
-                    DropdownMenuItem(value: 'crottes', child: Text('Crottes')),
-                    DropdownMenuItem(value: 'urine', child: Text('Urine')),
-                    DropdownMenuItem(value: 'mixte', child: Text('Mixte')),
+                  items: [
+                    DropdownMenuItem(
+                      value: 'crottes',
+                      child: Text(
+                        AppLocalizations.of(context).fumierTypeCrottes,
+                      ),
+                    ),
+                    DropdownMenuItem(
+                      value: 'urine',
+                      child: Text(AppLocalizations.of(context).fumierTypeUrine),
+                    ),
+                    DropdownMenuItem(
+                      value: 'mixte',
+                      child: Text(AppLocalizations.of(context).fumierTypeMixte),
+                    ),
                   ],
                   onChanged: (value) => selectedType = value!,
                 ),
@@ -264,9 +294,10 @@ class _FumierScreenState extends State<FumierScreen> {
                 // Destination
                 DropdownButtonFormField<String>(
                   initialValue: selectedDestination,
-                  decoration: const InputDecoration(
-                    labelText: 'Destination (optionnel)',
-                    prefixIcon: Icon(Icons.near_me),
+                  decoration: InputDecoration(
+                    labelText:
+                        '${AppLocalizations.of(context).rentabiliteFormDestination} (optionnel)',
+                    prefixIcon: const Icon(Icons.near_me),
                   ),
                   items: const [
                     DropdownMenuItem(value: 'vente', child: Text('Vente')),
@@ -282,9 +313,11 @@ class _FumierScreenState extends State<FumierScreen> {
                 // Prix de vente (si vente)
                 if (selectedDestination == 'vente')
                   TextFormField(
-                    decoration: const InputDecoration(
-                      labelText: 'Prix de vente (€)',
-                      prefixIcon: Icon(Icons.euro),
+                    decoration: InputDecoration(
+                      labelText: AppLocalizations.of(
+                        context,
+                      ).rentabiliteFormPrixVente,
+                      prefixIcon: const Icon(Icons.euro),
                     ),
                     keyboardType: TextInputType.number,
                     onSaved: (value) =>
@@ -295,9 +328,10 @@ class _FumierScreenState extends State<FumierScreen> {
 
                 // Notes
                 TextFormField(
-                  decoration: const InputDecoration(
-                    labelText: 'Notes (optionnel)',
-                    prefixIcon: Icon(Icons.note),
+                  decoration: InputDecoration(
+                    labelText:
+                        '${AppLocalizations.of(context).rentabiliteFormNotes} (optionnel)',
+                    prefixIcon: const Icon(Icons.note),
                   ),
                   maxLines: 2,
                   onSaved: (value) => notes = value,
@@ -309,7 +343,7 @@ class _FumierScreenState extends State<FumierScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('Annuler'),
+            child: Text(AppLocalizations.of(context).commonCancel),
           ),
           ElevatedButton(
             onPressed: () async {
@@ -334,7 +368,7 @@ class _FumierScreenState extends State<FumierScreen> {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
                         content: Text('Collecte enregistrée'),
-                        backgroundColor: Colors.green,
+                        backgroundColor: AppTheme.success,
                       ),
                     );
                   }
@@ -343,14 +377,14 @@ class _FumierScreenState extends State<FumierScreen> {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         content: Text('Erreur: $e'),
-                        backgroundColor: Colors.red,
+                        backgroundColor: AppTheme.error,
                       ),
                     );
                   }
                 }
               }
             },
-            child: const Text('Enregistrer'),
+            child: Text(AppLocalizations.of(context).commonSave),
           ),
         ],
       ),

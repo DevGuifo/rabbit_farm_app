@@ -4,9 +4,11 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 import 'package:intl/intl.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../../providers/lapin_provider.dart';
 import '../../../../providers/reproduction_provider.dart';
 import '../../../../theme/app_theme.dart';
+import '../../../../theme/pdf_app_theme.dart';
 
 /// Analyse détaillée des performances des reproducteurs
 class PerformancesRapport extends StatelessWidget {
@@ -26,7 +28,10 @@ class PerformancesRapport extends StatelessWidget {
               color: Theme.of(context).colorScheme.primary,
             ),
             const SizedBox(height: 16),
-            Text('Rapport Performances', style: AppTheme.headingSmall),
+            Text(
+              AppLocalizations.of(context).titleRapportPerformances,
+              style: AppTheme.headingSmall,
+            ),
             const SizedBox(height: 8),
             Text(
               'Analyse détaillée des reproducteurs',
@@ -34,10 +39,15 @@ class PerformancesRapport extends StatelessWidget {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),
-            ElevatedButton.icon(
-              onPressed: () => _genererPDF(context),
-              icon: const Icon(Icons.picture_as_pdf_rounded),
-              label: const Text('Générer le PDF'),
+            Builder(
+              builder: (context) {
+                final l10n = AppLocalizations.of(context);
+                return ElevatedButton.icon(
+                  onPressed: () => _genererPDF(context),
+                  icon: const Icon(Icons.picture_as_pdf_rounded),
+                  label: Text(l10n.genererPdf),
+                );
+              },
             ),
           ],
         ),
@@ -46,6 +56,7 @@ class PerformancesRapport extends StatelessWidget {
   }
 
   Future<void> _genererPDF(BuildContext context) async {
+    final l10n = AppLocalizations.of(context);
     final lapinProvider = Provider.of<LapinProvider>(context, listen: false);
     final reproProvider = Provider.of<ReproductionProvider>(
       context,
@@ -76,13 +87,16 @@ class PerformancesRapport extends StatelessWidget {
                     style: pw.TextStyle(
                       fontSize: 24,
                       fontWeight: pw.FontWeight.bold,
-                      color: PdfColors.blue900,
+                      color: PdfAppTheme.info900,
                     ),
                   ),
                   pw.SizedBox(height: 8),
                   pw.Text(
                     'Généré le ${DateFormat('dd/MM/yyyy à HH:mm').format(DateTime.now())}',
-                    style: pw.TextStyle(fontSize: 10, color: PdfColors.grey700),
+                    style: pw.TextStyle(
+                      fontSize: 10,
+                      color: PdfAppTheme.neutral500700,
+                    ),
                   ),
                   pw.Divider(thickness: 2),
                 ],
@@ -98,10 +112,12 @@ class PerformancesRapport extends StatelessWidget {
             ),
             pw.SizedBox(height: 10),
             pw.Table(
-              border: pw.TableBorder.all(color: PdfColors.grey400),
+              border: pw.TableBorder.all(color: PdfAppTheme.neutral500400),
               children: [
                 pw.TableRow(
-                  decoration: const pw.BoxDecoration(color: PdfColors.grey300),
+                  decoration: const pw.BoxDecoration(
+                    color: PdfAppTheme.neutral500300,
+                  ),
                   children: [
                     pw.Padding(
                       padding: const pw.EdgeInsets.all(8),
@@ -123,7 +139,7 @@ class PerformancesRapport extends StatelessWidget {
                   children: [
                     pw.Padding(
                       padding: const pw.EdgeInsets.all(8),
-                      child: pw.Text('Nombre total de lapins'),
+                      child: pw.Text(l10n.pdfTotalRabbits),
                     ),
                     pw.Padding(
                       padding: const pw.EdgeInsets.all(8),
@@ -135,7 +151,7 @@ class PerformancesRapport extends StatelessWidget {
                   children: [
                     pw.Padding(
                       padding: const pw.EdgeInsets.all(8),
-                      child: pw.Text('Femelles reproductrices'),
+                      child: pw.Text(l10n.pdfBreedingFemales),
                     ),
                     pw.Padding(
                       padding: const pw.EdgeInsets.all(8),
@@ -147,7 +163,7 @@ class PerformancesRapport extends StatelessWidget {
                   children: [
                     pw.Padding(
                       padding: const pw.EdgeInsets.all(8),
-                      child: pw.Text('Accouplements enregistrés'),
+                      child: pw.Text(l10n.pdfMatingRecorded),
                     ),
                     pw.Padding(
                       padding: const pw.EdgeInsets.all(8),
@@ -159,7 +175,7 @@ class PerformancesRapport extends StatelessWidget {
                   children: [
                     pw.Padding(
                       padding: const pw.EdgeInsets.all(8),
-                      child: pw.Text('Portées enregistrées'),
+                      child: pw.Text(l10n.pdfLittersRecorded),
                     ),
                     pw.Padding(
                       padding: const pw.EdgeInsets.all(8),
@@ -198,7 +214,7 @@ class PerformancesRapport extends StatelessWidget {
                 margin: const pw.EdgeInsets.only(bottom: 8),
                 padding: const pw.EdgeInsets.all(10),
                 decoration: pw.BoxDecoration(
-                  border: pw.Border.all(color: PdfColors.grey400),
+                  border: pw.Border.all(color: PdfAppTheme.neutral500400),
                   borderRadius: const pw.BorderRadius.all(
                     pw.Radius.circular(4),
                   ),
@@ -217,7 +233,7 @@ class PerformancesRapport extends StatelessWidget {
                           'Race: ${lapin.race}',
                           style: pw.TextStyle(
                             fontSize: 10,
-                            color: PdfColors.grey700,
+                            color: PdfAppTheme.neutral500700,
                           ),
                         ),
                       ],
@@ -229,14 +245,14 @@ class PerformancesRapport extends StatelessWidget {
                           '$totalLapereaux lapereaux',
                           style: pw.TextStyle(
                             fontWeight: pw.FontWeight.bold,
-                            color: PdfColors.green700,
+                            color: PdfAppTheme.success700,
                           ),
                         ),
                         pw.Text(
                           '${porteesLapin.length} portées',
                           style: pw.TextStyle(
                             fontSize: 10,
-                            color: PdfColors.grey700,
+                            color: PdfAppTheme.neutral500700,
                           ),
                         ),
                       ],
@@ -255,7 +271,7 @@ class PerformancesRapport extends StatelessWidget {
     );
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Rapport de performances généré ✓')),
+        SnackBar(content: Text(AppLocalizations.of(context).msgRapportGenere)),
       );
     }
   }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../l10n/app_localizations.dart';
 
 class MedicamentsFilterMenu extends StatelessWidget {
   final String selected;
@@ -15,16 +16,31 @@ class MedicamentsFilterMenu extends StatelessWidget {
     return PopupMenuButton<String>(
       icon: const Icon(Icons.filter_list),
       onSelected: onSelected,
-      itemBuilder: (context) => const [
-        PopupMenuItem(value: 'tous', child: Text('Tous')),
-        PopupMenuItem(value: 'antibiotique', child: Text('Antibiotiques')),
+      itemBuilder: (context) => [
+        PopupMenuItem(
+          value: 'tous',
+          child: Text(AppLocalizations.of(context).filterTous),
+        ),
+        PopupMenuItem(
+          value: 'antibiotique',
+          child: Text(AppLocalizations.of(context).typeAntibiotique),
+        ),
         PopupMenuItem(
           value: 'antiparasitaire',
-          child: Text('Antiparasitaires'),
+          child: Text(AppLocalizations.of(context).typeAntiparasitaire),
         ),
-        PopupMenuItem(value: 'vaccin', child: Text('Vaccins')),
-        PopupMenuItem(value: 'vitamine', child: Text('Vitamines')),
-        PopupMenuItem(value: 'autre', child: Text('Autres')),
+        PopupMenuItem(
+          value: 'vaccin',
+          child: Text(AppLocalizations.of(context).typeVaccin),
+        ),
+        PopupMenuItem(
+          value: 'vitamine',
+          child: Text(AppLocalizations.of(context).typeVitamine),
+        ),
+        PopupMenuItem(
+          value: 'autre',
+          child: Text(AppLocalizations.of(context).typeAutre),
+        ),
       ],
     );
   }

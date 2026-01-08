@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:rabbit_farm_app/l10n/app_localizations.dart';
 import 'package:rabbit_farm_app/theme/app_theme.dart';
 
 /// Cartes de statistiques pour l'écran de localisation
@@ -27,7 +28,7 @@ class LocalisationStatsCards extends StatelessWidget {
             child: _buildStatCard(
               context,
               value: totalCages.toString(),
-              label: 'TOTAL CAGES',
+              label: AppLocalizations.of(context).labelTotalCages,
               isDark: isDark,
             ),
           ),
@@ -36,7 +37,7 @@ class LocalisationStatsCards extends StatelessWidget {
             child: _buildStatCard(
               context,
               value: totalBatiments.toString(),
-              label: 'BARNS',
+              label: AppLocalizations.of(context).labelBatiments,
               isDark: isDark,
             ),
           ),
@@ -63,14 +64,14 @@ class LocalisationStatsCards extends StatelessWidget {
       height: 84,
       padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 6),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1A2C1E) : Colors.white,
+        color: isDark ? AppTheme.stitchSurfaceDarkAlt : AppTheme.textOnPrimary,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: isDark ? const Color(0xFF1F1F1F) : const Color(0xFFE5E5E5),
+          color: isDark ? AppTheme.greyDarkest : AppTheme.greyE5,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
+            color: AppTheme.divider,
             blurRadius: 4,
             offset: const Offset(0, 1),
           ),
@@ -84,7 +85,9 @@ class LocalisationStatsCards extends StatelessWidget {
             style: TextStyle(
               fontSize: 28,
               fontWeight: FontWeight.bold,
-              color: isDark ? const Color(0xFFE0E6E0) : AppTheme.stitchTextMainLight,
+              color: isDark
+                  ? AppTheme.stitchTextLight
+                  : AppTheme.stitchTextMainLight,
               letterSpacing: -0.5,
               height: 1,
             ),
@@ -95,7 +98,9 @@ class LocalisationStatsCards extends StatelessWidget {
             style: AppTheme.caption.copyWith(
               fontWeight: FontWeight.w600,
               letterSpacing: 0.5,
-              color: isDark ? const Color(0xFF8BA88E) : AppTheme.stitchTextSecLight,
+              color: isDark
+                  ? AppTheme.stitchGreen
+                  : AppTheme.stitchTextSecLight,
             ),
             textAlign: TextAlign.center,
           ),
@@ -113,14 +118,14 @@ class LocalisationStatsCards extends StatelessWidget {
       height: 84,
       padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 6),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1A2C1E) : Colors.white,
+        color: isDark ? AppTheme.stitchSurfaceDarkAlt : AppTheme.textOnPrimary,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: isDark ? const Color(0xFF1F1F1F) : const Color(0xFFE5E5E5),
+          color: isDark ? AppTheme.greyDarkest : AppTheme.greyE5,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
+            color: AppTheme.divider,
             blurRadius: 4,
             offset: const Offset(0, 1),
           ),
@@ -135,7 +140,7 @@ class LocalisationStatsCards extends StatelessWidget {
             Icon(
               Icons.check_circle_rounded,
               size: 22,
-              color: isDark ? const Color(0xFF4ADE80) : const Color(0xFF22C55E),
+              color: isDark ? AppTheme.success400 : AppTheme.success500,
             ),
             const SizedBox(height: 4),
             Text(
@@ -144,7 +149,7 @@ class LocalisationStatsCards extends StatelessWidget {
                 fontSize: 28,
                 fontWeight: FontWeight.bold,
                 color: isDark
-                    ? const Color(0xFFE0E6E0)
+                    ? AppTheme.stitchTextLight
                     : AppTheme.stitchTextMainLight,
                 letterSpacing: -0.5,
                 height: 1,
@@ -157,7 +162,7 @@ class LocalisationStatsCards extends StatelessWidget {
                 fontWeight: FontWeight.w600,
                 letterSpacing: 0.5,
                 color: isDark
-                    ? const Color(0xFF8BA88E)
+                    ? AppTheme.stitchGreen
                     : AppTheme.stitchTextSecLight,
                 height: 1.1,
               ),

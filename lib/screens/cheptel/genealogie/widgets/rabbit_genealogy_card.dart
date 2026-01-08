@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import '../../../../models/lapin.dart';
 import 'package:rabbit_farm_app/theme/app_theme.dart';
+import '../../../../l10n/app_localizations.dart';
 
 /// Widget pour afficher une carte de lapin dans l'arbre généalogique
 class RabbitGenealogyCard extends StatelessWidget {
@@ -337,7 +338,7 @@ class RabbitGenealogyCard extends StatelessWidget {
             ),
             const SizedBox(height: 4),
             Text(
-              'Unknown',
+              AppLocalizations.of(context).commonUnknown,
               style: AppTheme.caption.copyWith(
                 fontWeight: FontWeight.bold,
                 fontStyle: FontStyle.italic,

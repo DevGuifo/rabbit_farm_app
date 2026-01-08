@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../l10n/app_localizations.dart';
 import 'package:rabbit_farm_app/utils/logger.dart';
 import '../../models/batiment.dart';
 import '../../models/clapier.dart';
@@ -124,7 +125,7 @@ class _LocalisationScreenState extends State<LocalisationScreen> {
   }
 
   /// Détermine si une cage a besoin d'être nettoyée
-  /// 
+  ///
   /// Logique :
   /// - Si la cage est vide, pas besoin de nettoyage
   /// - Si la cage contient des lapins morts ou vendus, priorité de nettoyage
@@ -132,14 +133,14 @@ class _LocalisationScreenState extends State<LocalisationScreen> {
   bool _needsCleaning(Cage cage, int occupants, String statut) {
     // Si la cage est vide, pas besoin de nettoyage
     if (occupants == 0) return false;
-    
+
     // Si la cage contient des lapins morts ou vendus, priorité de nettoyage
-    if (statut.toLowerCase().contains('mort') || 
+    if (statut.toLowerCase().contains('mort') ||
         statut.toLowerCase().contains('vendu') ||
         statut.toLowerCase().contains('décédé')) {
       return true;
     }
-    
+
     // Pour l'instant, considérer qu'une cage avec occupants nécessite un nettoyage
     // si elle est surpeuplée ou pleine (logique simplifiée)
     // Dans une version future, on pourrait utiliser la date de dernière pesée
@@ -147,7 +148,7 @@ class _LocalisationScreenState extends State<LocalisationScreen> {
     if (statut == 'surpeuplee' || statut == 'pleine') {
       return true;
     }
-    
+
     // Par défaut, une cage occupée nécessite un nettoyage périodique
     return occupants > 0;
   }
@@ -155,7 +156,7 @@ class _LocalisationScreenState extends State<LocalisationScreen> {
   /// Obtient le texte de dernière date de nettoyage
   String? _getLastCleanedText(Cage cage, int occupants) {
     if (occupants == 0) return null;
-    
+
     // Logique simplifiée : pour l'instant, retourner un texte générique
     // Dans une version future, on pourrait utiliser une vraie date de nettoyage
     // stockée dans une table de suivi des nettoyages
@@ -232,17 +233,13 @@ class _LocalisationScreenState extends State<LocalisationScreen> {
               onNotificationsPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(
-                    builder: (_) => const AlertesScreen(),
-                  ),
+                  MaterialPageRoute(builder: (_) => const AlertesScreen()),
                 );
               },
               onSettingsPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(
-                    builder: (_) => const ParametresScreen(),
-                  ),
+                  MaterialPageRoute(builder: (_) => const ParametresScreen()),
                 );
               },
               hasUnreadNotifications: _hasUnreadNotifications,
@@ -256,8 +253,10 @@ class _LocalisationScreenState extends State<LocalisationScreen> {
                 child: EmptyState(
                   isDark: isDark,
                   icon: Icons.location_city_outlined,
-                  title: 'Aucun bâtiment',
-                  subtitle: 'Ajoutez votre premier bâtiment',
+                  title: AppLocalizations.of(context).utilAucunBatiment,
+                  subtitle: AppLocalizations.of(
+                    context,
+                  ).utilAucunBatimentDetail,
                 ),
               )
             else
@@ -281,7 +280,7 @@ class _LocalisationScreenState extends State<LocalisationScreen> {
                           'All Cages',
                           style: AppTheme.titleLarge.copyWith(
                             color: isDark
-                                ? const Color(0xFFE0E6E0)
+                                ? AppTheme.stitchTextLight
                                 : AppTheme.stitchTextMainLight,
                           ),
                         ),
@@ -332,9 +331,10 @@ class _LocalisationScreenState extends State<LocalisationScreen> {
 
   Widget _buildFAB() {
     return FloatingActionButton(
+      heroTag: 'fab_cage',
       onPressed: _ajouterCage,
       backgroundColor: AppTheme.primaryNeonGreen,
-      foregroundColor: Colors.black,
+      foregroundColor: AppTheme.textPrimary,
       elevation: 6,
       child: const Icon(Icons.add_rounded, size: 32),
     );
@@ -345,8 +345,8 @@ class _LocalisationScreenState extends State<LocalisationScreen> {
       return EmptyState(
         isDark: isDark,
         icon: Icons.grid_view_outlined,
-        title: 'Aucune cage trouvée',
-        subtitle: 'Ajoutez une cage pour commencer',
+        title: AppLocalizations.of(context).utilAucuneCage,
+        subtitle: AppLocalizations.of(context).utilAucuneCageDetail,
       );
     }
 
@@ -391,9 +391,9 @@ class _LocalisationScreenState extends State<LocalisationScreen> {
     await _chargerDonnees();
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('✓ Données synchronisées'),
-          duration: Duration(seconds: 1),
+        SnackBar(
+          content: Text(AppLocalizations.of(context).utilDonneesSynchronisees),
+          duration: const Duration(seconds: 1),
         ),
       );
     }
@@ -423,19 +423,21 @@ class _LocalisationScreenState extends State<LocalisationScreen> {
     showModalBottomSheet(
       context: context,
       backgroundColor: isDark
-          ? const Color(0xFF1A331D) // Stitch surface-dark
-          : Colors.white,
+          ? AppTheme
+                .greyCard // Stitch surface-dark
+          : AppTheme.textOnPrimary,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
       builder: (context) {
+        final l10n = AppLocalizations.of(context);
         return SafeArea(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               ListTile(
                 leading: const Icon(Icons.edit_rounded),
-                title: const Text('Modifier'),
+                title: Text(l10n.modifier),
                 onTap: () async {
                   Navigator.pop(context);
                   final success = await EditBuildingDialog.show(
@@ -446,10 +448,10 @@ class _LocalisationScreenState extends State<LocalisationScreen> {
                 },
               ),
               ListTile(
-                leading: Icon(Icons.delete_rounded, color: Colors.red),
+                leading: Icon(Icons.delete_rounded, color: AppTheme.error),
                 title: Text(
-                  'Supprimer',
-                  style: AppTheme.bodyMedium.copyWith(color: Colors.red),
+                  l10n.supprimer,
+                  style: AppTheme.bodyMedium.copyWith(color: AppTheme.error),
                 ),
                 onTap: () {
                   Navigator.pop(context);
@@ -469,19 +471,21 @@ class _LocalisationScreenState extends State<LocalisationScreen> {
     showModalBottomSheet(
       context: context,
       backgroundColor: isDark
-          ? const Color(0xFF1A331D) // Stitch surface-dark
-          : Colors.white,
+          ? AppTheme
+                .greyCard // Stitch surface-dark
+          : AppTheme.textOnPrimary,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
       builder: (context) {
+        final l10n = AppLocalizations.of(context);
         return SafeArea(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               ListTile(
                 leading: const Icon(Icons.edit_rounded),
-                title: const Text('Modifier'),
+                title: Text(l10n.modifier),
                 onTap: () async {
                   Navigator.pop(context);
                   final success = await EditCageDialog.show(context, cage);
@@ -489,10 +493,10 @@ class _LocalisationScreenState extends State<LocalisationScreen> {
                 },
               ),
               ListTile(
-                leading: Icon(Icons.delete_rounded, color: Colors.red),
+                leading: Icon(Icons.delete_rounded, color: AppTheme.error),
                 title: Text(
-                  'Supprimer',
-                  style: AppTheme.bodyMedium.copyWith(color: Colors.red),
+                  l10n.supprimer,
+                  style: AppTheme.bodyMedium.copyWith(color: AppTheme.error),
                 ),
                 onTap: () {
                   Navigator.pop(context);
@@ -518,15 +522,22 @@ class _LocalisationScreenState extends State<LocalisationScreen> {
       await db.delete('batiments', where: 'id = ?', whereArgs: [batiment.id]);
       await _chargerDonnees();
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('✓ Bâtiment supprimé')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(AppLocalizations.of(context).utilBatimentSupprime),
+          ),
+        );
       }
     } catch (e) {
       logger.error('Erreur suppression bâtiment: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur : $e'), backgroundColor: Colors.red),
+          SnackBar(
+            content: Text(
+              AppLocalizations.of(context).utilErreur(e.toString()),
+            ),
+            backgroundColor: AppTheme.error,
+          ),
         );
       }
     }
@@ -543,16 +554,20 @@ class _LocalisationScreenState extends State<LocalisationScreen> {
       await _dbHelper.supprimerCage(cage.id!);
       await _chargerDonnees();
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('✓ Cage supprimée')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(AppLocalizations.of(context).utilCageSupprimee),
+          ),
+        );
       }
     } catch (e) {
       logger.error('Erreur suppression cage: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Erreur : $e'),
+            content: Text(
+              AppLocalizations.of(context).utilErreur(e.toString()),
+            ),
             backgroundColor: AppTheme.error,
           ),
         );
@@ -561,23 +576,24 @@ class _LocalisationScreenState extends State<LocalisationScreen> {
   }
 
   Future<bool?> _showConfirmDialog(String title, String message) async {
+    final l10n = AppLocalizations.of(context);
     return await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: Theme.of(context).brightness == Brightness.dark
-            ? const Color(0xFF1A2C1E)
-            : Colors.white,
+            ? AppTheme.stitchSurfaceDarkAlt
+            : AppTheme.textOnPrimary,
         title: Text(title),
         content: Text(message),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Annuler'),
+            child: Text(l10n.annuler),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
             style: TextButton.styleFrom(foregroundColor: AppTheme.error),
-            child: const Text('Supprimer'),
+            child: Text(l10n.supprimer),
           ),
         ],
       ),

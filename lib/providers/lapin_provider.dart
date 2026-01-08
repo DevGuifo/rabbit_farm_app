@@ -1,11 +1,16 @@
 import 'package:flutter/foundation.dart';
 import '../models/lapin.dart';
 import '../models/portee.dart';
+import '../models/journal_entry.dart';
 import '../services/database_helper.dart';
+import '../services/journal_service.dart';
 import '../utils/logger.dart';
 
 /// Provider pour gérer la liste des lapins avec SQLite
 class LapinProvider with ChangeNotifier {
+  // Services
+  final JournalService _journal = JournalService();
+
   // Liste des lapins en cache
   List<Lapin> _lapins = [];
   bool _isLoading = false;
@@ -50,6 +55,19 @@ class LapinProvider with ChangeNotifier {
       final lapinAjoute = await DatabaseHelper.instance.insertLapin(lapin);
       _lapins.add(lapinAjoute);
       notifyListeners();
+
+      // 📝 Journal automatique
+      await _journal.lapin(
+        action: TypeAction.creation,
+        lapinId: lapinAjoute.id!,
+        lapinNom: lapinAjoute.nom,
+        contexte: {
+          'race': lapinAjoute.race,
+          'sexe': lapinAjoute.sexe,
+          'statut': lapinAjoute.statut ?? 'Actif',
+        },
+      );
+
       return lapinAjoute;
     } catch (e) {
       logger.error('❌ Erreur lors de l\'ajout du lapin', e);
@@ -65,6 +83,14 @@ class LapinProvider with ChangeNotifier {
       if (index != -1) {
         _lapins[index] = lapin;
         notifyListeners();
+
+        // 📝 Journal automatique
+        await _journal.lapin(
+          action: TypeAction.modification,
+          lapinId: lapin.id!,
+          lapinNom: lapin.nom,
+          contexte: {'statut': lapin.statut ?? 'Actif', 'poids': lapin.poids},
+        );
       }
     } catch (e) {
       logger.error('❌ Erreur lors de la modification du lapin', e);
@@ -75,9 +101,20 @@ class LapinProvider with ChangeNotifier {
   /// Supprimer un lapin
   Future<void> supprimerLapin(int id) async {
     try {
+      // Récupérer le nom avant suppression pour le journal
+      final lapin = getLapinById(id);
+      final nomLapin = lapin?.nom ?? 'Lapin #$id';
+
       await DatabaseHelper.instance.deleteLapin(id);
       _lapins.removeWhere((lapin) => lapin.id == id);
       notifyListeners();
+
+      // 📝 Journal automatique
+      await _journal.lapin(
+        action: TypeAction.suppression,
+        lapinId: id,
+        lapinNom: nomLapin,
+      );
     } catch (e) {
       logger.error('❌ Erreur lors de la suppression du lapin', e);
       rethrow;

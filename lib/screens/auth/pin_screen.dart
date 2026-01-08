@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../l10n/app_localizations.dart';
 import '../../theme/app_theme.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/connectivity_provider.dart';
@@ -7,7 +8,7 @@ import '../home_screen.dart';
 import 'auth_screen.dart';
 
 /// Écran de déverrouillage PIN (offline)
-/// 
+///
 /// Permet à l'utilisateur de déverrouiller l'application avec son PIN
 /// sans nécessiter de connexion Internet
 class PinScreen extends StatefulWidget {
@@ -84,21 +85,21 @@ class _PinScreenState extends State<PinScreen> {
     // Validation
     if (pin.isEmpty) {
       setState(() {
-        _errorMessage = 'Veuillez entrer votre PIN';
+        _errorMessage = AppLocalizations.of(context).authValidationEntrezPIN;
       });
       return;
     }
 
     if (pin.length < 4 || pin.length > 6) {
       setState(() {
-        _errorMessage = 'Le PIN doit contenir entre 4 et 6 chiffres';
+        _errorMessage = AppLocalizations.of(context).authValidationLongueurPIN;
       });
       return;
     }
 
     if (!RegExp(r'^\d+$').hasMatch(pin)) {
       setState(() {
-        _errorMessage = 'Le PIN ne doit contenir que des chiffres';
+        _errorMessage = AppLocalizations.of(context).authValidationChiffresPIN;
       });
       return;
     }
@@ -136,13 +137,13 @@ class _PinScreenState extends State<PinScreen> {
       if (_attempts >= _maxAttempts) {
         _lockedUntil = DateTime.now().add(const Duration(minutes: 5));
         setState(() {
-          _errorMessage =
-              'Trop de tentatives. Réessayez dans 5 minutes';
+          _errorMessage = AppLocalizations.of(context).authTropTentatives;
         });
       } else {
         setState(() {
-          _errorMessage =
-              'PIN incorrect. Tentatives restantes: ${_maxAttempts - _attempts}';
+          _errorMessage = AppLocalizations.of(
+            context,
+          ).authPINIncorrect(_maxAttempts - _attempts);
         });
       }
       _pinController.clear();
@@ -152,17 +153,17 @@ class _PinScreenState extends State<PinScreen> {
   Future<void> _handleForgotPin() async {
     if (!mounted) return;
 
-    final connectivityProvider =
-        Provider.of<ConnectivityProvider>(context, listen: false);
+    final connectivityProvider = Provider.of<ConnectivityProvider>(
+      context,
+      listen: false,
+    );
 
     // Vérifier la connectivité
     if (!connectivityProvider.isOnline) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Une connexion Internet est requise pour réinitialiser le PIN',
-          ),
-          backgroundColor: Colors.orange,
+        SnackBar(
+          content: Text(AppLocalizations.of(context).authConnexionRequise),
+          backgroundColor: AppTheme.warning,
         ),
       );
       return;
@@ -172,19 +173,18 @@ class _PinScreenState extends State<PinScreen> {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Réinitialiser le PIN'),
-        content: const Text(
-          'Pour réinitialiser votre PIN, vous devrez vous reconnecter avec votre email et mot de passe. '
-          'Souhaitez-vous continuer ?',
+        title: Text(AppLocalizations.of(context).authReinitialiserPIN),
+        content: Text(
+          AppLocalizations.of(context).authReinitialisationPINMessage,
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Annuler'),
+            child: Text(AppLocalizations.of(context).quarantaineAnnuler),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Continuer'),
+            child: Text(AppLocalizations.of(context).authContinuer),
           ),
         ],
       ),
@@ -201,9 +201,10 @@ class _PinScreenState extends State<PinScreen> {
           PageRouteBuilder(
             pageBuilder: (context, animation, secondaryAnimation) =>
                 const AuthScreen(initialIsSignUp: false),
-            transitionsBuilder: (context, animation, secondaryAnimation, child) {
-              return FadeTransition(opacity: animation, child: child);
-            },
+            transitionsBuilder:
+                (context, animation, secondaryAnimation, child) {
+                  return FadeTransition(opacity: animation, child: child);
+                },
             transitionDuration: const Duration(milliseconds: 300),
           ),
         );
@@ -234,19 +235,21 @@ class _PinScreenState extends State<PinScreen> {
                   padding: const EdgeInsets.all(12),
                   margin: const EdgeInsets.only(bottom: 24),
                   decoration: BoxDecoration(
-                    color: Colors.orange.shade50,
+                    color: AppTheme.warning.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.orange.shade300),
+                    border: Border.all(
+                      color: AppTheme.warning.withValues(alpha: 0.4),
+                    ),
                   ),
                   child: Row(
                     children: [
-                      Icon(Icons.wifi_off, color: Colors.orange.shade700),
+                      Icon(Icons.wifi_off, color: AppTheme.warning),
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
-                          'Mode hors ligne - Déverrouillage par PIN',
-                          style: TextStyle(
-                            color: Colors.orange.shade700,
+                          AppLocalizations.of(context).authModeHorsLigne,
+                          style: const TextStyle(
+                            color: AppTheme.warning,
                             fontSize: 12,
                           ),
                         ),
@@ -280,11 +283,11 @@ class _PinScreenState extends State<PinScreen> {
 
               // Titre
               Text(
-                'Déverrouiller',
+                AppLocalizations.of(context).authDeverrouiller,
                 style: TextStyle(
                   fontSize: 30,
                   fontWeight: FontWeight.w800,
-                  color: isDark ? Colors.white : const Color(0xFF111812),
+                  color: isDark ? AppTheme.textLight : AppTheme.textPrimary,
                 ),
               ),
 
@@ -292,11 +295,13 @@ class _PinScreenState extends State<PinScreen> {
 
               // Sous-titre
               Text(
-                'Entrez votre PIN pour accéder à l\'application',
+                AppLocalizations.of(context).authEntrezPIN,
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
-                  color: isDark ? Colors.grey.shade400 : Colors.grey.shade600,
+                  color: isDark
+                      ? AppTheme.textSecondary
+                      : AppTheme.textTertiary,
                 ),
               ),
 
@@ -311,8 +316,8 @@ class _PinScreenState extends State<PinScreen> {
                 maxLength: 6,
                 enabled: !_isLocked() && !_isLoading,
                 decoration: InputDecoration(
-                  labelText: 'PIN',
-                  hintText: 'Entrez votre PIN',
+                  labelText: AppLocalizations.of(context).authPIN,
+                  hintText: AppLocalizations.of(context).authHintPIN,
                   prefixIcon: const Icon(Icons.lock_outline),
                   suffixIcon: IconButton(
                     icon: Icon(
@@ -339,18 +344,20 @@ class _PinScreenState extends State<PinScreen> {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: Colors.red.shade50,
+                    color: AppTheme.error.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.red.shade300),
+                    border: Border.all(
+                      color: AppTheme.error.withValues(alpha: 0.4),
+                    ),
                   ),
                   child: Row(
                     children: [
-                      Icon(Icons.error_outline, color: Colors.red.shade700),
+                      Icon(Icons.error_outline, color: AppTheme.error),
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
                           _errorMessage!,
-                          style: TextStyle(color: Colors.red.shade700),
+                          style: TextStyle(color: AppTheme.error),
                         ),
                       ),
                     ],
@@ -365,13 +372,14 @@ class _PinScreenState extends State<PinScreen> {
                 width: double.infinity,
                 height: 56,
                 child: ElevatedButton(
-                  onPressed:
-                      (_isLocked() || _isLoading) ? null : _handleValidatePin,
+                  onPressed: (_isLocked() || _isLoading)
+                      ? null
+                      : _handleValidatePin,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppTheme.primaryNeonGreen,
-                    foregroundColor: const Color(0xFF052e0a),
+                    foregroundColor: AppTheme.authPrimary,
                     elevation: 0,
-                    disabledBackgroundColor: Colors.grey.shade300,
+                    disabledBackgroundColor: AppTheme.neutral300,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
@@ -383,13 +391,13 @@ class _PinScreenState extends State<PinScreen> {
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
                             valueColor: AlwaysStoppedAnimation<Color>(
-                              Color(0xFF052e0a),
+                              AppTheme.authPrimary,
                             ),
                           ),
                         )
-                      : const Text(
-                          'Déverrouiller',
-                          style: TextStyle(
+                      : Text(
+                          AppLocalizations.of(context).authDeverrouiller,
+                          style: const TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.w800,
                           ),
@@ -404,9 +412,9 @@ class _PinScreenState extends State<PinScreen> {
                 Center(
                   child: TextButton(
                     onPressed: _handleForgotPin,
-                    child: const Text(
-                      'Mot de PIN oublié ?',
-                      style: TextStyle(
+                    child: Text(
+                      AppLocalizations.of(context).authMotDePINOublie,
+                      style: const TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w500,
                       ),
@@ -421,28 +429,23 @@ class _PinScreenState extends State<PinScreen> {
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
                   color: isDark
-                      ? Colors.blue.shade900.withValues(alpha: 0.3)
-                      : Colors.blue.shade50,
+                      ? AppTheme.info.withValues(alpha: 0.3)
+                      : AppTheme.info.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Icon(
-                      Icons.info_outline,
-                      color: Colors.blue.shade700,
-                      size: 20,
-                    ),
+                    Icon(Icons.info_outline, color: AppTheme.info, size: 20),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
-                        'Le PIN est stocké de manière sécurisée sur votre appareil. '
-                        'Vous pouvez déverrouiller l\'application même sans Internet.',
+                        AppLocalizations.of(context).authNoteSecurite,
                         style: TextStyle(
                           fontSize: 12,
                           color: isDark
-                              ? Colors.blue.shade200
-                              : Colors.blue.shade900,
+                              ? AppTheme.info.withValues(alpha: 0.3)
+                              : AppTheme.info,
                         ),
                       ),
                     ),
@@ -456,4 +459,3 @@ class _PinScreenState extends State<PinScreen> {
     );
   }
 }
-

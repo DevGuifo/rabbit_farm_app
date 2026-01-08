@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
+import 'package:rabbit_farm_app/l10n/app_localizations.dart';
 import '../../models/lapin.dart';
 import '../../models/soin.dart';
 import '../../providers/sante_provider.dart';
 import '../../utils/snackbar_helper.dart';
 import '../../theme/app_theme.dart';
+import '../../widgets/uniform_app_bar.dart';
 
 /// Écran pour modifier un soin existant
 class EditSoinScreen extends StatefulWidget {
@@ -111,7 +113,10 @@ class _EditSoinScreenState extends State<EditSoinScreen> {
       await santeProvider.modifierSoin(soinModifie);
 
       if (mounted) {
-        SnackbarHelper.showSuccess(context, 'Soin modifié avec succès');
+        SnackbarHelper.showSuccess(
+          context,
+          AppLocalizations.of(context).santeSoinModifieSucces,
+        );
         Navigator.of(context).pop(true);
       }
     } catch (e) {
@@ -127,21 +132,15 @@ class _EditSoinScreenState extends State<EditSoinScreen> {
 
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
-      appBar: AppBar(
-        title: Text(
-          'Modifier soin',
-          style: AppTheme.titleLarge.copyWith(
-            color: Theme.of(context).colorScheme.onSurface,
-          ),
-        ),
-        backgroundColor: Theme.of(context).colorScheme.surface,
-        elevation: 0,
-        iconTheme: IconThemeData(color: Theme.of(context).colorScheme.primary),
+      appBar: UniformAppBar(
+        title: AppLocalizations.of(context).santeModifierSoin,
+        icon: Icons.medical_services_rounded,
+        iconColor: AppTheme.info,
       ),
       body: Form(
         key: _formKey,
         child: ListView(
-          padding: const EdgeInsets.all(16),
+          padding: AppTheme.paddingAllMedium,
           children: [
             // Informations du lapin
             Card(
@@ -163,7 +162,7 @@ class _EditSoinScreenState extends State<EditSoinScreen> {
                         size: 32,
                       ),
                     ),
-                    const SizedBox(width: 16),
+                    AppTheme.horizontalSpace16,
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -179,27 +178,26 @@ class _EditSoinScreenState extends State<EditSoinScreen> {
                 ),
               ),
             ),
-            const SizedBox(height: 16),
+            AppTheme.verticalSpace16,
 
             // Date du soin
             Card(
               child: ListTile(
                 leading: const Icon(Icons.calendar_today),
-                title: const Text('Date du soin'),
+                title: Text(AppLocalizations.of(context).santeDateSoin),
                 subtitle: Text(dateFormat.format(_date)),
                 trailing: const Icon(Icons.edit),
                 onTap: () => _selectionnerDate(context, false),
               ),
             ),
-            const SizedBox(height: 16),
+            AppTheme.verticalSpace16,
 
             // Type de soin
             DropdownButtonFormField<String>(
               initialValue: _typeSoin,
-              decoration: const InputDecoration(
-                labelText: 'Type de soin',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.category),
+              decoration: AppTheme.inputDecoration(
+                label: AppLocalizations.of(context).santeTypeSoin,
+                prefixIcon: Icons.category,
               ),
               items: _typesSoins.map((type) {
                 return DropdownMenuItem(
@@ -215,57 +213,56 @@ class _EditSoinScreenState extends State<EditSoinScreen> {
                 }
               },
             ),
-            const SizedBox(height: 16),
+            AppTheme.verticalSpace16,
 
             // Description
             TextFormField(
               controller: _descriptionController,
-              decoration: const InputDecoration(
-                labelText: 'Description',
-                hintText: 'Ex: Vaccination myxomatose',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.description),
+              decoration: AppTheme.inputDecoration(
+                label: AppLocalizations.of(context).santeDescription,
+                hint: AppLocalizations.of(context).hintDescriptionSoin,
+                prefixIcon: Icons.description,
               ),
               validator: (value) {
                 if (value == null || value.isEmpty) {
-                  return 'Veuillez entrer une description';
+                  return AppLocalizations.of(context).erreurDescriptionRequise;
                 }
                 return null;
               },
             ),
-            const SizedBox(height: 16),
+            AppTheme.verticalSpace16,
 
             // Médicament
             TextFormField(
               controller: _medicamentController,
-              decoration: const InputDecoration(
-                labelText: 'Médicament (optionnel)',
-                hintText: 'Nom du médicament',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.medication),
+              decoration: AppTheme.inputDecoration(
+                label: AppLocalizations.of(context).santeMedicament,
+                hint: AppLocalizations.of(context).hintMedicamentSoin,
+                prefixIcon: Icons.medication,
               ),
             ),
-            const SizedBox(height: 16),
+            AppTheme.verticalSpace16,
 
             // Dosage
             TextFormField(
               controller: _dosageController,
-              decoration: const InputDecoration(
-                labelText: 'Dosage (optionnel)',
-                hintText: 'Ex: 1ml',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.medication_liquid),
+              decoration: AppTheme.inputDecoration(
+                label: AppLocalizations.of(context).santeDosage,
+                hint: AppLocalizations.of(context).hintDosageSoin,
+                prefixIcon: Icons.medication_liquid,
               ),
             ),
-            const SizedBox(height: 16),
+            AppTheme.verticalSpace16,
 
             // Option rappel
             Card(
               child: SwitchListTile(
-                title: const Text('Prévoir un rappel'),
+                title: Text(AppLocalizations.of(context).santePrevoirRappel),
                 subtitle: _avecRappel && _dateRappel != null
-                    ? Text('Rappel le ${dateFormat.format(_dateRappel!)}')
-                    : const Text('Aucun rappel'),
+                    ? Text(
+                        '${AppLocalizations.of(context).santeRappelLe} ${dateFormat.format(_dateRappel!)}',
+                      )
+                    : Text(AppLocalizations.of(context).santeAucunRappel),
                 value: _avecRappel,
                 onChanged: (value) {
                   setState(() {
@@ -281,31 +278,32 @@ class _EditSoinScreenState extends State<EditSoinScreen> {
 
             if (_avecRappel)
               Padding(
-                padding: const EdgeInsets.only(top: 8),
+                padding: const EdgeInsets.only(top: AppTheme.spacing8),
                 child: OutlinedButton.icon(
                   onPressed: () => _selectionnerDate(context, true),
                   icon: const Icon(Icons.calendar_today),
                   label: Text(
                     _dateRappel != null
-                        ? 'Modifier la date du rappel'
-                        : 'Choisir la date du rappel',
+                        ? AppLocalizations.of(context).santeModifierDateRappel
+                        : AppLocalizations.of(context).santeChoisirDateRappel,
                   ),
                 ),
               ),
-            const SizedBox(height: 16),
+            AppTheme.verticalSpace16,
 
             // Notes
             TextFormField(
               controller: _notesController,
-              decoration: const InputDecoration(
-                labelText: 'Notes (optionnel)',
-                hintText: 'Observations complémentaires...',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.notes),
+              decoration: AppTheme.inputDecoration(
+                label: AppLocalizations.of(context).santeNotesOptionnelles,
+                hint: AppLocalizations.of(
+                  context,
+                ).santeObservationsComplementaires,
+                prefixIcon: Icons.notes,
               ),
               maxLines: 3,
             ),
-            const SizedBox(height: 24),
+            AppTheme.verticalSpace24,
 
             // Boutons d'action
             Row(
@@ -314,21 +312,21 @@ class _EditSoinScreenState extends State<EditSoinScreen> {
                   child: OutlinedButton.icon(
                     onPressed: () => Navigator.pop(context),
                     icon: const Icon(Icons.close),
-                    label: const Text('Annuler'),
+                    label: Text(AppLocalizations.of(context).commonCancel),
                     style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.all(16),
+                      padding: AppTheme.paddingAllMedium,
                     ),
                   ),
                 ),
-                const SizedBox(width: 16),
+                AppTheme.horizontalSpace16,
                 Expanded(
                   flex: 2,
                   child: FilledButton.icon(
                     onPressed: _modifierSoin,
                     icon: const Icon(Icons.save),
-                    label: const Text('Enregistrer'),
+                    label: Text(AppLocalizations.of(context).commonSave),
                     style: FilledButton.styleFrom(
-                      padding: const EdgeInsets.all(16),
+                      padding: AppTheme.paddingAllMedium,
                     ),
                   ),
                 ),

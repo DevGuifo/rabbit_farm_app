@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
+import 'package:rabbit_farm_app/l10n/app_localizations.dart';
 import '../../models/accouplement.dart';
 import '../../models/portee.dart';
 import '../../models/lapin.dart';
@@ -9,8 +10,7 @@ import '../../providers/lapin_provider.dart';
 import '../../utils/snackbar_helper.dart';
 import '../../services/database_helper.dart';
 import 'package:rabbit_farm_app/theme/app_theme.dart';
-import '../alertes/alertes_screen.dart';
-import '../parametres/parametres_screen.dart';
+import '../../widgets/uniform_app_bar.dart';
 
 /// Écran Record New Litter - Design Stitch complet
 class EnregistrerPorteeScreen extends StatefulWidget {
@@ -202,11 +202,10 @@ class _EnregistrerPorteeScreenState extends State<EnregistrerPorteeScreen> {
         backgroundColor: isDark
             ? AppTheme.backgroundDark
             : AppTheme.backgroundLight,
-        appBar: AppBar(
-          backgroundColor:
-              (isDark ? AppTheme.backgroundDark : AppTheme.cardLight)
-                  .withValues(alpha: 0.95),
-          title: const Text('Record New Litter'),
+        appBar: UniformAppBar(
+          title: AppLocalizations.of(context).reproEnregistrerPortee,
+          icon: Icons.child_care_rounded,
+          iconColor: AppTheme.accentPink,
         ),
         body: const Center(child: CircularProgressIndicator()),
       );
@@ -216,7 +215,17 @@ class _EnregistrerPorteeScreenState extends State<EnregistrerPorteeScreen> {
       backgroundColor: isDark
           ? AppTheme.backgroundDark
           : AppTheme.backgroundLight,
-      appBar: _buildAppBar(isDark),
+      appBar: UniformAppBar(
+        title: AppLocalizations.of(context).titleEnregistrerPortee,
+        icon: Icons.child_care_rounded,
+        iconColor: AppTheme.accentPink,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.sync),
+            onPressed: () => _chargerDonnees(),
+          ),
+        ],
+      ),
       body: SafeArea(
         child: Column(
           children: [
@@ -257,64 +266,6 @@ class _EnregistrerPorteeScreenState extends State<EnregistrerPorteeScreen> {
     );
   }
 
-  PreferredSizeWidget _buildAppBar(bool isDark) {
-    return AppBar(
-      backgroundColor: (isDark ? AppTheme.backgroundDark : AppTheme.cardLight)
-          .withValues(alpha: 0.95),
-      elevation: 1,
-      leading: IconButton(
-        icon: Icon(
-          Icons.arrow_back,
-          color: isDark ? AppTheme.textLight : AppTheme.textPrimary,
-        ),
-        onPressed: () => Navigator.of(context).pop(),
-      ),
-      title: Text(
-        'Record New Litter',
-        style: AppTheme.titleLarge.copyWith(
-          color: isDark ? AppTheme.textLight : AppTheme.textPrimary,
-        ),
-      ),
-      actions: [
-        IconButton(
-          icon: Icon(
-            Icons.sync,
-            color: isDark ? AppTheme.textLight : AppTheme.textPrimary,
-          ),
-          onPressed: () => _chargerDonnees(),
-        ),
-        IconButton(
-          icon: Icon(
-            Icons.notifications,
-            color: isDark ? AppTheme.textLight : AppTheme.textPrimary,
-          ),
-          onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => const AlertesScreen(),
-              ),
-            );
-          },
-        ),
-        IconButton(
-          icon: Icon(
-            Icons.settings,
-            color: isDark ? AppTheme.textLight : AppTheme.textPrimary,
-          ),
-          onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => const ParametresScreen(),
-              ),
-            );
-          },
-        ),
-      ],
-    );
-  }
-
   Widget _buildDescription(bool isDark) {
     return Text(
       'Enter the details of the new litter below. Accurate records help in tracking doe performance and kit survival rates.',
@@ -343,7 +294,7 @@ class _EnregistrerPorteeScreenState extends State<EnregistrerPorteeScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'MATING PAIR',
+          AppLocalizations.of(context).reproductionMatingPair,
           style: AppTheme.caption.copyWith(
             fontWeight: FontWeight.bold,
             letterSpacing: 1.2,
@@ -362,7 +313,7 @@ class _EnregistrerPorteeScreenState extends State<EnregistrerPorteeScreen> {
                 ? []
                 : [
                     BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.02),
+                      color: AppTheme.textPrimary.withValues(alpha: 0.02),
                       blurRadius: 4,
                       offset: const Offset(0, 2),
                     ),
@@ -379,7 +330,9 @@ class _EnregistrerPorteeScreenState extends State<EnregistrerPorteeScreen> {
               ),
               border: InputBorder.none,
               contentPadding: const EdgeInsets.all(16),
-              hintText: 'Select active mating...',
+              hintText: AppLocalizations.of(
+                context,
+              ).reproductionSelectActiveMating,
               hintStyle: AppTheme.bodyLarge.copyWith(
                 color: isDark ? AppTheme.textSecondary : AppTheme.textSecondary,
                 fontWeight: FontWeight.w500,
@@ -400,7 +353,9 @@ class _EnregistrerPorteeScreenState extends State<EnregistrerPorteeScreen> {
                   future: _getAccouplementLabel(acc),
                   builder: (context, snapshot) {
                     if (!snapshot.hasData) {
-                      return const Text('Loading...');
+                      return Text(
+                        AppLocalizations.of(context).reproductionLoading,
+                      );
                     }
                     return Text(
                       snapshot.data!,
@@ -479,7 +434,7 @@ class _EnregistrerPorteeScreenState extends State<EnregistrerPorteeScreen> {
                   ? []
                   : [
                       BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.02),
+                        color: AppTheme.textPrimary.withValues(alpha: 0.02),
                         blurRadius: 4,
                         offset: const Offset(0, 2),
                       ),
@@ -518,7 +473,7 @@ class _EnregistrerPorteeScreenState extends State<EnregistrerPorteeScreen> {
         Expanded(
           child: _buildNumberInput(
             isDark: isDark,
-            label: 'TOTAL BORN',
+            label: AppLocalizations.of(context).labelTotalBorn,
             value: _totalBorn,
             onIncrement: () => setState(() => _totalBorn++),
             onDecrement: () => setState(() {
@@ -531,7 +486,7 @@ class _EnregistrerPorteeScreenState extends State<EnregistrerPorteeScreen> {
         Expanded(
           child: _buildNumberInput(
             isDark: isDark,
-            label: 'BORN ALIVE',
+            label: AppLocalizations.of(context).labelBornAlive,
             value: _bornAlive,
             onIncrement: () => setState(() => _bornAlive++),
             onDecrement: () => setState(() {
@@ -575,7 +530,7 @@ class _EnregistrerPorteeScreenState extends State<EnregistrerPorteeScreen> {
                 ? []
                 : [
                     BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.02),
+                      color: AppTheme.textPrimary.withValues(alpha: 0.02),
                       blurRadius: 4,
                       offset: const Offset(0, 2),
                     ),
@@ -704,7 +659,7 @@ class _EnregistrerPorteeScreenState extends State<EnregistrerPorteeScreen> {
                 ? []
                 : [
                     BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.02),
+                      color: AppTheme.textPrimary.withValues(alpha: 0.02),
                       blurRadius: 4,
                       offset: const Offset(0, 2),
                     ),
@@ -756,23 +711,16 @@ class _EnregistrerPorteeScreenState extends State<EnregistrerPorteeScreen> {
                 height: 56,
                 child: ElevatedButton(
                   onPressed: _enregistrerPortee,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppTheme.primaryNeonGreen,
-                    foregroundColor: AppTheme.textPrimary,
-                    elevation: 8,
-                    shadowColor: AppTheme.primaryNeonGreen.withValues(
-                      alpha: 0.3,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
+                  style: AppTheme.primaryButtonStyle,
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
-                    children: const [
-                      Icon(Icons.save, size: 24),
-                      SizedBox(width: 8),
-                      Text('Record Litter', style: AppTheme.titleSmall),
+                    children: [
+                      const Icon(Icons.save, size: 24),
+                      const SizedBox(width: 8),
+                      Text(
+                        AppLocalizations.of(context).reproductionRecordLitter,
+                        style: AppTheme.titleSmall,
+                      ),
                     ],
                   ),
                 ),
@@ -784,7 +732,7 @@ class _EnregistrerPorteeScreenState extends State<EnregistrerPorteeScreen> {
                   padding: const EdgeInsets.symmetric(vertical: 12),
                 ),
                 child: Text(
-                  'Cancel',
+                  AppLocalizations.of(context).santeCancel,
                   style: AppTheme.bodyMedium.copyWith(
                     fontWeight: FontWeight.bold,
                     color: isDark

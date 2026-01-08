@@ -30,7 +30,7 @@ class FicheSanteRabbitCard extends StatelessWidget {
 
     return Container(
       margin: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-      padding: const EdgeInsets.all(16),
+      padding: AppTheme.paddingAllMedium,
       decoration: BoxDecoration(
         color: surfaceColor,
         borderRadius: BorderRadius.circular(24),
@@ -52,17 +52,17 @@ class FicheSanteRabbitCard extends StatelessWidget {
             height: 96,
             decoration: BoxDecoration(
               color: AppTheme.textSecondary.withValues(alpha: 0.2),
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: AppTheme.borderRadiusMedium,
             ),
             child: ClipRRect(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: AppTheme.borderRadiusMedium,
               child:
                   lapin.photoPath != null && File(lapin.photoPath!).existsSync()
                   ? Image.file(File(lapin.photoPath!), fit: BoxFit.cover)
                   : Icon(Icons.pets, size: 48, color: AppTheme.textSecondary),
             ),
           ),
-          const SizedBox(width: 16),
+          AppTheme.horizontalSpace16,
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -98,19 +98,19 @@ class FicheSanteRabbitCard extends StatelessWidget {
                   ],
                 ),
                 Text(
-                  '${lapin.race} • ${lapin.sexe == 'Mâle' ? 'Buck' : 'Doe'}',
+                  '${lapin.race} • ${lapin.sexe == 'Mâle' ? 'Mâle reproducteur' : 'Femelle reproductrice'}',
                   style: TextStyle(
                     color: textSub,
                     fontSize: 14,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
-                const SizedBox(height: 2),
+                AppTheme.verticalSpace4,
                 Text(
                   'Age: $age • Cage ${lapin.localisation ?? 'N/A'}',
                   style: TextStyle(color: textSub, fontSize: 14),
                 ),
-                const SizedBox(height: 8),
+                AppTheme.verticalSpace8,
                 Row(
                   children: [
                     Container(
@@ -122,7 +122,7 @@ class FicheSanteRabbitCard extends StatelessWidget {
                         color: lapin.statut == 'Malade'
                             ? AppTheme.error.withValues(alpha: 0.1)
                             : AppTheme.primaryGreen.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(20),
+                        borderRadius: AppTheme.borderRadiusLarge,
                         border: Border.all(
                           color: lapin.statut == 'Malade'
                               ? AppTheme.error.withValues(alpha: 0.3)
@@ -142,9 +142,9 @@ class FicheSanteRabbitCard extends StatelessWidget {
                               shape: BoxShape.circle,
                             ),
                           ),
-                          const SizedBox(width: 6),
+                          AppTheme.horizontalSpace4,
                           Text(
-                            lapin.statut == 'Malade' ? 'Sick' : 'Healthy',
+                            lapin.statut == 'Malade' ? 'Malade' : 'Sain',
                             style: TextStyle(
                               color: lapin.statut == 'Malade'
                                   ? AppTheme.error
@@ -156,7 +156,7 @@ class FicheSanteRabbitCard extends StatelessWidget {
                         ],
                       ),
                     ),
-                    const SizedBox(width: 8),
+                    AppTheme.horizontalSpace8,
                     Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 10,
@@ -164,9 +164,9 @@ class FicheSanteRabbitCard extends StatelessWidget {
                       ),
                       decoration: BoxDecoration(
                         color: isDark
-                            ? const Color(0xFF30342E)
-                            : const Color(0xFFEFF2EB),
-                        borderRadius: BorderRadius.circular(20),
+                            ? AppTheme.santeCardDark
+                            : AppTheme.santeCardLight,
+                        borderRadius: AppTheme.borderRadiusLarge,
                       ),
                       child: Text(
                         '$poidKg kg',

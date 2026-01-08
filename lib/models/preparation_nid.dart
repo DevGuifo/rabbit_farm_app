@@ -2,7 +2,8 @@ class PreparationNid {
   final int? id;
   final int accouplementId;
   final DateTime datePreparation;
-  final String typeMateriau; // 'paille', 'foin', 'copeaux', 'mixte'
+  final String typeMateriau; // ⚠️ DEPRECATED - Utiliser materiauId
+  final int? materiauId; // FK vers materiaux.id (Phase 2 Refactoring)
   final double? quantiteMateriau; // kg
   final bool boiteNidInstallee;
   final String? dispositionNid;
@@ -14,6 +15,7 @@ class PreparationNid {
     required this.accouplementId,
     required this.datePreparation,
     required this.typeMateriau,
+    this.materiauId,
     this.quantiteMateriau,
     required this.boiteNidInstallee,
     this.dispositionNid,
@@ -27,6 +29,7 @@ class PreparationNid {
       'accouplement_id': accouplementId,
       'date_preparation': datePreparation.toIso8601String(),
       'type_materiau': typeMateriau,
+      'materiau_id': materiauId,
       'quantite_materiau': quantiteMateriau,
       'boite_nid_installee': boiteNidInstallee ? 1 : 0,
       'disposition_nid': dispositionNid,
@@ -41,6 +44,7 @@ class PreparationNid {
       accouplementId: map['accouplement_id'] as int,
       datePreparation: DateTime.parse(map['date_preparation'] as String),
       typeMateriau: map['type_materiau'] as String,
+      materiauId: map['materiau_id'] as int?,
       quantiteMateriau: map['quantite_materiau'] != null
           ? (map['quantite_materiau'] as num).toDouble()
           : null,
@@ -66,6 +70,7 @@ class PreparationNid {
     int? accouplementId,
     DateTime? datePreparation,
     String? typeMateriau,
+    int? materiauId,
     double? quantiteMateriau,
     bool? boiteNidInstallee,
     String? dispositionNid,
@@ -77,6 +82,7 @@ class PreparationNid {
       accouplementId: accouplementId ?? this.accouplementId,
       datePreparation: datePreparation ?? this.datePreparation,
       typeMateriau: typeMateriau ?? this.typeMateriau,
+      materiauId: materiauId ?? this.materiauId,
       quantiteMateriau: quantiteMateriau ?? this.quantiteMateriau,
       boiteNidInstallee: boiteNidInstallee ?? this.boiteNidInstallee,
       dispositionNid: dispositionNid ?? this.dispositionNid,

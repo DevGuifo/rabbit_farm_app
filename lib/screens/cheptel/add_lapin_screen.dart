@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:rabbit_farm_app/l10n/app_localizations.dart';
 import '../../models/lapin.dart';
 import '../../providers/lapin_provider.dart';
 import '../../utils/snackbar_helper.dart';
 import '../../services/database_helper.dart';
 import '../../services/photo_service.dart';
 import '../../theme/app_theme.dart';
+import '../../widgets/uniform_app_bar.dart';
 import 'widgets/add_lapin/lapin_form_page1_identity.dart';
 import 'widgets/add_lapin/lapin_form_page2_details.dart';
 import 'widgets/add_lapin/lapin_form_page3_genealogy.dart';
@@ -41,6 +43,7 @@ class _AddLapinScreenState extends State<AddLapinScreen> {
   String? _origineSelectionnee;
   DateTime _dateNaissance = DateTime.now();
   String? _photoPath;
+  int? _cageId; // ID de la cage sélectionnée (FK)
 
   // Parents sélectionnés
   Lapin? _pereSelectionne;
@@ -69,7 +72,7 @@ class _AddLapinScreenState extends State<AddLapinScreen> {
             children: [
               ListTile(
                 leading: const Icon(Icons.photo_camera),
-                title: const Text('Prendre une photo'),
+                title: Text(AppLocalizations.of(context).cheptelPrendrePhoto),
                 onTap: () async {
                   Navigator.pop(context);
                   final photoPath = await _photoService.prendrePhoto();
@@ -82,7 +85,7 @@ class _AddLapinScreenState extends State<AddLapinScreen> {
               ),
               ListTile(
                 leading: const Icon(Icons.photo_library),
-                title: const Text('Choisir depuis la galerie'),
+                title: Text(AppLocalizations.of(context).cheptelChoisirGalerie),
                 onTap: () async {
                   Navigator.pop(context);
                   final photoPath = await _photoService.selectionnerPhoto();
@@ -124,6 +127,7 @@ class _AddLapinScreenState extends State<AddLapinScreen> {
         localisation: _localisationController.text.trim().isNotEmpty
             ? _localisationController.text.trim()
             : null,
+        cageId: _cageId, // FK vers cages.id
         photoPath: _photoPath,
         numeroIdentification: _numeroIdController.text.trim().isNotEmpty
             ? _numeroIdController.text.trim()
@@ -144,7 +148,10 @@ class _AddLapinScreenState extends State<AddLapinScreen> {
       try {
         // Afficher un indicateur de chargement
         if (mounted) {
-          SnackbarHelper.showLoading(context, 'Enregistrement en cours...');
+          SnackbarHelper.showLoading(
+            context,
+            AppLocalizations.of(context).commonEnregistrementEnCours,
+          );
         }
 
         // Ajouter le lapin via le provider
@@ -182,7 +189,10 @@ class _AddLapinScreenState extends State<AddLapinScreen> {
       } catch (e) {
         // Afficher un message d'erreur
         if (mounted) {
-          SnackbarHelper.showError(context, 'Erreur: ${e.toString()}');
+          SnackbarHelper.showError(
+            context,
+            '${AppLocalizations.of(context).commonErreur}: ${e.toString()}',
+          );
         }
       }
     }
@@ -212,21 +222,10 @@ class _AddLapinScreenState extends State<AddLapinScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
-      appBar: AppBar(
-        title: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: AppTheme.primaryGreen.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: const Icon(Icons.pets, color: AppTheme.primaryGreen),
-            ),
-            const SizedBox(width: 12),
-            const Text('Ajouter un lapin'),
-          ],
-        ),
+      appBar: UniformAppBar(
+        title: AppLocalizations.of(context).cheptelAjouterLapin,
+        icon: Icons.pets_rounded,
+        iconColor: AppTheme.primaryGreen,
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(4),
           child: LinearProgressIndicator(
@@ -266,10 +265,12 @@ class _AddLapinScreenState extends State<AddLapinScreen> {
               prixAchatController: _prixAchatController,
               caracteristiquesController: _caracteristiquesController,
               notesController: _notesController,
+              cageIdInitiale: _cageId,
               onStatutChanged: (statut) =>
                   setState(() => _statutSelectionne = statut),
               onOrigineChanged: (origine) =>
                   setState(() => _origineSelectionnee = origine),
+              onCageIdChanged: (cageId) => setState(() => _cageId = cageId),
             ),
             LapinFormPage3Genealogy(
               pereSelectionne: _pereSelectionne,
@@ -296,7 +297,9 @@ class _AddLapinScreenState extends State<AddLapinScreen> {
         color: Theme.of(context).colorScheme.surface,
         boxShadow: [
           BoxShadow(
-            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.05),
+            color: Theme.of(
+              context,
+            ).colorScheme.onSurface.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, -5),
           ),
@@ -310,7 +313,7 @@ class _AddLapinScreenState extends State<AddLapinScreen> {
               child: OutlinedButton.icon(
                 onPressed: _previousPage,
                 icon: const Icon(Icons.arrow_back),
-                label: const Text('Précédent'),
+                label: Text(AppLocalizations.of(context).cheptelBtnPrecedent),
                 style: OutlinedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 16),
                 ),
@@ -322,7 +325,9 @@ class _AddLapinScreenState extends State<AddLapinScreen> {
           Expanded(
             flex: _currentStep == 0 ? 1 : 2,
             child: FilledButton.icon(
-              onPressed: (_currentStep == 2 && (_photoPath == null || _photoPath!.isEmpty))
+              onPressed:
+                  (_currentStep == 2 &&
+                      (_photoPath == null || _photoPath!.isEmpty))
                   ? null // Désactiver si pas de photo sur la dernière page
                   : () {
                       if (_currentStep < 2) {
@@ -330,9 +335,11 @@ class _AddLapinScreenState extends State<AddLapinScreen> {
                         if (_currentStep == 0) {
                           if (_numeroIdController.text.trim().isEmpty) {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
+                              SnackBar(
                                 content: Text(
-                                  'Le numéro d\'identification est obligatoire',
+                                  AppLocalizations.of(
+                                    context,
+                                  ).validationNumeroObligatoire,
                                 ),
                                 backgroundColor: AppTheme.warning,
                               ),
@@ -346,7 +353,11 @@ class _AddLapinScreenState extends State<AddLapinScreen> {
                       }
                     },
               icon: Icon(_currentStep < 2 ? Icons.arrow_forward : Icons.save),
-              label: Text(_currentStep < 2 ? 'Suivant' : 'Enregistrer'),
+              label: Text(
+                _currentStep < 2
+                    ? AppLocalizations.of(context).commonSuivant
+                    : AppLocalizations.of(context).commonEnregistrer,
+              ),
               style: FilledButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 backgroundColor: AppTheme.primaryGreen,

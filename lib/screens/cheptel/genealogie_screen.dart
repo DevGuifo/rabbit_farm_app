@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:rabbit_farm_app/l10n/app_localizations.dart';
 import '../../models/lapin.dart';
 import '../../models/portee.dart';
 import '../../services/database_helper.dart';
 import 'genealogie/widgets/rabbit_genealogy_card.dart';
 import 'genealogie/widgets/litter_card.dart';
 import 'package:rabbit_farm_app/theme/app_theme.dart';
+import '../../widgets/uniform_app_bar.dart';
 
 /// Écran pour afficher l'arbre généalogique d'un lapin avec design Stitch
 class GenealogieScreen extends StatefulWidget {
@@ -70,9 +72,13 @@ class _GenealogieScreenState extends State<GenealogieScreen> {
     } catch (e) {
       setState(() => _isLoading = false);
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Erreur: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              AppLocalizations.of(context).msgErrorPrefix(e.toString()),
+            ),
+          ),
+        );
       }
     }
   }
@@ -112,14 +118,10 @@ class _GenealogieScreenState extends State<GenealogieScreen> {
       backgroundColor: isDark
           ? AppTheme.backgroundDark
           : AppTheme.backgroundLight,
-      appBar: AppBar(
-        title: const Text('Genealogy View', style: AppTheme.titleLarge),
-        backgroundColor: isDark ? AppTheme.cardDark : AppTheme.cardLight,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context),
-        ),
+      appBar: UniformAppBar(
+        title: AppLocalizations.of(context).labelGenealogue,
+        icon: Icons.account_tree_rounded,
+        iconColor: AppTheme.info,
       ),
       body: _isLoading
           ? const Center(
@@ -298,11 +300,14 @@ class _GenealogieScreenState extends State<GenealogieScreen> {
         children: [
           Icon(Icons.analytics_outlined, size: 16, color: couleur),
           const SizedBox(width: 8),
-          Text(
-            'Taux de consanguinité: ${(taux * 100).toStringAsFixed(1)}% ($evaluation)',
-            style: AppTheme.caption.copyWith(
-              fontWeight: FontWeight.w600,
-              color: isDark ? AppTheme.textLight : AppTheme.textPrimary,
+          Flexible(
+            child: Text(
+              'Taux de consanguinité: ${(taux * 100).toStringAsFixed(1)}% ($evaluation)',
+              style: AppTheme.caption.copyWith(
+                fontWeight: FontWeight.w600,
+                color: isDark ? AppTheme.textLight : AppTheme.textPrimary,
+              ),
+              overflow: TextOverflow.ellipsis,
             ),
           ),
         ],

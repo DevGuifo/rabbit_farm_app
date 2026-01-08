@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
+import '../../l10n/app_localizations.dart';
 import '../../models/recette.dart';
 import '../../models/lapin.dart';
 import '../../providers/finance_provider.dart';
 import '../../providers/lapin_provider.dart';
 import '../../theme/app_theme.dart';
+import '../../widgets/uniform_app_bar.dart';
 
 class AjouterRecetteScreen extends StatefulWidget {
   const AjouterRecetteScreen({super.key});
@@ -38,16 +40,10 @@ class _AjouterRecetteScreenState extends State<AjouterRecetteScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
-      appBar: AppBar(
-        title: Text(
-          'Ajouter une recette',
-          style: AppTheme.titleLarge.copyWith(
-            color: Theme.of(context).colorScheme.onSurface,
-          ),
-        ),
-        backgroundColor: Theme.of(context).colorScheme.surface,
-        elevation: 0,
-        iconTheme: IconThemeData(color: Theme.of(context).colorScheme.primary),
+      appBar: UniformAppBar(
+        title: AppLocalizations.of(context).financeAjouterRecette,
+        icon: Icons.add_circle_rounded,
+        iconColor: AppTheme.success,
       ),
       body: Form(
         key: _formKey,
@@ -58,7 +54,7 @@ class _AjouterRecetteScreenState extends State<AjouterRecetteScreen> {
             Card(
               child: ListTile(
                 leading: const Icon(Icons.calendar_today),
-                title: const Text('Date'),
+                title: Text(AppLocalizations.of(context).financeDate),
                 subtitle: Text(_formatDate.format(_dateSelectionnee)),
                 onTap: _selectionnerDate,
               ),
@@ -68,21 +64,30 @@ class _AjouterRecetteScreenState extends State<AjouterRecetteScreen> {
             // Catégorie
             DropdownButtonFormField<String>(
               initialValue: _categorieSelectionnee,
-              decoration: const InputDecoration(
-                labelText: 'Catégorie',
-                prefixIcon: Icon(Icons.category),
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                labelText: AppLocalizations.of(context).financeCategorie,
+                prefixIcon: const Icon(Icons.category),
+                border: const OutlineInputBorder(),
               ),
-              items: const [
+              items: [
                 DropdownMenuItem(
                   value: 'vente_lapin',
-                  child: Text('Vente d\'un lapin'),
+                  child: Text(
+                    AppLocalizations.of(context).financeCategorieVenteLapin,
+                  ),
                 ),
                 DropdownMenuItem(
                   value: 'vente_portee',
-                  child: Text('Vente d\'une portée'),
+                  child: Text(
+                    AppLocalizations.of(context).financeCategorieVentePortee,
+                  ),
                 ),
-                DropdownMenuItem(value: 'autre', child: Text('Autre')),
+                DropdownMenuItem(
+                  value: 'autre',
+                  child: Text(
+                    AppLocalizations.of(context).financesCategorieAutre,
+                  ),
+                ),
               ],
               onChanged: (value) {
                 setState(() {
@@ -102,10 +107,10 @@ class _AjouterRecetteScreenState extends State<AjouterRecetteScreen> {
                 builder: (context, lapinProvider, child) {
                   return DropdownButtonFormField<Lapin>(
                     initialValue: _lapinSelectionne,
-                    decoration: const InputDecoration(
-                      labelText: 'Lapin vendu (optionnel)',
-                      prefixIcon: Icon(Icons.pets),
-                      border: OutlineInputBorder(),
+                    decoration: InputDecoration(
+                      labelText: AppLocalizations.of(context).financeLapinVendu,
+                      prefixIcon: const Icon(Icons.pets),
+                      border: const OutlineInputBorder(),
                     ),
                     items: [
                       const DropdownMenuItem<Lapin>(
@@ -133,10 +138,10 @@ class _AjouterRecetteScreenState extends State<AjouterRecetteScreen> {
             // Montant
             TextFormField(
               controller: _montantController,
-              decoration: const InputDecoration(
-                labelText: 'Montant (€)',
-                prefixIcon: Icon(Icons.euro),
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                labelText: AppLocalizations.of(context).financeMontant,
+                prefixIcon: const Icon(Icons.euro),
+                border: const OutlineInputBorder(),
               ),
               keyboardType: const TextInputType.numberWithOptions(
                 decimal: true,
@@ -146,11 +151,11 @@ class _AjouterRecetteScreenState extends State<AjouterRecetteScreen> {
               ],
               validator: (value) {
                 if (value == null || value.isEmpty) {
-                  return 'Veuillez saisir un montant';
+                  return AppLocalizations.of(context).erreurMontantInvalide;
                 }
                 final montant = double.tryParse(value);
                 if (montant == null || montant <= 0) {
-                  return 'Veuillez saisir un montant valide';
+                  return AppLocalizations.of(context).erreurMontantInvalide;
                 }
                 return null;
               },
@@ -160,15 +165,15 @@ class _AjouterRecetteScreenState extends State<AjouterRecetteScreen> {
             // Description
             TextFormField(
               controller: _descriptionController,
-              decoration: const InputDecoration(
-                labelText: 'Description',
-                prefixIcon: Icon(Icons.description),
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                labelText: AppLocalizations.of(context).financeDescription,
+                prefixIcon: const Icon(Icons.description),
+                border: const OutlineInputBorder(),
               ),
               maxLines: 2,
               validator: (value) {
                 if (value == null || value.isEmpty) {
-                  return 'Veuillez saisir une description';
+                  return AppLocalizations.of(context).erreurDescriptionRequise;
                 }
                 return null;
               },
@@ -178,10 +183,10 @@ class _AjouterRecetteScreenState extends State<AjouterRecetteScreen> {
             // Notes
             TextFormField(
               controller: _notesController,
-              decoration: const InputDecoration(
-                labelText: 'Notes (optionnel)',
-                prefixIcon: Icon(Icons.note),
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                labelText: AppLocalizations.of(context).financeNotes,
+                prefixIcon: const Icon(Icons.note),
+                border: const OutlineInputBorder(),
               ),
               maxLines: 3,
             ),
@@ -191,12 +196,8 @@ class _AjouterRecetteScreenState extends State<AjouterRecetteScreen> {
             ElevatedButton.icon(
               onPressed: _enregistrer,
               icon: const Icon(Icons.check),
-              label: const Text('Enregistrer la recette'),
-              style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.all(16),
-                backgroundColor: AppTheme.success,
-                foregroundColor: AppTheme.textLight,
-              ),
+              label: Text(AppLocalizations.of(context).commonSave),
+              style: AppTheme.primaryButtonStyle,
             ),
           ],
         ),

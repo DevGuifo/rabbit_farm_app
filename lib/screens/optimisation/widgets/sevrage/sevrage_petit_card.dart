@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:rabbit_farm_app/theme/app_theme.dart';
 import '../../../../models/lapin.dart';
+import '../../../../services/database_helper.dart';
+import '../../../../services/localisation_service.dart';
+import '../../../../l10n/app_localizations.dart';
 
-class SevragePetitCard extends StatelessWidget {
+class SevragePetitCard extends StatefulWidget {
   final Lapin petit;
-  final String? cageSelectionnee;
+  final int? cageId;
   final double? poids;
   final String sexe;
   final ValueChanged<double?> onPoidsChanged;
@@ -14,7 +17,7 @@ class SevragePetitCard extends StatelessWidget {
   const SevragePetitCard({
     super.key,
     required this.petit,
-    required this.cageSelectionnee,
+    required this.cageId,
     required this.poids,
     required this.sexe,
     required this.onPoidsChanged,
@@ -23,14 +26,69 @@ class SevragePetitCard extends StatelessWidget {
   });
 
   @override
+  State<SevragePetitCard> createState() => _SevragePetitCardState();
+}
+
+class _SevragePetitCardState extends State<SevragePetitCard> {
+  final _dbHelper = DatabaseHelper.instance;
+  String? _cageNumero;
+  bool _loadingCage = false;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.cageId != null) {
+      _chargerCageNumero();
+    }
+  }
+
+  @override
+  void didUpdateWidget(SevragePetitCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.cageId != oldWidget.cageId) {
+      if (widget.cageId != null) {
+        _chargerCageNumero();
+      } else {
+        setState(() => _cageNumero = null);
+      }
+    }
+  }
+
+  Future<void> _chargerCageNumero() async {
+    if (widget.cageId == null) return;
+
+    setState(() => _loadingCage = true);
+    try {
+      final cage = await _dbHelper.getCageById(widget.cageId!);
+      if (mounted) {
+        setState(() {
+          _cageNumero = cage?.numero;
+          _loadingCage = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _cageNumero = null;
+          _loadingCage = false;
+        });
+      }
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final sexeIcon =
-        (sexe.toLowerCase() == 'male' || sexe.toLowerCase() == 'm' || sexe.toLowerCase() == 'mâle')
+        (widget.sexe.toLowerCase() == 'male' ||
+            widget.sexe.toLowerCase() == 'm' ||
+            widget.sexe.toLowerCase() == 'mâle')
         ? Icons.male
         : Icons.female;
     final sexeColor =
-        (sexe.toLowerCase() == 'male' || sexe.toLowerCase() == 'm' || sexe.toLowerCase() == 'mâle')
+        (widget.sexe.toLowerCase() == 'male' ||
+            widget.sexe.toLowerCase() == 'm' ||
+            widget.sexe.toLowerCase() == 'mâle')
         ? AppTheme.accentCyan
         : AppTheme.accentPink;
 
@@ -40,7 +98,7 @@ class SevragePetitCard extends StatelessWidget {
         color: isDark ? AppTheme.cardDark : AppTheme.cardLight,
         borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
         border: Border.all(
-          color: cageSelectionnee != null
+          color: widget.cageId != null
               ? AppTheme.primaryGreen
               : (isDark ? AppTheme.stitchBorderDark : AppTheme.border),
           width: 2,
@@ -61,24 +119,28 @@ class SevragePetitCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      petit.nom,
+                      widget.petit.nom,
                       style: AppTheme.bodyMedium.copyWith(
-                        color: isDark ? AppTheme.textLight : AppTheme.textPrimary,
+                        color: isDark
+                            ? AppTheme.textLight
+                            : AppTheme.textPrimary,
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                     Text(
-                      '$sexe • ${petit.ageEnJours} jours',
+                      '${widget.sexe} • ${widget.petit.ageEnJours} jours',
                       style: AppTheme.bodyMedium.copyWith(
-                        color: isDark ? AppTheme.textLight.withValues(alpha: 0.7) : AppTheme.textSecondary,
+                        color: isDark
+                            ? AppTheme.textLight.withValues(alpha: 0.7)
+                            : AppTheme.textSecondary,
                         fontSize: 12,
                       ),
                     ),
                   ],
                 ),
               ),
-              if (cageSelectionnee != null)
+              if (widget.cageId != null)
                 Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 12,
@@ -89,14 +151,20 @@ class SevragePetitCard extends StatelessWidget {
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(color: AppTheme.primaryGreen),
                   ),
-                  child: Text(
-                    'Cage $cageSelectionnee',
-                    style: AppTheme.bodyMedium.copyWith(
-                      color: AppTheme.primaryGreen,
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
+                  child: _loadingCage
+                      ? const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : Text(
+                          _cageNumero != null ? 'Cage $_cageNumero' : 'Cage...',
+                          style: AppTheme.bodyMedium.copyWith(
+                            color: AppTheme.primaryGreen,
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                 ),
             ],
           ),
@@ -106,22 +174,38 @@ class SevragePetitCard extends StatelessWidget {
             children: [
               Expanded(
                 child: OutlinedButton.icon(
-                  onPressed: () => onSexeChanged('Mâle'),
+                  onPressed: () => widget.onSexeChanged('Mâle'),
                   icon: const Icon(Icons.male, size: 18),
                   label: const Text('Mâle'),
                   style: OutlinedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 12),
-                    backgroundColor: (sexe.toLowerCase() == 'male' || sexe.toLowerCase() == 'm' || sexe.toLowerCase() == 'mâle')
+                    backgroundColor:
+                        (widget.sexe.toLowerCase() == 'male' ||
+                            widget.sexe.toLowerCase() == 'm' ||
+                            widget.sexe.toLowerCase() == 'mâle')
                         ? AppTheme.accentCyan.withValues(alpha: 0.1)
                         : null,
-                    foregroundColor: (sexe.toLowerCase() == 'male' || sexe.toLowerCase() == 'm' || sexe.toLowerCase() == 'mâle')
+                    foregroundColor:
+                        (widget.sexe.toLowerCase() == 'male' ||
+                            widget.sexe.toLowerCase() == 'm' ||
+                            widget.sexe.toLowerCase() == 'mâle')
                         ? AppTheme.accentCyan
                         : (isDark ? AppTheme.textLight : AppTheme.textPrimary),
                     side: BorderSide(
-                      color: (sexe.toLowerCase() == 'male' || sexe.toLowerCase() == 'm' || sexe.toLowerCase() == 'mâle')
+                      color:
+                          (widget.sexe.toLowerCase() == 'male' ||
+                              widget.sexe.toLowerCase() == 'm' ||
+                              widget.sexe.toLowerCase() == 'mâle')
                           ? AppTheme.accentCyan
-                          : (isDark ? AppTheme.stitchBorderDark : AppTheme.border),
-                      width: (sexe.toLowerCase() == 'male' || sexe.toLowerCase() == 'm' || sexe.toLowerCase() == 'mâle') ? 2 : 1,
+                          : (isDark
+                                ? AppTheme.stitchBorderDark
+                                : AppTheme.border),
+                      width:
+                          (widget.sexe.toLowerCase() == 'male' ||
+                              widget.sexe.toLowerCase() == 'm' ||
+                              widget.sexe.toLowerCase() == 'mâle')
+                          ? 2
+                          : 1,
                     ),
                   ),
                 ),
@@ -129,22 +213,34 @@ class SevragePetitCard extends StatelessWidget {
               const SizedBox(width: 12),
               Expanded(
                 child: OutlinedButton.icon(
-                  onPressed: () => onSexeChanged('Femelle'),
+                  onPressed: () => widget.onSexeChanged('Femelle'),
                   icon: const Icon(Icons.female, size: 18),
                   label: const Text('Femelle'),
                   style: OutlinedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 12),
-                    backgroundColor: (sexe.toLowerCase() == 'femelle' || sexe.toLowerCase() == 'f')
+                    backgroundColor:
+                        (widget.sexe.toLowerCase() == 'femelle' ||
+                            widget.sexe.toLowerCase() == 'f')
                         ? AppTheme.accentPink.withValues(alpha: 0.1)
                         : null,
-                    foregroundColor: (sexe.toLowerCase() == 'femelle' || sexe.toLowerCase() == 'f')
+                    foregroundColor:
+                        (widget.sexe.toLowerCase() == 'femelle' ||
+                            widget.sexe.toLowerCase() == 'f')
                         ? AppTheme.accentPink
                         : (isDark ? AppTheme.textLight : AppTheme.textPrimary),
                     side: BorderSide(
-                      color: (sexe.toLowerCase() == 'femelle' || sexe.toLowerCase() == 'f')
+                      color:
+                          (widget.sexe.toLowerCase() == 'femelle' ||
+                              widget.sexe.toLowerCase() == 'f')
                           ? AppTheme.accentPink
-                          : (isDark ? AppTheme.stitchBorderDark : AppTheme.border),
-                      width: (sexe.toLowerCase() == 'femelle' || sexe.toLowerCase() == 'f') ? 2 : 1,
+                          : (isDark
+                                ? AppTheme.stitchBorderDark
+                                : AppTheme.border),
+                      width:
+                          (widget.sexe.toLowerCase() == 'femelle' ||
+                              widget.sexe.toLowerCase() == 'f')
+                          ? 2
+                          : 1,
                     ),
                   ),
                 ),
@@ -156,42 +252,52 @@ class SevragePetitCard extends StatelessWidget {
             children: [
               Expanded(
                 child: TextFormField(
-                  initialValue: poids?.toString() ?? '',
+                  initialValue: widget.poids?.toString() ?? '',
                   keyboardType: TextInputType.number,
                   decoration: InputDecoration(
-                    labelText: 'Poids (g)',
+                    labelText: AppLocalizations.of(
+                      context,
+                    ).optimisationFormPoids,
                     prefixIcon: Icon(
                       Icons.monitor_weight,
-                      color: isDark ? AppTheme.textLight.withValues(alpha: 0.7) : AppTheme.textSecondary,
+                      color: isDark
+                          ? AppTheme.textLight.withValues(alpha: 0.7)
+                          : AppTheme.textSecondary,
                     ),
                     border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
+                      borderRadius: BorderRadius.circular(
+                        AppTheme.radiusMedium,
+                      ),
                     ),
                     filled: true,
-                    fillColor: isDark ? AppTheme.stitchSurfaceDark : AppTheme.bgLight,
+                    fillColor: isDark
+                        ? AppTheme.stitchSurfaceDark
+                        : AppTheme.bgLight,
                   ),
                   style: AppTheme.bodyMedium.copyWith(
                     color: isDark ? AppTheme.textLight : AppTheme.textPrimary,
                   ),
                   onChanged: (value) {
-                    onPoidsChanged(double.tryParse(value));
+                    widget.onPoidsChanged(double.tryParse(value));
                   },
                 ),
               ),
               const SizedBox(width: 12),
               Expanded(
                 child: ElevatedButton.icon(
-                  onPressed: onSelectCage,
+                  onPressed: widget.onSelectCage,
                   icon: const Icon(Icons.home, size: 18),
-                  label: Text(cageSelectionnee != null ? 'Changer' : 'Cage'),
+                  label: Text(widget.cageId != null ? 'Changer' : 'Cage'),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: cageSelectionnee != null
+                    backgroundColor: widget.cageId != null
                         ? AppTheme.primaryGreen
                         : AppTheme.info,
-                    foregroundColor: Colors.white,
+                    foregroundColor: AppTheme.textOnPrimary,
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
+                      borderRadius: BorderRadius.circular(
+                        AppTheme.radiusMedium,
+                      ),
                     ),
                   ),
                 ),

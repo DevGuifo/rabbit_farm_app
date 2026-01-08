@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../theme/app_theme.dart';
 
 /// Widget pour le contenu textuel (titre + description)
@@ -9,6 +10,7 @@ class WelcomeContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final l10n = AppLocalizations.of(context);
 
     return Column(
       children: [
@@ -26,12 +28,10 @@ class WelcomeContent extends StatelessWidget {
                   : AppTheme.stitchTextMainLight,
             ),
             children: [
-              const TextSpan(text: 'Smart Rabbit\n'),
+              TextSpan(text: '${l10n.welcomeTitle}\n'),
               TextSpan(
-                text: 'Farming',
-                style: TextStyle(
-                  color: AppTheme.primaryNeonGreen,
-                ),
+                text: l10n.welcomeTitleHighlight,
+                style: TextStyle(color: AppTheme.primaryNeonGreen),
               ),
             ],
           ),
@@ -41,7 +41,7 @@ class WelcomeContent extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Text(
-            'Simplify your daily tasks. Track breeding schedules, medical records, and feed inventory with ease.',
+            l10n.welcomeDescription,
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 16,
@@ -57,4 +57,3 @@ class WelcomeContent extends StatelessWidget {
     );
   }
 }
-

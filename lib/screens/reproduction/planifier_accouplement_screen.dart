@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
+import 'package:rabbit_farm_app/l10n/app_localizations.dart';
 import '../../models/accouplement.dart';
 import '../../models/lapin.dart';
 import '../../providers/lapin_provider.dart';
@@ -60,7 +61,7 @@ class _PlanifierAccouplementScreenState
     if (_femelleSelectionnee == null) {
       SnackbarHelper.showValidationError(
         context,
-        'Veuillez sélectionner une femelle',
+        AppLocalizations.of(context).reproSelectionnerFemelle,
       );
       return;
     }
@@ -68,7 +69,7 @@ class _PlanifierAccouplementScreenState
     if (_maleSelectionne == null) {
       SnackbarHelper.showValidationError(
         context,
-        'Veuillez sélectionner un mâle',
+        AppLocalizations.of(context).reproSelectionnerMale,
       );
       return;
     }
@@ -92,13 +93,16 @@ class _PlanifierAccouplementScreenState
       if (mounted) {
         SnackbarHelper.showSuccess(
           context,
-          'Accouplement planifié avec succès',
+          AppLocalizations.of(context).reproAccouplementPlanifie,
         );
         Navigator.of(context).pop();
       }
     } catch (e) {
       if (mounted) {
-        SnackbarHelper.showError(context, 'Erreur : $e');
+        SnackbarHelper.showError(
+          context,
+          AppLocalizations.of(context).reproErreurSuppression(e.toString()),
+        );
       }
     }
   }
@@ -184,9 +188,7 @@ class _PlanifierAccouplementScreenState
           onPressed: () {
             Navigator.push(
               context,
-              MaterialPageRoute(
-                builder: (_) => const AlertesScreen(),
-              ),
+              MaterialPageRoute(builder: (_) => const AlertesScreen()),
             );
           },
         ),
@@ -198,9 +200,7 @@ class _PlanifierAccouplementScreenState
           onPressed: () {
             Navigator.push(
               context,
-              MaterialPageRoute(
-                builder: (_) => const ParametresScreen(),
-              ),
+              MaterialPageRoute(builder: (_) => const ParametresScreen()),
             );
           },
         ),
@@ -240,7 +240,7 @@ class _PlanifierAccouplementScreenState
                       color: isDark ? AppTheme.textLight : AppTheme.textPrimary,
                     ),
                     children: [
-                      const TextSpan(text: 'Select Doe (Female) '),
+                      const TextSpan(text: 'Sélectionner la femelle '),
                       TextSpan(
                         text: '*',
                         style: AppTheme.bodyMedium.copyWith(
@@ -262,7 +262,7 @@ class _PlanifierAccouplementScreenState
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(
-                    'Ready',
+                    'Prête',
                     style: AppTheme.caption.copyWith(
                       fontWeight: FontWeight.w600,
                       color: isDark
@@ -285,7 +285,7 @@ class _PlanifierAccouplementScreenState
                     ? []
                     : [
                         BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.02),
+                          color: AppTheme.textPrimary.withValues(alpha: 0.02),
                           blurRadius: 4,
                           offset: const Offset(0, 2),
                         ),
@@ -314,8 +314,8 @@ class _PlanifierAccouplementScreenState
                     vertical: 14,
                   ),
                   hintText: hasNoFemelles
-                      ? 'Aucune femelle disponible'
-                      : 'Select a doe...',
+                      ? AppLocalizations.of(context).reproAucuneFemelle
+                      : 'Sélectionner une femelle...',
                   hintStyle: TextStyle(
                     color: isDark
                         ? AppTheme.textSecondary
@@ -357,8 +357,8 @@ class _PlanifierAccouplementScreenState
             const SizedBox(height: 6),
             Text(
               hasNoFemelles
-                  ? 'Ajoutez des femelles dans la section Cheptel avant de planifier un accouplement.'
-                  : 'Only displaying does that are ready for breeding.',
+                  ? AppLocalizations.of(context).reproAjouterFemelles
+                  : 'Affiche uniquement les femelles prêtes pour la saillie.',
               style: AppTheme.caption.copyWith(
                 color: hasNoFemelles
                     ? AppTheme.error
@@ -402,7 +402,7 @@ class _PlanifierAccouplementScreenState
                   color: isDark ? AppTheme.textLight : AppTheme.textPrimary,
                 ),
                 children: const [
-                  TextSpan(text: 'Select Doe (Female) '),
+                  TextSpan(text: 'Sélectionner le mâle '),
                   TextSpan(
                     text: '*',
                     style: TextStyle(color: AppTheme.error),
@@ -422,7 +422,7 @@ class _PlanifierAccouplementScreenState
                     ? []
                     : [
                         BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.02),
+                          color: AppTheme.textPrimary.withValues(alpha: 0.02),
                           blurRadius: 4,
                           offset: const Offset(0, 2),
                         ),
@@ -451,8 +451,8 @@ class _PlanifierAccouplementScreenState
                     vertical: 14,
                   ),
                   hintText: hasNoMales
-                      ? 'Aucun mâle disponible'
-                      : 'Select a buck...',
+                      ? AppLocalizations.of(context).reproAucunMale
+                      : 'Sélectionner un mâle...',
                   hintStyle: TextStyle(
                     color: isDark
                         ? AppTheme.textSecondary
@@ -494,7 +494,7 @@ class _PlanifierAccouplementScreenState
             if (hasNoMales) ...[
               const SizedBox(height: 6),
               Text(
-                'Ajoutez des mâles dans la section Cheptel avant de planifier un accouplement.',
+                AppLocalizations.of(context).reproAjouterMales,
                 style: AppTheme.caption.copyWith(color: AppTheme.error),
               ),
             ],
@@ -521,9 +521,11 @@ class _PlanifierAccouplementScreenState
               fontWeight: FontWeight.bold,
               color: isDark ? AppTheme.textLight : AppTheme.textPrimary,
             ),
-            children: const [
-              TextSpan(text: 'Mating Date '),
+            children: [
               TextSpan(
+                text: '${AppLocalizations.of(context).reproDateSaillie} ',
+              ),
+              const TextSpan(
                 text: '*',
                 style: TextStyle(color: AppTheme.error),
               ),
@@ -558,7 +560,7 @@ class _PlanifierAccouplementScreenState
                   ? []
                   : [
                       BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.02),
+                        color: AppTheme.textPrimary.withValues(alpha: 0.02),
                         blurRadius: 4,
                         offset: const Offset(0, 2),
                       ),
@@ -572,6 +574,7 @@ class _PlanifierAccouplementScreenState
                     style: AppTheme.bodyMedium.copyWith(
                       color: isDark ? AppTheme.textLight : AppTheme.textPrimary,
                     ),
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
                 Icon(
@@ -614,7 +617,7 @@ class _PlanifierAccouplementScreenState
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'ESTIMATED KINDLING',
+                  AppLocalizations.of(context).reproMiseBasPrevue.toUpperCase(),
                   style: AppTheme.caption.copyWith(
                     fontWeight: FontWeight.bold,
                     letterSpacing: 1.2,
@@ -632,6 +635,7 @@ class _PlanifierAccouplementScreenState
                     fontWeight: FontWeight.w600,
                     color: isDark ? AppTheme.textLight : AppTheme.textPrimary,
                   ),
+                  overflow: TextOverflow.ellipsis,
                 ),
               ],
             ),
@@ -646,7 +650,7 @@ class _PlanifierAccouplementScreenState
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Notes',
+          AppLocalizations.of(context).reproductionNotes,
           style: AppTheme.bodyMedium.copyWith(
             fontWeight: FontWeight.bold,
             color: isDark ? AppTheme.textLight : AppTheme.textPrimary,
@@ -664,7 +668,7 @@ class _PlanifierAccouplementScreenState
                 ? []
                 : [
                     BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.02),
+                      color: AppTheme.textPrimary.withValues(alpha: 0.02),
                       blurRadius: 4,
                       offset: const Offset(0, 2),
                     ),
@@ -681,8 +685,7 @@ class _PlanifierAccouplementScreenState
                 decoration: InputDecoration(
                   border: InputBorder.none,
                   contentPadding: const EdgeInsets.all(12),
-                  hintText:
-                      'Add specific instructions, cage number changes, or health observations...',
+                  hintText: AppLocalizations.of(context).reproNotesPlaceholder,
                   hintStyle: TextStyle(
                     color: isDark
                         ? AppTheme.textSecondary
@@ -717,21 +720,16 @@ class _PlanifierAccouplementScreenState
           height: 56,
           child: ElevatedButton(
             onPressed: _enregistrerAccouplement,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppTheme.primaryNeonGreen,
-              foregroundColor: AppTheme.textPrimary,
-              elevation: 8,
-              shadowColor: AppTheme.primaryNeonGreen.withValues(alpha: 0.3),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
+            style: AppTheme.primaryButtonStyle,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Icon(Icons.add_task, size: 24),
                 SizedBox(width: 8),
-                Text('Plan Mating', style: AppTheme.titleSmall),
+                Text(
+                  AppLocalizations.of(context).reproPlanifierSaillie,
+                  style: AppTheme.titleSmall,
+                ),
               ],
             ),
           ),
@@ -743,7 +741,7 @@ class _PlanifierAccouplementScreenState
             padding: const EdgeInsets.symmetric(vertical: 12),
           ),
           child: Text(
-            'Cancel',
+            AppLocalizations.of(context).annuler,
             style: AppTheme.bodyMedium.copyWith(
               fontWeight: FontWeight.w600,
               color: isDark ? AppTheme.textSecondary : AppTheme.textSecondary,

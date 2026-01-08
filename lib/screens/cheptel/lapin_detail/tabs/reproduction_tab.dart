@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
+import '../../../../l10n/app_localizations.dart';
 import 'package:intl/intl.dart';
 import '../../../../models/accouplement.dart';
 import '../../../../models/portee.dart';
 import '../../../../theme/app_theme.dart';
-import '../constants/stitch_theme_constants.dart';
 
 /// Onglet Reproduction - Préserve la logique existante avec style Stitch
 class ReproductionTab extends StatelessWidget {
@@ -28,13 +28,13 @@ class ReproductionTab extends StatelessWidget {
             Icon(
               Icons.favorite_border,
               size: 80,
-              color: isDark ? StitchTheme.neutral600 : StitchTheme.neutral300,
+              color: isDark ? AppTheme.neutral600 : AppTheme.neutral300,
             ),
             const SizedBox(height: 16),
             Text(
-              'Aucun accouplement enregistré',
+              AppLocalizations.of(context).cheptelAucunAccouplement,
               style: AppTheme.bodyLarge.copyWith(
-                color: isDark ? StitchTheme.neutral400 : StitchTheme.neutral600,
+                color: isDark ? AppTheme.neutral400 : AppTheme.neutral600,
               ),
             ),
           ],
@@ -51,7 +51,7 @@ class ReproductionTab extends StatelessWidget {
           _buildSummaryCard(context, isDark),
           const SizedBox(height: 24),
           Text(
-            'Historique des accouplements',
+            AppLocalizations.of(context).cheptelHistoriqueAccouplements,
             style: AppTheme.titleMedium.copyWith(
               color: isDark ? AppTheme.textLight : AppTheme.stitchTextMainLight,
             ),
@@ -76,16 +76,16 @@ class ReproductionTab extends StatelessWidget {
   }
 
   Widget _buildSummaryCard(BuildContext context, bool isDark) {
-    final surfaceColor = StitchTheme.getSurfaceColor(context);
-    final outlineColor = StitchTheme.getOutlineColor(context);
+    final surfaceColor = AppTheme.getSurfaceColor(context);
+    final outlineColor = AppTheme.getOutlineColor(context);
 
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: surfaceColor,
-        borderRadius: BorderRadius.circular(StitchTheme.radiusLarge),
+        borderRadius: BorderRadius.circular(AppTheme.radiusLarge),
         border: Border.all(color: outlineColor),
-        boxShadow: StitchTheme.cardShadow(context),
+        boxShadow: AppTheme.cardShadow(isDark: isDark),
       ),
       child: Row(
         children: [
@@ -93,7 +93,7 @@ class ReproductionTab extends StatelessWidget {
             child: _buildMiniStatCard(
               context,
               isDark,
-              'Total',
+              AppLocalizations.of(context).cheptelTotal,
               accouplements.length.toString(),
               AppTheme.accentPink,
             ),
@@ -103,7 +103,7 @@ class ReproductionTab extends StatelessWidget {
             child: _buildMiniStatCard(
               context,
               isDark,
-              'Confirmés',
+              AppLocalizations.of(context).cheptelConfirmes,
               accouplements
                   .where((a) => a.statut == 'confirme')
                   .length
@@ -116,7 +116,7 @@ class ReproductionTab extends StatelessWidget {
             child: _buildMiniStatCard(
               context,
               isDark,
-              'Portées',
+              AppLocalizations.of(context).cheptelPortees,
               portees.length.toString(),
               AppTheme.primaryGreen,
             ),
@@ -148,7 +148,7 @@ class ReproductionTab extends StatelessWidget {
           label,
           textAlign: TextAlign.center,
           style: AppTheme.caption.copyWith(
-            color: isDark ? StitchTheme.neutral400 : StitchTheme.neutral600,
+            color: isDark ? AppTheme.neutral400 : AppTheme.neutral600,
           ),
         ),
       ],
@@ -161,7 +161,7 @@ class ReproductionTab extends StatelessWidget {
     Accouplement accouplement,
     Portee? portee,
   ) {
-    final surfaceColor = StitchTheme.getSurfaceColor(context);
+    final surfaceColor = AppTheme.getSurfaceColor(context);
     final formatDate = DateFormat('dd/MM/yyyy');
 
     Color statutColor;
@@ -184,9 +184,9 @@ class ReproductionTab extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: surfaceColor,
-        borderRadius: BorderRadius.circular(StitchTheme.radiusDefault),
+        borderRadius: BorderRadius.circular(AppTheme.radiusDefault),
         border: Border.all(color: statutColor.withValues(alpha: 0.3), width: 2),
-        boxShadow: StitchTheme.cardShadow(context),
+        boxShadow: AppTheme.cardShadow(isDark: isDark),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -230,9 +230,7 @@ class ReproductionTab extends StatelessWidget {
           ),
           if (portee != null) ...[
             Divider(
-              color: isDark
-                  ? StitchTheme.outlineDark
-                  : StitchTheme.outlineLight,
+              color: isDark ? AppTheme.outlineDark : AppTheme.outlineLight,
               height: 24,
             ),
             _buildInfoRow(
@@ -261,14 +259,14 @@ class ReproductionTab extends StatelessWidget {
           Icon(
             icon,
             size: 16,
-            color: isDark ? StitchTheme.neutral400 : StitchTheme.neutral500,
+            color: isDark ? AppTheme.neutral400 : AppTheme.neutral500,
           ),
           const SizedBox(width: 8),
           Text(
             '$label: ',
             style: TextStyle(
               fontSize: 13,
-              color: isDark ? StitchTheme.neutral400 : StitchTheme.neutral600,
+              color: isDark ? AppTheme.neutral400 : AppTheme.neutral600,
             ),
           ),
           Expanded(
@@ -277,7 +275,7 @@ class ReproductionTab extends StatelessWidget {
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
-                color: isDark ? StitchTheme.neutral200 : StitchTheme.neutral800,
+                color: isDark ? AppTheme.neutral200 : AppTheme.neutral800,
               ),
             ),
           ),

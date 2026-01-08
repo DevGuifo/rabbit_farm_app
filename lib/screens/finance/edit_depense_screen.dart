@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
+import '../../l10n/app_localizations.dart';
 import '../../models/depense.dart';
 import '../../providers/finance_provider.dart';
 import '../../utils/snackbar_helper.dart';
 import '../../theme/app_theme.dart';
+import '../../widgets/uniform_app_bar.dart';
 
 class EditDepenseScreen extends StatefulWidget {
   final Depense depense;
@@ -55,18 +57,10 @@ class _EditDepenseScreenState extends State<EditDepenseScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
-      appBar: AppBar(
-        title: Text(
-          'Modifier une dépense',
-          style: AppTheme.titleLarge.copyWith(
-            color: Theme.of(context).colorScheme.onSurface,
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        backgroundColor: Theme.of(context).colorScheme.surface,
-        elevation: 0,
-        iconTheme: IconThemeData(color: Theme.of(context).colorScheme.primary),
+      appBar: UniformAppBar(
+        title: AppLocalizations.of(context).screenModifierDepense,
+        icon: Icons.edit_rounded,
+        iconColor: AppTheme.error,
       ),
       body: Form(
         key: _formKey,
@@ -77,7 +71,7 @@ class _EditDepenseScreenState extends State<EditDepenseScreen> {
             Card(
               child: ListTile(
                 leading: const Icon(Icons.calendar_today),
-                title: const Text('Date'),
+                title: Text(AppLocalizations.of(context).financeDate),
                 subtitle: Text(_formatDate.format(_dateSelectionnee)),
                 onTap: _selectionnerDate,
               ),
@@ -86,26 +80,37 @@ class _EditDepenseScreenState extends State<EditDepenseScreen> {
 
             // Catégorie
             DropdownButtonFormField<String>(
-              initialValue:  _categorieSelectionnee,
-              decoration: const InputDecoration(
-                labelText: 'Catégorie',
-                prefixIcon: Icon(Icons.category),
-                border: OutlineInputBorder(),
+              initialValue: _categorieSelectionnee,
+              decoration: InputDecoration(
+                labelText: AppLocalizations.of(context).financeCategorie,
+                prefixIcon: const Icon(Icons.category),
+                border: const OutlineInputBorder(),
               ),
-              items: const [
+              items: [
                 DropdownMenuItem(
                   value: 'alimentation',
-                  child: Text('Alimentation'),
+                  child: Text(
+                    AppLocalizations.of(context).financeCategorieAlimentation,
+                  ),
                 ),
                 DropdownMenuItem(
                   value: 'veterinaire',
-                  child: Text('Vétérinaire'),
+                  child: Text(
+                    AppLocalizations.of(context).financeCategorieSante,
+                  ),
                 ),
                 DropdownMenuItem(
                   value: 'equipement',
-                  child: Text('Équipement'),
+                  child: Text(
+                    AppLocalizations.of(context).financeCategorieEquipement,
+                  ),
                 ),
-                DropdownMenuItem(value: 'autre', child: Text('Autre')),
+                DropdownMenuItem(
+                  value: 'autre',
+                  child: Text(
+                    AppLocalizations.of(context).financesCategorieAutre,
+                  ),
+                ),
               ],
               onChanged: (value) {
                 setState(() {
@@ -118,9 +123,9 @@ class _EditDepenseScreenState extends State<EditDepenseScreen> {
             // Montant
             TextFormField(
               controller: _montantController,
-              decoration: const InputDecoration(
-                labelText: 'Montant (€)',
-                prefixIcon: Icon(Icons.euro),
+              decoration: InputDecoration(
+                labelText: AppLocalizations.of(context).financeMontant,
+                prefixIcon: const Icon(Icons.euro),
                 border: OutlineInputBorder(),
               ),
               keyboardType: const TextInputType.numberWithOptions(
@@ -131,11 +136,13 @@ class _EditDepenseScreenState extends State<EditDepenseScreen> {
               ],
               validator: (value) {
                 if (value == null || value.isEmpty) {
-                  return 'Veuillez saisir un montant';
+                  return AppLocalizations.of(
+                    context,
+                  ).financeVeuillezSaisirMontant;
                 }
                 final montant = double.tryParse(value);
                 if (montant == null || montant <= 0) {
-                  return 'Veuillez saisir un montant valide';
+                  return AppLocalizations.of(context).financeMontantInvalide;
                 }
                 return null;
               },
@@ -145,15 +152,17 @@ class _EditDepenseScreenState extends State<EditDepenseScreen> {
             // Description
             TextFormField(
               controller: _descriptionController,
-              decoration: const InputDecoration(
-                labelText: 'Description',
-                prefixIcon: Icon(Icons.description),
+              decoration: InputDecoration(
+                labelText: AppLocalizations.of(context).financeDescription,
+                prefixIcon: const Icon(Icons.description),
                 border: OutlineInputBorder(),
               ),
               maxLines: 2,
               validator: (value) {
                 if (value == null || value.isEmpty) {
-                  return 'Veuillez saisir une description';
+                  return AppLocalizations.of(
+                    context,
+                  ).financeVeuillezSaisirDescription;
                 }
                 return null;
               },
@@ -163,9 +172,9 @@ class _EditDepenseScreenState extends State<EditDepenseScreen> {
             // Notes
             TextFormField(
               controller: _notesController,
-              decoration: const InputDecoration(
-                labelText: 'Notes (optionnel)',
-                prefixIcon: Icon(Icons.note),
+              decoration: InputDecoration(
+                labelText: AppLocalizations.of(context).financeNotes,
+                prefixIcon: const Icon(Icons.note),
                 border: OutlineInputBorder(),
               ),
               maxLines: 3,
@@ -179,7 +188,7 @@ class _EditDepenseScreenState extends State<EditDepenseScreen> {
                   child: OutlinedButton.icon(
                     onPressed: () => Navigator.pop(context),
                     icon: const Icon(Icons.close),
-                    label: const Text('Annuler'),
+                    label: Text(AppLocalizations.of(context).actionAnnuler),
                     style: OutlinedButton.styleFrom(
                       padding: const EdgeInsets.all(16),
                     ),
@@ -188,10 +197,10 @@ class _EditDepenseScreenState extends State<EditDepenseScreen> {
                 const SizedBox(width: 16),
                 Expanded(
                   flex: 2,
-                  child: ElevatedButton.icon(
+                  child: FilledButton.icon(
                     onPressed: _modifier,
-                    icon: const Icon(Icons.check),
-                    label: const Text('Enregistrer'),
+                    icon: const Icon(Icons.save),
+                    label: Text(AppLocalizations.of(context).actionEnregistrer),
                     style: ElevatedButton.styleFrom(
                       padding: const EdgeInsets.all(16),
                       backgroundColor: AppTheme.error,
@@ -244,7 +253,10 @@ class _EditDepenseScreenState extends State<EditDepenseScreen> {
       ).modifierDepense(depenseModifiee);
 
       if (mounted) {
-        SnackbarHelper.showSuccess(context, 'Dépense modifiée avec succès');
+        SnackbarHelper.showSuccess(
+          context,
+          AppLocalizations.of(context).financeDepenseModifiee,
+        );
         Navigator.pop(context, true);
       }
     } catch (e) {

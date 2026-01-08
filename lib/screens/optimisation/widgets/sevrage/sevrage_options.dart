@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../theme/app_theme.dart';
 
 class SevrageOptions extends StatelessWidget {
   final bool separerParSexe;
@@ -19,12 +20,12 @@ class SevrageOptions extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppTheme.textOnPrimary,
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: const Color(0xFFE0E0E0)),
+        border: Border.all(color: AppTheme.borderLight),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
+            color: AppTheme.textPrimary.withValues(alpha: 0.04),
             blurRadius: 4,
             offset: const Offset(0, 1),
           ),
@@ -47,26 +48,26 @@ class SevrageOptions extends StatelessWidget {
             onChanged: onSeparateurChanged,
             title: const Text(
               'Séparer par sexe',
-              style: TextStyle(color: Colors.white),
+              style: TextStyle(color: AppTheme.textOnPrimary),
             ),
             subtitle: const Text(
               'Recommandé pour éviter les accouplements précoces',
-              style: TextStyle(color: Colors.white60, fontSize: 12),
+              style: TextStyle(color: AppTheme.textOnPrimary60, fontSize: 12),
             ),
-            activeThumbColor: Colors.green,
+            activeThumbColor: AppTheme.success,
           ),
           SwitchListTile(
             value: utiliserCagesCollectives,
             onChanged: onCollectivesChanged,
             title: const Text(
               'Utiliser des cages collectives',
-              style: TextStyle(color: Colors.white),
+              style: TextStyle(color: AppTheme.textOnPrimary),
             ),
             subtitle: const Text(
               'Grouper plusieurs lapereaux du même sexe',
               style: TextStyle(color: Color(0xFF757575), fontSize: 12),
             ),
-            activeThumbColor: const Color(0xFF4CAF50),
+            activeThumbColor: AppTheme.primary,
           ),
         ],
       ),

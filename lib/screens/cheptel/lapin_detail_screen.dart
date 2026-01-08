@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../alertes/alertes_screen.dart';
 import 'package:provider/provider.dart';
+import 'package:rabbit_farm_app/l10n/app_localizations.dart';
 import '../../models/lapin.dart';
 import '../../models/accouplement.dart';
 import '../../models/portee.dart';
@@ -14,17 +14,20 @@ import '../../widgets/quarantaine/quarantaine_quick_dialog.dart';
 import '../deces/enregistrer_deces_screen.dart';
 import 'genealogie_screen.dart';
 import 'edit_lapin_screen.dart';
+import '../../theme/app_theme.dart';
+import '../../widgets/quick_add_pesee_dialog.dart';
+import '../../widgets/quick_add_soin_dialog.dart';
 
 // Stitch Design Components
-import 'lapin_detail/constants/stitch_theme_constants.dart';
 import 'lapin_detail/widgets/detail_app_bar.dart';
 import 'lapin_detail/widgets/detail_profile_header.dart';
 import 'lapin_detail/widgets/detail_segmented_control.dart';
-import 'lapin_detail/widgets/detail_quick_glance_cards.dart';
 import 'lapin_detail/widgets/detail_floating_action_button.dart';
 import 'lapin_detail/tabs/identity_tab.dart';
 import 'lapin_detail/tabs/statistics_tab.dart';
 import 'lapin_detail/tabs/reproduction_tab.dart';
+import '../reproduction/quick_mating_screen.dart';
+import '../reproduction/reproduction_screen.dart';
 
 /// Écran de détails d'un lapin - Design Stitch (Yellow Primary)
 /// Architecture: Orchestrateur léger avec widgets dédiés
@@ -96,13 +99,13 @@ class _LapinDetailScreenState extends State<LapinDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final backgroundColor = StitchTheme.getBackgroundColor(context);
+    final backgroundColor = AppTheme.getBackgroundColor(context);
 
     if (_isLoading) {
       return Scaffold(
         backgroundColor: backgroundColor,
         body: Center(
-          child: CircularProgressIndicator(color: StitchTheme.primaryYellow),
+          child: CircularProgressIndicator(color: AppTheme.primaryYellow),
         ),
       );
     }
@@ -117,14 +120,6 @@ class _LapinDetailScreenState extends State<LapinDetailScreen> {
               child: DetailAppBar(
                 onBack: () => Navigator.pop(context),
                 onSync: _chargerDonnees,
-                onNotifications: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const AlertesScreen(),
-                    ),
-                  );
-                },
                 onViewGenealogie: _voirGeneralogie,
                 onExportPDF: _exporterPDF,
                 onMarkQuarantaine: _mettreEnQuarantaine,
@@ -133,15 +128,7 @@ class _LapinDetailScreenState extends State<LapinDetailScreen> {
             ),
             // Profile Header
             SliverToBoxAdapter(child: DetailProfileHeader(lapin: widget.lapin)),
-            // Quick Glance Cards
-            SliverToBoxAdapter(
-              child: DetailQuickGlanceCards(
-                lapin: widget.lapin,
-                dernierPoids: _pesees.isNotEmpty ? _pesees.first.poids : null,
-                variationPoids: null, // MOCK DATA: sera calculé plus tard
-              ),
-            ),
-            const SliverToBoxAdapter(child: SizedBox(height: 16)),
+            const SliverToBoxAdapter(child: SizedBox(height: 8)),
             // Segmented Control (Sticky)
             SliverPersistentHeader(
               pinned: true,
@@ -154,7 +141,11 @@ class _LapinDetailScreenState extends State<LapinDetailScreen> {
                     onTabChanged: (index) {
                       setState(() => _selectedTab = index);
                     },
-                    tabs: const ['Identity', 'Statistics', 'Reproduction'],
+                    tabs: [
+                      AppLocalizations.of(context).ongletIdentite,
+                      AppLocalizations.of(context).ongletStatistiques,
+                      AppLocalizations.of(context).ongletReproduction,
+                    ],
                   ),
                 ),
               ),
@@ -169,11 +160,103 @@ class _LapinDetailScreenState extends State<LapinDetailScreen> {
           ],
         ),
       ),
-      // Floating Action Button
-      floatingActionButton: DetailFloatingActionButton(
-        onPressed: _modifierLapin,
+      // Floating Action Button contextuel selon l'onglet
+      floatingActionButton: _buildContextualFAB(),
+    );
+  }
+
+  /// FAB contextuel selon l'onglet actif
+  Widget _buildContextualFAB() {
+    switch (_selectedTab) {
+      case 0: // Identity - Modifier
+        return DetailFloatingActionButton(onPressed: _modifierLapin);
+      case 1: // Statistics - Ajouter pesée/soin
+        return _buildStatisticsFAB();
+      case 2: // Reproduction - Accoupler
+        return _buildReproductionFAB();
+      default:
+        return DetailFloatingActionButton(onPressed: _modifierLapin);
+    }
+  }
+
+  /// FAB pour l'onglet Statistics avec menu pesée/soin
+  Widget _buildStatisticsFAB() {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // Bouton Ajouter soin
+        FloatingActionButton.small(
+          heroTag: 'add_soin',
+          onPressed: _ajouterSoin,
+          backgroundColor: AppTheme.accentTeal,
+          child: const Icon(Icons.medical_services, color: Colors.white),
+        ),
+        const SizedBox(height: 12),
+        // Bouton Ajouter pesée
+        FloatingActionButton(
+          heroTag: 'add_pesee',
+          onPressed: _ajouterPesee,
+          backgroundColor: AppTheme.info,
+          child: const Icon(Icons.monitor_weight, color: Colors.white),
+        ),
+      ],
+    );
+  }
+
+  /// FAB pour l'onglet Reproduction
+  Widget _buildReproductionFAB() {
+    final isFemelle = widget.lapin.sexe.toLowerCase() == 'femelle';
+    final isAdulte = widget.lapin.ageEnMois >= 5;
+
+    if (!isAdulte ||
+        widget.lapin.statut == 'vendu' ||
+        widget.lapin.statut == 'decede') {
+      return const SizedBox.shrink();
+    }
+
+    return FloatingActionButton.extended(
+      heroTag: 'accoupler',
+      onPressed: isFemelle
+          ? _naviguerVersAccouplement
+          : _naviguerVersReproductions,
+      backgroundColor: AppTheme.accentPink,
+      icon: const Icon(Icons.favorite, color: Colors.white),
+      label: Text(
+        isFemelle ? 'Accoupler' : 'Voir reproductions',
+        style: const TextStyle(
+          color: Colors.white,
+          fontWeight: FontWeight.w600,
+        ),
       ),
     );
+  }
+
+  /// Ajouter une pesée
+  Future<void> _ajouterPesee() async {
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (context) => QuickAddPeseeDialog(lapin: widget.lapin),
+    );
+
+    if (result != true) return;
+    if (!mounted) return;
+    await _chargerDonnees();
+    if (!mounted) return;
+    SnackbarHelper.showSuccess(context, 'Pesée enregistrée');
+  }
+
+  /// Ajouter un soin
+  Future<void> _ajouterSoin() async {
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (context) => QuickAddSoinDialog(lapin: widget.lapin),
+    );
+
+    if (result != true) return;
+    if (!mounted) return;
+    await _chargerDonnees();
+    if (!mounted) return;
+    SnackbarHelper.showSuccess(context, 'Soin enregistré');
   }
 
   Widget _buildCurrentTab() {
@@ -191,6 +274,12 @@ class _LapinDetailScreenState extends State<LapinDetailScreen> {
               ),
             );
           },
+          onViewGenealogie: _voirGeneralogie,
+          onExportPDF: _exporterPDF,
+          onMarkQuarantaine: widget.lapin.statut != 'quarantaine'
+              ? _mettreEnQuarantaine
+              : null,
+          onMarkDecede: _marquerCommeDecede,
         );
       case 1:
         return StatisticsTab(
@@ -247,7 +336,7 @@ class _LapinDetailScreenState extends State<LapinDetailScreen> {
         context: context,
         barrierDismissible: false,
         builder: (context) => Center(
-          child: CircularProgressIndicator(color: StitchTheme.primaryYellow),
+          child: CircularProgressIndicator(color: AppTheme.primaryYellow),
         ),
       );
 
@@ -284,12 +373,36 @@ class _LapinDetailScreenState extends State<LapinDetailScreen> {
       ),
     );
 
-    if (result == true && mounted) {
-      await Provider.of<LapinProvider>(context, listen: false).chargerLapins();
-      if (mounted) {
-        Navigator.pop(context, true);
-      }
-    }
+    if (result != true) return;
+    if (!mounted) return;
+    await Provider.of<LapinProvider>(context, listen: false).chargerLapins();
+    if (!mounted) return;
+    Navigator.pop(context, true);
+  }
+
+  // ===== QUICK ACTIONS =====
+
+  Future<void> _naviguerVersAccouplement() async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => QuickMatingScreen(femelle: widget.lapin),
+      ),
+    );
+
+    if (result != true) return;
+    if (!mounted) return;
+    await _chargerDonnees();
+    if (!mounted) return;
+    SnackbarHelper.showSuccess(context, 'Accouplement enregistré');
+  }
+
+  Future<void> _naviguerVersReproductions() async {
+    // Pour les mâles : voir tous ses accouplements
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const ReproductionScreen()),
+    );
   }
 }
 

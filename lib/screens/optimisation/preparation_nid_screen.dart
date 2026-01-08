@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../l10n/app_localizations.dart';
 import 'package:intl/intl.dart';
 import '../../providers/preparation_nid_provider.dart';
 import '../../providers/reproduction_provider.dart';
 import '../../providers/lapin_provider.dart';
 import '../../models/preparation_nid.dart';
 import '../../theme/app_theme.dart';
+import '../../widgets/materiau_selector.dart';
+import '../../widgets/uniform_app_bar.dart';
 
 class PreparationNidScreen extends StatefulWidget {
   const PreparationNidScreen({super.key});
@@ -29,10 +32,10 @@ class _PreparationNidScreenState extends State<PreparationNidScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Préparation du Nid'),
-        backgroundColor: const Color(0xFF8D6E63),
-        foregroundColor: Colors.white,
+      appBar: UniformAppBar(
+        title: AppLocalizations.of(context).screenPreparationNid,
+        icon: Icons.nest_cam_wired_stand_rounded,
+        iconColor: AppTheme.accentBrown,
         actions: [
           PopupMenuButton<String>(
             icon: const Icon(Icons.filter_list),
@@ -42,14 +45,17 @@ class _PreparationNidScreenState extends State<PreparationNidScreen> {
               });
             },
             itemBuilder: (context) => [
-              const PopupMenuItem(value: 'tous', child: Text('Tous')),
-              const PopupMenuItem(
-                value: 'avec_boite',
-                child: Text('Avec boîte'),
+              PopupMenuItem(
+                value: 'tous',
+                child: Text(AppLocalizations.of(context).filterTous),
               ),
-              const PopupMenuItem(
+              PopupMenuItem(
+                value: 'avec_boite',
+                child: Text(AppLocalizations.of(context).filterAvecBoite),
+              ),
+              PopupMenuItem(
                 value: 'sans_boite',
-                child: Text('Sans boîte'),
+                child: Text(AppLocalizations.of(context).filterSansBoite),
               ),
             ],
           ),
@@ -92,9 +98,9 @@ class _PreparationNidScreenState extends State<PreparationNidScreen> {
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: Colors.brown[50],
+                      color: AppTheme.accentOrange50,
                       border: Border(
-                        bottom: BorderSide(color: Colors.grey[300]!),
+                        bottom: BorderSide(color: AppTheme.borderLight),
                       ),
                     ),
                     child: Row(
@@ -104,19 +110,19 @@ class _PreparationNidScreenState extends State<PreparationNidScreen> {
                           'Total',
                           '${preparationsFiltrees.length}',
                           Icons.format_list_numbered,
-                          Colors.blue,
+                          AppTheme.info,
                         ),
                         _buildStatCard(
                           'Avec boîte',
                           '${(tauxBoites ?? 0.0).toStringAsFixed(0)}%',
                           Icons.check_box,
-                          Colors.green,
+                          AppTheme.success,
                         ),
                         _buildStatCard(
                           'À préparer',
                           '${preparationProvider.getNidsNonPrepares().length}',
                           Icons.pending_actions,
-                          Colors.orange,
+                          AppTheme.warning,
                         ),
                       ],
                     ),
@@ -132,7 +138,7 @@ class _PreparationNidScreenState extends State<PreparationNidScreen> {
                                 Icon(
                                   Icons.home,
                                   size: 80,
-                                  color: Colors.brown[200],
+                                  color: AppTheme.accentOrange200,
                                 ),
                                 const SizedBox(height: 16),
                                 Text(
@@ -140,13 +146,15 @@ class _PreparationNidScreenState extends State<PreparationNidScreen> {
                                       ? 'Aucune préparation'
                                       : 'Aucune préparation $_filtreType',
                                   style: AppTheme.titleMedium.copyWith(
-                                    color: Colors.grey,
+                                    color: AppTheme.neutral500,
                                   ),
                                 ),
                                 const SizedBox(height: 8),
                                 Text(
                                   'Appuyez sur + pour en ajouter',
-                                  style: AppTheme.bodyMedium.copyWith(color: Colors.grey),
+                                  style: AppTheme.bodyMedium.copyWith(
+                                    color: AppTheme.neutral500,
+                                  ),
                                 ),
                               ],
                             ),
@@ -181,8 +189,9 @@ class _PreparationNidScreenState extends State<PreparationNidScreen> {
             },
       ),
       floatingActionButton: FloatingActionButton(
+        heroTag: 'fab_prep_nid',
         onPressed: () => _showAjouterPreparationDialog(context),
-        backgroundColor: const Color(0xFF8D6E63),
+        backgroundColor: AppTheme.accentBrown,
         child: const Icon(Icons.add),
       ),
     );
@@ -198,13 +207,11 @@ class _PreparationNidScreenState extends State<PreparationNidScreen> {
       children: [
         Icon(icon, color: color, size: 28),
         const SizedBox(height: 4),
+        Text(value, style: AppTheme.titleLarge.copyWith(color: color)),
         Text(
-          value,
-          style: AppTheme.titleLarge.copyWith(
-            color: color,
-          ),
+          label,
+          style: AppTheme.caption.copyWith(color: AppTheme.neutral600),
         ),
-        Text(label, style: AppTheme.caption.copyWith(color: Colors.grey[600])),
       ],
     );
   }
@@ -228,25 +235,25 @@ class _PreparationNidScreenState extends State<PreparationNidScreen> {
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       color: preparation.boiteNidInstallee
-          ? Colors.green[50]
-          : Colors.orange[50],
+          ? AppTheme.success50
+          : AppTheme.warning50,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
         side: BorderSide(
           color: preparation.boiteNidInstallee
-              ? Colors.green[300]!
-              : Colors.orange[300]!,
+              ? AppTheme.success300
+              : AppTheme.warning300,
           width: 1.5,
         ),
       ),
       child: ExpansionTile(
         leading: CircleAvatar(
           backgroundColor: preparation.boiteNidInstallee
-              ? Colors.green
-              : Colors.orange,
+              ? AppTheme.success
+              : AppTheme.warning,
           child: Icon(
             preparation.boiteNidInstallee ? Icons.check_box : Icons.home,
-            color: Colors.white,
+            color: AppTheme.textOnPrimary,
           ),
         ),
         title: Text(
@@ -265,8 +272,8 @@ class _PreparationNidScreenState extends State<PreparationNidScreen> {
                       : Icons.pending,
                   size: 16,
                   color: preparation.boiteNidInstallee
-                      ? Colors.green
-                      : Colors.orange,
+                      ? AppTheme.success
+                      : AppTheme.warning,
                 ),
                 const SizedBox(width: 4),
                 Text(
@@ -276,8 +283,8 @@ class _PreparationNidScreenState extends State<PreparationNidScreen> {
                   style: TextStyle(
                     fontWeight: FontWeight.w600,
                     color: preparation.boiteNidInstallee
-                        ? Colors.green[700]
-                        : Colors.orange[700],
+                        ? AppTheme.success700
+                        : AppTheme.warning700,
                   ),
                 ),
               ],
@@ -285,18 +292,18 @@ class _PreparationNidScreenState extends State<PreparationNidScreen> {
             const SizedBox(height: 4),
             Text(
               'J$joursDepuis • ${_getTypeMateriau(preparation.typeMateriau)} • ${dateFormat.format(preparation.datePreparation)}',
-              style: AppTheme.caption.copyWith( color: Colors.grey[600]),
+              style: AppTheme.caption.copyWith(color: AppTheme.neutral600),
             ),
             if (joursAvantMiseBas <= 3 && joursAvantMiseBas > 0) ...[
               const SizedBox(height: 4),
               Row(
                 children: [
-                  Icon(Icons.info, size: 14, color: Colors.blue),
+                  Icon(Icons.info, size: 14, color: AppTheme.info),
                   const SizedBox(width: 4),
                   Text(
                     'Mise bas dans $joursAvantMiseBas jour(s)',
                     style: AppTheme.caption.copyWith(
-                      color: Colors.blue[700],
+                      color: AppTheme.info700,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -307,12 +314,12 @@ class _PreparationNidScreenState extends State<PreparationNidScreen> {
               const SizedBox(height: 4),
               Row(
                 children: [
-                  Icon(Icons.warning_amber, size: 14, color: Colors.orange),
+                  Icon(Icons.warning_amber, size: 14, color: AppTheme.warning),
                   const SizedBox(width: 4),
                   Text(
                     'Hors période recommandée (J28)',
                     style: AppTheme.caption.copyWith(
-                      color: Colors.orange[700],
+                      color: AppTheme.warning700,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -330,23 +337,23 @@ class _PreparationNidScreenState extends State<PreparationNidScreen> {
             }
           },
           itemBuilder: (context) => [
-            const PopupMenuItem(
+            PopupMenuItem(
               value: 'modifier',
               child: Row(
                 children: [
-                  Icon(Icons.edit, color: Colors.blue),
-                  SizedBox(width: 8),
-                  Text('Modifier'),
+                  const Icon(Icons.edit, color: AppTheme.info),
+                  const SizedBox(width: 8),
+                  Text(AppLocalizations.of(context).modifier),
                 ],
               ),
             ),
-            const PopupMenuItem(
+            PopupMenuItem(
               value: 'supprimer',
               child: Row(
                 children: [
-                  Icon(Icons.delete, color: Colors.red),
-                  SizedBox(width: 8),
-                  Text('Supprimer'),
+                  const Icon(Icons.delete, color: AppTheme.error),
+                  const SizedBox(width: 8),
+                  Text(AppLocalizations.of(context).supprimer),
                 ],
               ),
             ),
@@ -417,12 +424,17 @@ class _PreparationNidScreenState extends State<PreparationNidScreen> {
               '$label:',
               style: TextStyle(
                 fontWeight: FontWeight.bold,
-                color: Colors.grey[700],
+                color: AppTheme.neutral700,
               ),
             ),
           ),
           Expanded(
-            child: Text(value, style: AppTheme.bodyMedium.copyWith(color: Colors.black87)),
+            child: Text(
+              value,
+              style: AppTheme.bodyMedium.copyWith(
+                color: AppTheme.textPrimary87,
+              ),
+            ),
           ),
         ],
       ),
@@ -452,13 +464,18 @@ class _PreparationNidScreenState extends State<PreparationNidScreen> {
 
     if (accouplements.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Aucun accouplement confirmé disponible')),
+        SnackBar(
+          content: Text(
+            AppLocalizations.of(context).msgAucunAccouplementDisponible,
+          ),
+        ),
       );
       return;
     }
 
     int? accouplementSelectionne;
-    String typeMateriau = 'paille';
+    int? materiauId = 1; // Par défaut Paille (id=1)
+    String typeMateriau = 'paille'; // Backward compatibility
     bool boiteNidInstallee = true;
     final quantiteController = TextEditingController();
     final dispositionController = TextEditingController();
@@ -470,16 +487,18 @@ class _PreparationNidScreenState extends State<PreparationNidScreen> {
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setState) => AlertDialog(
-          title: const Text('Préparer le nid'),
+          title: Text(AppLocalizations.of(context).titlePreparerNid),
           content: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 DropdownButtonFormField<int>(
-                  initialValue:  accouplementSelectionne,
-                  decoration: const InputDecoration(
-                    labelText: 'Accouplement *',
-                    border: OutlineInputBorder(),
+                  initialValue: accouplementSelectionne,
+                  decoration: InputDecoration(
+                    labelText: AppLocalizations.of(
+                      context,
+                    ).optimisationFormAccouplement,
+                    border: const OutlineInputBorder(),
                   ),
                   items: accouplements.map((acc) {
                     final lapinProvider = context.read<LapinProvider>();
@@ -510,7 +529,7 @@ class _PreparationNidScreenState extends State<PreparationNidScreen> {
                   trailing: const Icon(Icons.calendar_today),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
-                    side: BorderSide(color: Colors.grey[400]!),
+                    side: BorderSide(color: AppTheme.neutral400),
                   ),
                   onTap: () async {
                     final date = await showDatePicker(
@@ -527,22 +546,15 @@ class _PreparationNidScreenState extends State<PreparationNidScreen> {
                   },
                 ),
                 const SizedBox(height: 12),
-                DropdownButtonFormField<String>(
-                  initialValue:  typeMateriau,
-                  decoration: const InputDecoration(
-                    labelText: 'Type de matériau',
-                    border: OutlineInputBorder(),
-                  ),
-                  items: const [
-                    DropdownMenuItem(value: 'paille', child: Text('Paille')),
-                    DropdownMenuItem(value: 'foin', child: Text('Foin')),
-                    DropdownMenuItem(
-                      value: 'copeaux',
-                      child: Text('Copeaux de bois'),
-                    ),
-                    DropdownMenuItem(value: 'mixte', child: Text('Mixte')),
-                  ],
-                  onChanged: (value) => setState(() => typeMateriau = value!),
+                // Phase 4: Sélecteur matériau avec Radio buttons
+                MateriauSelector(
+                  materiauIdInitial: materiauId,
+                  onMateriauSelected: (int? id, String? code) {
+                    setState(() {
+                      materiauId = id;
+                      typeMateriau = code ?? 'paille';
+                    });
+                  },
                 ),
                 const SizedBox(height: 12),
                 TextField(
@@ -555,40 +567,48 @@ class _PreparationNidScreenState extends State<PreparationNidScreen> {
                 ),
                 const SizedBox(height: 12),
                 SwitchListTile(
-                  title: const Text('Boîte à nid installée'),
-                  subtitle: const Text('Boîte spéciale pour le nid'),
+                  title: Text(AppLocalizations.of(context).switchBoiteNid),
+                  subtitle: Text(
+                    AppLocalizations.of(context).switchBoiteNidSubtitle,
+                  ),
                   value: boiteNidInstallee,
                   onChanged: (value) =>
                       setState(() => boiteNidInstallee = value),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
-                    side: BorderSide(color: Colors.grey[400]!),
+                    side: BorderSide(color: AppTheme.neutral400),
                   ),
                 ),
                 const SizedBox(height: 12),
                 TextField(
                   controller: dispositionController,
-                  decoration: const InputDecoration(
-                    labelText: 'Disposition du nid',
-                    border: OutlineInputBorder(),
-                    helperText: 'Ex: Coin gauche de la cage',
+                  decoration: InputDecoration(
+                    labelText: AppLocalizations.of(
+                      context,
+                    ).optimisationFormDispositionNid,
+                    border: const OutlineInputBorder(),
+                    helperText: AppLocalizations.of(context).helperExempleCoin,
                   ),
                 ),
                 const SizedBox(height: 12),
                 TextField(
                   controller: temperatureController,
                   keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(
-                    labelText: 'Température ambiante (°C)',
-                    border: OutlineInputBorder(),
+                  decoration: InputDecoration(
+                    labelText: AppLocalizations.of(
+                      context,
+                    ).optimisationFormTemperatureAmbiante,
+                    border: const OutlineInputBorder(),
                   ),
                 ),
                 const SizedBox(height: 12),
                 TextField(
                   controller: observationsController,
-                  decoration: const InputDecoration(
-                    labelText: 'Observations',
-                    border: OutlineInputBorder(),
+                  decoration: InputDecoration(
+                    labelText: AppLocalizations.of(
+                      context,
+                    ).optimisationFormObservations,
+                    border: const OutlineInputBorder(),
                   ),
                   maxLines: 3,
                 ),
@@ -598,11 +618,11 @@ class _PreparationNidScreenState extends State<PreparationNidScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Annuler'),
+              child: Text(AppLocalizations.of(context).commonCancel),
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF8D6E63),
+                backgroundColor: AppTheme.accentBrown,
               ),
               onPressed: () {
                 if (accouplementSelectionne == null) {
@@ -617,7 +637,8 @@ class _PreparationNidScreenState extends State<PreparationNidScreen> {
                 final preparation = PreparationNid(
                   accouplementId: accouplementSelectionne!,
                   datePreparation: datePreparation,
-                  typeMateriau: typeMateriau,
+                  typeMateriau: typeMateriau, // Backward compatibility STRING
+                  materiauId: materiauId, // Phase 4: FK materiau_id
                   quantiteMateriau: quantiteController.text.isNotEmpty
                       ? double.parse(quantiteController.text)
                       : null,
@@ -638,7 +659,7 @@ class _PreparationNidScreenState extends State<PreparationNidScreen> {
                 );
                 Navigator.pop(context);
               },
-              child: const Text('Enregistrer'),
+              child: Text(AppLocalizations.of(context).commonSave),
             ),
           ],
         ),
@@ -650,6 +671,7 @@ class _PreparationNidScreenState extends State<PreparationNidScreen> {
     BuildContext context,
     PreparationNid preparation,
   ) {
+    int? materiauId = preparation.materiauId ?? 1; // Phase 4: Restaurer FK
     String typeMateriau = preparation.typeMateriau;
     bool boiteNidInstallee = preparation.boiteNidInstallee;
     final quantiteController = TextEditingController(
@@ -670,7 +692,7 @@ class _PreparationNidScreenState extends State<PreparationNidScreen> {
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setState) => AlertDialog(
-          title: const Text('Modifier la préparation'),
+          title: Text(AppLocalizations.of(context).commonEdit),
           content: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -682,7 +704,7 @@ class _PreparationNidScreenState extends State<PreparationNidScreen> {
                   trailing: const Icon(Icons.calendar_today),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
-                    side: BorderSide(color: Colors.grey[400]!),
+                    side: BorderSide(color: AppTheme.neutral400),
                   ),
                   onTap: () async {
                     final date = await showDatePicker(
@@ -700,19 +722,32 @@ class _PreparationNidScreenState extends State<PreparationNidScreen> {
                 ),
                 const SizedBox(height: 12),
                 DropdownButtonFormField<String>(
-                  initialValue:  typeMateriau,
-                  decoration: const InputDecoration(
-                    labelText: 'Type de matériau',
-                    border: OutlineInputBorder(),
+                  initialValue: typeMateriau,
+                  decoration: InputDecoration(
+                    labelText: AppLocalizations.of(
+                      context,
+                    ).optimisationFormTypeMateriau,
+                    border: const OutlineInputBorder(),
                   ),
-                  items: const [
-                    DropdownMenuItem(value: 'paille', child: Text('Paille')),
-                    DropdownMenuItem(value: 'foin', child: Text('Foin')),
+                  items: [
+                    DropdownMenuItem(
+                      value: 'paille',
+                      child: Text(AppLocalizations.of(context).materiauxPaille),
+                    ),
+                    DropdownMenuItem(
+                      value: 'foin',
+                      child: Text(AppLocalizations.of(context).materiauxFoin),
+                    ),
                     DropdownMenuItem(
                       value: 'copeaux',
-                      child: Text('Copeaux de bois'),
+                      child: Text(
+                        AppLocalizations.of(context).materiauxCopeaux,
+                      ),
                     ),
-                    DropdownMenuItem(value: 'mixte', child: Text('Mixte')),
+                    DropdownMenuItem(
+                      value: 'mixte',
+                      child: Text(AppLocalizations.of(context).materiauxMixte),
+                    ),
                   ],
                   onChanged: (value) => setState(() => typeMateriau = value!),
                 ),
@@ -720,45 +755,53 @@ class _PreparationNidScreenState extends State<PreparationNidScreen> {
                 TextField(
                   controller: quantiteController,
                   keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(
-                    labelText: 'Quantité de matériau (kg)',
-                    border: OutlineInputBorder(),
+                  decoration: InputDecoration(
+                    labelText: AppLocalizations.of(
+                      context,
+                    ).optimisationFormQuantiteMateriau,
+                    border: const OutlineInputBorder(),
                   ),
                 ),
                 const SizedBox(height: 12),
                 SwitchListTile(
-                  title: const Text('Boîte à nid installée'),
+                  title: Text(AppLocalizations.of(context).switchBoiteNid),
                   value: boiteNidInstallee,
                   onChanged: (value) =>
                       setState(() => boiteNidInstallee = value),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
-                    side: BorderSide(color: Colors.grey[400]!),
+                    side: BorderSide(color: AppTheme.neutral400),
                   ),
                 ),
                 const SizedBox(height: 12),
                 TextField(
                   controller: dispositionController,
-                  decoration: const InputDecoration(
-                    labelText: 'Disposition du nid',
-                    border: OutlineInputBorder(),
+                  decoration: InputDecoration(
+                    labelText: AppLocalizations.of(
+                      context,
+                    ).optimisationFormDispositionNid,
+                    border: const OutlineInputBorder(),
                   ),
                 ),
                 const SizedBox(height: 12),
                 TextField(
                   controller: temperatureController,
                   keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(
-                    labelText: 'Température ambiante (°C)',
-                    border: OutlineInputBorder(),
+                  decoration: InputDecoration(
+                    labelText: AppLocalizations.of(
+                      context,
+                    ).optimisationFormTemperatureAmbiante,
+                    border: const OutlineInputBorder(),
                   ),
                 ),
                 const SizedBox(height: 12),
                 TextField(
                   controller: observationsController,
-                  decoration: const InputDecoration(
-                    labelText: 'Observations',
-                    border: OutlineInputBorder(),
+                  decoration: InputDecoration(
+                    labelText: AppLocalizations.of(
+                      context,
+                    ).optimisationFormObservations,
+                    border: const OutlineInputBorder(),
                   ),
                   maxLines: 3,
                 ),
@@ -768,13 +811,14 @@ class _PreparationNidScreenState extends State<PreparationNidScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: Text('Annuler'),
+              child: Text(AppLocalizations.of(context).actionAnnuler),
             ),
             ElevatedButton(
               onPressed: () {
                 final preparationModifiee = preparation.copyWith(
                   datePreparation: datePreparation,
-                  typeMateriau: typeMateriau,
+                  typeMateriau: typeMateriau, // Backward compatibility
+                  materiauId: materiauId, // Phase 4: FK materiau_id
                   quantiteMateriau: quantiteController.text.isNotEmpty
                       ? double.parse(quantiteController.text)
                       : null,
@@ -795,7 +839,7 @@ class _PreparationNidScreenState extends State<PreparationNidScreen> {
                 );
                 Navigator.pop(context);
               },
-              child: const Text('Modifier'),
+              child: Text(AppLocalizations.of(context).commonEdit),
             ),
           ],
         ),
@@ -807,22 +851,22 @@ class _PreparationNidScreenState extends State<PreparationNidScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Confirmer la suppression'),
-        content: const Text('Supprimer cette préparation ?'),
+        title: Text(AppLocalizations.of(context).commonConfirmDeletion),
+        content: Text(AppLocalizations.of(context).commonDeleteQuestion),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Annuler'),
+            child: Text(AppLocalizations.of(context).commonCancel),
           ),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            style: ElevatedButton.styleFrom(backgroundColor: AppTheme.error),
             onPressed: () {
               context.read<PreparationNidProvider>().supprimerPreparation(
                 preparation.id!,
               );
               Navigator.pop(context);
             },
-            child: const Text('Supprimer'),
+            child: Text(AppLocalizations.of(context).supprimer),
           ),
         ],
       ),
@@ -835,7 +879,7 @@ class _PreparationNidScreenState extends State<PreparationNidScreen> {
       builder: (context) => AlertDialog(
         title: Row(
           children: [
-            Icon(Icons.help, color: Colors.brown[700]),
+            Icon(Icons.help, color: AppTheme.accentOrange700),
             const SizedBox(width: 8),
             const Text('Aide - Préparation du nid'),
           ],
@@ -883,13 +927,13 @@ class _PreparationNidScreenState extends State<PreparationNidScreen> {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: Colors.blue[50],
+                  color: AppTheme.info50,
                   borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.blue[200]!),
+                  border: Border.all(color: AppTheme.info200),
                 ),
                 child: Row(
                   children: [
-                    Icon(Icons.info, color: Colors.blue[700]),
+                    Icon(Icons.info, color: AppTheme.info700),
                     const SizedBox(width: 8),
                     const Expanded(
                       child: Text(

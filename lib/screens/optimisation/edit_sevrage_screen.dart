@@ -5,6 +5,8 @@ import '../../models/sevrage.dart';
 import '../../providers/sevrage_provider.dart';
 import '../../utils/snackbar_helper.dart';
 import '../../theme/app_theme.dart';
+import '../../widgets/uniform_app_bar.dart';
+import '../../l10n/app_localizations.dart';
 
 /// Écran de modification d'un sevrage existant
 class EditSevrageScreen extends StatefulWidget {
@@ -118,9 +120,10 @@ class _EditSevrageScreenState extends State<EditSevrageScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Modifier le sevrage'),
-        backgroundColor: AppTheme.primaryGreen,
+      appBar: UniformAppBar(
+        title: AppLocalizations.of(context).screenModifierSevrage,
+        icon: Icons.child_care_rounded,
+        iconColor: AppTheme.primaryGreen,
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -138,7 +141,9 @@ class _EditSevrageScreenState extends State<EditSevrageScreen> {
                           Icons.calendar_today,
                           color: AppTheme.primaryGreen,
                         ),
-                        title: const Text('Date du sevrage'),
+                        title: Text(
+                          AppLocalizations.of(context).titleDateSevrage,
+                        ),
                         subtitle: Text(
                           DateFormat('dd/MM/yyyy').format(_dateSevrage),
                         ),
@@ -151,18 +156,24 @@ class _EditSevrageScreenState extends State<EditSevrageScreen> {
                     // Nombre de lapereaux
                     TextFormField(
                       controller: _nombreController,
-                      decoration: const InputDecoration(
-                        labelText: 'Nombre de lapereaux sevrés',
-                        prefixIcon: Icon(Icons.pets),
+                      decoration: InputDecoration(
+                        labelText: AppLocalizations.of(
+                          context,
+                        ).optimisationFormNombreLapereaux,
+                        prefixIcon: const Icon(Icons.pets),
                         border: OutlineInputBorder(),
                       ),
                       keyboardType: TextInputType.number,
                       validator: (value) {
                         if (value == null || value.isEmpty) {
-                          return 'Champ obligatoire';
+                          return AppLocalizations.of(
+                            context,
+                          ).validationChampObligatoire;
                         }
                         if (int.tryParse(value) == null) {
-                          return 'Nombre invalide';
+                          return AppLocalizations.of(
+                            context,
+                          ).validationNombreInvalide;
                         }
                         return null;
                       },
@@ -172,9 +183,11 @@ class _EditSevrageScreenState extends State<EditSevrageScreen> {
                     // Poids moyen
                     TextFormField(
                       controller: _poidsMoyenController,
-                      decoration: const InputDecoration(
-                        labelText: 'Poids moyen au sevrage (kg)',
-                        prefixIcon: Icon(Icons.scale),
+                      decoration: InputDecoration(
+                        labelText: AppLocalizations.of(
+                          context,
+                        ).optimisationFormPoidsMoyen,
+                        prefixIcon: const Icon(Icons.scale),
                         border: OutlineInputBorder(),
                         hintText: 'Optionnel',
                       ),
@@ -193,9 +206,11 @@ class _EditSevrageScreenState extends State<EditSevrageScreen> {
                     // Nouvelle cage
                     TextFormField(
                       controller: _cageController,
-                      decoration: const InputDecoration(
-                        labelText: 'Nouvelle cage',
-                        prefixIcon: Icon(Icons.home),
+                      decoration: InputDecoration(
+                        labelText: AppLocalizations.of(
+                          context,
+                        ).optimisationFormNouvelleCage,
+                        prefixIcon: const Icon(Icons.home),
                         border: OutlineInputBorder(),
                         hintText: 'Optionnel',
                       ),
@@ -205,9 +220,11 @@ class _EditSevrageScreenState extends State<EditSevrageScreen> {
                     // Alimentation post-sevrage
                     TextFormField(
                       controller: _alimentationController,
-                      decoration: const InputDecoration(
-                        labelText: 'Alimentation post-sevrage',
-                        prefixIcon: Icon(Icons.restaurant),
+                      decoration: InputDecoration(
+                        labelText: AppLocalizations.of(
+                          context,
+                        ).optimisationFormAlimentationPost,
+                        prefixIcon: const Icon(Icons.restaurant),
                         border: OutlineInputBorder(),
                         hintText: 'Optionnel',
                       ),
@@ -218,9 +235,11 @@ class _EditSevrageScreenState extends State<EditSevrageScreen> {
                     // Observations
                     TextFormField(
                       controller: _observationsController,
-                      decoration: const InputDecoration(
-                        labelText: 'Observations',
-                        prefixIcon: Icon(Icons.notes),
+                      decoration: InputDecoration(
+                        labelText: AppLocalizations.of(
+                          context,
+                        ).optimisationFormObservations,
+                        prefixIcon: const Icon(Icons.notes),
                         border: OutlineInputBorder(),
                         hintText: 'Optionnel',
                       ),
@@ -232,7 +251,7 @@ class _EditSevrageScreenState extends State<EditSevrageScreen> {
                     ElevatedButton.icon(
                       onPressed: _enregistrerModifications,
                       icon: const Icon(Icons.save),
-                      label: const Text('Enregistrer les modifications'),
+                      label: Text(AppLocalizations.of(context).commonSave),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppTheme.primaryGreen,
                         padding: const EdgeInsets.symmetric(vertical: 16),

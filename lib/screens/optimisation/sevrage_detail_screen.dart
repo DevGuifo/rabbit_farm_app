@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import '../../models/portee.dart';
 import '../../models/lapin.dart';
 import '../../models/sevrage.dart';
-import '../../models/cage.dart';
 import '../../services/database_helper.dart';
 import '../../services/localisation_service.dart';
 import '../../utils/snackbar_helper.dart';
@@ -38,7 +37,7 @@ class _SevrageDetailScreenState extends State<SevrageDetailScreen> {
   final _alimentationController = TextEditingController();
 
   List<Lapin> _petits = [];
-  final Map<int, String?> _cagesSelectionnees = {}; // lapinId -> cage.numero
+  final Map<int, int?> _cagesSelectionnees = {}; // lapinId -> cage.id
   final Map<int, double?> _poids = {};
   final Map<int, String> _sexes = {}; // lapinId -> sexe
   bool _separerParSexe = true;
@@ -124,9 +123,11 @@ class _SevrageDetailScreenState extends State<SevrageDetailScreen> {
           }, orElse: () => {});
 
           if (cageMales.isNotEmpty) {
-            final cage = Cage.fromMap(cageMales);
-            for (var male in males) {
-              _cagesSelectionnees[male.id!] = cage.numero;
+            final cageId = cageMales['id'] as int?;
+            if (cageId != null) {
+              for (var male in males) {
+                _cagesSelectionnees[male.id!] = cageId;
+              }
             }
           }
         }
@@ -136,15 +137,20 @@ class _SevrageDetailScreenState extends State<SevrageDetailScreen> {
           final cageFemelles = cagesDisponibles.firstWhere((c) {
             final occupants = c['occupants_actuels'] as int? ?? 0;
             final capacite = c['capacite'] as int? ?? 1;
-            final cageObj = Cage.fromMap(c);
+            final cageId = c['id'] as int?;
+            final malesCageId = males.firstOrNull?.id != null
+                ? _cagesSelectionnees[males.firstOrNull!.id]
+                : null;
             return (capacite - occupants) >= femelles.length &&
-                cageObj.numero != _cagesSelectionnees[males.firstOrNull?.id];
+                cageId != malesCageId;
           }, orElse: () => {});
 
           if (cageFemelles.isNotEmpty) {
-            final cage = Cage.fromMap(cageFemelles);
-            for (var femelle in femelles) {
-              _cagesSelectionnees[femelle.id!] = cage.numero;
+            final cageId = cageFemelles['id'] as int?;
+            if (cageId != null) {
+              for (var femelle in femelles) {
+                _cagesSelectionnees[femelle.id!] = cageId;
+              }
             }
           }
         }
@@ -158,8 +164,10 @@ class _SevrageDetailScreenState extends State<SevrageDetailScreen> {
           }, orElse: () => {});
 
           if (cageIndiv.isNotEmpty) {
-            final cage = Cage.fromMap(cageIndiv);
-            _cagesSelectionnees[petit.id!] = cage.numero;
+            final cageId = cageIndiv['id'] as int?;
+            if (cageId != null) {
+              _cagesSelectionnees[petit.id!] = cageId;
+            }
           }
         }
       }
@@ -176,8 +184,7 @@ class _SevrageDetailScreenState extends State<SevrageDetailScreen> {
   Future<bool> _validerCages() async {
     // Vérifier que tous les petits ont une cage
     for (var petit in _petits) {
-      if (_cagesSelectionnees[petit.id] == null ||
-          _cagesSelectionnees[petit.id]!.isEmpty) {
+      if (_cagesSelectionnees[petit.id] == null) {
         SnackbarHelper.showWarning(
           context,
           'Veuillez sélectionner une cage pour ${petit.nom}',
@@ -188,33 +195,31 @@ class _SevrageDetailScreenState extends State<SevrageDetailScreen> {
 
     // Vérifier les capacités de chaque cage
     final cagesUtilisees = _cagesSelectionnees.values.toSet();
-    for (var numeroCage in cagesUtilisees) {
-      if (numeroCage == null) continue;
+    for (var cageId in cagesUtilisees) {
+      if (cageId == null) continue;
 
       // Compter combien de petits vont dans cette cage
       final nbPetits = _cagesSelectionnees.values
-          .where((c) => c == numeroCage)
+          .where((c) => c == cageId)
           .length;
 
       // Récupérer les infos de la cage
-      final cage = await _dbHelper.getCageByNumero(numeroCage);
+      final cage = await _dbHelper.getCageById(cageId);
       if (cage == null) {
         if (!mounted) return false;
-        SnackbarHelper.showError(context, 'Cage $numeroCage introuvable');
+        SnackbarHelper.showError(context, 'Cage introuvable');
         return false;
       }
 
       // Vérifier la capacité
-      final occupantsActuels = await _dbHelper.getOccupantsCageByNumero(
-        numeroCage,
-      );
+      final occupantsActuels = await _dbHelper.getOccupantsCage(cageId);
       final capaciteRestante = cage.capacite - occupantsActuels;
 
       if (nbPetits > capaciteRestante) {
         if (!mounted) return false;
         SnackbarHelper.showError(
           context,
-          'Cage $numeroCage : capacité insuffisante ($nbPetits petits, $capaciteRestante places disponibles)',
+          'Cage ${cage.numero} : capacité insuffisante ($nbPetits petits, $capaciteRestante places disponibles)',
         );
         return false;
       }
@@ -252,17 +257,25 @@ class _SevrageDetailScreenState extends State<SevrageDetailScreen> {
     try {
       final db = await _dbHelper.database;
 
-      // 1. Mettre à jour chaque petit : statut + localisation + poids + sexe
+      // 1. Mettre à jour chaque petit : statut + cage_id + poids + sexe
       for (var petit in _petits) {
-        final cageNumero = _cagesSelectionnees[petit.id];
+        final cageId = _cagesSelectionnees[petit.id];
         final poids = _poids[petit.id];
         final sexe = _sexes[petit.id] ?? petit.sexe;
+
+        // Récupérer le numéro de cage pour la localisation (legacy)
+        String? cageNumero;
+        if (cageId != null) {
+          final cage = await _dbHelper.getCageById(cageId);
+          cageNumero = cage?.numero;
+        }
 
         await db.update(
           'lapins',
           {
             'statut': 'Sevre',
-            'localisation': cageNumero,
+            'cage_id': cageId,
+            'localisation': cageNumero, // Legacy field, keep for compatibility
             'poids': poids,
             'sexe': sexe,
           },
@@ -281,12 +294,23 @@ class _SevrageDetailScreenState extends State<SevrageDetailScreen> {
 
       // 3. Créer l'enregistrement de sevrage
       final poidsMoyen = _calculerPoidsMoyen();
+      
+      // Convertir les IDs de cages en numéros pour l'affichage
+      final cageIds = _cagesSelectionnees.values.toSet().whereType<int>();
+      final List<String> cageNumeros = [];
+      for (var cageId in cageIds) {
+        final cage = await _dbHelper.getCageById(cageId);
+        if (cage != null) {
+          cageNumeros.add(cage.numero);
+        }
+      }
+      
       final sevrage = Sevrage(
         porteeId: widget.portee.id!,
         dateSevrage: DateTime.now(),
         nombreLapereaux: _petits.length,
         poidsMoyenSevrage: poidsMoyen,
-        nouvelleCage: _cagesSelectionnees.values.toSet().join(', '),
+        nouvelleCage: cageNumeros.join(', '),
         observations: _observationsController.text.isNotEmpty
             ? _observationsController.text
             : null,
@@ -381,7 +405,7 @@ class _SevrageDetailScreenState extends State<SevrageDetailScreen> {
                         }).length,
                         nbCagesUtilisees: _cagesSelectionnees.values
                             .toSet()
-                            .where((c) => c != null)
+                            .whereType<int>()
                             .length,
                         poidsMoyen: _calculerPoidsMoyen(),
                         tousCagesSelectionnees: _petits.every(
@@ -460,7 +484,7 @@ class _SevrageDetailScreenState extends State<SevrageDetailScreen> {
             padding: const EdgeInsets.only(bottom: 12),
             child: SevragePetitCard(
               petit: petit,
-              cageSelectionnee: _cagesSelectionnees[petit.id],
+              cageId: _cagesSelectionnees[petit.id],
               poids: _poids[petit.id],
               sexe: _sexes[petit.id] ?? petit.sexe,
               onPoidsChanged: (p) => setState(() => _poids[petit.id!] = p),
@@ -481,16 +505,16 @@ class _SevrageDetailScreenState extends State<SevrageDetailScreen> {
 
   /// Sélectionner une cage pour un petit
   Future<void> _selectionnerCage(Lapin petit) async {
-    final cageInitiale = _cagesSelectionnees[petit.id];
+    final cageIdInitiale = _cagesSelectionnees[petit.id];
 
-    final cageSelectionnee = await showCageSelector(
+    final cageId = await showCageSelector(
       context,
-      cageInitiale: cageInitiale,
+      cageIdInitiale: cageIdInitiale,
     );
 
-    if (cageSelectionnee != null) {
+    if (cageId != null) {
       setState(() {
-        _cagesSelectionnees[petit.id!] = cageSelectionnee;
+        _cagesSelectionnees[petit.id!] = cageId;
       });
     }
   }

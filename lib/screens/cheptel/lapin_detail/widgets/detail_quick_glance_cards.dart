@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../../models/lapin.dart';
-import '../constants/stitch_theme_constants.dart';
 import '../../../../theme/app_theme.dart';
 import 'package:intl/intl.dart';
 
@@ -34,8 +34,8 @@ class DetailQuickGlanceCards extends StatelessWidget {
   }
 
   Widget _buildWeightCard(BuildContext context, bool isDark) {
-    final surfaceColor = StitchTheme.getSurfaceColor(context);
-    final outlineColor = StitchTheme.getOutlineColor(context);
+    final surfaceColor = AppTheme.getSurfaceColor(context);
+    final outlineColor = AppTheme.getOutlineColor(context);
     final poids = dernierPoids ?? lapin.poids ?? 0.0;
     final variation = variationPoids ?? 2.4; // MOCK DATA
 
@@ -44,9 +44,9 @@ class DetailQuickGlanceCards extends StatelessWidget {
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: surfaceColor,
-        borderRadius: BorderRadius.circular(StitchTheme.radiusLarge),
+        borderRadius: BorderRadius.circular(AppTheme.radiusLarge),
         border: Border.all(color: outlineColor),
-        boxShadow: StitchTheme.cardShadow(context),
+        boxShadow: AppTheme.cardShadow(isDark: isDark),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -58,7 +58,7 @@ class DetailQuickGlanceCards extends StatelessWidget {
               Icon(
                 Icons.scale,
                 size: 16,
-                color: isDark ? StitchTheme.neutral400 : StitchTheme.neutral500,
+                color: isDark ? AppTheme.neutral400 : AppTheme.neutral500,
               ),
               const SizedBox(width: 5),
               Text(
@@ -66,9 +66,7 @@ class DetailQuickGlanceCards extends StatelessWidget {
                 style: AppTheme.caption.copyWith(
                   fontWeight: FontWeight.bold,
                   letterSpacing: 1.0,
-                  color: isDark
-                      ? StitchTheme.neutral400
-                      : StitchTheme.neutral500,
+                  color: isDark ? AppTheme.neutral400 : AppTheme.neutral500,
                 ),
               ),
             ],
@@ -93,9 +91,7 @@ class DetailQuickGlanceCards extends StatelessWidget {
                     'kg',
                     style: AppTheme.bodySmall.copyWith(
                       fontWeight: FontWeight.w500,
-                      color: isDark
-                          ? StitchTheme.neutral400
-                          : StitchTheme.neutral500,
+                      color: isDark ? AppTheme.neutral400 : AppTheme.neutral500,
                     ),
                   ),
                 ],
@@ -106,15 +102,15 @@ class DetailQuickGlanceCards extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                 decoration: BoxDecoration(
                   color: isDark
-                      ? StitchTheme.green900.withValues(alpha: 0.2)
-                      : StitchTheme.green50,
+                      ? AppTheme.green900.withValues(alpha: 0.2)
+                      : AppTheme.green50,
                   borderRadius: BorderRadius.circular(6),
                 ),
                 child: Text(
                   '↗ ${variation.toStringAsFixed(1)}%',
                   style: AppTheme.caption.copyWith(
                     fontWeight: FontWeight.bold,
-                    color: isDark ? StitchTheme.green300 : StitchTheme.green600,
+                    color: isDark ? AppTheme.green300 : AppTheme.green600,
                   ),
                 ),
               ),
@@ -126,8 +122,8 @@ class DetailQuickGlanceCards extends StatelessWidget {
   }
 
   Widget _buildAgeCard(BuildContext context, bool isDark) {
-    final surfaceColor = StitchTheme.getSurfaceColor(context);
-    final outlineColor = StitchTheme.getOutlineColor(context);
+    final surfaceColor = AppTheme.getSurfaceColor(context);
+    final outlineColor = AppTheme.getOutlineColor(context);
 
     // Calcul de l'âge
     final ageEnMois = lapin.ageEnMois;
@@ -141,9 +137,9 @@ class DetailQuickGlanceCards extends StatelessWidget {
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: surfaceColor,
-        borderRadius: BorderRadius.circular(StitchTheme.radiusLarge),
+        borderRadius: BorderRadius.circular(AppTheme.radiusLarge),
         border: Border.all(color: outlineColor),
-        boxShadow: StitchTheme.cardShadow(context),
+        boxShadow: AppTheme.cardShadow(isDark: isDark),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -155,7 +151,7 @@ class DetailQuickGlanceCards extends StatelessWidget {
               Icon(
                 Icons.cake,
                 size: 16,
-                color: isDark ? StitchTheme.neutral400 : StitchTheme.neutral500,
+                color: isDark ? AppTheme.neutral400 : AppTheme.neutral500,
               ),
               const SizedBox(width: 5),
               Text(
@@ -163,9 +159,7 @@ class DetailQuickGlanceCards extends StatelessWidget {
                 style: AppTheme.caption.copyWith(
                   fontWeight: FontWeight.bold,
                   letterSpacing: 1.0,
-                  color: isDark
-                      ? StitchTheme.neutral400
-                      : StitchTheme.neutral500,
+                  color: isDark ? AppTheme.neutral400 : AppTheme.neutral500,
                 ),
               ),
             ],
@@ -190,9 +184,7 @@ class DetailQuickGlanceCards extends StatelessWidget {
                     'yr',
                     style: AppTheme.bodySmall.copyWith(
                       fontWeight: FontWeight.w500,
-                      color: isDark
-                          ? StitchTheme.neutral400
-                          : StitchTheme.neutral500,
+                      color: isDark ? AppTheme.neutral400 : AppTheme.neutral500,
                     ),
                   ),
                   const SizedBox(width: 6),
@@ -208,21 +200,17 @@ class DetailQuickGlanceCards extends StatelessWidget {
                     'mo',
                     style: AppTheme.bodySmall.copyWith(
                       fontWeight: FontWeight.w500,
-                      color: isDark
-                          ? StitchTheme.neutral400
-                          : StitchTheme.neutral500,
+                      color: isDark ? AppTheme.neutral400 : AppTheme.neutral500,
                     ),
                   ),
                 ],
               ),
               const SizedBox(height: 2),
               Text(
-                'Born $dateNaissanceFormatee',
+                AppLocalizations.of(context).cheptelBorn(dateNaissanceFormatee),
                 style: AppTheme.caption.copyWith(
                   fontWeight: FontWeight.w500,
-                  color: isDark
-                      ? StitchTheme.neutral500
-                      : StitchTheme.neutral400,
+                  color: isDark ? AppTheme.neutral500 : AppTheme.neutral400,
                 ),
               ),
             ],

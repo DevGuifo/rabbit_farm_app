@@ -42,7 +42,7 @@ class LocalisationBuildingCards extends StatelessWidget {
                 'Buildings',
                 style: AppTheme.titleMedium.copyWith(
                   color: isDark
-                      ? const Color(0xFFE0E6E0)
+                      ? AppTheme.stitchTextLight
                       : AppTheme.stitchTextMainLight,
                 ),
               ),
@@ -54,7 +54,7 @@ class LocalisationBuildingCards extends StatelessWidget {
                     fontWeight: FontWeight.w600,
                     color: isDark
                         ? AppTheme.primaryNeonGreen
-                        : const Color(0xFF10B01D),
+                        : AppTheme.successVivid,
                   ),
                 ),
               ),
@@ -109,14 +109,14 @@ class LocalisationBuildingCards extends StatelessWidget {
         width: 160,
         margin: const EdgeInsets.only(right: 12),
         decoration: BoxDecoration(
-          color: isDark ? const Color(0xFF1A2C1E) : Colors.white,
+          color: isDark ? AppTheme.stitchSurfaceDarkAlt : AppTheme.textOnPrimary,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: isDark ? const Color(0xFF1F1F1F) : const Color(0xFFE5E5E5),
+            color: isDark ? AppTheme.greyDarkest : AppTheme.greyE5,
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.04),
+              color: AppTheme.divider,
               blurRadius: 4,
               offset: const Offset(0, 1),
             ),
@@ -150,7 +150,7 @@ class LocalisationBuildingCards extends StatelessWidget {
                       Icons.more_horiz_rounded,
                       size: 20,
                       color: isDark
-                          ? const Color(0xFF8BA88E)
+                          ? AppTheme.stitchGreen
                           : AppTheme.stitchTextSecLight,
                     ),
                     padding: EdgeInsets.zero,
@@ -165,7 +165,7 @@ class LocalisationBuildingCards extends StatelessWidget {
                   fontSize: 15,
                   fontWeight: FontWeight.bold,
                   color: isDark
-                      ? const Color(0xFFE0E6E0)
+                      ? AppTheme.stitchTextLight
                       : AppTheme.stitchTextMainLight,
                 ),
                 maxLines: 1,
@@ -177,7 +177,7 @@ class LocalisationBuildingCards extends StatelessWidget {
                 style: AppTheme.caption.copyWith(
                   fontWeight: FontWeight.w600,
                   color: isDark
-                      ? const Color(0xFF8BA88E)
+                      ? AppTheme.stitchGreen
                       : AppTheme.stitchTextSecLight,
                 ),
               ),
@@ -186,7 +186,7 @@ class LocalisationBuildingCards extends StatelessWidget {
                 emptyCages == 0 ? 'Full' : '$emptyCages Empty',
                 style: AppTheme.caption.copyWith(
                   color: isDark
-                      ? const Color(0xFF8BA88E)
+                      ? AppTheme.stitchGreen
                       : AppTheme.stitchTextSecLight,
                 ),
               ),
@@ -207,7 +207,7 @@ class LocalisationBuildingCards extends StatelessWidget {
           color: Colors.transparent,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: isDark ? const Color(0xFF3A3A3A) : const Color(0xFFCCCCCC),
+            color: isDark ? AppTheme.greyDarkAlt : AppTheme.greyMedium,
             width: 2,
             style: BorderStyle.solid,
           ),
@@ -220,16 +220,16 @@ class LocalisationBuildingCards extends StatelessWidget {
               height: 32,
               decoration: BoxDecoration(
                 color: isDark
-                    ? const Color(0xFF2A2A2A)
-                    : const Color(0xFFE5E5E5),
+                    ? AppTheme.greyDark
+                    : AppTheme.greyE5,
                 shape: BoxShape.circle,
               ),
               child: Icon(
                 Icons.add_rounded,
                 size: 20,
                 color: isDark
-                    ? const Color(0xFF666666)
-                    : const Color(0xFF999999),
+                    ? AppTheme.greyMuted
+                    : AppTheme.grey999,
               ),
             ),
             const SizedBox(height: 8),
@@ -238,7 +238,7 @@ class LocalisationBuildingCards extends StatelessWidget {
               style: AppTheme.caption.copyWith(
                 fontWeight: FontWeight.bold,
                 color: isDark
-                    ? const Color(0xFF8BA88E)
+                    ? AppTheme.stitchGreen
                     : AppTheme.stitchTextSecLight,
               ),
             ),
@@ -250,11 +250,11 @@ class LocalisationBuildingCards extends StatelessWidget {
 
   Color _getBatimentColor(int index) {
     final colors = [
-      const Color(0xFF22C55E), // Green
-      const Color(0xFFF97316), // Orange
+      AppTheme.success500, // Green
+      AppTheme.accentOrangeVivid, // Orange
       AppTheme.info, // Blue
-      const Color(0xFFA855F7), // Purple
-      const Color(0xFFEC4899), // Pink
+      AppTheme.accentPurple500, // Purple
+      AppTheme.accentPink500, // Pink
     ];
     return colors[index % colors.length];
   }

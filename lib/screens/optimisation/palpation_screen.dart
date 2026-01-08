@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../l10n/app_localizations.dart';
 import 'package:intl/intl.dart';
 import '../../providers/palpation_provider.dart';
 import '../../providers/reproduction_provider.dart';
@@ -7,6 +8,7 @@ import '../../providers/lapin_provider.dart';
 import '../../utils/dialog_helper.dart';
 import '../../models/palpation.dart';
 import '../../theme/app_theme.dart';
+import '../../widgets/uniform_app_bar.dart';
 
 class PalpationScreen extends StatefulWidget {
   const PalpationScreen({super.key});
@@ -30,10 +32,10 @@ class _PalpationScreenState extends State<PalpationScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Palpation'),
-        backgroundColor: AppTheme.warning,
-        foregroundColor: Colors.white,
+      appBar: UniformAppBar(
+        title: AppLocalizations.of(context).screenPalpation,
+        icon: Icons.touch_app_rounded,
+        iconColor: AppTheme.warning,
         actions: [
           PopupMenuButton<String>(
             icon: const Icon(Icons.filter_list),
@@ -43,11 +45,17 @@ class _PalpationScreenState extends State<PalpationScreen> {
               });
             },
             itemBuilder: (context) => [
-              const PopupMenuItem(value: 'tous', child: Text('Tous')),
-              const PopupMenuItem(value: 'gestante', child: Text('Gestantes')),
-              const PopupMenuItem(
+              PopupMenuItem(
+                value: 'tous',
+                child: Text(AppLocalizations.of(context).filterTous),
+              ),
+              PopupMenuItem(
+                value: 'gestante',
+                child: Text(AppLocalizations.of(context).filterGestantes),
+              ),
+              PopupMenuItem(
                 value: 'non_gestante',
-                child: Text('Non gestantes'),
+                child: Text(AppLocalizations.of(context).filterNonGestantes),
               ),
             ],
           ),
@@ -84,11 +92,11 @@ class _PalpationScreenState extends State<PalpationScreen> {
                 children: [
                   // Statistiques
                   Container(
-                    padding: const EdgeInsets.all(16),
+                    padding: AppTheme.paddingAllMedium,
                     decoration: BoxDecoration(
-                      color: Colors.pink[50],
+                      color: AppTheme.warningLight,
                       border: Border(
-                        bottom: BorderSide(color: Colors.grey[300]!),
+                        bottom: BorderSide(color: AppTheme.borderLight),
                       ),
                     ),
                     child: Row(
@@ -98,19 +106,19 @@ class _PalpationScreenState extends State<PalpationScreen> {
                           'Total',
                           '${palpationsFiltrees.length}',
                           Icons.format_list_numbered,
-                          Colors.blue,
+                          AppTheme.info,
                         ),
                         _buildStatCard(
                           'Taux réussite',
                           '${(tauxReussite ?? 0.0).toStringAsFixed(0)}%',
                           Icons.check_circle,
-                          Colors.green,
+                          AppTheme.success,
                         ),
                         _buildStatCard(
                           'Moy. fœtus',
                           (nombreMoyenFoetus ?? 0.0).toStringAsFixed(1),
                           Icons.child_care,
-                          Colors.orange,
+                          AppTheme.warning,
                         ),
                       ],
                     ),
@@ -126,21 +134,25 @@ class _PalpationScreenState extends State<PalpationScreen> {
                                 Icon(
                                   Icons.pregnant_woman,
                                   size: 80,
-                                  color: Colors.pink[200],
+                                  color: AppTheme.accentPink.withValues(
+                                    alpha: 0.5,
+                                  ),
                                 ),
-                                const SizedBox(height: 16),
+                                AppTheme.verticalSpace16,
                                 Text(
                                   _filtreResultat == 'tous'
                                       ? 'Aucune palpation'
                                       : 'Aucune palpation $_filtreResultat',
                                   style: AppTheme.titleMedium.copyWith(
-                                    color: Colors.grey,
+                                    color: AppTheme.textSecondary,
                                   ),
                                 ),
-                                const SizedBox(height: 8),
+                                AppTheme.verticalSpace8,
                                 Text(
                                   'Appuyez sur + pour en ajouter',
-                                  style: AppTheme.bodyMedium.copyWith(color: Colors.grey),
+                                  style: AppTheme.bodyMedium.copyWith(
+                                    color: AppTheme.textSecondary,
+                                  ),
                                 ),
                               ],
                             ),
@@ -174,6 +186,7 @@ class _PalpationScreenState extends State<PalpationScreen> {
             },
       ),
       floatingActionButton: FloatingActionButton(
+        heroTag: 'fab_palpation',
         onPressed: () => _showAjouterPalpationDialog(context),
         backgroundColor: AppTheme.warning,
         child: const Icon(Icons.add),
@@ -191,13 +204,11 @@ class _PalpationScreenState extends State<PalpationScreen> {
       children: [
         Icon(icon, color: color, size: 28),
         const SizedBox(height: 4),
+        Text(value, style: AppTheme.titleLarge.copyWith(color: color)),
         Text(
-          value,
-          style: AppTheme.titleLarge.copyWith(
-            color: color,
-          ),
+          label,
+          style: AppTheme.caption.copyWith(color: AppTheme.textSecondary),
         ),
-        Text(label, style: AppTheme.caption.copyWith(color: Colors.grey[600])),
       ],
     );
   }
@@ -218,20 +229,26 @@ class _PalpationScreenState extends State<PalpationScreen> {
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
-      color: palpation.gestante ? Colors.green[50] : Colors.red[50],
+      color: palpation.gestante
+          ? AppTheme.success.withValues(alpha: 0.1)
+          : AppTheme.error.withValues(alpha: 0.1),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
         side: BorderSide(
-          color: palpation.gestante ? Colors.green[300]! : Colors.red[300]!,
+          color: palpation.gestante
+              ? AppTheme.success.withValues(alpha: 0.5)
+              : AppTheme.error.withValues(alpha: 0.5),
           width: 1.5,
         ),
       ),
       child: ExpansionTile(
         leading: CircleAvatar(
-          backgroundColor: palpation.gestante ? Colors.green : Colors.red,
+          backgroundColor: palpation.gestante
+              ? AppTheme.success
+              : AppTheme.error,
           child: Icon(
             palpation.gestante ? Icons.check : Icons.close,
-            color: Colors.white,
+            color: AppTheme.surfaceWhite,
           ),
         ),
         title: Text(
@@ -247,7 +264,7 @@ class _PalpationScreenState extends State<PalpationScreen> {
                 Icon(
                   palpation.gestante ? Icons.pregnant_woman : Icons.cancel,
                   size: 16,
-                  color: palpation.gestante ? Colors.green : Colors.red,
+                  color: palpation.gestante ? AppTheme.success : AppTheme.error,
                 ),
                 const SizedBox(width: 4),
                 Text(
@@ -255,8 +272,8 @@ class _PalpationScreenState extends State<PalpationScreen> {
                   style: TextStyle(
                     fontWeight: FontWeight.w600,
                     color: palpation.gestante
-                        ? Colors.green[700]
-                        : Colors.red[700],
+                        ? AppTheme.success
+                        : AppTheme.error,
                   ),
                 ),
               ],
@@ -264,18 +281,18 @@ class _PalpationScreenState extends State<PalpationScreen> {
             const SizedBox(height: 4),
             Text(
               'J$joursDepuis après accouplement • ${dateFormat.format(palpation.datePalpation)}',
-              style: AppTheme.caption.copyWith( color: Colors.grey[600]),
+              style: AppTheme.caption.copyWith(color: AppTheme.textSecondary),
             ),
             if (!dansPeriodeRecommandee) ...[
               const SizedBox(height: 4),
               Row(
                 children: [
-                  Icon(Icons.warning_amber, size: 14, color: Colors.orange),
+                  Icon(Icons.warning_amber, size: 14, color: AppTheme.warning),
                   const SizedBox(width: 4),
                   Text(
                     'Hors période recommandée (J10-J12)',
                     style: AppTheme.caption.copyWith(
-                      color: Colors.orange[700],
+                      color: AppTheme.warning,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -293,23 +310,23 @@ class _PalpationScreenState extends State<PalpationScreen> {
             }
           },
           itemBuilder: (context) => [
-            const PopupMenuItem(
+            PopupMenuItem(
               value: 'modifier',
               child: Row(
                 children: [
-                  Icon(Icons.edit, color: Colors.blue),
-                  SizedBox(width: 8),
-                  Text('Modifier'),
+                  const Icon(Icons.edit, color: AppTheme.info),
+                  const SizedBox(width: 8),
+                  Text(AppLocalizations.of(context).modifier),
                 ],
               ),
             ),
-            const PopupMenuItem(
+            PopupMenuItem(
               value: 'supprimer',
               child: Row(
                 children: [
-                  Icon(Icons.delete, color: Colors.red),
-                  SizedBox(width: 8),
-                  Text('Supprimer'),
+                  const Icon(Icons.delete, color: AppTheme.error),
+                  const SizedBox(width: 8),
+                  Text(AppLocalizations.of(context).supprimer),
                 ],
               ),
             ),
@@ -368,14 +385,20 @@ class _PalpationScreenState extends State<PalpationScreen> {
             width: 150,
             child: Text(
               '$label:',
-              style: TextStyle(
+              style: AppTheme.bodyMedium.copyWith(
                 fontWeight: FontWeight.bold,
-                color: Colors.grey[700],
+                color: AppTheme.textSecondary,
               ),
+              overflow: TextOverflow.ellipsis,
             ),
           ),
           Expanded(
-            child: Text(value, style: AppTheme.bodyMedium.copyWith(color: Colors.black87)),
+            child: Text(
+              value,
+              style: AppTheme.bodyMedium.copyWith(color: AppTheme.textPrimary),
+              overflow: TextOverflow.visible,
+              softWrap: true,
+            ),
           ),
         ],
       ),
@@ -390,8 +413,8 @@ class _PalpationScreenState extends State<PalpationScreen> {
 
     if (accouplements.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Aucun accouplement disponible pour palpation'),
+        SnackBar(
+          content: Text(AppLocalizations.of(context).emptyAucunAccouplement),
         ),
       );
       return;
@@ -409,16 +432,18 @@ class _PalpationScreenState extends State<PalpationScreen> {
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setState) => AlertDialog(
-          title: const Text('Enregistrer une palpation'),
+          title: Text(AppLocalizations.of(context).titleEnregistrerPalpation),
           content: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 DropdownButtonFormField<int>(
                   initialValue: accouplementSelectionne,
-                  decoration: const InputDecoration(
-                    labelText: 'Accouplement *',
-                    border: OutlineInputBorder(),
+                  decoration: InputDecoration(
+                    labelText: AppLocalizations.of(
+                      context,
+                    ).optimisationFormAccouplement,
+                    border: const OutlineInputBorder(),
                   ),
                   items: accouplements.map((acc) {
                     final lapinProvider = context.read<LapinProvider>();
@@ -445,8 +470,8 @@ class _PalpationScreenState extends State<PalpationScreen> {
                   ),
                   trailing: const Icon(Icons.calendar_today),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    side: BorderSide(color: Colors.grey[400]!),
+                    borderRadius: AppTheme.borderRadiusSmall,
+                    side: BorderSide(color: AppTheme.borderLight),
                   ),
                   onTap: () async {
                     final date = await showDatePicker(
@@ -462,15 +487,17 @@ class _PalpationScreenState extends State<PalpationScreen> {
                     }
                   },
                 ),
-                const SizedBox(height: 12),
+                AppTheme.verticalSpace12,
                 SwitchListTile(
-                  title: const Text('Gestante'),
-                  subtitle: const Text('La femelle est-elle gestante ?'),
+                  title: Text(AppLocalizations.of(context).switchGestante),
+                  subtitle: Text(
+                    AppLocalizations.of(context).switchGesteQuestion,
+                  ),
                   value: gestante,
                   onChanged: (value) => setState(() => gestante = value),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    side: BorderSide(color: Colors.grey[400]!),
+                    borderRadius: AppTheme.borderRadiusSmall,
+                    side: BorderSide(color: AppTheme.borderLight),
                   ),
                 ),
                 if (gestante) ...[
@@ -478,10 +505,14 @@ class _PalpationScreenState extends State<PalpationScreen> {
                   TextField(
                     controller: nombreFoetusController,
                     keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(
-                      labelText: 'Nombre de fœtus palpés',
-                      border: OutlineInputBorder(),
-                      helperText: 'Estimation si possible',
+                    decoration: InputDecoration(
+                      labelText: AppLocalizations.of(
+                        context,
+                      ).optimisationFormNombreFoetus,
+                      border: const OutlineInputBorder(),
+                      helperText: AppLocalizations.of(
+                        context,
+                      ).helperEstimationPossible,
                     ),
                   ),
                 ],
@@ -489,25 +520,31 @@ class _PalpationScreenState extends State<PalpationScreen> {
                 TextField(
                   controller: temperatureController,
                   keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(
-                    labelText: 'Température corporelle (°C)',
-                    border: OutlineInputBorder(),
+                  decoration: InputDecoration(
+                    labelText: AppLocalizations.of(
+                      context,
+                    ).optimisationFormTemperatureCorporelle,
+                    border: const OutlineInputBorder(),
                   ),
                 ),
                 const SizedBox(height: 12),
                 TextField(
                   controller: realiseParController,
-                  decoration: const InputDecoration(
-                    labelText: 'Réalisé par',
-                    border: OutlineInputBorder(),
+                  decoration: InputDecoration(
+                    labelText: AppLocalizations.of(
+                      context,
+                    ).optimisationFormRealisepar,
+                    border: const OutlineInputBorder(),
                   ),
                 ),
                 const SizedBox(height: 12),
                 TextField(
                   controller: observationsController,
-                  decoration: const InputDecoration(
-                    labelText: 'Observations',
-                    border: OutlineInputBorder(),
+                  decoration: InputDecoration(
+                    labelText: AppLocalizations.of(
+                      context,
+                    ).optimisationFormObservations,
+                    border: const OutlineInputBorder(),
                   ),
                   maxLines: 3,
                 ),
@@ -517,11 +554,11 @@ class _PalpationScreenState extends State<PalpationScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Annuler'),
+              child: Text(AppLocalizations.of(context).commonCancel),
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFFF6B9D),
+                backgroundColor: AppTheme.warning,
               ),
               onPressed: () {
                 if (accouplementSelectionne == null) {
@@ -554,7 +591,7 @@ class _PalpationScreenState extends State<PalpationScreen> {
                 context.read<PalpationProvider>().ajouterPalpation(palpation);
                 Navigator.pop(context);
               },
-              child: const Text('Enregistrer'),
+              child: Text(AppLocalizations.of(context).commonSave),
             ),
           ],
         ),
@@ -582,7 +619,7 @@ class _PalpationScreenState extends State<PalpationScreen> {
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setState) => AlertDialog(
-          title: const Text('Modifier la palpation'),
+          title: Text(AppLocalizations.of(context).commonEdit),
           content: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -593,8 +630,8 @@ class _PalpationScreenState extends State<PalpationScreen> {
                   ),
                   trailing: const Icon(Icons.calendar_today),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    side: BorderSide(color: Colors.grey[400]!),
+                    borderRadius: AppTheme.borderRadiusSmall,
+                    side: BorderSide(color: AppTheme.borderLight),
                   ),
                   onTap: () async {
                     final date = await showDatePicker(
@@ -610,14 +647,14 @@ class _PalpationScreenState extends State<PalpationScreen> {
                     }
                   },
                 ),
-                const SizedBox(height: 12),
+                AppTheme.verticalSpace12,
                 SwitchListTile(
-                  title: const Text('Gestante'),
+                  title: Text(AppLocalizations.of(context).switchGestante),
                   value: gestante,
                   onChanged: (value) => setState(() => gestante = value),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    side: BorderSide(color: Colors.grey[400]!),
+                    borderRadius: AppTheme.borderRadiusSmall,
+                    side: BorderSide(color: AppTheme.borderLight),
                   ),
                 ),
                 if (gestante) ...[
@@ -625,9 +662,11 @@ class _PalpationScreenState extends State<PalpationScreen> {
                   TextField(
                     controller: nombreFoetusController,
                     keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(
-                      labelText: 'Nombre de fœtus palpés',
-                      border: OutlineInputBorder(),
+                    decoration: InputDecoration(
+                      labelText: AppLocalizations.of(
+                        context,
+                      ).optimisationFormNombreFoetus,
+                      border: const OutlineInputBorder(),
                     ),
                   ),
                 ],
@@ -635,25 +674,31 @@ class _PalpationScreenState extends State<PalpationScreen> {
                 TextField(
                   controller: temperatureController,
                   keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(
-                    labelText: 'Température corporelle (°C)',
-                    border: OutlineInputBorder(),
+                  decoration: InputDecoration(
+                    labelText: AppLocalizations.of(
+                      context,
+                    ).optimisationFormTemperatureCorporelle,
+                    border: const OutlineInputBorder(),
                   ),
                 ),
                 const SizedBox(height: 12),
                 TextField(
                   controller: realiseParController,
-                  decoration: const InputDecoration(
-                    labelText: 'Réalisé par',
-                    border: OutlineInputBorder(),
+                  decoration: InputDecoration(
+                    labelText: AppLocalizations.of(
+                      context,
+                    ).optimisationFormRealisepar,
+                    border: const OutlineInputBorder(),
                   ),
                 ),
                 const SizedBox(height: 12),
                 TextField(
                   controller: observationsController,
-                  decoration: const InputDecoration(
-                    labelText: 'Observations',
-                    border: OutlineInputBorder(),
+                  decoration: InputDecoration(
+                    labelText: AppLocalizations.of(
+                      context,
+                    ).optimisationFormObservations,
+                    border: const OutlineInputBorder(),
                   ),
                   maxLines: 3,
                 ),
@@ -663,7 +708,7 @@ class _PalpationScreenState extends State<PalpationScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: Text('Annuler'),
+              child: Text(AppLocalizations.of(context).actionAnnuler),
             ),
             ElevatedButton(
               onPressed: () {
@@ -689,7 +734,7 @@ class _PalpationScreenState extends State<PalpationScreen> {
                 );
                 Navigator.pop(context);
               },
-              child: const Text('Modifier'),
+              child: Text(AppLocalizations.of(context).commonEdit),
             ),
           ],
         ),
@@ -703,8 +748,8 @@ class _PalpationScreenState extends State<PalpationScreen> {
   ) async {
     final confirmed = await DialogHelper.showConfirmation(
       context: context,
-      title: 'Confirmer la suppression',
-      message: 'Supprimer cette palpation ?',
+      title: AppLocalizations.of(context).commonConfirmDeletion,
+      message: AppLocalizations.of(context).commonDeleteQuestion,
       isDangerous: true,
     );
 
@@ -719,8 +764,8 @@ class _PalpationScreenState extends State<PalpationScreen> {
       builder: (context) => AlertDialog(
         title: Row(
           children: [
-            Icon(Icons.help, color: Colors.pink[700]),
-            const SizedBox(width: 8),
+            Icon(Icons.help, color: AppTheme.warning),
+            AppTheme.horizontalSpace8,
             const Text('Aide - Palpation'),
           ],
         ),
@@ -729,20 +774,20 @@ class _PalpationScreenState extends State<PalpationScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text(
+              Text(
                 'Quand palper ?',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                style: AppTheme.bodyLarge.copyWith(fontWeight: FontWeight.bold),
               ),
-              const SizedBox(height: 8),
+              AppTheme.verticalSpace8,
               const Text(
                 '• Période recommandée : J10 à J12 après l\'accouplement\n'
                 '• Avant J10 : trop tôt, fœtus non palpables\n'
                 '• Après J12 : risque de stress pour la femelle',
               ),
-              const SizedBox(height: 16),
-              const Text(
+              AppTheme.verticalSpace16,
+              Text(
                 'Comment palper ?',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                style: AppTheme.bodyLarge.copyWith(fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 8),
               const Text(
@@ -753,20 +798,16 @@ class _PalpationScreenState extends State<PalpationScreen> {
               ),
               const SizedBox(height: 16),
               Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.orange[50],
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.orange[200]!),
-                ),
+                padding: AppTheme.paddingAllMedium,
+                decoration: AppTheme.statusDecoration(AppTheme.warning),
                 child: Row(
                   children: [
-                    Icon(Icons.info, color: Colors.orange[700]),
-                    const SizedBox(width: 8),
-                    const Expanded(
+                    Icon(Icons.info, color: AppTheme.warning),
+                    AppTheme.horizontalSpace8,
+                    Expanded(
                       child: Text(
                         'Si vous n\'êtes pas sûr, consultez un vétérinaire ou un éleveur expérimenté',
-                        style: TextStyle(fontSize: 12),
+                        style: AppTheme.bodySmall,
                       ),
                     ),
                   ],

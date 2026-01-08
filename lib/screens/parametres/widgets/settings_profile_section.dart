@@ -29,12 +29,12 @@ class SettingsProfileSection extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: isDark
-              ? Colors.white.withValues(alpha: 0.05)
-              : Colors.black.withValues(alpha: 0.05),
+              ? AppTheme.textOnPrimary.withValues(alpha: 0.05)
+              : AppTheme.textPrimary.withValues(alpha: 0.05),
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
+            color: AppTheme.textPrimary.withValues(alpha: 0.05),
             blurRadius: 4,
             offset: const Offset(0, 2),
           ),
@@ -88,8 +88,8 @@ class SettingsProfileSection extends StatelessWidget {
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
                     color: isDark
-                        ? Colors.white
-                        : const Color(0xFF111812),
+                        ? AppTheme.textOnPrimary
+                        : AppTheme.stitchTextDark,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,

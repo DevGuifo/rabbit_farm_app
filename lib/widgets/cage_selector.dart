@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../l10n/app_localizations.dart';
 import '../models/batiment.dart';
 import '../models/clapier.dart';
 import '../models/cage.dart';
@@ -7,10 +8,11 @@ import '../services/localisation_service.dart';
 import 'package:rabbit_farm_app/theme/app_theme.dart';
 
 /// Sélecteur de cage avec navigation hiérarchique
+/// Retourne l'ID de la cage sélectionnée (int?) pour utilisation avec FK
 class CageSelector extends StatefulWidget {
-  final String? cageInitiale;
+  final int? cageIdInitiale; // ID de la cage pour pré-sélection
 
-  const CageSelector({super.key, this.cageInitiale});
+  const CageSelector({super.key, this.cageIdInitiale});
 
   @override
   State<CageSelector> createState() => _CageSelectorState();
@@ -37,15 +39,15 @@ class _CageSelectorState extends State<CageSelector> {
     setState(() => _loading = true);
     _batiments = await _dbHelper.getAllBatiments();
 
-    if (widget.cageInitiale != null) {
-      await _restaurerSelection(widget.cageInitiale!);
+    if (widget.cageIdInitiale != null) {
+      await _restaurerSelection(widget.cageIdInitiale!);
     }
 
     setState(() => _loading = false);
   }
 
-  Future<void> _restaurerSelection(String numeroCage) async {
-    final cage = await _dbHelper.getCageByNumero(numeroCage);
+  Future<void> _restaurerSelection(int cageId) async {
+    final cage = await _dbHelper.getCageById(cageId);
     if (cage == null) return;
 
     final clapier = await _dbHelper.getClapierById(cage.clapierId);
@@ -108,7 +110,9 @@ class _CageSelectorState extends State<CageSelector> {
     if (!cageData['disponible']) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Cette cage est ${cageData['statut']}'),
+          content: Text(
+            AppLocalizations.of(context).widgetCageStatut(cageData['statut']),
+          ),
           backgroundColor: AppTheme.error,
         ),
       );
@@ -116,7 +120,7 @@ class _CageSelectorState extends State<CageSelector> {
     }
 
     final cage = cageData['cage'] as Cage;
-    Navigator.pop(context, cage.numero);
+    Navigator.pop(context, cage.id); // Retourne int cageId
   }
 
   @override
@@ -174,7 +178,9 @@ class _CageSelectorState extends State<CageSelector> {
           onPressed: () => Navigator.pop(context),
           icon: Icon(
             Icons.close,
-            color: isDark ? AppTheme.textLight.withValues(alpha: 0.7) : AppTheme.textSecondary,
+            color: isDark
+                ? AppTheme.textLight.withValues(alpha: 0.7)
+                : AppTheme.textSecondary,
           ),
         ),
       ],
@@ -185,18 +191,25 @@ class _CageSelectorState extends State<CageSelector> {
     return Wrap(
       spacing: 8,
       children: [
-        _buildBreadcrumbItem('Bâtiments', _batimentSelectionne == null, isDark, () {
-          setState(() {
-            _batimentSelectionne = null;
-            _clapierSelectionne = null;
-            _clapiers = [];
-            _cages = [];
-          });
-        }),
+        _buildBreadcrumbItem(
+          'Bâtiments',
+          _batimentSelectionne == null,
+          isDark,
+          () {
+            setState(() {
+              _batimentSelectionne = null;
+              _clapierSelectionne = null;
+              _clapiers = [];
+              _cages = [];
+            });
+          },
+        ),
         if (_batimentSelectionne != null) ...[
           Icon(
             Icons.chevron_right,
-            color: isDark ? AppTheme.textLight.withValues(alpha: 0.5) : AppTheme.textSecondary,
+            color: isDark
+                ? AppTheme.textLight.withValues(alpha: 0.5)
+                : AppTheme.textSecondary,
             size: 16,
           ),
           _buildBreadcrumbItem(
@@ -214,7 +227,9 @@ class _CageSelectorState extends State<CageSelector> {
         if (_clapierSelectionne != null) ...[
           Icon(
             Icons.chevron_right,
-            color: isDark ? AppTheme.textLight.withValues(alpha: 0.5) : AppTheme.textSecondary,
+            color: isDark
+                ? AppTheme.textLight.withValues(alpha: 0.5)
+                : AppTheme.textSecondary,
             size: 16,
           ),
           _buildBreadcrumbItem(_clapierSelectionne!.nom, true, isDark, null),
@@ -242,8 +257,8 @@ class _CageSelectorState extends State<CageSelector> {
         child: Text(
           label,
           style: TextStyle(
-            color: isActive 
-                ? Colors.white 
+            color: isActive
+                ? AppTheme.textOnPrimary
                 : (isDark ? AppTheme.textLight : AppTheme.textSecondary),
             fontSize: 12,
           ),
@@ -294,12 +309,12 @@ class _CageSelectorState extends State<CageSelector> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.domain, size: 40, color: Colors.white),
+            const Icon(Icons.domain, size: 40, color: AppTheme.textOnPrimary),
             const SizedBox(height: 8),
             Text(
               batiment.nom,
               style: const TextStyle(
-                color: Colors.white,
+                color: AppTheme.textOnPrimary,
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
               ),
@@ -308,7 +323,7 @@ class _CageSelectorState extends State<CageSelector> {
               Text(
                 batiment.description!,
                 style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.8),
+                  color: AppTheme.textOnPrimary.withValues(alpha: 0.8),
                   fontSize: 11,
                 ),
                 textAlign: TextAlign.center,
@@ -371,13 +386,17 @@ class _CageSelectorState extends State<CageSelector> {
         subtitle: Text(
           clapier.type.toUpperCase(),
           style: TextStyle(
-            color: isDark ? AppTheme.textLight.withValues(alpha: 0.7) : AppTheme.textSecondary,
+            color: isDark
+                ? AppTheme.textLight.withValues(alpha: 0.7)
+                : AppTheme.textSecondary,
             fontSize: 11,
           ),
         ),
         trailing: Icon(
           Icons.chevron_right,
-          color: isDark ? AppTheme.textLight.withValues(alpha: 0.7) : AppTheme.textSecondary,
+          color: isDark
+              ? AppTheme.textLight.withValues(alpha: 0.7)
+              : AppTheme.textSecondary,
         ),
       ),
     );
@@ -477,13 +496,17 @@ class _CageSelectorState extends State<CageSelector> {
           Icon(
             icone,
             size: 64,
-            color: isDark ? AppTheme.textLight.withValues(alpha: 0.5) : AppTheme.textSecondary,
+            color: isDark
+                ? AppTheme.textLight.withValues(alpha: 0.5)
+                : AppTheme.textSecondary,
           ),
           const SizedBox(height: 16),
           Text(
             message,
             style: TextStyle(
-              color: isDark ? AppTheme.textLight.withValues(alpha: 0.7) : AppTheme.textSecondary,
+              color: isDark
+                  ? AppTheme.textLight.withValues(alpha: 0.7)
+                  : AppTheme.textSecondary,
               fontSize: 16,
             ),
           ),
@@ -494,12 +517,12 @@ class _CageSelectorState extends State<CageSelector> {
 }
 
 /// Fonction helper pour afficher le sélecteur
-Future<String?> showCageSelector(
+Future<int?> showCageSelector(
   BuildContext context, {
-  String? cageInitiale,
+  int? cageIdInitiale,
 }) async {
-  return await showDialog<String>(
+  return await showDialog<int>(
     context: context,
-    builder: (context) => CageSelector(cageInitiale: cageInitiale),
+    builder: (context) => CageSelector(cageIdInitiale: cageIdInitiale),
   );
 }

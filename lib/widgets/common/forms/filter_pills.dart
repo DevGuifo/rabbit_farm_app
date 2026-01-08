@@ -42,8 +42,8 @@ class FilterPill extends StatelessWidget {
               ? null
               : Border.all(
                   color: isDark
-                      ? Colors.white.withValues(alpha: 0.1)
-                      : Colors.black.withValues(alpha: 0.05),
+                      ? AppTheme.textOnPrimary.withValues(alpha: 0.1)
+                      : AppTheme.textPrimary.withValues(alpha: 0.05),
                 ),
           boxShadow: isSelected ? AppTheme.shadowSmall : [],
         ),
@@ -54,7 +54,7 @@ class FilterPill extends StatelessWidget {
               fontSize: 14,
               fontWeight: FontWeight.w600,
               color: isSelected
-                  ? (isDark ? Colors.black : Colors.white)
+                  ? (isDark ? AppTheme.textPrimary : AppTheme.textOnPrimary)
                   : (isDark ? AppTheme.textLight : AppTheme.textPrimary),
             ),
           ),

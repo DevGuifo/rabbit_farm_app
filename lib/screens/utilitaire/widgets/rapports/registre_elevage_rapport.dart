@@ -4,6 +4,7 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 import 'package:intl/intl.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../../providers/lapin_provider.dart';
 import '../../../../providers/reproduction_provider.dart';
 import '../../../../theme/app_theme.dart';
@@ -54,7 +55,9 @@ class _RegistreElevageRapportState extends State<RegistreElevageRapport> {
             Text(
               'Document conforme à la réglementation',
               style: AppTheme.bodySmall.copyWith(
-                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+                color: Theme.of(
+                  context,
+                ).colorScheme.onSurface.withValues(alpha: 0.6),
               ),
             ),
             const SizedBox(height: 24),
@@ -163,17 +166,20 @@ class _RegistreElevageRapportState extends State<RegistreElevageRapport> {
             const SizedBox(height: 24),
 
             // Bouton génération
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: () =>
-                    _genererPDF(context, lapinProvider, reproProvider),
-                icon: const Icon(Icons.picture_as_pdf_rounded),
-                label: const Text('Générer le PDF'),
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                ),
-              ),
+            Builder(
+              builder: (context) {
+                final l10n = AppLocalizations.of(context);
+                return SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    onPressed: () =>
+                        _genererPDF(context, lapinProvider, reproProvider),
+                    icon: const Icon(Icons.picture_as_pdf_rounded),
+                    label: Text(l10n.genererPdf),
+                    style: AppTheme.primaryButtonStyle,
+                  ),
+                );
+              },
             ),
           ],
         );
@@ -202,6 +208,7 @@ class _RegistreElevageRapportState extends State<RegistreElevageRapport> {
     LapinProvider lapinProvider,
     ReproductionProvider reproProvider,
   ) async {
+    final l10n = AppLocalizations.of(context);
     final pdf = pw.Document();
     pdf.addPage(
       pw.Page(
@@ -218,7 +225,7 @@ class _RegistreElevageRapportState extends State<RegistreElevageRapport> {
               ),
               pw.Divider(thickness: 2),
               pw.SizedBox(height: 20),
-              pw.Text('Total lapins: ${lapinProvider.lapins.length}'),
+              pw.Text(l10n.pdfTotalRabbitsCount(lapinProvider.lapins.length)),
             ],
           );
         },
@@ -230,7 +237,7 @@ class _RegistreElevageRapportState extends State<RegistreElevageRapport> {
     );
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Registre généré avec succès')),
+        SnackBar(content: Text(AppLocalizations.of(context).msgRegistreGenere)),
       );
     }
   }

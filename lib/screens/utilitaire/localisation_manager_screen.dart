@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../l10n/app_localizations.dart';
 import '../../models/batiment.dart';
 import '../../models/clapier.dart';
 import '../../models/cage.dart';
@@ -130,18 +131,27 @@ class _LocalisationManagerScreenState extends State<LocalisationManagerScreen> {
             child: const Icon(Icons.location_city, color: AppTheme.textLight),
           ),
           const SizedBox(width: 12),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Gestion des Localisations',
-                style: AppTheme.titleLarge.copyWith(color: Colors.white),
-              ),
-              Text(
-                'Bâtiments • Clapiers • Cages',
-                style: TextStyle(color: Colors.white70, fontSize: 12),
-              ),
-            ],
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Gestion des Localisations',
+                  style: AppTheme.titleLarge.copyWith(
+                    color: AppTheme.textOnPrimary,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+                Text(
+                  'Bâtiments • Clapiers • Cages',
+                  style: TextStyle(
+                    color: AppTheme.textOnPrimary70,
+                    fontSize: 12,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
           ),
         ],
       ),
@@ -174,7 +184,7 @@ class _LocalisationManagerScreenState extends State<LocalisationManagerScreen> {
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.04),
+                    color: AppTheme.divider,
                     blurRadius: 4,
                     offset: const Offset(0, 1),
                   ),
@@ -298,10 +308,9 @@ class _LocalisationManagerScreenState extends State<LocalisationManagerScreen> {
             ElevatedButton.icon(
               onPressed: () => _ajouterClapier(),
               icon: const Icon(Icons.add),
-              label: const Text('Ajouter un clapier'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppTheme.accentPink,
-                foregroundColor: AppTheme.textLight,
+              label: Text(AppLocalizations.of(context).ajouterClapier),
+              style: AppTheme.primaryButtonStyle.copyWith(
+                backgroundColor: WidgetStateProperty.all(AppTheme.accentPink),
               ),
             ),
           ],
@@ -335,7 +344,7 @@ class _LocalisationManagerScreenState extends State<LocalisationManagerScreen> {
         border: Border.all(color: AppTheme.border),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
+            color: AppTheme.divider,
             blurRadius: 4,
             offset: const Offset(0, 1),
           ),
@@ -559,15 +568,25 @@ class _LocalisationManagerScreenState extends State<LocalisationManagerScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            label,
-            style: AppTheme.bodyMedium.copyWith(color: AppTheme.textSecondary),
+          Flexible(
+            child: Text(
+              label,
+              style: AppTheme.bodyMedium.copyWith(
+                color: AppTheme.textSecondary,
+              ),
+              overflow: TextOverflow.ellipsis,
+            ),
           ),
-          Text(
-            value,
-            style: AppTheme.bodyMedium.copyWith(
-              color: AppTheme.textPrimary,
-              fontWeight: FontWeight.bold,
+          const SizedBox(width: 8),
+          Flexible(
+            child: Text(
+              value,
+              style: AppTheme.bodyMedium.copyWith(
+                color: AppTheme.textPrimary,
+                fontWeight: FontWeight.bold,
+              ),
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.right,
             ),
           ),
         ],
@@ -658,24 +677,22 @@ class _LocalisationManagerScreenState extends State<LocalisationManagerScreen> {
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setState) => AlertDialog(
-          title: const Text('Modifier la cage'),
+          title: Text(AppLocalizations.of(context).modifierCage),
           content: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 TextField(
                   controller: numeroController,
-                  decoration: const InputDecoration(
-                    labelText: 'Numéro de cage',
-                    border: OutlineInputBorder(),
+                  decoration: AppTheme.inputDecoration(
+                    label: AppLocalizations.of(context).hintNumeroCage,
                   ),
                 ),
                 const SizedBox(height: 16),
                 DropdownButtonFormField<String>(
                   initialValue: typeSelectionne,
-                  decoration: const InputDecoration(
-                    labelText: 'Type de cage',
-                    border: OutlineInputBorder(),
+                  decoration: AppTheme.inputDecoration(
+                    label: AppLocalizations.of(context).hintTypeCage,
                   ),
                   items: ['individuelle', 'collective', 'maternité']
                       .map(
@@ -692,9 +709,8 @@ class _LocalisationManagerScreenState extends State<LocalisationManagerScreen> {
                 const SizedBox(height: 16),
                 TextField(
                   controller: capaciteController,
-                  decoration: const InputDecoration(
-                    labelText: 'Capacité (nombre de lapins)',
-                    border: OutlineInputBorder(),
+                  decoration: AppTheme.inputDecoration(
+                    label: AppLocalizations.of(context).labelCapaciteLapins,
                   ),
                   keyboardType: TextInputType.number,
                 ),
@@ -702,28 +718,40 @@ class _LocalisationManagerScreenState extends State<LocalisationManagerScreen> {
             ),
           ),
           actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Annuler'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                if (numeroController.text.isEmpty ||
-                    capaciteController.text.isEmpty) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Tous les champs sont requis'),
-                    ),
-                  );
-                  return;
-                }
-                Navigator.pop(context, {
-                  'numero': numeroController.text,
-                  'type': typeSelectionne,
-                  'capacite': int.tryParse(capaciteController.text) ?? 1,
-                });
+            Builder(
+              builder: (context) {
+                final l10n = AppLocalizations.of(context);
+                return TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: Text(l10n.annuler),
+                );
               },
-              child: const Text('Modifier'),
+            ),
+            Builder(
+              builder: (context) {
+                final l10n = AppLocalizations.of(context);
+                return ElevatedButton(
+                  onPressed: () {
+                    if (numeroController.text.isEmpty ||
+                        capaciteController.text.isEmpty) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            AppLocalizations.of(context).msgTousChampsRequis,
+                          ),
+                        ),
+                      );
+                      return;
+                    }
+                    Navigator.pop(context, {
+                      'numero': numeroController.text,
+                      'type': typeSelectionne,
+                      'capacite': int.tryParse(capaciteController.text) ?? 1,
+                    });
+                  },
+                  child: Text(l10n.modifier),
+                );
+              },
             ),
           ],
         ),
@@ -750,30 +778,31 @@ class _LocalisationManagerScreenState extends State<LocalisationManagerScreen> {
       _chargerDonnees();
 
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('✓ Cage modifiée')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(AppLocalizations.of(context).msgCageModifiee)),
+        );
       }
     }
   }
 
   Future<void> _supprimerCage(Cage cage) async {
+    final l10nSuppression = AppLocalizations.of(context);
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Confirmer la suppression'),
+        title: Text(l10nSuppression.confirmerSuppression),
         content: Text(
           'Voulez-vous vraiment supprimer la cage ${cage.numero} ?',
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Annuler'),
+            child: Text(l10nSuppression.annuler),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
             style: TextButton.styleFrom(foregroundColor: AppTheme.error),
-            child: const Text('Supprimer'),
+            child: Text(l10nSuppression.supprimer),
           ),
         ],
       ),
@@ -785,13 +814,18 @@ class _LocalisationManagerScreenState extends State<LocalisationManagerScreen> {
       await _dbHelper.supprimerCage(cage.id!);
       if (!mounted) return;
       _chargerDonnees();
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Cage supprimée')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(AppLocalizations.of(context).msgCageSupprimee)),
+      );
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erreur : $e'), backgroundColor: AppTheme.error),
+        SnackBar(
+          content: Text(
+            AppLocalizations.of(context).msgErrorPrefix(e.toString()),
+          ),
+          backgroundColor: AppTheme.error,
+        ),
       );
     }
   }
@@ -824,13 +858,18 @@ class _LocalisationManagerScreenState extends State<LocalisationManagerScreen> {
           ),
         ),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Annuler'),
+          Builder(
+            builder: (context) {
+              final l10n = AppLocalizations.of(context);
+              return TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: Text(l10n.annuler),
+              );
+            },
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, controller.text),
-            child: const Text('OK'),
+            child: Text(AppLocalizations.of(context).ok),
           ),
         ],
       ),

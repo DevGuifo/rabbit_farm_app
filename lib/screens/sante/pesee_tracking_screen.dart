@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../l10n/app_localizations.dart';
 import 'package:intl/intl.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'dart:io';
@@ -161,13 +162,11 @@ class _PeseeTrackingScreenState extends State<PeseeTrackingScreen> {
                   : AppTheme.backgroundDark.withValues(alpha: 0.05),
             ),
           ),
-          const SizedBox(width: 12),
+          AppTheme.horizontalSpace12,
           Expanded(
             child: Text(
-              'Weight Tracking',
-              style: AppTheme.titleLarge.copyWith(
-                color: textMain,
-              ),
+              AppLocalizations.of(context).santeWeightTracking,
+              style: AppTheme.titleLarge.copyWith(color: textMain),
             ),
           ),
           IconButton(
@@ -179,15 +178,13 @@ class _PeseeTrackingScreenState extends State<PeseeTrackingScreen> {
                   : AppTheme.backgroundDark.withValues(alpha: 0.05),
             ),
           ),
-          const SizedBox(width: 4),
+          AppTheme.horizontalSpace4,
           IconButton(
             icon: Icon(Icons.notifications, size: 22, color: textMain),
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(
-                  builder: (_) => const AlertesScreen(),
-                ),
+                MaterialPageRoute(builder: (_) => const AlertesScreen()),
               );
             },
             style: IconButton.styleFrom(
@@ -196,15 +193,13 @@ class _PeseeTrackingScreenState extends State<PeseeTrackingScreen> {
                   : AppTheme.backgroundDark.withValues(alpha: 0.05),
             ),
           ),
-          const SizedBox(width: 4),
+          AppTheme.horizontalSpace4,
           IconButton(
             icon: Icon(Icons.settings, size: 22, color: textMain),
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(
-                  builder: (_) => const ParametresScreen(),
-                ),
+                MaterialPageRoute(builder: (_) => const ParametresScreen()),
               );
             },
             style: IconButton.styleFrom(
@@ -233,7 +228,7 @@ class _PeseeTrackingScreenState extends State<PeseeTrackingScreen> {
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0 : 0.04),
+            color: AppTheme.textPrimary.withValues(alpha: isDark ? 0 : 0.04),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -264,7 +259,7 @@ class _PeseeTrackingScreenState extends State<PeseeTrackingScreen> {
                   : Icon(Icons.pets, size: 28, color: AppTheme.textSecondary),
             ),
           ),
-          const SizedBox(width: 16),
+          AppTheme.horizontalSpace16,
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -329,7 +324,7 @@ class _PeseeTrackingScreenState extends State<PeseeTrackingScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Current Weight',
+                    AppLocalizations.of(context).santeCurrentWeight,
                     style: TextStyle(
                       color: textSub,
                       fontSize: 14,
@@ -337,29 +332,33 @@ class _PeseeTrackingScreenState extends State<PeseeTrackingScreen> {
                     ),
                   ),
                   const SizedBox(height: 4),
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.baseline,
-                    textBaseline: TextBaseline.alphabetic,
-                    children: [
-                      Text(
-                        currentWeight.toStringAsFixed(2),
-                        style: TextStyle(
-                          color: textMain,
-                          fontSize: 40,
-                          fontWeight: FontWeight.bold,
-                          height: 1.1,
+                  FittedBox(
+                    fit: BoxFit.scaleDown,
+                    alignment: Alignment.centerLeft,
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.baseline,
+                      textBaseline: TextBaseline.alphabetic,
+                      children: [
+                        Text(
+                          currentWeight.toStringAsFixed(2),
+                          style: TextStyle(
+                            color: textMain,
+                            fontSize: 40,
+                            fontWeight: FontWeight.bold,
+                            height: 1.1,
+                          ),
                         ),
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        'kg',
-                        style: TextStyle(
-                          color: textSub,
-                          fontSize: 20,
-                          fontWeight: FontWeight.w500,
+                        const SizedBox(width: 4),
+                        Text(
+                          'kg',
+                          style: TextStyle(
+                            color: textSub,
+                            fontSize: 20,
+                            fontWeight: FontWeight.w500,
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ],
               ),
@@ -391,14 +390,19 @@ class _PeseeTrackingScreenState extends State<PeseeTrackingScreen> {
                                 : AppTheme.primaryGreen,
                           ),
                           const SizedBox(width: 4),
-                          Text(
-                            '${lastMonthDiff > 0 ? '+' : ''}${lastMonthDiff.toStringAsFixed(2)} kg',
-                            style: TextStyle(
-                              color: isDark
-                                  ? AppTheme.primaryGreen.withValues(alpha: 0.8)
-                                  : AppTheme.primaryGreen,
-                              fontSize: 14,
-                              fontWeight: FontWeight.bold,
+                          Flexible(
+                            child: Text(
+                              '${lastMonthDiff > 0 ? '+' : ''}${lastMonthDiff.toStringAsFixed(2)} kg',
+                              style: TextStyle(
+                                color: isDark
+                                    ? AppTheme.primaryGreen.withValues(
+                                        alpha: 0.8,
+                                      )
+                                    : AppTheme.primaryGreen,
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                              ),
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
                         ],
@@ -417,9 +421,9 @@ class _PeseeTrackingScreenState extends State<PeseeTrackingScreen> {
                 ),
             ],
           ),
-          const SizedBox(height: 24),
+          AppTheme.verticalSpace24,
           SizedBox(height: 192, child: _buildChart(pesees, isDark)),
-          const SizedBox(height: 12),
+          AppTheme.verticalSpace12,
           if (pesees.length >= 2) _buildChartLabels(pesees, textSub),
         ],
       ),
@@ -432,7 +436,7 @@ class _PeseeTrackingScreenState extends State<PeseeTrackingScreen> {
         child: Text(
           'Ajoutez au moins 2 pesées pour voir le graphique',
           style: TextStyle(
-            color: isDark ? const Color(0xFFA0A490) : const Color(0xFF5C6050),
+            color: isDark ? AppTheme.santeTextDark : AppTheme.santeTextLight,
             fontSize: 14,
           ),
         ),
@@ -453,7 +457,7 @@ class _PeseeTrackingScreenState extends State<PeseeTrackingScreen> {
             return FlLine(
               color: isDark
                   ? AppTheme.cardLight.withValues(alpha: 0.1)
-                  : Colors.grey.withValues(alpha: 0.2),
+                  : AppTheme.neutral500.withValues(alpha: 0.2),
               strokeWidth: 1,
               dashArray: [5, 5],
             );
@@ -467,7 +471,7 @@ class _PeseeTrackingScreenState extends State<PeseeTrackingScreen> {
           LineChartBarData(
             spots: spots,
             isCurved: true,
-            color: const Color(0xFF84cc16),
+            color: AppTheme.stitchGreenVivid,
             barWidth: 4,
             isStrokeCapRound: true,
             dotData: FlDotData(
@@ -477,12 +481,12 @@ class _PeseeTrackingScreenState extends State<PeseeTrackingScreen> {
                 return FlDotCirclePainter(
                   radius: isLast ? 6 : 4,
                   color: isLast
-                      ? const Color(0xFF84cc16)
-                      : (isDark ? const Color(0xFF262721) : AppTheme.cardLight),
+                      ? AppTheme.stitchGreenVivid
+                      : (isDark ? AppTheme.santeChartDark : AppTheme.cardLight),
                   strokeWidth: 3,
                   strokeColor: isLast
-                      ? (isDark ? const Color(0xFF262721) : AppTheme.cardLight)
-                      : const Color(0xFF84cc16),
+                      ? (isDark ? AppTheme.santeChartDark : AppTheme.cardLight)
+                      : AppTheme.stitchGreenVivid,
                 );
               },
             ),
@@ -492,8 +496,8 @@ class _PeseeTrackingScreenState extends State<PeseeTrackingScreen> {
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
                 colors: [
-                  const Color(0xFF84cc16).withValues(alpha: 0.3),
-                  const Color(0xFF84cc16).withValues(alpha: 0.0),
+                  AppTheme.stitchGreenVivid.withValues(alpha: 0.3),
+                  AppTheme.stitchGreenVivid.withValues(alpha: 0.0),
                 ],
               ),
             ),
@@ -551,8 +555,8 @@ class _PeseeTrackingScreenState extends State<PeseeTrackingScreen> {
                   decoration: BoxDecoration(
                     color: isActive
                         ? (isDark
-                              ? const Color(0xFF84cc16).withValues(alpha: 0.9)
-                              : const Color(0xFF84cc16))
+                              ? AppTheme.stitchGreenVivid.withValues(alpha: 0.9)
+                              : AppTheme.stitchGreenVivid)
                         : surfaceColor,
                     borderRadius: BorderRadius.circular(20),
                     border: isActive
@@ -578,7 +582,9 @@ class _PeseeTrackingScreenState extends State<PeseeTrackingScreen> {
                       period,
                       style: TextStyle(
                         color: isActive
-                            ? (isDark ? Colors.black : AppTheme.cardLight)
+                            ? (isDark
+                                  ? AppTheme.textPrimary
+                                  : AppTheme.cardLight)
                             : textSub,
                         fontSize: 12,
                         fontWeight: isActive
@@ -631,8 +637,8 @@ class _PeseeTrackingScreenState extends State<PeseeTrackingScreen> {
                     'Export CSV',
                     style: TextStyle(
                       color: isDark
-                          ? const Color(0xFFD9F99D)
-                          : const Color(0xFF84cc16),
+                          ? AppTheme.santeGreenLight
+                          : AppTheme.stitchGreenVivid,
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
                     ),
@@ -694,7 +700,7 @@ class _PeseeTrackingScreenState extends State<PeseeTrackingScreen> {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0 : 0.04),
+            color: AppTheme.textPrimary.withValues(alpha: isDark ? 0 : 0.04),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -709,7 +715,9 @@ class _PeseeTrackingScreenState extends State<PeseeTrackingScreen> {
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF32342a) : const Color(0xFFEFF1EA),
+              color: isDark
+                  ? AppTheme.santeChartAltDark
+                  : AppTheme.santeChartLight,
               shape: BoxShape.circle,
             ),
             child: Icon(Icons.calendar_today, size: 20, color: textSub),
@@ -737,45 +745,46 @@ class _PeseeTrackingScreenState extends State<PeseeTrackingScreen> {
               ],
             ),
           ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(
-                '${pesee.poids.toStringAsFixed(2)} kg',
-                style: TextStyle(
-                  color: textMain,
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 2),
-              if (diff != null)
+          Flexible(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
                 Text(
-                  '${diff > 0 ? '+' : ''}${diff.toStringAsFixed(2)} kg',
+                  '${pesee.poids.toStringAsFixed(2)} kg',
                   style: TextStyle(
-                    color: diff > 0
-                        ? (isDark
-                              ? const Color(0xFF4ade80)
-                              : const Color(0xFF16a34a))
-                        : (isDark
-                              ? const Color(0xFFef4444)
-                              : const Color(0xFFdc2626)),
-                    fontSize: 12,
+                    color: textMain,
+                    fontSize: 16,
                     fontWeight: FontWeight.bold,
                   ),
-                )
-              else
-                Text(
-                  '--',
-                  style: TextStyle(
-                    color: isDark
-                        ? const Color(0xFF6B7280)
-                        : const Color(0xFF9CA3AF),
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  overflow: TextOverflow.ellipsis,
                 ),
-            ],
+                const SizedBox(height: 2),
+                if (diff != null)
+                  Text(
+                    '${diff > 0 ? '+' : ''}${diff.toStringAsFixed(2)} kg',
+                    style: TextStyle(
+                      color: diff > 0
+                          ? (isDark
+                                ? AppTheme.santeGreen400
+                                : AppTheme.santeGreen600)
+                          : (isDark
+                                ? AppTheme.santeError
+                                : AppTheme.santeErrorAlt),
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  )
+                else
+                  Text(
+                    '--',
+                    style: TextStyle(
+                      color: isDark ? AppTheme.grey600 : AppTheme.grey500,
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+              ],
+            ),
           ),
         ],
       ),
@@ -787,13 +796,13 @@ class _PeseeTrackingScreenState extends State<PeseeTrackingScreen> {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(32),
         gradient: const LinearGradient(
-          colors: [Color(0xFF84cc16), Color(0xFF65a30d)],
+          colors: [AppTheme.stitchGreenVivid, Color(0xFF65a30d)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF84cc16).withValues(alpha: 0.4),
+            color: AppTheme.stitchGreenVivid.withValues(alpha: 0.4),
             blurRadius: 16,
             offset: const Offset(0, 4),
           ),
@@ -813,12 +822,12 @@ class _PeseeTrackingScreenState extends State<PeseeTrackingScreen> {
         icon: Icon(
           Icons.add,
           size: 26,
-          color: isDark ? Colors.black : AppTheme.cardLight,
+          color: isDark ? AppTheme.textPrimary : AppTheme.cardLight,
         ),
         label: Text(
           'Add Weight',
           style: TextStyle(
-            color: isDark ? Colors.black : AppTheme.cardLight,
+            color: isDark ? AppTheme.textPrimary : AppTheme.cardLight,
             fontSize: 16,
             fontWeight: FontWeight.bold,
           ),

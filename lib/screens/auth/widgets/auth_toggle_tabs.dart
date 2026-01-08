@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../theme/app_theme.dart';
 
 /// Widget pour le toggle Sign In / Sign Up
 /// Gère l'état actif/inactif des deux onglets
@@ -19,7 +20,7 @@ class AuthToggleTabs extends StatelessWidget {
     return Container(
       height: 48,
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1a2e1c) : const Color(0xFFe8ece8),
+        color: isDark ? AppTheme.surfaceDarkForest : AppTheme.surfaceLightGrey,
         borderRadius: BorderRadius.circular(8),
       ),
       padding: const EdgeInsets.all(4),
@@ -32,13 +33,15 @@ class AuthToggleTabs extends StatelessWidget {
               child: Container(
                 decoration: BoxDecoration(
                   color: !isSignUp
-                      ? (isDark ? const Color(0xFF2a4e2d) : Colors.white)
+                      ? (isDark
+                            ? AppTheme.stitchSurfaceDarkElevated
+                            : AppTheme.textOnPrimary)
                       : Colors.transparent,
                   borderRadius: BorderRadius.circular(4),
                   boxShadow: !isSignUp
                       ? [
                           BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.05),
+                            color: AppTheme.textPrimary.withValues(alpha: 0.05),
                             blurRadius: 2,
                             offset: const Offset(0, 1),
                           ),
@@ -53,11 +56,11 @@ class AuthToggleTabs extends StatelessWidget {
                       fontWeight: FontWeight.bold,
                       color: !isSignUp
                           ? (isDark
-                              ? Colors.white
-                              : const Color(0xFF102212))
+                                ? AppTheme.textOnPrimary
+                                : AppTheme.authDark)
                           : (isDark
-                              ? Colors.grey.shade400
-                              : Colors.grey.shade500),
+                                ? AppTheme.neutral400
+                                : AppTheme.neutral500),
                     ),
                   ),
                 ),
@@ -71,13 +74,15 @@ class AuthToggleTabs extends StatelessWidget {
               child: Container(
                 decoration: BoxDecoration(
                   color: isSignUp
-                      ? (isDark ? const Color(0xFF2a4e2d) : Colors.white)
+                      ? (isDark
+                            ? AppTheme.stitchSurfaceDarkElevated
+                            : AppTheme.textOnPrimary)
                       : Colors.transparent,
                   borderRadius: BorderRadius.circular(4),
                   boxShadow: isSignUp
                       ? [
                           BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.05),
+                            color: AppTheme.textPrimary.withValues(alpha: 0.05),
                             blurRadius: 2,
                             offset: const Offset(0, 1),
                           ),
@@ -92,11 +97,11 @@ class AuthToggleTabs extends StatelessWidget {
                       fontWeight: FontWeight.bold,
                       color: isSignUp
                           ? (isDark
-                              ? Colors.white
-                              : const Color(0xFF102212))
+                                ? AppTheme.textOnPrimary
+                                : AppTheme.authDark)
                           : (isDark
-                              ? Colors.grey.shade400
-                              : Colors.grey.shade500),
+                                ? AppTheme.neutral400
+                                : AppTheme.neutral500),
                     ),
                   ),
                 ),
@@ -108,4 +113,3 @@ class AuthToggleTabs extends StatelessWidget {
     );
   }
 }
-

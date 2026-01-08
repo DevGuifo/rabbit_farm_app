@@ -37,7 +37,7 @@ class ScheduledTreatmentsSection extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Text(
-            'Scheduled Treatments',
+            'Traitements planifiés',
             style: AppTheme.titleMedium.copyWith(color: textPrimary),
           ),
         ),
@@ -63,7 +63,7 @@ class ScheduledTreatmentsSection extends StatelessWidget {
                 padding: const EdgeInsets.all(32),
                 child: Center(
                   child: Text(
-                    'No scheduled treatments',
+                    'Aucun traitement planifié',
                     style: TextStyle(color: textSecondary),
                   ),
                 ),

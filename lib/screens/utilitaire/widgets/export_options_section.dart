@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../theme/app_theme.dart';
 
 class ExportOptionsSection extends StatelessWidget {
@@ -22,37 +23,40 @@ class ExportOptionsSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('EXPORT DES DONNÉES', style: AppTheme.titleMedium),
+        Text(
+          AppLocalizations.of(context).exportDonnees,
+          style: AppTheme.titleMedium,
+        ),
         const SizedBox(height: 16),
         _buildExportCard(
-          title: 'Sauvegarde complète',
+          title: AppLocalizations.of(context).titleSauvegardeComplete,
           description: 'Base de données SQLite + toutes les photos',
           icon: Icons.backup,
-          color: Colors.blue,
+          color: AppTheme.info,
           onTap: isExporting ? null : onExportDatabase,
         ),
         const SizedBox(height: 12),
         _buildExportCard(
-          title: 'Export Excel',
+          title: AppLocalizations.of(context).titleExportExcel,
           description: 'Tableaux Excel par table (lapins, accouplements, etc.)',
           icon: Icons.table_chart,
-          color: Colors.green,
+          color: AppTheme.success,
           onTap: isExporting ? null : onExportExcel,
         ),
         const SizedBox(height: 12),
         _buildExportCard(
-          title: 'Export JSON',
+          title: AppLocalizations.of(context).titleExportJSON,
           description: 'Format JSON pour API ou développeurs',
           icon: Icons.code,
-          color: Colors.orange,
+          color: AppTheme.warning,
           onTap: isExporting ? null : onExportJson,
         ),
         const SizedBox(height: 12),
         _buildExportCard(
-          title: 'Export CSV',
+          title: AppLocalizations.of(context).titleExportCSV,
           description: 'Format CSV pour tableurs (Excel, LibreOffice)',
           icon: Icons.grid_on,
-          color: Colors.teal,
+          color: AppTheme.accentAmber,
           onTap: isExporting ? null : onExportCsv,
         ),
       ],
@@ -92,14 +96,19 @@ class ExportOptionsSection extends StatelessWidget {
                     const SizedBox(height: 4),
                     Text(
                       description,
-                      style: TextStyle(fontSize: 13, color: Colors.grey[600]),
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: AppTheme.textSecondary,
+                      ),
                     ),
                   ],
                 ),
               ),
               Icon(
                 Icons.arrow_forward_ios,
-                color: onTap == null ? Colors.grey[300] : Colors.grey[400],
+                color: onTap == null
+                    ? AppTheme.neutral200
+                    : AppTheme.neutral300,
                 size: 16,
               ),
             ],

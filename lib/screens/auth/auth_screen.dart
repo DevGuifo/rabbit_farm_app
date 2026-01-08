@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../l10n/app_localizations.dart';
 import '../../theme/app_theme.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/connectivity_provider.dart';
@@ -18,10 +19,7 @@ class AuthScreen extends StatefulWidget {
   /// Mode initial : true pour Sign Up, false pour Sign In
   final bool initialIsSignUp;
 
-  const AuthScreen({
-    super.key,
-    this.initialIsSignUp = true,
-  });
+  const AuthScreen({super.key, this.initialIsSignUp = true});
 
   @override
   State<AuthScreen> createState() => _AuthScreenState();
@@ -74,9 +72,9 @@ class _AuthScreenState extends State<AuthScreen> {
           _passwordController.text.isEmpty ||
           _confirmPasswordController.text.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Veuillez remplir tous les champs'),
-            backgroundColor: Colors.red,
+          SnackBar(
+            content: Text(AppLocalizations.of(context).authRemplirChamps),
+            backgroundColor: AppTheme.error,
           ),
         );
         return;
@@ -84,9 +82,11 @@ class _AuthScreenState extends State<AuthScreen> {
 
       if (_passwordController.text != _confirmPasswordController.text) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Les mots de passe ne correspondent pas'),
-            backgroundColor: Colors.red,
+          SnackBar(
+            content: Text(
+              AppLocalizations.of(context).authMotsPasseNonCorrespondent,
+            ),
+            backgroundColor: AppTheme.error,
           ),
         );
         return;
@@ -94,9 +94,11 @@ class _AuthScreenState extends State<AuthScreen> {
 
       if (_passwordController.text.length < 6) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Le mot de passe doit contenir au moins 6 caractères'),
-            backgroundColor: Colors.red,
+          SnackBar(
+            content: Text(
+              AppLocalizations.of(context).authMotPasseMinCaracteres,
+            ),
+            backgroundColor: AppTheme.error,
           ),
         );
         return;
@@ -109,9 +111,7 @@ class _AuthScreenState extends State<AuthScreen> {
       showDialog(
         context: context,
         barrierDismissible: false,
-        builder: (context) => const Center(
-          child: CircularProgressIndicator(),
-        ),
+        builder: (context) => const Center(child: CircularProgressIndicator()),
       );
 
       // Inscription
@@ -132,9 +132,10 @@ class _AuthScreenState extends State<AuthScreen> {
           PageRouteBuilder(
             pageBuilder: (context, animation, secondaryAnimation) =>
                 const PinSetupScreen(),
-            transitionsBuilder: (context, animation, secondaryAnimation, child) {
-              return FadeTransition(opacity: animation, child: child);
-            },
+            transitionsBuilder:
+                (context, animation, secondaryAnimation, child) {
+                  return FadeTransition(opacity: animation, child: child);
+                },
             transitionDuration: const Duration(milliseconds: 300),
           ),
         );
@@ -144,9 +145,10 @@ class _AuthScreenState extends State<AuthScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              authProvider.errorMessage ?? 'Erreur lors de l\'inscription',
+              authProvider.errorMessage ??
+                  AppLocalizations.of(context).authErreurInscription,
             ),
-            backgroundColor: Colors.red,
+            backgroundColor: AppTheme.error,
           ),
         );
       }
@@ -154,9 +156,9 @@ class _AuthScreenState extends State<AuthScreen> {
       // Sign In
       if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Veuillez remplir tous les champs'),
-            backgroundColor: Colors.red,
+          SnackBar(
+            content: Text(AppLocalizations.of(context).authRemplirChamps),
+            backgroundColor: AppTheme.error,
           ),
         );
         return;
@@ -169,9 +171,7 @@ class _AuthScreenState extends State<AuthScreen> {
       showDialog(
         context: context,
         barrierDismissible: false,
-        builder: (context) => const Center(
-          child: CircularProgressIndicator(),
-        ),
+        builder: (context) => const Center(child: CircularProgressIndicator()),
       );
 
       // Connexion
@@ -198,8 +198,8 @@ class _AuthScreenState extends State<AuthScreen> {
                   const HomeScreen(),
               transitionsBuilder:
                   (context, animation, secondaryAnimation, child) {
-                return FadeTransition(opacity: animation, child: child);
-              },
+                    return FadeTransition(opacity: animation, child: child);
+                  },
               transitionDuration: const Duration(milliseconds: 300),
             ),
           );
@@ -212,8 +212,8 @@ class _AuthScreenState extends State<AuthScreen> {
                   const PinSetupScreen(),
               transitionsBuilder:
                   (context, animation, secondaryAnimation, child) {
-                return FadeTransition(opacity: animation, child: child);
-              },
+                    return FadeTransition(opacity: animation, child: child);
+                  },
               transitionDuration: const Duration(milliseconds: 300),
             ),
           );
@@ -224,9 +224,10 @@ class _AuthScreenState extends State<AuthScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              authProvider.errorMessage ?? 'Erreur lors de la connexion',
+              authProvider.errorMessage ??
+                  AppLocalizations.of(context).authErreurConnexion,
             ),
-            backgroundColor: Colors.red,
+            backgroundColor: AppTheme.error,
           ),
         );
       }
@@ -237,9 +238,9 @@ class _AuthScreenState extends State<AuthScreen> {
     // Google Sign In nécessite une configuration supplémentaire (google_sign_in package)
     // Pour l'instant, désactivé - sera implémenté dans une version future
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Google Sign In sera disponible dans une prochaine version'),
-        backgroundColor: Colors.blue,
+      SnackBar(
+        content: Text(AppLocalizations.of(context).authGoogleProchainement),
+        backgroundColor: AppTheme.info,
       ),
     );
   }
@@ -248,9 +249,9 @@ class _AuthScreenState extends State<AuthScreen> {
     // Apple Sign In nécessite une configuration supplémentaire (sign_in_with_apple package)
     // Pour l'instant, désactivé - sera implémenté dans une version future
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Apple Sign In sera disponible dans une prochaine version'),
-        backgroundColor: Colors.blue,
+      SnackBar(
+        content: Text(AppLocalizations.of(context).authAppleProchainement),
+        backgroundColor: AppTheme.info,
       ),
     );
   }
@@ -259,38 +260,40 @@ class _AuthScreenState extends State<AuthScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Conditions d\'utilisation'),
+        title: Text(AppLocalizations.of(context).authConditionsUtilisation),
         content: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                'En utilisant cette application, vous acceptez les conditions suivantes :',
-                style: TextStyle(fontWeight: FontWeight.bold),
+              Text(
+                AppLocalizations.of(context).authConditionsIntro,
+                style: const TextStyle(fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 16),
-              const Text(
-                '1. Utilisation :',
-                style: TextStyle(fontWeight: FontWeight.bold),
+              Text(
+                AppLocalizations.of(context).authConditionsUtilisationTitre,
+                style: const TextStyle(fontWeight: FontWeight.bold),
               ),
-              const Text('L\'application est destinée à la gestion d\'élevage de lapins.'),
+              Text(AppLocalizations.of(context).authConditionsUtilisationTexte),
               const SizedBox(height: 8),
-              const Text(
-                '2. Données :',
-                style: TextStyle(fontWeight: FontWeight.bold),
+              Text(
+                AppLocalizations.of(context).authConditionsDonneesTitre,
+                style: const TextStyle(fontWeight: FontWeight.bold),
               ),
-              const Text('Vous êtes responsable de la sauvegarde de vos données.'),
+              Text(AppLocalizations.of(context).authConditionsDonneesTexte),
               const SizedBox(height: 8),
-              const Text(
-                '3. Responsabilité :',
-                style: TextStyle(fontWeight: FontWeight.bold),
+              Text(
+                AppLocalizations.of(context).authConditionsResponsabiliteTitre,
+                style: const TextStyle(fontWeight: FontWeight.bold),
               ),
-              const Text('L\'application est fournie "en l\'état" sans garantie.'),
+              Text(
+                AppLocalizations.of(context).authConditionsResponsabiliteTexte,
+              ),
               const SizedBox(height: 16),
-              const Text(
-                'Pour les conditions complètes, contactez le support.',
-                style: TextStyle(fontStyle: FontStyle.italic),
+              Text(
+                AppLocalizations.of(context).authConditionsContact,
+                style: const TextStyle(fontStyle: FontStyle.italic),
               ),
             ],
           ),
@@ -298,7 +301,7 @@ class _AuthScreenState extends State<AuthScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Fermer'),
+            child: Text(AppLocalizations.of(context).authFermer),
           ),
         ],
       ),
@@ -309,46 +312,46 @@ class _AuthScreenState extends State<AuthScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Politique de confidentialité'),
+        title: Text(AppLocalizations.of(context).authPolitiqueConfidentialite),
         content: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                'Votre vie privée est importante pour nous.',
-                style: TextStyle(fontWeight: FontWeight.bold),
+              Text(
+                AppLocalizations.of(context).authPrivacyIntro,
+                style: const TextStyle(fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 16),
-              const Text(
-                'Données collectées :',
-                style: TextStyle(fontWeight: FontWeight.bold),
+              Text(
+                AppLocalizations.of(context).authPrivacyDonneesCollecteesTitre,
+                style: const TextStyle(fontWeight: FontWeight.bold),
               ),
-              const Text('• Données d\'élevage (lapins, reproductions, santé)'),
-              const Text('• Données financières (recettes, dépenses)'),
-              const Text('• Photos des animaux'),
+              Text(AppLocalizations.of(context).authPrivacyDonneesElevage),
+              Text(AppLocalizations.of(context).authPrivacyDonneesFinancieres),
+              Text(AppLocalizations.of(context).authPrivacyPhotos),
               const SizedBox(height: 16),
-              const Text(
-                'Stockage :',
-                style: TextStyle(fontWeight: FontWeight.bold),
+              Text(
+                AppLocalizations.of(context).authPrivacyStockageTitre,
+                style: const TextStyle(fontWeight: FontWeight.bold),
               ),
-              const Text('• Données stockées localement sur votre appareil'),
-              const Text('• Synchronisation optionnelle avec Supabase (chiffrée)'),
+              Text(AppLocalizations.of(context).authPrivacyStockageLocal),
+              Text(AppLocalizations.of(context).authPrivacySyncSupabase),
               const SizedBox(height: 16),
-              const Text(
-                'Sécurité :',
-                style: TextStyle(fontWeight: FontWeight.bold),
+              Text(
+                AppLocalizations.of(context).authPrivacySecuriteTitre,
+                style: const TextStyle(fontWeight: FontWeight.bold),
               ),
-              const Text('• Authentification sécurisée (Supabase)'),
-              const Text('• PIN local pour accès offline'),
-              const Text('• Chiffrement des données sensibles'),
+              Text(AppLocalizations.of(context).authPrivacyAuthSecurisee),
+              Text(AppLocalizations.of(context).authPrivacyPINLocal),
+              Text(AppLocalizations.of(context).authPrivacyChiffrement),
             ],
           ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Fermer'),
+            child: Text(AppLocalizations.of(context).authFermer),
           ),
         ],
       ),
@@ -357,24 +360,27 @@ class _AuthScreenState extends State<AuthScreen> {
 
   void _handleForgotPassword() {
     final emailController = TextEditingController();
-    
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Réinitialiser le mot de passe'),
+        title: Text(
+          AppLocalizations.of(context).authReinitialisationMotDePasse,
+        ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text(
-              'Entrez votre adresse email pour recevoir un lien de réinitialisation.',
+            Text(
+              AppLocalizations.of(
+                context,
+              ).authReinitialisationEmailInstructions,
             ),
             const SizedBox(height: 16),
             TextField(
               controller: emailController,
-              decoration: const InputDecoration(
-                labelText: 'Email',
-                hintText: 'votre@email.com',
-                border: OutlineInputBorder(),
+              decoration: AppTheme.inputDecoration(
+                label: AppLocalizations.of(context).authEmail,
+                hint: 'votre@email.com',
               ),
               keyboardType: TextInputType.emailAddress,
             ),
@@ -383,18 +389,18 @@ class _AuthScreenState extends State<AuthScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Annuler'),
+            child: Text(AppLocalizations.of(context).annuler),
           ),
           TextButton(
             onPressed: () async {
               final email = emailController.text.trim();
-              
+
               if (email.isEmpty || !email.contains('@')) {
                 if (!context.mounted) return;
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
                     content: Text('Veuillez entrer une adresse email valide'),
-                    backgroundColor: Colors.orange,
+                    backgroundColor: AppTheme.warning,
                   ),
                 );
                 return;
@@ -407,9 +413,8 @@ class _AuthScreenState extends State<AuthScreen> {
               showDialog(
                 context: context,
                 barrierDismissible: false,
-                builder: (context) => const Center(
-                  child: CircularProgressIndicator(),
-                ),
+                builder: (context) =>
+                    const Center(child: CircularProgressIndicator()),
               );
 
               try {
@@ -424,7 +429,7 @@ class _AuthScreenState extends State<AuthScreen> {
                     content: Text(
                       'Email de réinitialisation envoyé. Vérifiez votre boîte de réception.',
                     ),
-                    backgroundColor: Colors.green,
+                    backgroundColor: AppTheme.success,
                     duration: Duration(seconds: 5),
                   ),
                 );
@@ -435,7 +440,7 @@ class _AuthScreenState extends State<AuthScreen> {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text('Erreur: ${e.toString()}'),
-                    backgroundColor: Colors.red,
+                    backgroundColor: AppTheme.error,
                   ),
                 );
               }
@@ -469,20 +474,16 @@ class _AuthScreenState extends State<AuthScreen> {
                   margin: const EdgeInsets.all(16),
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: Colors.orange.withValues(alpha: 0.1),
+                    color: AppTheme.warning.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                      color: Colors.orange.withValues(alpha: 0.3),
+                      color: AppTheme.warning.withValues(alpha: 0.3),
                       width: 1,
                     ),
                   ),
                   child: Row(
                     children: [
-                      Icon(
-                        Icons.wifi_off,
-                        color: Colors.orange,
-                        size: 24,
-                      ),
+                      Icon(Icons.wifi_off, color: AppTheme.warning, size: 24),
                       const SizedBox(width: 12),
                       Expanded(
                         child: Column(
@@ -490,20 +491,20 @@ class _AuthScreenState extends State<AuthScreen> {
                           children: [
                             Text(
                               'Mode hors ligne',
-                              style: TextStyle(
+                              style: AppTheme.bodyMedium.copyWith(
                                 fontWeight: FontWeight.bold,
-                                color: isDark ? Colors.white : Colors.black87,
-                                fontSize: 14,
+                                color: isDark
+                                    ? AppTheme.textLight
+                                    : AppTheme.textPrimary,
                               ),
                             ),
                             const SizedBox(height: 4),
                             Text(
                               'Une connexion Internet est requise pour créer un compte ou vous connecter pour la première fois.',
-                              style: TextStyle(
+                              style: AppTheme.bodySmall.copyWith(
                                 color: isDark
-                                    ? Colors.white70
-                                    : Colors.black54,
-                                fontSize: 12,
+                                    ? AppTheme.textSecondary
+                                    : AppTheme.textTertiary,
                               ),
                             ),
                           ],
@@ -522,12 +523,15 @@ class _AuthScreenState extends State<AuthScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      _isSignUp ? 'Join the\nCommunity' : 'Welcome to\nthe Hutch',
-                      style: TextStyle(
-                        fontSize: 30,
+                      _isSignUp
+                          ? 'Join the\nCommunity'
+                          : 'Welcome to\nthe Hutch',
+                      style: AppTheme.displayLarge.copyWith(
                         fontWeight: FontWeight.w800,
                         height: 1.2,
-                        color: isDark ? Colors.white : const Color(0xFF111812),
+                        color: isDark
+                            ? AppTheme.textLight
+                            : AppTheme.textPrimary,
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -535,12 +539,11 @@ class _AuthScreenState extends State<AuthScreen> {
                       _isSignUp
                           ? 'Start your digital hutch today.'
                           : 'Manage your breeding program with ease.',
-                      style: TextStyle(
-                        fontSize: 14,
+                      style: AppTheme.bodyMedium.copyWith(
                         fontWeight: FontWeight.w500,
                         color: isDark
-                            ? Colors.grey.shade400
-                            : Colors.grey.shade500,
+                            ? AppTheme.neutral400
+                            : AppTheme.neutral500,
                       ),
                     ),
                   ],
@@ -549,7 +552,10 @@ class _AuthScreenState extends State<AuthScreen> {
 
               // Toggle Sign In / Sign Up
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 16,
+                ),
                 child: AuthToggleTabs(
                   isSignUp: _isSignUp,
                   onToggle: _handleToggle,
@@ -561,12 +567,12 @@ class _AuthScreenState extends State<AuthScreen> {
                 padding: const EdgeInsets.symmetric(horizontal: 24),
                 child: AuthFormFields(
                   isSignUp: _isSignUp,
-                  fullNameController:
-                      _isSignUp ? _fullNameController : null,
+                  fullNameController: _isSignUp ? _fullNameController : null,
                   emailController: _emailController,
                   passwordController: _passwordController,
-                  confirmPasswordController:
-                      _isSignUp ? _confirmPasswordController : null,
+                  confirmPasswordController: _isSignUp
+                      ? _confirmPasswordController
+                      : null,
                   onForgotPassword: _isSignUp
                       ? null
                       : () => _handleForgotPassword(),
@@ -583,10 +589,11 @@ class _AuthScreenState extends State<AuthScreen> {
                     onPressed: _handleSignUp,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppTheme.primaryNeonGreen,
-                      foregroundColor: const Color(0xFF052e0a),
+                      foregroundColor: AppTheme.authPrimary,
                       elevation: 0,
-                      shadowColor:
-                          AppTheme.primaryNeonGreen.withValues(alpha: 0.2),
+                      shadowColor: AppTheme.primaryNeonGreen.withValues(
+                        alpha: 0.2,
+                      ),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
                       ),
@@ -599,14 +606,14 @@ class _AuthScreenState extends State<AuthScreen> {
                           style: const TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.w800,
-                            color: Color(0xFF052e0a),
+                            color: AppTheme.authPrimary,
                           ),
                         ),
                         const SizedBox(width: 8),
                         const Icon(
                           Icons.arrow_forward,
                           size: 20,
-                          color: Color(0xFF052e0a),
+                          color: AppTheme.authPrimary,
                         ),
                       ],
                     ),
@@ -643,4 +650,3 @@ class _AuthScreenState extends State<AuthScreen> {
     );
   }
 }
-

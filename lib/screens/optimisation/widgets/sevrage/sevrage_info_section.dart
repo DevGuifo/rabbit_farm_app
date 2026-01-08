@@ -18,12 +18,12 @@ class SevrageInfoSection extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppTheme.textOnPrimary,
         borderRadius: BorderRadius.circular(8),
         border: Border.all(color: AppTheme.border),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
+            color: AppTheme.textPrimary.withValues(alpha: 0.04),
             blurRadius: 4,
             offset: const Offset(0, 1),
           ),
@@ -48,7 +48,7 @@ class SevrageInfoSection extends StatelessWidget {
                   Icons.pets,
                   'Mère',
                   mere.nom,
-                  Colors.pink,
+                  AppTheme.accentPink,
                 ),
               ),
               Expanded(
@@ -56,7 +56,7 @@ class SevrageInfoSection extends StatelessWidget {
                   Icons.baby_changing_station,
                   'Nés',
                   '${portee.nombreNes}',
-                  Colors.blue,
+                  AppTheme.info,
                 ),
               ),
             ],
@@ -69,7 +69,7 @@ class SevrageInfoSection extends StatelessWidget {
                   Icons.check_circle,
                   'Vivants',
                   '${portee.nombreVivants}',
-                  Colors.green,
+                  AppTheme.success,
                 ),
               ),
               Expanded(
@@ -77,7 +77,7 @@ class SevrageInfoSection extends StatelessWidget {
                   Icons.show_chart,
                   'Survie',
                   '${portee.tauxSurvie.toStringAsFixed(0)}%',
-                  Colors.orange,
+                  AppTheme.warning,
                 ),
               ),
             ],
@@ -99,13 +99,13 @@ class SevrageInfoSection extends StatelessWidget {
         const SizedBox(height: 6),
         Text(
           label,
-          style: AppTheme.bodyMedium.copyWith(color: Colors.white60, fontSize: 12),
+          style: AppTheme.bodyMedium.copyWith(color: AppTheme.textOnPrimary60, fontSize: 12),
         ),
         const SizedBox(height: 4),
         Text(
           value,
           style: AppTheme.bodyMedium.copyWith(
-            color: Colors.white,
+            color: AppTheme.textOnPrimary,
             fontSize: 16,
             fontWeight: FontWeight.bold,
           ),

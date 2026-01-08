@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:intl/intl.dart';
+import '../../l10n/app_localizations.dart';
 import '../../providers/reproduction_provider.dart';
 import '../../providers/lapin_provider.dart';
 import '../../providers/sante_provider.dart';
@@ -9,6 +10,7 @@ import '../../models/lapin.dart';
 import '../../services/database_helper.dart';
 import '../../utils/logger.dart';
 import '../../theme/app_theme.dart';
+import '../../widgets/uniform_app_bar.dart';
 import '../cheptel/lapin_detail_screen.dart';
 
 class CalendrierScreen extends StatefulWidget {
@@ -187,10 +189,10 @@ class _CalendrierScreenState extends State<CalendrierScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Calendrier & Planning'),
-        backgroundColor: AppTheme.accentPink,
-        foregroundColor: AppTheme.textLight,
+      appBar: UniformAppBar(
+        title: AppLocalizations.of(context).utilCalendrierPlanning,
+        icon: Icons.calendar_month_rounded,
+        iconColor: AppTheme.accentPink,
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
@@ -263,7 +265,9 @@ class _CalendrierScreenState extends State<CalendrierScreen> {
 
   Widget _buildListeEvenements() {
     if (_selectedDay == null) {
-      return const Center(child: Text('Sélectionnez une date'));
+      return Center(
+        child: Text(AppLocalizations.of(context).utilSelectionnezDate),
+      );
     }
 
     final evenements = _getEvenementsForDay(_selectedDay!);
@@ -506,7 +510,7 @@ class _CalendrierScreenState extends State<CalendrierScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Fermer'),
+            child: Text(AppLocalizations.of(context).fermer),
           ),
           if (evenement.lapinId != null)
             ElevatedButton.icon(
@@ -529,18 +533,19 @@ class _CalendrierScreenState extends State<CalendrierScreen> {
                   );
                 } else {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Lapin introuvable'),
+                    SnackBar(
+                      content: Text(
+                        AppLocalizations.of(context).utilLapinIntrouvable,
+                      ),
                       backgroundColor: AppTheme.error,
                     ),
                   );
                 }
               },
               icon: const Icon(Icons.pets),
-              label: const Text('Voir lapin'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppTheme.accentPink,
-                foregroundColor: AppTheme.textLight,
+              label: Text(AppLocalizations.of(context).voirLapin),
+              style: AppTheme.primaryButtonStyle.copyWith(
+                backgroundColor: WidgetStateProperty.all(AppTheme.accentPink),
               ),
             ),
         ],
@@ -565,7 +570,7 @@ class _CalendrierScreenState extends State<CalendrierScreen> {
             children: [
               Icon(Icons.event_note, color: Theme.of(context).primaryColor),
               const SizedBox(width: 12),
-              const Text('Nouvel événement'),
+              Text(AppLocalizations.of(context).nouvelEvenement),
             ],
           ),
           content: SingleChildScrollView(
@@ -576,13 +581,10 @@ class _CalendrierScreenState extends State<CalendrierScreen> {
                 // Titre
                 TextField(
                   controller: titreController,
-                  decoration: InputDecoration(
-                    labelText: 'Titre *',
-                    hintText: 'Ex: Vaccination lapins, Nettoyage...',
-                    prefixIcon: const Icon(Icons.title),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
+                  decoration: AppTheme.inputDecoration(
+                    label: AppLocalizations.of(context).labelTitre,
+                    hint: 'Ex: Vaccination lapins, Nettoyage...',
+                    prefixIcon: Icons.title,
                   ),
                   textCapitalization: TextCapitalization.sentences,
                   maxLength: 50,
@@ -592,13 +594,10 @@ class _CalendrierScreenState extends State<CalendrierScreen> {
                 // Description
                 TextField(
                   controller: descriptionController,
-                  decoration: InputDecoration(
-                    labelText: 'Description',
-                    hintText: 'Détails optionnels...',
-                    prefixIcon: const Icon(Icons.description),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
+                  decoration: AppTheme.inputDecoration(
+                    label: AppLocalizations.of(context).labelDescriptionOpt,
+                    hint: 'Détails optionnels...',
+                    prefixIcon: Icons.description,
                   ),
                   maxLines: 3,
                   maxLength: 200,
@@ -608,29 +607,35 @@ class _CalendrierScreenState extends State<CalendrierScreen> {
                 // Catégorie
                 DropdownButtonFormField<String>(
                   initialValue: categorieSelectionnee,
-                  decoration: InputDecoration(
-                    labelText: 'Catégorie',
-                    prefixIcon: const Icon(Icons.category),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
+                  decoration: AppTheme.inputDecoration(
+                    label: AppLocalizations.of(context).labelCategorie,
+                    prefixIcon: Icons.category,
                   ),
-                  items: const [
-                    DropdownMenuItem(value: 'Tâche', child: Text('🔨 Tâche')),
-                    DropdownMenuItem(value: 'Rappel', child: Text('⏰ Rappel')),
+                  items: [
+                    DropdownMenuItem(
+                      value: 'Tâche',
+                      child: Text(AppLocalizations.of(context).utilTache),
+                    ),
+                    DropdownMenuItem(
+                      value: 'Rappel',
+                      child: Text(AppLocalizations.of(context).utilRappel),
+                    ),
                     DropdownMenuItem(
                       value: 'Rendez-vous',
-                      child: Text('📅 Rendez-vous'),
+                      child: Text(AppLocalizations.of(context).utilRendezVous),
                     ),
                     DropdownMenuItem(
                       value: 'Maintenance',
-                      child: Text('🔧 Maintenance'),
+                      child: Text(AppLocalizations.of(context).utilMaintenance),
                     ),
                     DropdownMenuItem(
                       value: 'Contrôle',
-                      child: Text('✅ Contrôle'),
+                      child: Text(AppLocalizations.of(context).utilControle),
                     ),
-                    DropdownMenuItem(value: 'Autre', child: Text('📝 Autre')),
+                    DropdownMenuItem(
+                      value: 'Autre',
+                      child: Text(AppLocalizations.of(context).utilAutre),
+                    ),
                   ],
                   onChanged: (value) {
                     setStateDialog(() => categorieSelectionnee = value!);
@@ -645,7 +650,7 @@ class _CalendrierScreenState extends State<CalendrierScreen> {
                     Icons.calendar_today,
                     color: Theme.of(context).primaryColor,
                   ),
-                  title: const Text('Date'),
+                  title: Text(AppLocalizations.of(context).date),
                   subtitle: Text(
                     DateFormat('dd/MM/yyyy').format(dateSelectionnee),
                   ),
@@ -672,7 +677,7 @@ class _CalendrierScreenState extends State<CalendrierScreen> {
                     Icons.access_time,
                     color: Theme.of(context).primaryColor,
                   ),
-                  title: const Text('Heure (optionnel)'),
+                  title: Text(AppLocalizations.of(context).heureOptionnel),
                   subtitle: Text(
                     heureSelectionnee != null
                         ? heureSelectionnee!.format(context)
@@ -701,8 +706,8 @@ class _CalendrierScreenState extends State<CalendrierScreen> {
                 // Options
                 SwitchListTile(
                   contentPadding: EdgeInsets.zero,
-                  title: const Text('Important'),
-                  subtitle: const Text('Mettre en évidence'),
+                  title: Text(AppLocalizations.of(context).important),
+                  subtitle: Text(AppLocalizations.of(context).mettreEnEvidence),
                   secondary: Icon(
                     Icons.star,
                     color: important
@@ -716,8 +721,8 @@ class _CalendrierScreenState extends State<CalendrierScreen> {
                 ),
                 SwitchListTile(
                   contentPadding: EdgeInsets.zero,
-                  title: const Text('Notification'),
-                  subtitle: const Text('Recevoir un rappel'),
+                  title: Text(AppLocalizations.of(context).notification),
+                  subtitle: Text(AppLocalizations.of(context).recevoirRappel),
                   secondary: Icon(
                     Icons.notifications,
                     color: notificationActive
@@ -735,14 +740,18 @@ class _CalendrierScreenState extends State<CalendrierScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Annuler'),
+              child: Text(AppLocalizations.of(context).annuler),
             ),
             ElevatedButton.icon(
               onPressed: () async {
                 final titre = titreController.text.trim();
                 if (titre.isEmpty) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Le titre est requis')),
+                    SnackBar(
+                      content: Text(
+                        AppLocalizations.of(context).utilTitreRequis,
+                      ),
+                    ),
                   );
                   return;
                 }
@@ -780,7 +789,11 @@ class _CalendrierScreenState extends State<CalendrierScreen> {
                   Navigator.pop(context);
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text('✅ "$titre" ajouté au calendrier'),
+                      content: Text(
+                        AppLocalizations.of(
+                          context,
+                        ).utilAjouteCalendrier(titre),
+                      ),
                       backgroundColor: AppTheme.success,
                     ),
                   );
@@ -792,14 +805,16 @@ class _CalendrierScreenState extends State<CalendrierScreen> {
                   if (!context.mounted) return;
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text('❌ Erreur: $e'),
+                      content: Text(
+                        AppLocalizations.of(context).utilErreur(e.toString()),
+                      ),
                       backgroundColor: AppTheme.error,
                     ),
                   );
                 }
               },
               icon: const Icon(Icons.check),
-              label: const Text('Créer'),
+              label: Text(AppLocalizations.of(context).creer),
             ),
           ],
         ),

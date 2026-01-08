@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../../models/lapin.dart';
 import '../../../../models/soin.dart';
 import '../../../../providers/sante_provider.dart';
@@ -31,13 +32,14 @@ class ActiveTreatmentsSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Text(
-            'Active Treatments',
+            l10n.traitementsActifs,
             style: AppTheme.titleMedium.copyWith(color: textPrimary),
           ),
         ),
@@ -70,7 +72,7 @@ class ActiveTreatmentsSection extends StatelessWidget {
                 padding: const EdgeInsets.all(32),
                 child: Center(
                   child: Text(
-                    'No active treatments',
+                    'Aucun traitement actif',
                     style: TextStyle(color: textSecondary),
                   ),
                 ),

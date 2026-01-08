@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
+import '../../l10n/app_localizations.dart';
 import '../../providers/lapin_provider.dart';
 import '../../providers/sante_provider.dart';
 import '../../models/lapin.dart';
 import '../../models/pesee.dart';
 import '../../theme/app_theme.dart';
+import '../../widgets/uniform_app_bar.dart';
 
 /// Écran d'affichage des courbes de croissance
 class CourbesCroissanceScreen extends StatefulWidget {
@@ -24,8 +26,10 @@ class _CourbesCroissanceScreenState extends State<CourbesCroissanceScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Courbes de croissance'),
+      appBar: UniformAppBar(
+        title: AppLocalizations.of(context).screenCourbesCroissance,
+        icon: Icons.show_chart_rounded,
+        iconColor: AppTheme.info,
         actions: [
           IconButton(
             icon: const Icon(Icons.info_outline),
@@ -95,12 +99,10 @@ class _CourbesCroissanceScreenState extends State<CourbesCroissanceScreen> {
           const SizedBox(height: 8),
           DropdownButtonFormField<Lapin>(
             initialValue: _lapinSelectionne,
-            decoration: const InputDecoration(
-              filled: true,
-              fillColor: AppTheme.cardLight,
-              border: OutlineInputBorder(),
-              prefixIcon: Icon(Icons.pets),
-            ),
+            decoration: AppTheme.inputDecoration(
+              label: '',
+              prefixIcon: Icons.pets,
+            ).copyWith(filled: true, fillColor: AppTheme.cardLight),
             hint: const Text('Choisir un lapin...'),
             items: provider.lapins.map((lapin) {
               return DropdownMenuItem(
@@ -515,12 +517,20 @@ class _CourbesCroissanceScreenState extends State<CourbesCroissanceScreen> {
                   style: AppTheme.caption.copyWith(
                     color: AppTheme.textSecondary,
                   ),
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
             ],
           ),
           const SizedBox(height: 8),
-          Text(value, style: AppTheme.titleMedium.copyWith(color: color)),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: Text(
+              value,
+              style: AppTheme.titleMedium.copyWith(color: color),
+            ),
+          ),
         ],
       ),
     );
@@ -617,7 +627,7 @@ class _CourbesCroissanceScreenState extends State<CourbesCroissanceScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Note de la pesée'),
+        title: Text(AppLocalizations.of(context).titleNotePesee),
         content: Text(note),
         actions: [
           TextButton(
@@ -633,7 +643,7 @@ class _CourbesCroissanceScreenState extends State<CourbesCroissanceScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Aide - Courbes de croissance'),
+        title: Text(AppLocalizations.of(context).titleAideCourbesCroissance),
         content: const SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,

@@ -16,7 +16,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
-version: 1.1.0+2
+version: 1.2.0+3
 
 environment:
   sdk: ^3.9.2
@@ -77,6 +77,7 @@ dependencies:
   animate_do: ^3.3.4
   glassmorphism: ^3.0.0
   table_calendar: ^3.2.0
+  lottie: ^3.1.0
   
   # Logger et compression
   logger: ^2.0.2+1
@@ -97,6 +98,7 @@ dependencies:
   
   # Cryptographie (PBKDF2 pour PIN)
   crypto: ^3.0.3
+  flutter_timezone: ^5.0.1
 
 dev_dependencies:
   flutter_test:
@@ -117,6 +119,8 @@ dev_dependencies:
 
 # The following section is specific to Flutter packages.
 flutter:
+  # Génération automatique des fichiers de localisation
+  generate: true
 
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
@@ -127,6 +131,7 @@ flutter:
   assets:
     - assets/images/
     - assets/icons/
+    - assets/animations/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

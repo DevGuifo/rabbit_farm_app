@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../../theme/app_theme.dart';
-import '../constants/stitch_theme_constants.dart';
 
 /// Card "Notes" pour l'onglet Identity (Stitch Design)
 class NotesCard extends StatelessWidget {
@@ -12,21 +12,21 @@ class NotesCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final surfaceColor = StitchTheme.getSurfaceColor(context);
-    final outlineColor = StitchTheme.getOutlineColor(context);
+    final surfaceColor = AppTheme.getSurfaceColor(context);
+    final outlineColor = AppTheme.getOutlineColor(context);
 
     // MOCK DATA si aucune note
     final displayNotes = notes?.isNotEmpty == true
         ? notes!
-        : 'Good temperament. Shows high resistance to common infections. Slightly aggressive during feeding time.';
-    final displayUpdateInfo = lastUpdateInfo ?? 'Updated 2 days ago by Admin';
+        : AppLocalizations.of(context).cheptelGoodTemperament;
+    final displayUpdateInfo = lastUpdateInfo ?? 'Mis à jour il y a 2 jours';
 
     return Container(
       decoration: BoxDecoration(
         color: surfaceColor,
         borderRadius: BorderRadius.circular(40),
         border: Border.all(color: outlineColor),
-        boxShadow: StitchTheme.cardShadow(context),
+        boxShadow: AppTheme.cardShadow(isDark: isDark),
       ),
       child: Column(
         children: [
@@ -36,7 +36,7 @@ class NotesCard extends StatelessWidget {
             decoration: BoxDecoration(
               color: isDark
                   ? AppTheme.textLight.withValues(alpha: 0.05)
-                  : StitchTheme.neutral50.withValues(alpha: 0.5),
+                  : AppTheme.neutral50.withValues(alpha: 0.5),
               borderRadius: const BorderRadius.only(
                 topLeft: Radius.circular(40),
                 topRight: Radius.circular(40),
@@ -47,7 +47,7 @@ class NotesCard extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'Notes',
+                  AppLocalizations.of(context).cheptelNotes,
                   style: AppTheme.titleMedium.copyWith(
                     color: isDark
                         ? AppTheme.textLight
@@ -68,7 +68,7 @@ class NotesCard extends StatelessWidget {
                   margin: const EdgeInsets.only(top: 4),
                   child: const Icon(
                     Icons.sticky_note_2,
-                    color: StitchTheme.primaryYellow,
+                    color: AppTheme.primaryYellow,
                     size: 24,
                   ),
                 ),
@@ -84,8 +84,8 @@ class NotesCard extends StatelessWidget {
                           height: 1.6,
                           fontWeight: FontWeight.w500,
                           color: isDark
-                              ? StitchTheme.neutral300
-                              : StitchTheme.neutral700,
+                              ? AppTheme.neutral300
+                              : AppTheme.neutral700,
                         ),
                       ),
                       const SizedBox(height: 12),
@@ -94,8 +94,8 @@ class NotesCard extends StatelessWidget {
                         style: AppTheme.caption.copyWith(
                           fontWeight: FontWeight.w600,
                           color: isDark
-                              ? StitchTheme.neutral500
-                              : StitchTheme.neutral400,
+                              ? AppTheme.neutral500
+                              : AppTheme.neutral400,
                         ),
                       ),
                     ],

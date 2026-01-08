@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:rabbit_farm_app/l10n/app_localizations.dart';
 import '../../../../models/lapin.dart';
 import '../../../../theme/app_theme.dart';
-import '../constants/stitch_theme_constants.dart';
 
 /// Card "Basic Information" pour l'onglet Identity (Stitch Design)
 class BasicInformationCard extends StatelessWidget {
@@ -12,15 +12,16 @@ class BasicInformationCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final surfaceColor = StitchTheme.getSurfaceColor(context);
-    final outlineColor = StitchTheme.getOutlineColor(context);
+    final l10n = AppLocalizations.of(context);
+    final surfaceColor = AppTheme.getSurfaceColor(context);
+    final outlineColor = AppTheme.getOutlineColor(context);
 
     return Container(
       decoration: BoxDecoration(
         color: surfaceColor,
         borderRadius: BorderRadius.circular(40),
         border: Border.all(color: outlineColor),
-        boxShadow: StitchTheme.cardShadow(context),
+        boxShadow: AppTheme.cardShadow(isDark: isDark),
       ),
       child: Column(
         children: [
@@ -30,7 +31,7 @@ class BasicInformationCard extends StatelessWidget {
             decoration: BoxDecoration(
               color: isDark
                   ? AppTheme.textLight.withValues(alpha: 0.05)
-                  : StitchTheme.neutral50.withValues(alpha: 0.5),
+                  : AppTheme.neutral50.withValues(alpha: 0.5),
               borderRadius: const BorderRadius.only(
                 topLeft: Radius.circular(40),
                 topRight: Radius.circular(40),
@@ -41,7 +42,7 @@ class BasicInformationCard extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'Basic Information',
+                  l10n.cheptelInfosBase,
                   style: AppTheme.titleMedium.copyWith(
                     color: isDark
                         ? AppTheme.textLight
@@ -54,10 +55,10 @@ class BasicInformationCard extends StatelessWidget {
                     color: isDark
                         ? AppTheme.textLight.withValues(alpha: 0.1)
                         : AppTheme.cardLight,
-                    borderRadius: BorderRadius.circular(StitchTheme.radiusFull),
+                    borderRadius: BorderRadius.circular(AppTheme.radiusFull),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.05),
+                        color: AppTheme.borderDark.withValues(alpha: 0.5),
                         blurRadius: 4,
                         offset: const Offset(0, 2),
                       ),
@@ -66,7 +67,7 @@ class BasicInformationCard extends StatelessWidget {
                   child: Icon(
                     Icons.fingerprint,
                     size: 20,
-                    color: StitchTheme.neutral400,
+                    color: AppTheme.neutral400,
                   ),
                 ),
               ],
@@ -83,7 +84,7 @@ class BasicInformationCard extends StatelessWidget {
                       child: _buildInfoItem(
                         context: context,
                         isDark: isDark,
-                        label: 'BREED',
+                        label: AppLocalizations.of(context).labelBreed,
                         value: lapin.race,
                       ),
                     ),
@@ -92,7 +93,7 @@ class BasicInformationCard extends StatelessWidget {
                       child: _buildInfoItem(
                         context: context,
                         isDark: isDark,
-                        label: 'SEX',
+                        label: AppLocalizations.of(context).labelSex,
                         value: lapin.sexe == 'Mâle' || lapin.sexe == 'male'
                             ? 'Buck'
                             : 'Doe',
@@ -107,7 +108,7 @@ class BasicInformationCard extends StatelessWidget {
                       child: _buildColorItem(
                         context: context,
                         isDark: isDark,
-                        label: 'COLOR',
+                        label: AppLocalizations.of(context).labelColor,
                         value: lapin.couleur ?? 'Blanc',
                       ),
                     ),
@@ -116,7 +117,7 @@ class BasicInformationCard extends StatelessWidget {
                       child: _buildCageItem(
                         context: context,
                         isDark: isDark,
-                        label: 'CAGE NUMBER',
+                        label: AppLocalizations.of(context).labelCageNumber,
                         value: 'N/A',
                       ),
                     ),
@@ -144,14 +145,14 @@ class BasicInformationCard extends StatelessWidget {
           style: AppTheme.caption.copyWith(
             fontWeight: FontWeight.bold,
             letterSpacing: 1.2,
-            color: isDark ? StitchTheme.neutral400 : StitchTheme.neutral500,
+            color: isDark ? AppTheme.neutral400 : AppTheme.neutral500,
           ),
         ),
         const SizedBox(height: 6),
         Text(
           value,
           style: AppTheme.titleSmall.copyWith(
-            color: isDark ? StitchTheme.neutral100 : StitchTheme.neutral900,
+            color: isDark ? AppTheme.neutral100 : AppTheme.neutral900,
           ),
         ),
       ],
@@ -172,7 +173,7 @@ class BasicInformationCard extends StatelessWidget {
           style: AppTheme.caption.copyWith(
             fontWeight: FontWeight.bold,
             letterSpacing: 1.2,
-            color: isDark ? StitchTheme.neutral400 : StitchTheme.neutral500,
+            color: isDark ? AppTheme.neutral400 : AppTheme.neutral500,
           ),
         ),
         const SizedBox(height: 6),
@@ -185,13 +186,11 @@ class BasicInformationCard extends StatelessWidget {
                 color: _getCouleurFromString(value),
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: isDark
-                      ? StitchTheme.neutral600
-                      : StitchTheme.neutral300,
+                  color: isDark ? AppTheme.neutral600 : AppTheme.neutral300,
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.1),
+                    color: AppTheme.dividerDark.withValues(alpha: 0.8),
                     blurRadius: 2,
                     offset: const Offset(0, 1),
                   ),
@@ -202,7 +201,7 @@ class BasicInformationCard extends StatelessWidget {
             Text(
               value,
               style: AppTheme.titleSmall.copyWith(
-                color: isDark ? StitchTheme.neutral100 : StitchTheme.neutral900,
+                color: isDark ? AppTheme.neutral100 : AppTheme.neutral900,
               ),
             ),
           ],
@@ -225,18 +224,18 @@ class BasicInformationCard extends StatelessWidget {
           style: AppTheme.caption.copyWith(
             fontWeight: FontWeight.bold,
             letterSpacing: 1.2,
-            color: isDark ? StitchTheme.neutral400 : StitchTheme.neutral500,
+            color: isDark ? AppTheme.neutral400 : AppTheme.neutral500,
           ),
         ),
         const SizedBox(height: 6),
         Row(
           children: [
-            Icon(Icons.grid_view, size: 18, color: StitchTheme.neutral400),
+            Icon(Icons.grid_view, size: 18, color: AppTheme.neutral400),
             const SizedBox(width: 8),
             Text(
               value,
               style: AppTheme.titleSmall.copyWith(
-                color: isDark ? StitchTheme.neutral100 : StitchTheme.neutral900,
+                color: isDark ? AppTheme.neutral100 : AppTheme.neutral900,
               ),
             ),
           ],
@@ -251,12 +250,12 @@ class BasicInformationCard extends StatelessWidget {
       return AppTheme.textLight;
     } else if (couleurLower.contains('noir') ||
         couleurLower.contains('black')) {
-      return Colors.black;
+      return AppTheme.textPrimary;
     } else if (couleurLower.contains('gris') || couleurLower.contains('gray')) {
       return AppTheme.textSecondary;
     } else if (couleurLower.contains('brun') ||
         couleurLower.contains('brown')) {
-      return Colors.brown;
+      return AppTheme.accentOrange;
     } else if (couleurLower.contains('roux') ||
         couleurLower.contains('orange')) {
       return AppTheme.warning;

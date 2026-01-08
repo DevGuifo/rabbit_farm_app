@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
+import '../../../l10n/app_localizations.dart';
 import '../../../models/lapin.dart';
 import '../../../theme/app_theme.dart';
 
@@ -82,15 +83,21 @@ class _NotesAddDialogState extends State<NotesAddDialog> {
 
   void _sauvegarder() {
     if (_titreController.text.isEmpty) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Veuillez saisir un titre')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(AppLocalizations.of(context).msgVeuillezSaisirTitre),
+        ),
+      );
       return;
     }
 
     if (_contenuController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Veuillez saisir une observation')),
+        SnackBar(
+          content: Text(
+            AppLocalizations.of(context).msgVeuillezSaisirObservation,
+          ),
+        ),
       );
       return;
     }
@@ -102,9 +109,9 @@ class _NotesAddDialogState extends State<NotesAddDialog> {
       photos: List<String>.from(_photos),
     );
     Navigator.pop(context);
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(const SnackBar(content: Text('Note enregistrée')));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(AppLocalizations.of(context).msgNoteEnregistree)),
+    );
   }
 
   @override
@@ -118,14 +125,14 @@ class _NotesAddDialogState extends State<NotesAddDialog> {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.blue[700],
+                color: AppTheme.info,
                 borderRadius: const BorderRadius.vertical(
                   top: Radius.circular(4),
                 ),
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.note_add, color: Colors.white),
+                  const Icon(Icons.note_add, color: AppTheme.textOnPrimary),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
@@ -133,11 +140,16 @@ class _NotesAddDialogState extends State<NotesAddDialog> {
                               widget.initialTitre!.isEmpty)
                           ? 'Nouvelle note'
                           : 'Modifier la note',
-                      style: AppTheme.titleLarge.copyWith(color: Colors.white),
+                      style: AppTheme.titleLarge.copyWith(
+                        color: AppTheme.textOnPrimary,
+                      ),
                     ),
                   ),
                   IconButton(
-                    icon: const Icon(Icons.close, color: Colors.white),
+                    icon: const Icon(
+                      Icons.close,
+                      color: AppTheme.textOnPrimary,
+                    ),
                     onPressed: () => Navigator.pop(context),
                   ),
                 ],
@@ -156,18 +168,18 @@ class _NotesAddDialogState extends State<NotesAddDialog> {
                       Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: Colors.blue[50],
+                          color: AppTheme.info.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Row(
                           children: [
-                            Icon(Icons.pets, color: Colors.blue[700]),
+                            Icon(Icons.pets, color: AppTheme.info),
                             const SizedBox(width: 8),
                             Text(
                               '${widget.lapin!.nom} (ID: ${widget.lapin!.id})',
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
-                                color: Colors.blue[700],
+                                color: AppTheme.info,
                               ),
                             ),
                           ],
@@ -241,16 +253,16 @@ class _NotesAddDialogState extends State<NotesAddDialog> {
                             fontSize: 16,
                           ),
                         ),
-                        ElevatedButton.icon(
-                          onPressed: _ajouterPhoto,
-                          icon: const Icon(Icons.add_a_photo, size: 18),
-                          label: const Text('Ajouter'),
-                          style: ElevatedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 8,
-                            ),
-                          ),
+                        Builder(
+                          builder: (context) {
+                            final l10n = AppLocalizations.of(context);
+                            return ElevatedButton.icon(
+                              onPressed: _ajouterPhoto,
+                              icon: const Icon(Icons.add_a_photo, size: 18),
+                              label: Text(l10n.ajouter),
+                              style: AppTheme.primaryButtonStyle,
+                            );
+                          },
                         ),
                       ],
                     ),
@@ -259,13 +271,13 @@ class _NotesAddDialogState extends State<NotesAddDialog> {
                       Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          border: Border.all(color: Colors.grey[300]!),
+                          border: Border.all(color: AppTheme.neutral200),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: const Center(
                           child: Text(
                             'Aucune photo ajoutée',
-                            style: TextStyle(color: Colors.grey),
+                            style: TextStyle(color: AppTheme.textSecondary),
                           ),
                         ),
                       )
@@ -284,7 +296,7 @@ class _NotesAddDialogState extends State<NotesAddDialog> {
                                   margin: const EdgeInsets.only(right: 8),
                                   decoration: BoxDecoration(
                                     border: Border.all(
-                                      color: Colors.grey[300]!,
+                                      color: AppTheme.neutral200,
                                     ),
                                     borderRadius: BorderRadius.circular(8),
                                     image: DecorationImage(
@@ -305,13 +317,13 @@ class _NotesAddDialogState extends State<NotesAddDialog> {
                                     child: Container(
                                       padding: const EdgeInsets.all(4),
                                       decoration: const BoxDecoration(
-                                        color: Colors.red,
+                                        color: AppTheme.error,
                                         shape: BoxShape.circle,
                                       ),
                                       child: const Icon(
                                         Icons.close,
                                         size: 16,
-                                        color: Colors.white,
+                                        color: AppTheme.textOnPrimary,
                                       ),
                                     ),
                                   ),
@@ -327,25 +339,30 @@ class _NotesAddDialogState extends State<NotesAddDialog> {
             ),
 
             // Actions
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                border: Border(top: BorderSide(color: Colors.grey[300]!)),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  TextButton(
-                    onPressed: () => Navigator.pop(context),
-                    child: const Text('Annuler'),
+            Builder(
+              builder: (context) {
+                final l10n = AppLocalizations.of(context);
+                return Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    border: Border(top: BorderSide(color: AppTheme.neutral200)),
                   ),
-                  const SizedBox(width: 8),
-                  ElevatedButton(
-                    onPressed: _sauvegarder,
-                    child: const Text('Enregistrer'),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(context),
+                        child: Text(l10n.annuler),
+                      ),
+                      const SizedBox(width: 8),
+                      ElevatedButton(
+                        onPressed: _sauvegarder,
+                        child: Text(l10n.enregistrer),
+                      ),
+                    ],
                   ),
-                ],
-              ),
+                );
+              },
             ),
           ],
         ),

@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../l10n/app_localizations.dart';
 import '../../theme/app_theme.dart';
 import '../../providers/auth_provider.dart';
+import '../../widgets/uniform_app_bar.dart';
 import '../home_screen.dart';
 
 /// Écran de configuration du PIN
-/// 
+///
 /// Permet à l'utilisateur de configurer un PIN pour l'authentification offline
 class PinSetupScreen extends StatefulWidget {
   const PinSetupScreen({super.key});
@@ -52,14 +54,14 @@ class _PinSetupScreenState extends State<PinSetupScreen> {
     // Validation
     if (pin.isEmpty || confirmPin.isEmpty) {
       setState(() {
-        _errorMessage = 'Veuillez remplir tous les champs';
+        _errorMessage = AppLocalizations.of(context).authValidationEntrezPIN;
       });
       return;
     }
 
     if (pin.length < 4 || pin.length > 6) {
       setState(() {
-        _errorMessage = 'Le PIN doit contenir entre 4 et 6 chiffres';
+        _errorMessage = AppLocalizations.of(context).authValidationLongueurPIN;
       });
       return;
     }
@@ -67,14 +69,14 @@ class _PinSetupScreenState extends State<PinSetupScreen> {
     // Vérifier que ce sont uniquement des chiffres
     if (!RegExp(r'^\d+$').hasMatch(pin)) {
       setState(() {
-        _errorMessage = 'Le PIN ne doit contenir que des chiffres';
+        _errorMessage = AppLocalizations.of(context).authValidationChiffresPIN;
       });
       return;
     }
 
     if (pin != confirmPin) {
       setState(() {
-        _errorMessage = 'Les PIN ne correspondent pas';
+        _errorMessage = AppLocalizations.of(context).authValidationPINDifferent;
       });
       return;
     }
@@ -83,9 +85,7 @@ class _PinSetupScreenState extends State<PinSetupScreen> {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => const Center(
-        child: CircularProgressIndicator(),
-      ),
+      builder: (context) => const Center(child: CircularProgressIndicator()),
     );
 
     // Configurer le PIN
@@ -111,7 +111,8 @@ class _PinSetupScreenState extends State<PinSetupScreen> {
     } else {
       setState(() {
         _errorMessage =
-            authProvider.errorMessage ?? 'Erreur lors de la configuration du PIN';
+            authProvider.errorMessage ??
+            AppLocalizations.of(context).authErreurConfigurationPIN;
       });
     }
   }
@@ -124,16 +125,9 @@ class _PinSetupScreenState extends State<PinSetupScreen> {
       backgroundColor: isDark
           ? AppTheme.stitchBackgroundDark
           : AppTheme.stitchBackgroundLight,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: IconButton(
-          icon: Icon(
-            Icons.arrow_back,
-            color: isDark ? Colors.white : Colors.black,
-          ),
-          onPressed: () => Navigator.pop(context),
-        ),
+      appBar: SimpleAppBar(
+        title: AppLocalizations.of(context).authConfigurationPIN,
+        showBackButton: true,
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -145,11 +139,13 @@ class _PinSetupScreenState extends State<PinSetupScreen> {
 
               // Titre
               Text(
-                'Configurez votre PIN',
+                AppLocalizations.of(context).authConfigurezPIN,
                 style: TextStyle(
                   fontSize: 30,
                   fontWeight: FontWeight.w800,
-                  color: isDark ? Colors.white : const Color(0xFF111812),
+                  color: isDark
+                      ? AppTheme.textOnPrimary
+                      : AppTheme.stitchTextDark,
                 ),
               ),
 
@@ -157,11 +153,11 @@ class _PinSetupScreenState extends State<PinSetupScreen> {
 
               // Sous-titre
               Text(
-                'Créez un PIN à 4-6 chiffres pour déverrouiller l\'application sans Internet',
+                AppLocalizations.of(context).authCreezPINInstructions,
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
-                  color: isDark ? Colors.grey.shade400 : Colors.grey.shade600,
+                  color: isDark ? AppTheme.neutral400 : AppTheme.neutral600,
                 ),
               ),
 
@@ -175,8 +171,8 @@ class _PinSetupScreenState extends State<PinSetupScreen> {
                 keyboardType: TextInputType.number,
                 maxLength: 6,
                 decoration: InputDecoration(
-                  labelText: 'PIN',
-                  hintText: 'Entrez votre PIN',
+                  labelText: AppLocalizations.of(context).authPIN,
+                  hintText: AppLocalizations.of(context).authHintPIN,
                   prefixIcon: const Icon(Icons.lock_outline),
                   suffixIcon: IconButton(
                     icon: Icon(
@@ -209,8 +205,8 @@ class _PinSetupScreenState extends State<PinSetupScreen> {
                 keyboardType: TextInputType.number,
                 maxLength: 6,
                 decoration: InputDecoration(
-                  labelText: 'Confirmer le PIN',
-                  hintText: 'Confirmez votre PIN',
+                  labelText: AppLocalizations.of(context).authConfirmerPIN,
+                  hintText: AppLocalizations.of(context).authHintConfirmerPIN,
                   prefixIcon: const Icon(Icons.lock_outline),
                   suffixIcon: IconButton(
                     icon: Icon(
@@ -239,18 +235,18 @@ class _PinSetupScreenState extends State<PinSetupScreen> {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: Colors.red.shade50,
+                    color: AppTheme.error50,
                     borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.red.shade300),
+                    border: Border.all(color: AppTheme.error300),
                   ),
                   child: Row(
                     children: [
-                      Icon(Icons.error_outline, color: Colors.red.shade700),
+                      Icon(Icons.error_outline, color: AppTheme.error700),
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
                           _errorMessage!,
-                          style: TextStyle(color: Colors.red.shade700),
+                          style: TextStyle(color: AppTheme.error700),
                         ),
                       ),
                     ],
@@ -268,15 +264,15 @@ class _PinSetupScreenState extends State<PinSetupScreen> {
                   onPressed: _handleSetupPin,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppTheme.primaryNeonGreen,
-                    foregroundColor: const Color(0xFF052e0a),
+                    foregroundColor: AppTheme.authPrimary,
                     elevation: 0,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
                   ),
-                  child: const Text(
-                    'Configurer le PIN',
-                    style: TextStyle(
+                  child: Text(
+                    AppLocalizations.of(context).authConfigurerPIN,
+                    style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w800,
                     ),
@@ -291,28 +287,21 @@ class _PinSetupScreenState extends State<PinSetupScreen> {
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
                   color: isDark
-                      ? Colors.blue.shade900.withValues(alpha: 0.3)
-                      : Colors.blue.shade50,
+                      ? AppTheme.info900.withValues(alpha: 0.3)
+                      : AppTheme.info50,
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Icon(
-                      Icons.info_outline,
-                      color: Colors.blue.shade700,
-                      size: 20,
-                    ),
+                    Icon(Icons.info_outline, color: AppTheme.info700, size: 20),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
-                        'Le PIN est stocké de manière sécurisée sur votre appareil. '
-                        'Il vous permettra de déverrouiller l\'application même sans Internet.',
+                        AppLocalizations.of(context).authNotePINSecurite,
                         style: TextStyle(
                           fontSize: 12,
-                          color: isDark
-                              ? Colors.blue.shade200
-                              : Colors.blue.shade900,
+                          color: isDark ? AppTheme.info200 : AppTheme.info900,
                         ),
                       ),
                     ),
@@ -326,4 +315,3 @@ class _PinSetupScreenState extends State<PinSetupScreen> {
     );
   }
 }
-

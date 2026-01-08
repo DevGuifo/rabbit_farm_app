@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../l10n/app_localizations.dart';
 import '../../models/lapin.dart';
 import '../../models/pesee.dart';
 import '../../models/soin.dart';
@@ -65,8 +66,9 @@ class _FicheSanteScreenState extends State<FicheSanteScreen> {
             FicheSanteHeader(
               onBack: () => Navigator.pop(context),
               onRefresh: _chargerDonnees,
-              onNotification: () {},
-              onSettings: () {},
+              onNotification:
+                  null, // Masquer car pas de fonctionnalité spécifique
+              onSettings: null, // Masquer car pas de fonctionnalité spécifique
             ),
             Expanded(
               child: RefreshIndicator(
@@ -118,7 +120,7 @@ class _FicheSanteScreenState extends State<FicheSanteScreen> {
   Widget _buildFAB() {
     return Container(
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(32),
+        borderRadius: AppTheme.borderRadiusLarge,
         gradient: LinearGradient(
           colors: [AppTheme.success, AppTheme.primaryGreen],
           begin: Alignment.topLeft,
@@ -138,7 +140,7 @@ class _FicheSanteScreenState extends State<FicheSanteScreen> {
         elevation: 0,
         icon: Icon(Icons.add, size: 24, color: AppTheme.backgroundDark),
         label: Text(
-          'Add Record',
+          AppLocalizations.of(context).santeAddRecord,
           style: AppTheme.titleSmall.copyWith(color: AppTheme.backgroundDark),
         ),
       ),
@@ -148,11 +150,13 @@ class _FicheSanteScreenState extends State<FicheSanteScreen> {
   void _afficherMenuAjout() {
     showModalBottomSheet(
       context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(AppTheme.radiusXLarge),
+        ),
       ),
       builder: (context) => Container(
-        padding: const EdgeInsets.all(24),
+        padding: AppTheme.paddingAllLarge,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -166,7 +170,7 @@ class _FicheSanteScreenState extends State<FicheSanteScreen> {
                 ),
                 child: const Icon(Icons.scale, color: AppTheme.warning),
               ),
-              title: const Text('Ajouter une pesée'),
+              title: Text(AppLocalizations.of(context).santeAjouterPesee),
               onTap: () {
                 Navigator.pop(context);
                 _ajouterPesee();
@@ -182,7 +186,7 @@ class _FicheSanteScreenState extends State<FicheSanteScreen> {
                 ),
                 child: const Icon(Icons.medical_services, color: AppTheme.info),
               ),
-              title: const Text('Ajouter un soin'),
+              title: Text(AppLocalizations.of(context).santeAjouterSoin),
               onTap: () {
                 Navigator.pop(context);
                 _ajouterSoin();
@@ -231,9 +235,9 @@ class _FicheSanteScreenState extends State<FicheSanteScreen> {
   Future<void> _supprimerPesee(Pesee pesee) async {
     final confirm = await DialogHelper.showConfirmation(
       context: context,
-      title: 'Confirmer la suppression',
-      message: 'Voulez-vous vraiment supprimer cette pesée ?',
-      confirmLabel: 'Supprimer',
+      title: AppLocalizations.of(context).titleConfirmerSuppression,
+      message: AppLocalizations.of(context).confirmSupprimerPesee,
+      confirmLabel: AppLocalizations.of(context).btnSupprimer,
       isDangerous: true,
     );
 
@@ -247,9 +251,9 @@ class _FicheSanteScreenState extends State<FicheSanteScreen> {
   Future<void> _supprimerSoin(Soin soin) async {
     final confirm = await DialogHelper.showConfirmation(
       context: context,
-      title: 'Confirmer la suppression',
-      message: 'Voulez-vous vraiment supprimer ce soin ?',
-      confirmLabel: 'Supprimer',
+      title: AppLocalizations.of(context).titleConfirmerSuppression,
+      message: AppLocalizations.of(context).confirmSupprimerSoin,
+      confirmLabel: AppLocalizations.of(context).btnSupprimer,
       isDangerous: true,
     );
 

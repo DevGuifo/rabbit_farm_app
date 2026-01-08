@@ -1,19 +1,27 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../l10n/app_localizations.dart';
 import '../../services/notification_service.dart';
 import '../../services/supabase_auth_service.dart';
 import '../../services/navigation_service.dart';
+import '../../utils/demo_data_loader.dart';
 import '../../providers/theme_provider.dart';
+import '../../providers/locale_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/sync_provider.dart';
-import '../../providers/connectivity_provider.dart';
+import '../../providers/user_provider.dart';
+import '../../providers/alerte_provider.dart';
 import '../../theme/app_theme.dart';
+import '../../widgets/glossaire/glossaire_cuniculture.dart';
+import '../../widgets/common/common_widgets.dart';
 import '../utilitaire/export_import_screen.dart';
 import '../optimisation/sevrage_screen.dart';
 import '../auth/auth_screen.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'widgets/settings_header.dart';
+import '../utilisateur/gestion_utilisateurs_screen.dart';
+import '../utilisateur/editer_profil_screen.dart';
+import '../alertes/alertes_screen.dart';
 import 'widgets/settings_profile_section.dart';
 import 'widgets/settings_section_card.dart';
 import 'widgets/settings_list_item.dart';
@@ -30,11 +38,9 @@ class ParametresScreen extends StatefulWidget {
 
 class _ParametresScreenState extends State<ParametresScreen> {
   final NotificationService _notificationService = NotificationService();
-  List<PendingNotificationRequest> _notificationsEnAttente = [];
 
   // Préférences utilisateur (mock pour l'instant)
   String _unitsOfMeasurement = 'kg/cm';
-  String _language = 'English';
   bool _breedingReminders = true;
   bool _vaccinationAlerts = true;
   final String _lastSyncTime = '2m ago'; // MOCK DATA
@@ -42,23 +48,13 @@ class _ParametresScreenState extends State<ParametresScreen> {
   @override
   void initState() {
     super.initState();
-    _chargerNotifications();
     _chargerPreferences();
-  }
-
-  Future<void> _chargerNotifications() async {
-    final notifications = await _notificationService
-        .getNotificationsEnAttente();
-    setState(() {
-      _notificationsEnAttente = notifications;
-    });
   }
 
   Future<void> _chargerPreferences() async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
       _unitsOfMeasurement = prefs.getString('units_of_measurement') ?? 'kg/cm';
-      _language = prefs.getString('language') ?? 'English';
       _breedingReminders = prefs.getBool('breeding_reminders') ?? true;
       _vaccinationAlerts = prefs.getBool('vaccination_alerts') ?? true;
     });
@@ -83,11 +79,26 @@ class _ParametresScreenState extends State<ParametresScreen> {
           : AppTheme.stitchBackgroundLight,
       body: Column(
         children: [
-          // Header sticky
-          SettingsHeader(
-            onSyncPressed: _handleSync,
-            onNotificationsPressed: _handleNotifications,
-            notificationCount: _notificationsEnAttente.length,
+          // Header sticky - Utilise StandardHeader unifié
+          StandardHeader(
+            title: AppLocalizations.of(context).navParametres,
+            isDark: isDark,
+            onSync: () async {
+              // Synchroniser puis recharger
+              final syncProvider = context.read<SyncProvider>();
+              await syncProvider.syncNow();
+            },
+            onNotifications: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const AlertesScreen()),
+              );
+            },
+            onSettings: null, // Pas de settings dans l'écran settings
+            showNotificationBadge: true,
+            notificationCount: context
+                .read<AlerteProvider>()
+                .nombreAlertesNonLues,
           ),
 
           // Contenu scrollable
@@ -100,21 +111,52 @@ class _ParametresScreenState extends State<ParametresScreen> {
                   const SizedBox(height: 8),
 
                   // Section Profile
-                  Consumer<AuthProvider>(
-                    builder: (context, authProvider, child) {
-                      final supabaseAuthService = SupabaseAuthService();
-                      final userEmail = supabaseAuthService.currentUserEmail;
-                      final userId = authProvider.currentUserId;
-                      
-                      // Utiliser l'email de Supabase ou un nom par défaut
-                      final displayName = userEmail != null 
-                          ? userEmail.split('@').first 
-                          : (userId != null ? 'Utilisateur' : 'Non connecté');
-                      final displayEmail = userEmail ?? (userId != null ? 'Compte local' : 'Non connecté');
-                      
+                  Consumer2<AuthProvider, UserProvider>(
+                    builder: (context, authProvider, userProvider, child) {
+                      // Essayer d'utiliser les données du UserProvider d'abord
+                      String displayName = AppLocalizations.of(
+                        context,
+                      ).parametresNonConnecte;
+                      String displayEmail = AppLocalizations.of(
+                        context,
+                      ).parametresNonConnecte;
+                      String? avatarUrl;
+
+                      if (userProvider.currentUser != null) {
+                        // Utiliser les données du UserProvider
+                        displayName = userProvider.currentUser!.nomComplet;
+                        displayEmail = userProvider.currentUser!.email;
+                        avatarUrl = userProvider.currentUser!.photoPath;
+                      } else {
+                        // Fallback sur AuthProvider
+                        final supabaseAuthService = SupabaseAuthService();
+                        final userEmail = supabaseAuthService.currentUserEmail;
+                        final userId = authProvider.currentUserId;
+
+                        displayName = userEmail != null
+                            ? userEmail.split('@').first
+                            : (userId != null
+                                  ? AppLocalizations.of(
+                                      context,
+                                    ).parametresUtilisateur
+                                  : AppLocalizations.of(
+                                      context,
+                                    ).parametresNonConnecte);
+                        displayEmail =
+                            userEmail ??
+                            (userId != null
+                                ? AppLocalizations.of(
+                                    context,
+                                  ).parametresCompteLocal
+                                : AppLocalizations.of(
+                                    context,
+                                  ).parametresNonConnecte);
+                      }
+
                       return SettingsProfileSection(
                         profileName: displayName,
                         profileEmail: displayEmail,
+                        avatarUrl: avatarUrl,
                         onEditProfilePressed: _handleEditProfile,
                       );
                     },
@@ -124,28 +166,32 @@ class _ParametresScreenState extends State<ParametresScreen> {
 
                   // Section GENERAL
                   SettingsSectionCard(
-                    title: 'GENERAL',
+                    title: AppLocalizations.of(context).paramGeneral,
                     children: [
-                      // Units of Measurement
+                      // Unités de mesure
                       SettingsListItem(
                         icon: Icons.straighten,
-                        title: 'Units of Measurement',
+                        title: AppLocalizations.of(context).paramUnitesMesure,
                         trailingText: _unitsOfMeasurement,
                         onTap: _handleUnitsOfMeasurement,
                       ),
-                      // Language
-                      SettingsListItem(
-                        icon: Icons.translate,
-                        title: 'Language',
-                        trailingText: _language,
-                        onTap: _handleLanguage,
+                      // Langue
+                      Consumer<LocaleProvider>(
+                        builder: (context, localeProvider, child) {
+                          return SettingsListItem(
+                            icon: Icons.translate,
+                            title: AppLocalizations.of(context).paramLangue,
+                            trailingText: localeProvider.languageName,
+                            onTap: _handleLanguage,
+                          );
+                        },
                       ),
-                      // Dark Mode
+                      // Mode sombre
                       Consumer<ThemeProvider>(
                         builder: (context, themeProvider, child) {
                           return SettingsToggleItem(
                             icon: Icons.dark_mode,
-                            title: 'Dark Mode',
+                            title: AppLocalizations.of(context).paramModeSombre,
                             value: themeProvider.isDarkMode,
                             onChanged: (value) {
                               themeProvider.toggleTheme();
@@ -160,12 +206,14 @@ class _ParametresScreenState extends State<ParametresScreen> {
 
                   // Section NOTIFICATIONS
                   SettingsSectionCard(
-                    title: 'NOTIFICATIONS',
+                    title: AppLocalizations.of(context).paramNotifications,
                     children: [
-                      // Breeding Reminders
+                      // Rappels reproduction
                       SettingsToggleItem(
                         icon: Icons.pets,
-                        title: 'Breeding Reminders',
+                        title: AppLocalizations.of(
+                          context,
+                        ).paramRappelsReproduction,
                         value: _breedingReminders,
                         onChanged: (value) {
                           setState(() {
@@ -174,10 +222,12 @@ class _ParametresScreenState extends State<ParametresScreen> {
                           _sauvegarderPreference('breeding_reminders', value);
                         },
                       ),
-                      // Vaccination Alerts
+                      // Alertes vaccination
                       SettingsToggleItem(
                         icon: Icons.vaccines,
-                        title: 'Vaccination Alerts',
+                        title: AppLocalizations.of(
+                          context,
+                        ).paramAlertesVaccination,
                         value: _vaccinationAlerts,
                         onChanged: (value) {
                           setState(() {
@@ -189,15 +239,23 @@ class _ParametresScreenState extends State<ParametresScreen> {
                       // Tester les notifications
                       SettingsListItem(
                         icon: Icons.notification_add,
-                        title: 'Test Notifications',
-                        subtitle: 'Afficher une notification de test',
+                        title: AppLocalizations.of(
+                          context,
+                        ).paramTesterNotifications,
+                        subtitle: AppLocalizations.of(
+                          context,
+                        ).paramTesterNotificationsDetail,
                         onTap: _handleTestNotifications,
                       ),
                       // Annuler toutes les notifications
                       SettingsListItem(
                         icon: Icons.clear_all,
-                        title: 'Clear All Notifications',
-                        subtitle: 'Supprimer tous les rappels planifiés',
+                        title: AppLocalizations.of(
+                          context,
+                        ).paramEffacerNotifications,
+                        subtitle: AppLocalizations.of(
+                          context,
+                        ).paramEffacerNotificationsDetail,
                         onTap: _handleClearAllNotifications,
                       ),
                     ],
@@ -205,21 +263,39 @@ class _ParametresScreenState extends State<ParametresScreen> {
 
                   const SizedBox(height: 24),
 
-                  // Section DATA & STORAGE
+                  // Section DONNÉES & STOCKAGE
                   SettingsSectionCard(
-                    title: 'DATA & STORAGE',
+                    title: AppLocalizations.of(context).paramDonneesStockage,
                     children: [
-                      // Sync Status
+                      // Charger données démo (UNIQUEMENT EN DEBUG)
+                      if (kDebugMode)
+                        SettingsListItem(
+                          icon: Icons.science,
+                          title: AppLocalizations.of(
+                            context,
+                          ).paramChargerDonneesDemo,
+                          subtitle: AppLocalizations.of(
+                            context,
+                          ).paramChargerDonneesDemoDetail,
+                          onTap: _handleLoadDemoData,
+                        ),
+                      // État synchronisation
                       SettingsListItem(
                         icon: Icons.cloud_sync,
-                        title: 'Sync Status',
-                        subtitle: 'Last synced: $_lastSyncTime',
+                        title: AppLocalizations.of(
+                          context,
+                        ).paramEtatSynchronisation,
+                        subtitle: AppLocalizations.of(
+                          context,
+                        ).paramEtatSynchronisationDetail(_lastSyncTime),
                         onTap: _handleSyncStatus,
                       ),
-                      // Export Data
+                      // Exporter données
                       SettingsListItem(
                         icon: Icons.download,
-                        title: 'Export Data',
+                        title: AppLocalizations.of(
+                          context,
+                        ).paramExporterDonnees,
                         onTap: _handleExportData,
                       ),
                     ],
@@ -227,43 +303,89 @@ class _ParametresScreenState extends State<ParametresScreen> {
 
                   const SizedBox(height: 24),
 
-                  // Section MANAGEMENT
+                  // Section GESTION
                   SettingsSectionCard(
-                    title: 'MANAGEMENT',
+                    title: AppLocalizations.of(context).paramGestion,
                     children: [
                       // Gestion du sevrage
                       SettingsListItem(
                         icon: Icons.cut,
-                        title: 'Weaning Management',
-                        subtitle: 'Voir et gérer les portées à sevrer',
+                        title: AppLocalizations.of(
+                          context,
+                        ).paramGestionSevrages,
+                        subtitle: AppLocalizations.of(
+                          context,
+                        ).paramGestionSevragesDetail,
                         onTap: _handleWeaningManagement,
+                      ),
+                      // Gestion des utilisateurs
+                      Consumer<UserProvider>(
+                        builder: (context, userProvider, _) {
+                          if (!userProvider.canManageUsers()) {
+                            return const SizedBox.shrink();
+                          }
+                          return SettingsListItem(
+                            icon: Icons.people_rounded,
+                            title: AppLocalizations.of(
+                              context,
+                            ).paramGestionUtilisateurs,
+                            subtitle: AppLocalizations.of(
+                              context,
+                            ).paramGestionUtilisateursDetail,
+                            onTap: () => Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) =>
+                                    const GestionUtilisateursScreen(),
+                              ),
+                            ),
+                          );
+                        },
                       ),
                     ],
                   ),
 
                   const SizedBox(height: 24),
 
-                  // Section SUPPORT
+                  // Section AIDE
                   SettingsSectionCard(
-                    title: 'SUPPORT',
+                    title: AppLocalizations.of(context).paramAide,
                     children: [
-                      // Help Center
+                      // Glossaire cuniculture
+                      SettingsListItem(
+                        icon: Icons.menu_book,
+                        title: AppLocalizations.of(
+                          context,
+                        ).paramGlossaireCuniculture,
+                        subtitle: AppLocalizations.of(
+                          context,
+                        ).paramGlossaireCunicultureDetail,
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const GlossaireScreen(),
+                          ),
+                        ),
+                      ),
+                      // Centre d'aide
                       SettingsListItem(
                         icon: Icons.help,
-                        title: 'Help Center',
+                        title: AppLocalizations.of(context).paramCentreAide,
                         trailingIcon: Icon(
                           Icons.open_in_new,
                           size: 20,
                           color: isDark
-                              ? Colors.grey.shade600
-                              : Colors.grey.shade400,
+                              ? AppTheme.neutral600
+                              : AppTheme.neutral400,
                         ),
                         onTap: _handleHelpCenter,
                       ),
-                      // Privacy Policy
+                      // Politique de confidentialité
                       SettingsListItem(
                         icon: Icons.lock,
-                        title: 'Privacy Policy',
+                        title: AppLocalizations.of(
+                          context,
+                        ).paramPolitiqueConfidentialite,
                         onTap: _handlePrivacyPolicy,
                       ),
                     ],
@@ -271,22 +393,24 @@ class _ParametresScreenState extends State<ParametresScreen> {
 
                   const SizedBox(height: 24),
 
-                  // Section ABOUT
+                  // Section À PROPOS
                   SettingsSectionCard(
-                    title: 'ABOUT',
+                    title: AppLocalizations.of(context).paramAPropos,
                     children: [
-                      // Application info
+                      // Infos application
                       SettingsListItem(
                         icon: Icons.pest_control,
-                        title: 'Rabbit Farm Manager',
-                        subtitle: 'Version 1.1.0',
+                        title: AppLocalizations.of(context).paramNomApp,
+                        subtitle: AppLocalizations.of(context).paramVersion,
                         onTap: null,
                       ),
-                      // Developer info
+                      // Infos développeur
                       SettingsListItem(
                         icon: Icons.code,
-                        title: 'Developed by',
-                        subtitle: 'GUIFO KAMTO ROSTAND Jr',
+                        title: AppLocalizations.of(context).paramDeveloppe,
+                        subtitle: AppLocalizations.of(
+                          context,
+                        ).paramDeveloppeNom,
                         onTap: null,
                       ),
                     ],
@@ -306,7 +430,7 @@ class _ParametresScreenState extends State<ParametresScreen> {
                       border: Border.all(color: Colors.transparent),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.05),
+                          color: AppTheme.textPrimary.withValues(alpha: 0.05),
                           blurRadius: 4,
                           offset: const Offset(0, 2),
                         ),
@@ -317,14 +441,14 @@ class _ParametresScreenState extends State<ParametresScreen> {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(Icons.logout, color: Colors.red, size: 20),
+                          Icon(Icons.logout, color: AppTheme.error, size: 20),
                           const SizedBox(width: 8),
                           Text(
-                            'Log Out',
+                            AppLocalizations.of(context).paramLogOut,
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
-                              color: Colors.red,
+                              color: AppTheme.error,
                             ),
                           ),
                         ],
@@ -337,13 +461,13 @@ class _ParametresScreenState extends State<ParametresScreen> {
                   // Footer avec version
                   Center(
                     child: Text(
-                      'Rabbit Farm Manager v1.1.0',
+                      AppLocalizations.of(context).parametresVersion,
                       style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w500,
                         color: isDark
-                            ? Colors.grey.shade600
-                            : Colors.grey.shade400,
+                            ? AppTheme.neutral600
+                            : AppTheme.neutral400,
                       ),
                     ),
                   ),
@@ -362,116 +486,22 @@ class _ParametresScreenState extends State<ParametresScreen> {
   // HANDLERS
   // ============================================
 
-  Future<void> _handleSync() async {
-    final syncProvider = Provider.of<SyncProvider>(context, listen: false);
-    final connectivityProvider = Provider.of<ConnectivityProvider>(
+  void _handleEditProfile() async {
+    final result = await Navigator.push(
       context,
-      listen: false,
+      MaterialPageRoute(builder: (_) => const EditerProfilScreen()),
     );
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
-
-    // Vérifier l'authentification
-    if (!authProvider.isAuthenticated) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Vous devez être connecté pour synchroniser'),
-          backgroundColor: Colors.orange,
-        ),
-      );
-      return;
+    if (result == true) {
+      // Recharger les données si nécessaire
+      setState(() {});
     }
-
-    // Vérifier la connectivité
-    if (!connectivityProvider.isOnline) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Aucune connexion internet disponible'),
-          backgroundColor: Colors.orange,
-        ),
-      );
-      return;
-    }
-
-    // Afficher un indicateur de chargement
-    if (!mounted) return;
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => const Center(child: CircularProgressIndicator()),
-    );
-
-    // Lancer la synchronisation
-    final success = await syncProvider.syncNow();
-
-    if (!mounted) return;
-    Navigator.pop(context); // Fermer le dialog
-
-    if (success) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('✅ Synchronisation réussie'),
-          backgroundColor: Colors.green,
-          duration: Duration(seconds: 2),
-        ),
-      );
-    } else {
-      final errorMessage = syncProvider.errorMessage ?? 'Erreur lors de la synchronisation';
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('❌ $errorMessage'),
-          backgroundColor: Colors.orange,
-          duration: const Duration(seconds: 4),
-          action: SnackBarAction(
-            label: 'Réessayer',
-            textColor: Colors.white,
-            onPressed: () => _handleSync(),
-          ),
-        ),
-      );
-    }
-  }
-
-  void _handleNotifications() {
-    _afficherNotificationsPlanifiees(context);
-  }
-
-  void _handleEditProfile() {
-    // Pour l'instant, afficher un dialog simple avec les informations du profil
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    final userId = authProvider.currentUserId;
-
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Profil'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('User ID: ${userId ?? "Non disponible"}'),
-            const SizedBox(height: 8),
-            const Text(
-              'L\'édition du profil sera disponible dans une prochaine version.',
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Fermer'),
-          ),
-        ],
-      ),
-    );
   }
 
   void _handleUnitsOfMeasurement() {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Units of Measurement'),
+        title: Text(AppLocalizations.of(context).parametresUnitesMesure),
         content: StatefulBuilder(
           builder: (context, setStateDialog) {
             String selectedValue = _unitsOfMeasurement;
@@ -479,7 +509,7 @@ class _ParametresScreenState extends State<ParametresScreen> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 ListTile(
-                  title: const Text('kg/cm'),
+                  title: Text(AppLocalizations.of(context).parametresUnitKgCm),
                   leading: Icon(
                     selectedValue == 'kg/cm'
                         ? Icons.radio_button_checked
@@ -497,7 +527,7 @@ class _ParametresScreenState extends State<ParametresScreen> {
                   },
                 ),
                 ListTile(
-                  title: const Text('lb/in'),
+                  title: Text(AppLocalizations.of(context).parametresUnitLbIn),
                   leading: Icon(
                     selectedValue == 'lb/in'
                         ? Icons.radio_button_checked
@@ -525,54 +555,45 @@ class _ParametresScreenState extends State<ParametresScreen> {
   void _handleLanguage() {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Language'),
-        content: StatefulBuilder(
-          builder: (context, setStateDialog) {
-            String selectedValue = _language;
-            return Column(
+      builder: (dialogContext) => Consumer<LocaleProvider>(
+        builder: (context, localeProvider, child) {
+          return AlertDialog(
+            title: Text(AppLocalizations.of(context).langue),
+            content: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 ListTile(
-                  title: const Text('English'),
+                  title: Text(
+                    AppLocalizations.of(context).parametresLanguageEnglish,
+                  ),
                   leading: Icon(
-                    selectedValue == 'English'
+                    localeProvider.locale.languageCode == 'en'
                         ? Icons.radio_button_checked
                         : Icons.radio_button_unchecked,
                   ),
-                  onTap: () {
-                    setStateDialog(() {
-                      selectedValue = 'English';
-                    });
-                    setState(() {
-                      _language = 'English';
-                    });
-                    _sauvegarderPreference('language', 'English');
-                    Navigator.pop(context);
+                  onTap: () async {
+                    await localeProvider.setLocaleByName('English');
+                    if (dialogContext.mounted) Navigator.pop(dialogContext);
                   },
                 ),
                 ListTile(
-                  title: const Text('Français'),
+                  title: Text(
+                    AppLocalizations.of(context).parametresLanguageFrancais,
+                  ),
                   leading: Icon(
-                    selectedValue == 'Français'
+                    localeProvider.locale.languageCode == 'fr'
                         ? Icons.radio_button_checked
                         : Icons.radio_button_unchecked,
                   ),
-                  onTap: () {
-                    setStateDialog(() {
-                      selectedValue = 'Français';
-                    });
-                    setState(() {
-                      _language = 'Français';
-                    });
-                    _sauvegarderPreference('language', 'Français');
-                    Navigator.pop(context);
+                  onTap: () async {
+                    await localeProvider.setLocaleByName('Français');
+                    if (dialogContext.mounted) Navigator.pop(dialogContext);
                   },
                 ),
               ],
-            );
-          },
-        ),
+            ),
+          );
+        },
       ),
     );
   }
@@ -586,37 +607,43 @@ class _ParametresScreenState extends State<ParametresScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Statut de synchronisation'),
+        title: Text(
+          AppLocalizations.of(context).parametresStatutSynchronisation,
+        ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             if (isSyncing)
-              const Row(
+              Row(
                 children: [
-                  SizedBox(
+                  const SizedBox(
                     width: 16,
                     height: 16,
                     child: CircularProgressIndicator(strokeWidth: 2),
                   ),
-                  SizedBox(width: 8),
-                  Text('Synchronisation en cours...'),
+                  const SizedBox(width: 8),
+                  Text(AppLocalizations.of(context).parametresSyncEnCours),
                 ],
               )
             else
               Text(
                 lastSyncTime != null
-                    ? 'Dernière sync: ${_formatDateTime(lastSyncTime)}'
-                    : 'Aucune synchronisation effectuée',
+                    ? '${AppLocalizations.of(context).parametresDerniereSyncLabel} ${_formatDateTime(lastSyncTime)}'
+                    : AppLocalizations.of(context).parametresAucuneSync,
               ),
             const SizedBox(height: 8),
-            Text('Changements en attente: $pendingChanges'),
+            Text(
+              AppLocalizations.of(
+                context,
+              ).parametresChangementsEnAttente(pendingChanges),
+            ),
           ],
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Fermer'),
+            child: Text(AppLocalizations.of(context).fermer),
           ),
         ],
       ),
@@ -630,11 +657,17 @@ class _ParametresScreenState extends State<ParametresScreen> {
     if (difference.inMinutes < 1) {
       return 'À l\'instant';
     } else if (difference.inMinutes < 60) {
-      return 'Il y a ${difference.inMinutes} min';
+      return AppLocalizations.of(
+        context,
+      ).parametresIlYaMin(difference.inMinutes);
     } else if (difference.inHours < 24) {
-      return 'Il y a ${difference.inHours} h';
+      return AppLocalizations.of(
+        context,
+      ).parametresIlYaHeures(difference.inHours);
     } else {
-      return 'Il y a ${difference.inDays} jours';
+      return AppLocalizations.of(
+        context,
+      ).parametresIlYaJours(difference.inDays);
     }
   }
 
@@ -649,12 +682,12 @@ class _ParametresScreenState extends State<ParametresScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Centre d\'aide'),
-        content: const Column(
+        title: Text(AppLocalizations.of(context).parametresCentreAide),
+        content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Pour toute question ou assistance :'),
+            Text(AppLocalizations.of(context).msgQuestionAssistance),
             SizedBox(height: 8),
             Text('• Consultez la documentation dans l\'application'),
             Text('• Contactez le support via les paramètres'),
@@ -667,7 +700,7 @@ class _ParametresScreenState extends State<ParametresScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Fermer'),
+            child: Text(AppLocalizations.of(context).fermer),
           ),
         ],
       ),
@@ -678,7 +711,9 @@ class _ParametresScreenState extends State<ParametresScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Politique de confidentialité'),
+        title: Text(
+          AppLocalizations.of(context).parametresPolitiqueConfidentialite,
+        ),
         content: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -724,7 +759,7 @@ class _ParametresScreenState extends State<ParametresScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Fermer'),
+            child: Text(AppLocalizations.of(context).fermer),
           ),
         ],
       ),
@@ -735,9 +770,9 @@ class _ParametresScreenState extends State<ParametresScreen> {
     await _notificationService.afficherNotificationTest();
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Notification de test envoyée !'),
-        backgroundColor: Colors.green,
+      SnackBar(
+        content: Text(AppLocalizations.of(context).parametresNotificationTest),
+        backgroundColor: AppTheme.success,
       ),
     );
   }
@@ -753,33 +788,110 @@ class _ParametresScreenState extends State<ParametresScreen> {
     );
   }
 
+  Future<void> _handleLoadDemoData() async {
+    final confirmer = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(AppLocalizations.of(context).parametresChargerDemo),
+        content: Text(AppLocalizations.of(context).parametresDemoDescription),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(AppLocalizations.of(context).annuler),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: AppTheme.primaryButtonStyle,
+            child: Text(AppLocalizations.of(context).generer),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmer != true) return;
+
+    // Afficher indicateur
+    if (!mounted) return;
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const CircularProgressIndicator(),
+            const SizedBox(height: 16),
+            Text(AppLocalizations.of(context).msgGenerationDonnees),
+          ],
+        ),
+      ),
+    );
+
+    try {
+      // Générer données
+      await DemoDataLoader.chargerDonnees();
+
+      // Fermer dialog
+      if (!mounted) return;
+      Navigator.pop(context);
+
+      // Afficher succès
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('✅ Données chargées ! Redémarrez l\'app.'),
+          backgroundColor: AppTheme.primaryGreen,
+          duration: const Duration(seconds: 3),
+        ),
+      );
+    } catch (e) {
+      // Fermer dialog
+      if (!mounted) return;
+      Navigator.pop(context);
+
+      // Afficher erreur
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('❌ Erreur : $e'),
+          backgroundColor: AppTheme.error,
+          duration: const Duration(seconds: 5),
+        ),
+      );
+    }
+  }
+
   void _confirmerAnnulationTout(BuildContext context) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Confirmation'),
-        content: const Text(
-          'Voulez-vous vraiment annuler toutes les notifications planifiées ?',
+        title: Text(AppLocalizations.of(context).confirmation),
+        content: Text(
+          AppLocalizations.of(context).parametresAnnulerNotifications,
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Annuler'),
+            child: Text(AppLocalizations.of(context).annuler),
           ),
           TextButton(
             onPressed: () async {
               await _notificationService.annulerToutesLesNotifications();
-              await _chargerNotifications();
               if (!context.mounted) return;
               Navigator.pop(context);
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Toutes les notifications ont été annulées'),
-                  backgroundColor: Colors.orange,
+                SnackBar(
+                  content: Text(
+                    AppLocalizations.of(
+                      context,
+                    ).parametresNotificationsAnnulees,
+                  ),
+                  backgroundColor: AppTheme.warning,
                 ),
               );
             },
-            child: const Text('Confirmer', style: TextStyle(color: Colors.red)),
+            child: const Text(
+              'Confirmer',
+              style: TextStyle(color: AppTheme.error),
+            ),
           ),
         ],
       ),
@@ -790,12 +902,12 @@ class _ParametresScreenState extends State<ParametresScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Log Out'),
-        content: const Text('Are you sure you want to log out?'),
+        title: Text(AppLocalizations.of(context).deconnexion),
+        content: Text(AppLocalizations.of(context).confirmationDeconnexion),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: Text(AppLocalizations.of(context).annuler),
           ),
           TextButton(
             onPressed: () async {
@@ -830,7 +942,8 @@ class _ParametresScreenState extends State<ParametresScreen> {
 
                 // Naviguer vers l'écran d'authentification en utilisant le navigationService
                 // pour éviter les problèmes de contexte après déconnexion
-                final navigatorState = navigationService.navigatorKey.currentState;
+                final navigatorState =
+                    navigationService.navigatorKey.currentState;
                 if (navigatorState != null) {
                   navigatorState.pushAndRemoveUntil(
                     MaterialPageRoute(
@@ -844,16 +957,21 @@ class _ParametresScreenState extends State<ParametresScreen> {
                 if (context.mounted) {
                   Navigator.of(context, rootNavigator: true).pop();
                 }
-                
+
                 // Afficher l'erreur en utilisant le navigationService
-                final navigatorState = navigationService.navigatorKey.currentState;
+                final navigatorState =
+                    navigationService.navigatorKey.currentState;
                 if (navigatorState != null) {
                   final navContext = navigatorState.context;
                   if (navContext.mounted) {
                     ScaffoldMessenger.of(navContext).showSnackBar(
                       SnackBar(
-                        content: Text('Erreur lors de la déconnexion: $e'),
-                        backgroundColor: Colors.red,
+                        content: Text(
+                          AppLocalizations.of(
+                            context,
+                          ).msgErreurDeconnexion(e.toString()),
+                        ),
+                        backgroundColor: AppTheme.error,
                         duration: const Duration(seconds: 3),
                       ),
                     );
@@ -861,56 +979,12 @@ class _ParametresScreenState extends State<ParametresScreen> {
                 }
               }
             },
-            child: const Text('Log Out', style: TextStyle(color: Colors.red)),
+            child: const Text(
+              'Log Out',
+              style: TextStyle(color: AppTheme.error),
+            ),
           ),
         ],
-      ),
-    );
-  }
-
-  void _afficherNotificationsPlanifiees(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      builder: (context) => Container(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                const Icon(Icons.schedule),
-                const SizedBox(width: 8),
-                Text(
-                  'Notifications planifiées',
-                  style: Theme.of(context).textTheme.titleLarge,
-                ),
-              ],
-            ),
-            const Divider(),
-            Expanded(
-              child: _notificationsEnAttente.isEmpty
-                  ? const Center(child: Text('Aucune notification planifiée'))
-                  : ListView.builder(
-                      itemCount: _notificationsEnAttente.length,
-                      itemBuilder: (context, index) {
-                        final notif = _notificationsEnAttente[index];
-                        return ListTile(
-                          leading: CircleAvatar(child: Text('${index + 1}')),
-                          title: Text(notif.title ?? 'Sans titre'),
-                          subtitle: Text(notif.body ?? 'Sans description'),
-                        );
-                      },
-                    ),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pop(context);
-                _chargerNotifications();
-              },
-              child: const Text('Rafraîchir'),
-            ),
-          ],
-        ),
       ),
     );
   }

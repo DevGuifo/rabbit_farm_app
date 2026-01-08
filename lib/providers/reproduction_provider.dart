@@ -1,15 +1,18 @@
 import 'package:flutter/foundation.dart';
 import '../models/accouplement.dart';
 import '../models/portee.dart';
+import '../models/journal_entry.dart';
 import '../services/database_helper.dart';
 import '../services/notification_service.dart';
 import '../services/smart_notification_service.dart';
+import '../services/journal_service.dart';
 import '../utils/logger.dart';
 
 /// Provider pour gérer l'état des accouplements et portées
 class ReproductionProvider with ChangeNotifier {
   final DatabaseHelper _db = DatabaseHelper.instance;
   final NotificationService _notificationService = NotificationService();
+  final JournalService _journal = JournalService();
 
   List<Accouplement> _accouplements = [];
   List<Portee> _portees = [];
@@ -87,13 +90,15 @@ class ReproductionProvider with ChangeNotifier {
       }
 
       notifyListeners();
-      
+
       // Scanner et planifier toutes les notifications après ajout
       final smartNotificationService = SmartNotificationService();
-      smartNotificationService.scanAndScheduleAllNotifications().catchError((e) {
+      smartNotificationService.scanAndScheduleAllNotifications().catchError((
+        e,
+      ) {
         logger.error('Erreur lors du scan des notifications: $e');
       });
-      
+
       return nouveauAccouplement;
     } catch (e) {
       logger.error('Erreur lors de l\'ajout de l\'accouplement', e);
@@ -117,7 +122,9 @@ class ReproductionProvider with ChangeNotifier {
             if (femelle != null) {
               // Annuler les anciennes notifications
               await _notificationService.annulerRappelMiseBas(accouplement.id!);
-              await _notificationService.annulerRappelPalpation(accouplement.id!);
+              await _notificationService.annulerRappelPalpation(
+                accouplement.id!,
+              );
               await _notificationService.annulerRappelNid(accouplement.id!);
               // Replanifier
               await _notificationService.planifierRappelMiseBas(
@@ -173,13 +180,36 @@ class ReproductionProvider with ChangeNotifier {
       final nouvellePortee = await _db.insertPortee(portee);
       _portees.insert(0, nouvellePortee);
       notifyListeners();
-      
+
+      // 📝 Journal automatique - récupérer la mère via l'accouplement
+      final accouplement = await _db.getAccouplementById(
+        nouvellePortee.accouplementId,
+      );
+      String? mereNom;
+      if (accouplement != null) {
+        final mere = await _db.getLapinById(accouplement.femelleId);
+        mereNom = mere?.nom;
+      }
+      await _journal.portee(
+        action: TypeAction.creation,
+        porteeId: nouvellePortee.id!,
+        mereNom: mereNom,
+        nombreLapereaux: nouvellePortee.nombreNes,
+        contexte: {
+          'dateMiseBas': nouvellePortee.dateMiseBasReelle.toIso8601String(),
+          'nombreVivants': nouvellePortee.nombreVivants,
+        },
+        statut: StatutEvenement.succes,
+      );
+
       // Scanner et planifier toutes les notifications après ajout de portée
       final smartNotificationService = SmartNotificationService();
-      smartNotificationService.scanAndScheduleAllNotifications().catchError((e) {
+      smartNotificationService.scanAndScheduleAllNotifications().catchError((
+        e,
+      ) {
         logger.error('Erreur lors du scan des notifications: $e');
       });
-      
+
       return nouvellePortee;
     } catch (e) {
       logger.error('Erreur lors de l\'ajout de la portée', e);

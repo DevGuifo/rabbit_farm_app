@@ -20,13 +20,13 @@ class SevrageValidationButton extends StatelessWidget {
         icon: const Icon(Icons.check_circle, size: 24),
         label: const Text('Valider le sevrage', style: AppTheme.titleSmall),
         style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.green,
-          foregroundColor: Colors.white,
+          backgroundColor: AppTheme.success,
+          foregroundColor: AppTheme.textOnPrimary,
           padding: const EdgeInsets.symmetric(vertical: 16),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
-          disabledBackgroundColor: Colors.grey.shade700,
+          disabledBackgroundColor: AppTheme.neutral700,
         ),
       ),
     );

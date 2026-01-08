@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../l10n/app_localizations.dart';
 import 'package:intl/intl.dart';
 import '../../providers/reforme_provider.dart';
 import '../../providers/lapin_provider.dart';
@@ -7,6 +8,7 @@ import '../../providers/reproduction_provider.dart';
 import '../../utils/dialog_helper.dart';
 import '../../models/reforme.dart';
 import '../../theme/app_theme.dart';
+import '../../widgets/uniform_app_bar.dart';
 
 class ReformeScreen extends StatefulWidget {
   const ReformeScreen({super.key});
@@ -29,10 +31,10 @@ class _ReformeScreenState extends State<ReformeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Réforme'),
-        backgroundColor: AppTheme.textSecondary,
-        foregroundColor: Colors.white,
+      appBar: UniformAppBar(
+        title: AppLocalizations.of(context).screenReforme,
+        icon: Icons.logout_rounded,
+        iconColor: AppTheme.textSecondary,
         actions: [
           PopupMenuButton<String>(
             icon: const Icon(Icons.filter_list),
@@ -42,17 +44,29 @@ class _ReformeScreenState extends State<ReformeScreen> {
               });
             },
             itemBuilder: (context) => [
-              const PopupMenuItem(value: 'tous', child: Text('Tous')),
-              const PopupMenuItem(value: 'age', child: Text('Âge')),
-              const PopupMenuItem(
-                value: 'improductif',
-                child: Text('Improductif'),
+              PopupMenuItem(
+                value: 'tous',
+                child: Text(AppLocalizations.of(context).filterTous),
               ),
-              const PopupMenuItem(value: 'maladie', child: Text('Maladie')),
-              const PopupMenuItem(value: 'genetique', child: Text('Génétique')),
-              const PopupMenuItem(
+              PopupMenuItem(
+                value: 'age',
+                child: Text(AppLocalizations.of(context).motifAge),
+              ),
+              PopupMenuItem(
+                value: 'improductif',
+                child: Text(AppLocalizations.of(context).motifImproductif),
+              ),
+              PopupMenuItem(
+                value: 'maladie',
+                child: Text(AppLocalizations.of(context).motifMaladie),
+              ),
+              PopupMenuItem(
+                value: 'genetique',
+                child: Text(AppLocalizations.of(context).motifGenetique),
+              ),
+              PopupMenuItem(
                 value: 'comportement',
-                child: Text('Comportement'),
+                child: Text(AppLocalizations.of(context).motifComportement),
               ),
             ],
           ),
@@ -81,29 +95,31 @@ class _ReformeScreenState extends State<ReformeScreen> {
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: Colors.blueGrey[50],
-                  border: Border(bottom: BorderSide(color: Colors.grey[300]!)),
+                  color: AppTheme.infoGrey50,
+                  border: Border(
+                    bottom: BorderSide(color: AppTheme.borderLight),
+                  ),
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
                     _buildStatCard(
-                      'Total',
+                      AppLocalizations.of(context).commonTotal,
                       '$total',
                       Icons.format_list_numbered,
-                      Colors.blue,
+                      AppTheme.info,
                     ),
                     _buildStatCard(
                       'Ce mois',
                       '${reformeProvider.getReformesParPeriode(30).length}',
                       Icons.calendar_month,
-                      Colors.orange,
+                      AppTheme.warning,
                     ),
                     _buildStatCard(
                       'Revenus',
                       '${revenusTotal.toStringAsFixed(0)}€',
                       Icons.euro,
-                      Colors.green,
+                      AppTheme.success,
                     ),
                   ],
                 ),
@@ -119,7 +135,7 @@ class _ReformeScreenState extends State<ReformeScreen> {
                             Icon(
                               Icons.trending_down,
                               size: 80,
-                              color: Colors.blueGrey[200],
+                              color: AppTheme.infoGrey200,
                             ),
                             const SizedBox(height: 16),
                             Text(
@@ -128,13 +144,13 @@ class _ReformeScreenState extends State<ReformeScreen> {
                                   : 'Aucune réforme pour motif $_filtreMotif',
                               style: AppTheme.bodyMedium.copyWith(
                                 fontSize: 18,
-                                color: Colors.grey,
+                                color: AppTheme.neutral500,
                               ),
                             ),
                             const SizedBox(height: 8),
                             const Text(
                               'Appuyez sur + pour en ajouter',
-                              style: TextStyle(color: Colors.grey),
+                              style: TextStyle(color: AppTheme.neutral500),
                             ),
                           ],
                         ),
@@ -162,6 +178,7 @@ class _ReformeScreenState extends State<ReformeScreen> {
         },
       ),
       floatingActionButton: FloatingActionButton(
+        heroTag: 'fab_reforme',
         onPressed: () => _showAjouterReformeDialog(context),
         backgroundColor: AppTheme.textSecondary,
         child: const Icon(Icons.add),
@@ -180,7 +197,10 @@ class _ReformeScreenState extends State<ReformeScreen> {
         Icon(icon, color: color, size: 28),
         const SizedBox(height: 4),
         Text(value, style: AppTheme.titleLarge.copyWith(color: color)),
-        Text(label, style: AppTheme.caption.copyWith(color: Colors.grey[600])),
+        Text(
+          label,
+          style: AppTheme.caption.copyWith(color: AppTheme.neutral600),
+        ),
       ],
     );
   }
@@ -210,12 +230,15 @@ class _ReformeScreenState extends State<ReformeScreen> {
       margin: const EdgeInsets.only(bottom: 12),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: Colors.grey[300]!, width: 1),
+        side: BorderSide(color: AppTheme.borderLight, width: 1),
       ),
       child: ExpansionTile(
         leading: CircleAvatar(
           backgroundColor: _getMotifColor(reforme.motif),
-          child: Icon(_getMotifIcon(reforme.motif), color: Colors.white),
+          child: Icon(
+            _getMotifIcon(reforme.motif),
+            color: AppTheme.textOnPrimary,
+          ),
         ),
         title: Text(
           nomLapin,
@@ -227,18 +250,18 @@ class _ReformeScreenState extends State<ReformeScreen> {
             const SizedBox(height: 4),
             Text(
               '${_getMotifLabel(reforme.motif)} • ${dateFormat.format(reforme.dateReforme)}',
-              style: AppTheme.caption.copyWith(color: Colors.grey[600]),
+              style: AppTheme.caption.copyWith(color: AppTheme.neutral600),
             ),
             const SizedBox(height: 4),
             Row(
               children: [
-                Icon(Icons.location_on, size: 14, color: Colors.grey[600]),
+                Icon(Icons.location_on, size: 14, color: AppTheme.neutral600),
                 const SizedBox(width: 4),
                 Text(
                   _getDestinationLabel(reforme.destination),
                   style: AppTheme.caption.copyWith(
                     fontWeight: FontWeight.w600,
-                    color: Colors.blueGrey[700],
+                    color: AppTheme.infoGrey700,
                   ),
                 ),
                 if (reforme.prixVente != null) ...[
@@ -247,7 +270,7 @@ class _ReformeScreenState extends State<ReformeScreen> {
                     '${reforme.prixVente!.toStringAsFixed(2)} €',
                     style: AppTheme.caption.copyWith(
                       fontWeight: FontWeight.bold,
-                      color: Colors.green,
+                      color: AppTheme.success,
                     ),
                   ),
                 ],
@@ -256,7 +279,7 @@ class _ReformeScreenState extends State<ReformeScreen> {
           ],
         ),
         trailing: IconButton(
-          icon: const Icon(Icons.delete, color: Colors.grey),
+          icon: const Icon(Icons.delete, color: AppTheme.neutral500),
           onPressed: () => _confirmerSuppression(context, reforme),
         ),
         children: [
@@ -270,21 +293,21 @@ class _ReformeScreenState extends State<ReformeScreen> {
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: Colors.blue[50],
+                      color: AppTheme.info50,
                       borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: Colors.blue[200]!),
+                      border: Border.all(color: AppTheme.info200),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Row(
                           children: [
-                            Icon(Icons.assessment, color: Colors.blue[700]),
+                            Icon(Icons.assessment, color: AppTheme.info700),
                             const SizedBox(width: 8),
                             Text(
                               'Bilan de carrière',
                               style: AppTheme.titleSmall.copyWith(
-                                color: Colors.blue[900],
+                                color: AppTheme.info900,
                               ),
                             ),
                           ],
@@ -300,13 +323,13 @@ class _ReformeScreenState extends State<ReformeScreen> {
                                   style: TextStyle(
                                     fontSize: 24,
                                     fontWeight: FontWeight.bold,
-                                    color: Colors.blue[700],
+                                    color: AppTheme.info700,
                                   ),
                                 ),
                                 Text(
                                   'Portées',
                                   style: AppTheme.caption.copyWith(
-                                    color: Colors.grey[600],
+                                    color: AppTheme.neutral600,
                                   ),
                                 ),
                               ],
@@ -318,13 +341,13 @@ class _ReformeScreenState extends State<ReformeScreen> {
                                   style: TextStyle(
                                     fontSize: 24,
                                     fontWeight: FontWeight.bold,
-                                    color: Colors.green[700],
+                                    color: AppTheme.success700,
                                   ),
                                 ),
                                 Text(
                                   'Lapereaux nés',
                                   style: AppTheme.caption.copyWith(
-                                    color: Colors.grey[600],
+                                    color: AppTheme.neutral600,
                                   ),
                                 ),
                               ],
@@ -338,13 +361,13 @@ class _ReformeScreenState extends State<ReformeScreen> {
                                     style: TextStyle(
                                       fontSize: 24,
                                       fontWeight: FontWeight.bold,
-                                      color: Colors.orange[700],
+                                      color: AppTheme.warning700,
                                     ),
                                   ),
                                   Text(
                                     'Moy./portée',
                                     style: AppTheme.caption.copyWith(
-                                      color: Colors.grey[600],
+                                      color: AppTheme.neutral600,
                                     ),
                                   ),
                                 ],
@@ -393,14 +416,16 @@ class _ReformeScreenState extends State<ReformeScreen> {
               '$label:',
               style: TextStyle(
                 fontWeight: FontWeight.bold,
-                color: Colors.grey[700],
+                color: AppTheme.neutral700,
               ),
             ),
           ),
           Expanded(
             child: Text(
               value,
-              style: AppTheme.bodyMedium.copyWith(color: Colors.black87),
+              style: AppTheme.bodyMedium.copyWith(
+                color: AppTheme.textPrimary87,
+              ),
             ),
           ),
         ],
@@ -411,17 +436,17 @@ class _ReformeScreenState extends State<ReformeScreen> {
   Color _getMotifColor(String motif) {
     switch (motif) {
       case 'age':
-        return Colors.grey;
+        return AppTheme.neutral500;
       case 'improductif':
-        return Colors.orange;
+        return AppTheme.warning;
       case 'maladie':
-        return Colors.red;
+        return AppTheme.error;
       case 'genetique':
-        return Colors.purple;
+        return AppTheme.accentPurple;
       case 'comportement':
-        return Colors.brown;
+        return AppTheme.accentOrange;
       default:
-        return Colors.blueGrey;
+        return AppTheme.infoGrey;
     }
   }
 
@@ -486,16 +511,18 @@ class _ReformeScreenState extends State<ReformeScreen> {
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setState) => AlertDialog(
-          title: const Text('Réformer un lapin'),
+          title: Text(AppLocalizations.of(context).titleReformerLapin),
           content: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 DropdownButtonFormField<int>(
                   initialValue: lapinSelectionne,
-                  decoration: const InputDecoration(
-                    labelText: 'Lapin *',
-                    border: OutlineInputBorder(),
+                  decoration: InputDecoration(
+                    labelText: AppLocalizations.of(
+                      context,
+                    ).rentabiliteFormLapin,
+                    border: const OutlineInputBorder(),
                   ),
                   items: lapinProvider.lapins.map((lapin) {
                     return DropdownMenuItem(
@@ -509,44 +536,74 @@ class _ReformeScreenState extends State<ReformeScreen> {
                 const SizedBox(height: 12),
                 DropdownButtonFormField<String>(
                   initialValue: motif,
-                  decoration: const InputDecoration(
-                    labelText: 'Motif',
-                    border: OutlineInputBorder(),
+                  decoration: InputDecoration(
+                    labelText: AppLocalizations.of(
+                      context,
+                    ).rentabiliteFormMotif,
+                    border: const OutlineInputBorder(),
                   ),
-                  items: const [
-                    DropdownMenuItem(value: 'age', child: Text('Âge avancé')),
+                  items: [
+                    DropdownMenuItem(
+                      value: 'age',
+                      child: Text(AppLocalizations.of(context).motifAge),
+                    ),
                     DropdownMenuItem(
                       value: 'improductif',
-                      child: Text('Improductif'),
+                      child: Text(
+                        AppLocalizations.of(context).motifImproductif,
+                      ),
                     ),
-                    DropdownMenuItem(value: 'maladie', child: Text('Maladie')),
+                    DropdownMenuItem(
+                      value: 'maladie',
+                      child: Text(AppLocalizations.of(context).motifMaladie),
+                    ),
                     DropdownMenuItem(
                       value: 'genetique',
-                      child: Text('Raison génétique'),
+                      child: Text(AppLocalizations.of(context).motifGenetique),
                     ),
                     DropdownMenuItem(
                       value: 'comportement',
-                      child: Text('Comportement'),
+                      child: Text(
+                        AppLocalizations.of(context).motifComportement,
+                      ),
                     ),
-                    DropdownMenuItem(value: 'autre', child: Text('Autre')),
+                    DropdownMenuItem(
+                      value: 'autre',
+                      child: Text(AppLocalizations.of(context).typeAutre),
+                    ),
                   ],
                   onChanged: (value) => setState(() => motif = value!),
                 ),
                 const SizedBox(height: 12),
                 DropdownButtonFormField<String>(
                   initialValue: destination,
-                  decoration: const InputDecoration(
-                    labelText: 'Destination',
-                    border: OutlineInputBorder(),
+                  decoration: InputDecoration(
+                    labelText: AppLocalizations.of(
+                      context,
+                    ).rentabiliteFormDestination,
+                    border: const OutlineInputBorder(),
                   ),
-                  items: const [
-                    DropdownMenuItem(value: 'vente', child: Text('Vente')),
+                  items: [
+                    DropdownMenuItem(
+                      value: 'vente',
+                      child: Text(
+                        AppLocalizations.of(context).destinationVente,
+                      ),
+                    ),
                     DropdownMenuItem(
                       value: 'abattage',
-                      child: Text('Abattage'),
+                      child: Text(
+                        AppLocalizations.of(context).destinationAbattage,
+                      ),
                     ),
-                    DropdownMenuItem(value: 'don', child: Text('Don')),
-                    DropdownMenuItem(value: 'autre', child: Text('Autre')),
+                    DropdownMenuItem(
+                      value: 'don',
+                      child: Text(AppLocalizations.of(context).destinationDon),
+                    ),
+                    DropdownMenuItem(
+                      value: 'autre',
+                      child: Text(AppLocalizations.of(context).typeAutre),
+                    ),
                   ],
                   onChanged: (value) => setState(() => destination = value!),
                 ),
@@ -558,7 +615,7 @@ class _ReformeScreenState extends State<ReformeScreen> {
                   trailing: const Icon(Icons.calendar_today),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
-                    side: BorderSide(color: Colors.grey[400]!),
+                    side: BorderSide(color: AppTheme.neutral400),
                   ),
                   onTap: () async {
                     final date = await showDatePicker(
@@ -578,26 +635,32 @@ class _ReformeScreenState extends State<ReformeScreen> {
                 TextField(
                   controller: poidsController,
                   keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(
-                    labelText: 'Poids vif (g)',
-                    border: OutlineInputBorder(),
+                  decoration: InputDecoration(
+                    labelText: AppLocalizations.of(
+                      context,
+                    ).rentabiliteFormPoidsVif,
+                    border: const OutlineInputBorder(),
                   ),
                 ),
                 const SizedBox(height: 12),
                 TextField(
                   controller: prixController,
                   keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(
-                    labelText: 'Prix de vente (€)',
-                    border: OutlineInputBorder(),
+                  decoration: InputDecoration(
+                    labelText: AppLocalizations.of(
+                      context,
+                    ).rentabiliteFormPrixVente,
+                    border: const OutlineInputBorder(),
                   ),
                 ),
                 const SizedBox(height: 12),
                 TextField(
                   controller: notesController,
-                  decoration: const InputDecoration(
-                    labelText: 'Notes',
-                    border: OutlineInputBorder(),
+                  decoration: InputDecoration(
+                    labelText: AppLocalizations.of(
+                      context,
+                    ).rentabiliteFormNotes,
+                    border: const OutlineInputBorder(),
                   ),
                   maxLines: 3,
                 ),
@@ -607,7 +670,7 @@ class _ReformeScreenState extends State<ReformeScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Annuler'),
+              child: Text(AppLocalizations.of(context).commonCancel),
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
@@ -653,7 +716,7 @@ class _ReformeScreenState extends State<ReformeScreen> {
   void _confirmerSuppression(BuildContext context, Reforme reforme) async {
     final confirm = await DialogHelper.showConfirmation(
       context: context,
-      title: 'Confirmer la suppression',
+      title: AppLocalizations.of(context).titleConfirmerSuppression,
       message: 'Supprimer cette réforme ?',
       isDangerous: true,
     );

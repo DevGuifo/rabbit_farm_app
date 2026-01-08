@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:rabbit_farm_app/l10n/app_localizations.dart';
 import '../../../theme/app_theme.dart';
 
 /// Widget pour l'en-tête des paramètres avec titre et boutons d'action
@@ -20,15 +21,16 @@ class SettingsHeader extends StatelessWidget {
 
     return Container(
       decoration: BoxDecoration(
-        color: (isDark
-                ? AppTheme.stitchBackgroundDark
-                : AppTheme.stitchBackgroundLight)
-            .withValues(alpha: 0.95),
+        color:
+            (isDark
+                    ? AppTheme.stitchBackgroundDark
+                    : AppTheme.stitchBackgroundLight)
+                .withValues(alpha: 0.95),
         border: Border(
           bottom: BorderSide(
             color: isDark
-                ? Colors.white.withValues(alpha: 0.05)
-                : Colors.black.withValues(alpha: 0.05),
+                ? AppTheme.textOnPrimary.withValues(alpha: 0.05)
+                : AppTheme.textPrimary.withValues(alpha: 0.05),
             width: 1,
           ),
         ),
@@ -40,14 +42,14 @@ class SettingsHeader extends StatelessWidget {
           children: [
             // Titre
             Text(
-              'Settings',
+              AppLocalizations.of(context).parametresSettings,
               style: TextStyle(
                 fontSize: 30,
                 fontWeight: FontWeight.bold,
                 letterSpacing: -0.5,
                 color: isDark
-                    ? Colors.white
-                    : const Color(0xFF111812),
+                    ? AppTheme.textOnPrimary
+                    : AppTheme.stitchTextDark,
               ),
             ),
 
@@ -60,8 +62,8 @@ class SettingsHeader extends StatelessWidget {
                   icon: Icon(
                     Icons.sync,
                     color: isDark
-                        ? Colors.white
-                        : const Color(0xFF111812),
+                        ? AppTheme.textOnPrimary
+                        : AppTheme.stitchTextDark,
                   ),
                   style: IconButton.styleFrom(
                     backgroundColor: Colors.transparent,
@@ -77,8 +79,8 @@ class SettingsHeader extends StatelessWidget {
                       icon: Icon(
                         Icons.notifications,
                         color: isDark
-                            ? Colors.white
-                            : const Color(0xFF111812),
+                            ? AppTheme.textOnPrimary
+                            : AppTheme.stitchTextDark,
                       ),
                       style: IconButton.styleFrom(
                         backgroundColor: Colors.transparent,
@@ -93,12 +95,12 @@ class SettingsHeader extends StatelessWidget {
                           width: 8,
                           height: 8,
                           decoration: BoxDecoration(
-                            color: Colors.red,
+                            color: AppTheme.error,
                             shape: BoxShape.circle,
                             border: Border.all(
                               color: isDark
                                   ? AppTheme.stitchBackgroundDark
-                                  : Colors.white,
+                                  : AppTheme.textOnPrimary,
                               width: 1.5,
                             ),
                           ),
@@ -114,4 +116,3 @@ class SettingsHeader extends StatelessWidget {
     );
   }
 }
-

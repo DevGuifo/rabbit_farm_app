@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
 import 'screens/splash_screen.dart';
 import 'providers/lapin_provider.dart';
+import 'providers/locale_provider.dart';
 import 'providers/reproduction_provider.dart';
 import 'providers/sante_provider.dart';
 import 'providers/finance_provider.dart';
@@ -20,11 +22,18 @@ import 'providers/palpation_provider.dart';
 import 'providers/preparation_nid_provider.dart';
 import 'providers/protocole_soin_provider.dart';
 import 'providers/evenement_personnalise_provider.dart';
+import 'providers/tache_provider.dart';
+import 'providers/rituel_provider.dart';
+import 'providers/anomalie_provider.dart';
+import 'providers/journal_provider.dart';
 import 'providers/auth_provider.dart';
 import 'providers/connectivity_provider.dart';
 import 'providers/sync_provider.dart';
+import 'providers/user_provider.dart';
 import 'services/notification_service.dart';
+import 'services/notification_strings.dart';
 import 'services/smart_notification_service.dart';
+import 'services/coach_notification_service.dart';
 import 'services/navigation_service.dart';
 import 'services/supabase_auth_service.dart';
 import 'utils/logger.dart';
@@ -47,17 +56,25 @@ void main() async {
     // (pour le développement local)
   }
 
+  // Initialiser les chaînes de notification
+  await NotificationStrings.initialize();
+
   // Initialiser le service de notifications
   await NotificationService().initialize();
-  
+
   // Initialiser le service intelligent de notifications
   final smartNotificationService = SmartNotificationService();
   await smartNotificationService.initialize();
-  
+
   // Scanner et planifier toutes les notifications au démarrage
   // (en arrière-plan pour ne pas bloquer le démarrage)
   smartNotificationService.scanAndScheduleAllNotifications().catchError((e) {
     logger.error('Erreur lors du scan initial des notifications: $e');
+  });
+
+  // Planifier le rituel du matin (coach quotidien)
+  CoachNotificationService().planifierRituelMatin().catchError((e) {
+    logger.error('Erreur lors de la planification du rituel matin: $e');
   });
 
   // Créer et initialiser le theme provider
@@ -74,12 +91,19 @@ void main() async {
   final syncProvider = SyncProvider();
   await syncProvider.initialize();
 
-  runApp(BunnyManagerApp(
-    themeProvider: themeProvider,
-    authProvider: authProvider,
-    connectivityProvider: connectivityProvider,
-    syncProvider: syncProvider,
-  ));
+  // Créer et initialiser le locale provider
+  final localeProvider = LocaleProvider();
+  await localeProvider.loadLocale();
+
+  runApp(
+    BunnyManagerApp(
+      themeProvider: themeProvider,
+      authProvider: authProvider,
+      connectivityProvider: connectivityProvider,
+      syncProvider: syncProvider,
+      localeProvider: localeProvider,
+    ),
+  );
 }
 
 /// Widget racine de l'application BunnyManager
@@ -88,6 +112,7 @@ class BunnyManagerApp extends StatelessWidget {
   final AuthProvider authProvider;
   final ConnectivityProvider connectivityProvider;
   final SyncProvider syncProvider;
+  final LocaleProvider localeProvider;
 
   const BunnyManagerApp({
     super.key,
@@ -95,6 +120,7 @@ class BunnyManagerApp extends StatelessWidget {
     required this.authProvider,
     required this.connectivityProvider,
     required this.syncProvider,
+    required this.localeProvider,
   });
 
   @override
@@ -102,6 +128,7 @@ class BunnyManagerApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider.value(value: themeProvider),
+        ChangeNotifierProvider.value(value: localeProvider),
         ChangeNotifierProvider.value(value: authProvider),
         ChangeNotifierProvider.value(value: connectivityProvider),
         ChangeNotifierProvider.value(value: syncProvider),
@@ -197,6 +224,35 @@ class BunnyManagerApp extends StatelessWidget {
             return provider;
           },
         ),
+        ChangeNotifierProvider(
+          create: (_) {
+            final provider = TacheProvider();
+            provider.chargerTaches();
+            return provider;
+          },
+        ),
+        ChangeNotifierProvider(create: (_) => UserProvider()),
+        ChangeNotifierProvider(
+          create: (_) {
+            final provider = RituelProvider();
+            provider.chargerRituelsJour();
+            return provider;
+          },
+        ),
+        ChangeNotifierProvider(
+          create: (_) {
+            final provider = AnomalieProvider();
+            provider.chargerTout();
+            return provider;
+          },
+        ),
+        ChangeNotifierProvider(
+          create: (_) {
+            final provider = JournalProvider();
+            provider.chargerJournal();
+            return provider;
+          },
+        ),
         ChangeNotifierProxyProvider2<
           DecesProvider,
           AlimentationProvider,
@@ -214,20 +270,28 @@ class BunnyManagerApp extends StatelessWidget {
               ),
         ),
       ],
-      child: Consumer<ThemeProvider>(
-        builder: (context, themeProvider, child) {
+      child: Consumer2<ThemeProvider, LocaleProvider>(
+        builder: (context, themeProvider, localeProvider, child) {
+          // IMPORTANT: Ne pas utiliser AppLocalizations ici car context incomplet
+          // Le titre est visible uniquement dans task manager, pas dans l'app
+          const appTitle = 'BunnyManager'; // Nom commercial fixe
+
           return MaterialApp(
-            title: 'BunnyManager',
+            key: ValueKey(
+              localeProvider.locale.languageCode,
+            ), // Force rebuild on locale change
+            title: appTitle,
             debugShowCheckedModeBanner: false,
             navigatorKey:
                 navigationService.navigatorKey, // Clé de navigation globale
             localizationsDelegates: const [
+              AppLocalizations.delegate,
               GlobalMaterialLocalizations.delegate,
               GlobalWidgetsLocalizations.delegate,
               GlobalCupertinoLocalizations.delegate,
             ],
-            supportedLocales: const [Locale('fr', 'FR'), Locale('en', 'US')],
-            locale: const Locale('fr', 'FR'),
+            supportedLocales: AppLocalizations.supportedLocales,
+            locale: localeProvider.locale,
             theme: AppTheme.lightTheme,
             darkTheme: AppTheme.darkTheme,
             themeMode: themeProvider.themeMode,

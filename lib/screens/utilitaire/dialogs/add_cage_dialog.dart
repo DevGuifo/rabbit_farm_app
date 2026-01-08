@@ -5,6 +5,7 @@ import '../../../models/cage.dart';
 import '../../../services/database_helper.dart';
 import '../../../services/localisation_service.dart'; // Extension methods
 import 'package:rabbit_farm_app/theme/app_theme.dart';
+import '../../../l10n/app_localizations.dart';
 
 /// Dialog Stitch pour ajout d'une nouvelle cage
 /// Design: Google Stitch - palette neon green #13EC25
@@ -95,7 +96,11 @@ class _AddCageDialogState extends State<AddCageDialog> {
         widget.onCageAdded();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('✓ Cage "${_cageIdController.text}" ajoutée'),
+            content: Text(
+              AppLocalizations.of(
+                context,
+              ).msgCageAjoutee(_cageIdController.text),
+            ),
             backgroundColor: AppTheme.primaryNeonGreen,
             behavior: SnackBarBehavior.floating,
           ),
@@ -105,7 +110,7 @@ class _AddCageDialogState extends State<AddCageDialog> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Erreur: $e'),
+            content: Text(AppLocalizations.of(context).msgErreur(e.toString())),
             backgroundColor: AppTheme.error,
           ),
         );
@@ -145,7 +150,7 @@ class _AddCageDialogState extends State<AddCageDialog> {
                     children: [
                       // Helper Text
                       Text(
-                        'Enter details for the new cage. Ensure the ID is unique within the selected barn.',
+                        AppLocalizations.of(context).helperEnterCageDetails,
                         style: TextStyle(
                           fontSize: 15,
                           color: isDark
@@ -203,7 +208,7 @@ class _AddCageDialogState extends State<AddCageDialog> {
           ),
           const SizedBox(width: 8),
           Text(
-            'Add New Cage',
+            AppLocalizations.of(context).titleAddNewCage,
             style: AppTheme.titleMedium.copyWith(
               color: isDark ? AppTheme.textLight : AppTheme.textPrimary,
             ),
@@ -218,7 +223,7 @@ class _AddCageDialogState extends State<AddCageDialog> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Cage ID / Name',
+          AppLocalizations.of(context).labelCageIdName,
           style: AppTheme.bodyMedium.copyWith(
             fontWeight: FontWeight.bold,
             color: isDark ? AppTheme.textLight : AppTheme.textPrimary,
@@ -228,7 +233,7 @@ class _AddCageDialogState extends State<AddCageDialog> {
         TextFormField(
           controller: _cageIdController,
           decoration: InputDecoration(
-            hintText: 'e.g., C-101',
+            hintText: AppLocalizations.of(context).hintCageId,
             hintStyle: TextStyle(color: AppTheme.textSecondary),
             suffixIcon: Icon(Icons.tag, color: AppTheme.textSecondary),
             filled: true,
@@ -244,8 +249,9 @@ class _AddCageDialogState extends State<AddCageDialog> {
           style: TextStyle(
             color: isDark ? AppTheme.textLight : AppTheme.textPrimary,
           ),
-          validator: (value) =>
-              value?.trim().isEmpty ?? true ? 'Cage ID requis' : null,
+          validator: (value) => value?.trim().isEmpty ?? true
+              ? AppLocalizations.of(context).validationCageIdRequired
+              : null,
         ),
       ],
     );
@@ -256,7 +262,7 @@ class _AddCageDialogState extends State<AddCageDialog> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Location / Barn',
+          AppLocalizations.of(context).labelLocationBarn,
           style: AppTheme.bodyMedium.copyWith(
             fontWeight: FontWeight.bold,
             color: isDark ? AppTheme.textLight : AppTheme.textPrimary,
@@ -277,7 +283,7 @@ class _AddCageDialogState extends State<AddCageDialog> {
             ),
           ),
           hint: Text(
-            'Select a barn',
+            AppLocalizations.of(context).hintSelectBarn,
             style: TextStyle(color: AppTheme.textSecondary),
           ),
           icon: Icon(Icons.expand_more, color: AppTheme.textSecondary),
@@ -289,8 +295,9 @@ class _AddCageDialogState extends State<AddCageDialog> {
             return DropdownMenuItem<int>(value: bat.id, child: Text(bat.nom));
           }).toList(),
           onChanged: (value) => setState(() => _selectedBatimentId = value),
-          validator: (value) =>
-              value == null ? 'Sélectionnez un bâtiment' : null,
+          validator: (value) => value == null
+              ? AppLocalizations.of(context).validationSelectBuilding
+              : null,
         ),
       ],
     );
@@ -301,7 +308,7 @@ class _AddCageDialogState extends State<AddCageDialog> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Cage Type',
+          AppLocalizations.of(context).labelCageType,
           style: AppTheme.bodyMedium.copyWith(
             fontWeight: FontWeight.bold,
             color: isDark ? AppTheme.textLight : AppTheme.textPrimary,
@@ -326,10 +333,19 @@ class _AddCageDialogState extends State<AddCageDialog> {
           style: TextStyle(
             color: isDark ? AppTheme.textLight : AppTheme.textPrimary,
           ),
-          items: const [
-            DropdownMenuItem(value: 'individuelle', child: Text('Individual')),
-            DropdownMenuItem(value: 'collective', child: Text('Collective')),
-            DropdownMenuItem(value: 'nid', child: Text('Nest Box')),
+          items: [
+            DropdownMenuItem(
+              value: 'individuelle',
+              child: Text(AppLocalizations.of(context).cageTypeIndividuelle),
+            ),
+            DropdownMenuItem(
+              value: 'collective',
+              child: Text(AppLocalizations.of(context).cageTypeCollective),
+            ),
+            DropdownMenuItem(
+              value: 'nid',
+              child: Text(AppLocalizations.of(context).cageTypeNid),
+            ),
           ],
           onChanged: (value) => setState(() => _selectedType = value!),
         ),
@@ -412,7 +428,7 @@ class _AddCageDialogState extends State<AddCageDialog> {
           controller: _descriptionController,
           maxLines: 3,
           decoration: InputDecoration(
-            hintText: 'Additional notes...',
+            hintText: AppLocalizations.of(context).hintAdditionalNotes,
             hintStyle: TextStyle(color: AppTheme.textSecondary),
             filled: true,
             fillColor: isDark ? AppTheme.backgroundDark : AppTheme.cardLight,
@@ -447,31 +463,27 @@ class _AddCageDialogState extends State<AddCageDialog> {
           SizedBox(
             width: double.infinity,
             height: 56,
-            child: ElevatedButton(
-              onPressed: _saveCage,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppTheme.primaryNeonGreen,
-                foregroundColor: AppTheme.textPrimary,
-                elevation: 6,
-                shadowColor: AppTheme.primaryNeonGreen.withValues(alpha: 0.3),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-              child: const Text('Add Cage', style: AppTheme.titleMedium),
+            child: Builder(
+              builder: (context) {
+                final l10n = AppLocalizations.of(context);
+                return ElevatedButton(
+                  onPressed: _saveCage,
+                  style: AppTheme.primaryButtonStyle,
+                  child: Text(l10n.ajouterCage, style: AppTheme.titleMedium),
+                );
+              },
             ),
           ),
           const SizedBox(height: 12),
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(
-              'Cancel',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: AppTheme.textSecondary,
-              ),
-            ),
+          Builder(
+            builder: (context) {
+              final l10n = AppLocalizations.of(context);
+              return TextButton(
+                onPressed: () => Navigator.pop(context),
+                style: AppTheme.textButtonStyle,
+                child: Text(l10n.annuler),
+              );
+            },
           ),
         ],
       ),

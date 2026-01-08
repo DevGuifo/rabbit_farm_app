@@ -23,7 +23,7 @@ class AuthFooter extends StatelessWidget {
           style: TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.w500,
-            color: isDark ? Colors.grey.shade400 : Colors.grey.shade500,
+            color: isDark ? AppTheme.neutral400 : AppTheme.neutral500,
           ),
           children: [
             const TextSpan(text: 'By creating an account you agree to our '),

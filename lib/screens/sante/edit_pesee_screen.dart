@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
+import '../../l10n/app_localizations.dart';
 import '../../models/lapin.dart';
 import '../../models/pesee.dart';
 import '../../providers/sante_provider.dart';
 import '../../utils/snackbar_helper.dart';
 import '../../theme/app_theme.dart';
+import '../../widgets/uniform_app_bar.dart';
 
 /// Écran pour modifier une pesée existante
 class EditPeseeScreen extends StatefulWidget {
@@ -78,7 +80,10 @@ class _EditPeseeScreenState extends State<EditPeseeScreen> {
       await santeProvider.modifierPesee(peseeModifiee);
 
       if (mounted) {
-        SnackbarHelper.showSuccess(context, 'Pesée modifiée avec succès');
+        SnackbarHelper.showSuccess(
+          context,
+          AppLocalizations.of(context).santePeseeModifiee,
+        );
         Navigator.of(context).pop(true);
       }
     } catch (e) {
@@ -94,21 +99,15 @@ class _EditPeseeScreenState extends State<EditPeseeScreen> {
 
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
-      appBar: AppBar(
-        title: Text(
-          'Modifier pesée',
-          style: AppTheme.titleLarge.copyWith(
-            color: Theme.of(context).colorScheme.onSurface,
-          ),
-        ),
-        backgroundColor: Theme.of(context).colorScheme.surface,
-        elevation: 0,
-        iconTheme: IconThemeData(color: Theme.of(context).colorScheme.primary),
+      appBar: UniformAppBar(
+        title: AppLocalizations.of(context).santeModifierPesee,
+        icon: Icons.monitor_weight_rounded,
+        iconColor: AppTheme.info,
       ),
       body: Form(
         key: _formKey,
         child: ListView(
-          padding: const EdgeInsets.all(16),
+          padding: AppTheme.paddingAllMedium,
           children: [
             // Informations du lapin
             Card(
@@ -130,7 +129,7 @@ class _EditPeseeScreenState extends State<EditPeseeScreen> {
                         size: 32,
                       ),
                     ),
-                    const SizedBox(width: 16),
+                    AppTheme.horizontalSpace16,
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -146,28 +145,27 @@ class _EditPeseeScreenState extends State<EditPeseeScreen> {
                 ),
               ),
             ),
-            const SizedBox(height: 16),
+            AppTheme.verticalSpace16,
 
             // Date de la pesée
             Card(
               child: ListTile(
                 leading: const Icon(Icons.calendar_today),
-                title: const Text('Date de la pesée'),
+                title: Text(AppLocalizations.of(context).santeDatePesee),
                 subtitle: Text(dateFormat.format(_date)),
                 trailing: const Icon(Icons.edit),
                 onTap: () => _selectionnerDate(context),
               ),
             ),
-            const SizedBox(height: 16),
+            AppTheme.verticalSpace16,
 
             // Poids
             TextFormField(
               controller: _poidsController,
-              decoration: const InputDecoration(
-                labelText: 'Poids (kg)',
-                hintText: 'Ex: 2.5',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.monitor_weight),
+              decoration: AppTheme.inputDecoration(
+                label: AppLocalizations.of(context).santePoids,
+                hint: 'Ex: 2.5',
+                prefixIcon: Icons.monitor_weight,
                 suffixText: 'kg',
               ),
               keyboardType: const TextInputType.numberWithOptions(
@@ -178,32 +176,31 @@ class _EditPeseeScreenState extends State<EditPeseeScreen> {
               ],
               validator: (value) {
                 if (value == null || value.isEmpty) {
-                  return 'Veuillez entrer le poids';
+                  return AppLocalizations.of(context).erreurPoidsInvalide;
                 }
                 final poids = double.tryParse(value.replaceAll(',', '.'));
                 if (poids == null || poids <= 0) {
-                  return 'Veuillez entrer un poids valide';
+                  return AppLocalizations.of(context).erreurPoidsInvalide;
                 }
                 if (poids > 10) {
-                  return 'Le poids semble trop élevé';
+                  return AppLocalizations.of(context).erreurPoidsInvalide;
                 }
                 return null;
               },
             ),
-            const SizedBox(height: 16),
+            AppTheme.verticalSpace16,
 
             // Notes
             TextFormField(
               controller: _notesController,
-              decoration: const InputDecoration(
-                labelText: 'Notes (optionnel)',
-                hintText: 'Observations, état général...',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.notes),
+              decoration: AppTheme.inputDecoration(
+                label: AppLocalizations.of(context).santeNotes,
+                hint: 'Observations, état général...',
+                prefixIcon: Icons.notes,
               ),
               maxLines: 3,
             ),
-            const SizedBox(height: 24),
+            AppTheme.verticalSpace24,
 
             // Boutons d'action
             Row(
@@ -212,21 +209,21 @@ class _EditPeseeScreenState extends State<EditPeseeScreen> {
                   child: OutlinedButton.icon(
                     onPressed: () => Navigator.pop(context),
                     icon: const Icon(Icons.close),
-                    label: const Text('Annuler'),
+                    label: Text(AppLocalizations.of(context).actionAnnuler),
                     style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.all(16),
+                      padding: AppTheme.paddingAllMedium,
                     ),
                   ),
                 ),
-                const SizedBox(width: 16),
+                AppTheme.horizontalSpace16,
                 Expanded(
                   flex: 2,
                   child: FilledButton.icon(
                     onPressed: _modifierPesee,
                     icon: const Icon(Icons.save),
-                    label: const Text('Enregistrer'),
+                    label: Text(AppLocalizations.of(context).actionEnregistrer),
                     style: FilledButton.styleFrom(
-                      padding: const EdgeInsets.all(16),
+                      padding: AppTheme.paddingAllMedium,
                     ),
                   ),
                 ),

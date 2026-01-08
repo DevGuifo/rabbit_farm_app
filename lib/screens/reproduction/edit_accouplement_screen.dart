@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:rabbit_farm_app/l10n/app_localizations.dart';
 import '../../models/accouplement.dart';
 import '../../models/lapin.dart';
 import '../../providers/lapin_provider.dart';
@@ -7,6 +8,7 @@ import '../../providers/reproduction_provider.dart';
 import '../../utils/snackbar_helper.dart';
 import 'package:intl/intl.dart';
 import 'package:rabbit_farm_app/theme/app_theme.dart';
+import '../../widgets/uniform_app_bar.dart';
 
 /// Écran pour modifier un accouplement existant
 class EditAccouplementScreen extends StatefulWidget {
@@ -101,9 +103,13 @@ class _EditAccouplementScreenState extends State<EditAccouplementScreen> {
 
     if (males.isEmpty) {
       if (context.mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Aucun mâle disponible')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              AppLocalizations.of(context).erreurAucunMaleDisponible,
+            ),
+          ),
+        );
       }
       return;
     }
@@ -111,7 +117,7 @@ class _EditAccouplementScreenState extends State<EditAccouplementScreen> {
     final Lapin? selected = await showDialog<Lapin>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Sélectionner un mâle'),
+        title: Text(AppLocalizations.of(context).reproSelectionnerMale),
         content: SizedBox(
           width: double.maxFinite,
           child: ListView.builder(
@@ -149,7 +155,11 @@ class _EditAccouplementScreenState extends State<EditAccouplementScreen> {
     if (femelles.isEmpty) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Aucune femelle disponible')),
+          SnackBar(
+            content: Text(
+              AppLocalizations.of(context).erreurAucuneFemelleDisponible,
+            ),
+          ),
         );
       }
       return;
@@ -158,7 +168,7 @@ class _EditAccouplementScreenState extends State<EditAccouplementScreen> {
     final Lapin? selected = await showDialog<Lapin>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Sélectionner une femelle'),
+        title: Text(AppLocalizations.of(context).reproSelectionnerFemelle),
         content: SizedBox(
           width: double.maxFinite,
           child: ListView.builder(
@@ -195,7 +205,7 @@ class _EditAccouplementScreenState extends State<EditAccouplementScreen> {
     if (_maleSelectionne == null) {
       SnackbarHelper.showValidationError(
         context,
-        'Veuillez sélectionner un mâle',
+        AppLocalizations.of(context).reproSelectionnerMale,
       );
       return;
     }
@@ -203,7 +213,7 @@ class _EditAccouplementScreenState extends State<EditAccouplementScreen> {
     if (_femelleSelectionnee == null) {
       SnackbarHelper.showValidationError(
         context,
-        'Veuillez sélectionner une femelle',
+        AppLocalizations.of(context).reproSelectionnerFemelle,
       );
       return;
     }
@@ -212,7 +222,7 @@ class _EditAccouplementScreenState extends State<EditAccouplementScreen> {
     if (widget.accouplement.statut == 'termine') {
       SnackbarHelper.showWarning(
         context,
-        'Impossible de modifier un accouplement terminé',
+        AppLocalizations.of(context).reproImpossibleModifier,
       );
       return;
     }
@@ -233,7 +243,10 @@ class _EditAccouplementScreenState extends State<EditAccouplementScreen> {
       await reproductionProvider.modifierAccouplement(accouplementModifie);
 
       if (mounted) {
-        SnackbarHelper.showSuccess(context, 'Accouplement modifié avec succès');
+        SnackbarHelper.showSuccess(
+          context,
+          AppLocalizations.of(context).reproAccouplementModifie,
+        );
         Navigator.of(context).pop(true);
       }
     } catch (e) {
@@ -249,16 +262,10 @@ class _EditAccouplementScreenState extends State<EditAccouplementScreen> {
 
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
-      appBar: AppBar(
-        title: Text(
-          'Modifier accouplement',
-          style: AppTheme.titleLarge.copyWith(
-            color: Theme.of(context).colorScheme.onSurface,
-          ),
-        ),
-        backgroundColor: Theme.of(context).colorScheme.surface,
-        elevation: 0,
-        iconTheme: IconThemeData(color: Theme.of(context).colorScheme.primary),
+      appBar: UniformAppBar(
+        title: AppLocalizations.of(context).reproModifierAccouplement,
+        icon: Icons.favorite_rounded,
+        iconColor: AppTheme.accentPink,
       ),
       body: Form(
         key: _formKey,
@@ -306,7 +313,9 @@ class _EditAccouplementScreenState extends State<EditAccouplementScreen> {
                     ? Text(
                         '${_maleSelectionne!.race} - ${_maleSelectionne!.ageFormate}',
                       )
-                    : const Text('Appuyez pour sélectionner'),
+                    : Text(
+                        AppLocalizations.of(context).reproAppuyezSelectionner,
+                      ),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: widget.accouplement.statut != 'termine'
                     ? () => _selectionnerMale(context)
@@ -331,7 +340,9 @@ class _EditAccouplementScreenState extends State<EditAccouplementScreen> {
                     ? Text(
                         '${_femelleSelectionnee!.race} - ${_femelleSelectionnee!.ageFormate}',
                       )
-                    : const Text('Appuyez pour sélectionner'),
+                    : Text(
+                        AppLocalizations.of(context).reproAppuyezSelectionner,
+                      ),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: widget.accouplement.statut != 'termine'
                     ? () => _selectionnerFemelle(context)
@@ -344,7 +355,7 @@ class _EditAccouplementScreenState extends State<EditAccouplementScreen> {
             Card(
               child: ListTile(
                 leading: const Icon(Icons.calendar_today),
-                title: const Text('Date d\'accouplement'),
+                title: Text(AppLocalizations.of(context).reproDateAccouplement),
                 subtitle: Text(dateFormat.format(_dateAccouplement)),
                 trailing: const Icon(Icons.edit),
                 onTap: widget.accouplement.statut != 'termine'
@@ -359,13 +370,15 @@ class _EditAccouplementScreenState extends State<EditAccouplementScreen> {
               color: Theme.of(context).colorScheme.primaryContainer,
               child: ListTile(
                 leading: const Icon(Icons.event_available),
-                title: const Text('Mise bas prévue'),
+                title: Text(AppLocalizations.of(context).reproMiseBasPrevue),
                 subtitle: Text(
                   _dateMiseBasPrevue != null
                       ? dateFormat.format(_dateMiseBasPrevue!)
                       : 'Non calculée',
                 ),
-                trailing: const Chip(label: Text('Auto')),
+                trailing: Chip(
+                  label: Text(AppLocalizations.of(context).reproAuto),
+                ),
               ),
             ),
             const SizedBox(height: 16),
@@ -413,11 +426,10 @@ class _EditAccouplementScreenState extends State<EditAccouplementScreen> {
             // Notes
             TextFormField(
               controller: _notesController,
-              decoration: const InputDecoration(
-                labelText: 'Notes (optionnel)',
-                hintText: 'Observations, conditions particulières...',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.notes),
+              decoration: AppTheme.inputDecoration(
+                label: AppLocalizations.of(context).reproNotesOptionnel,
+                hint: 'Observations, conditions particulières...',
+                prefixIcon: Icons.notes,
               ),
               maxLines: 3,
               enabled: widget.accouplement.statut != 'termine',
@@ -432,7 +444,7 @@ class _EditAccouplementScreenState extends State<EditAccouplementScreen> {
                     child: OutlinedButton.icon(
                       onPressed: () => Navigator.pop(context),
                       icon: const Icon(Icons.close),
-                      label: const Text('Annuler'),
+                      label: Text(AppLocalizations.of(context).actionAnnuler),
                       style: OutlinedButton.styleFrom(
                         padding: const EdgeInsets.all(16),
                       ),
@@ -444,7 +456,9 @@ class _EditAccouplementScreenState extends State<EditAccouplementScreen> {
                     child: FilledButton.icon(
                       onPressed: _modifierAccouplement,
                       icon: const Icon(Icons.save),
-                      label: const Text('Enregistrer'),
+                      label: Text(
+                        AppLocalizations.of(context).actionEnregistrer,
+                      ),
                       style: FilledButton.styleFrom(
                         padding: const EdgeInsets.all(16),
                       ),

@@ -5,7 +5,8 @@ class Soin {
   final DateTime date;
   final String type; // 'vaccination', 'traitement', 'vermifuge', 'autre'
   final String description;
-  final String? medicament;
+  final String? medicament; // ⚠️ DEPRECATED - Utiliser medicamentId
+  final int? medicamentId; // FK vers medicaments.id (Phase 2 Refactoring)
   final String? dosage;
   final DateTime? dateRappel;
   final String? notes;
@@ -17,6 +18,7 @@ class Soin {
     required this.type,
     required this.description,
     this.medicament,
+    this.medicamentId,
     this.dosage,
     this.dateRappel,
     this.notes,
@@ -42,6 +44,7 @@ class Soin {
     String? type,
     String? description,
     String? medicament,
+    int? medicamentId,
     String? dosage,
     DateTime? dateRappel,
     String? notes,
@@ -53,6 +56,7 @@ class Soin {
       type: type ?? this.type,
       description: description ?? this.description,
       medicament: medicament ?? this.medicament,
+      medicamentId: medicamentId ?? this.medicamentId,
       dosage: dosage ?? this.dosage,
       dateRappel: dateRappel ?? this.dateRappel,
       notes: notes ?? this.notes,
@@ -68,6 +72,7 @@ class Soin {
       'type': type,
       'description': description,
       'medicament': medicament,
+      'medicament_id': medicamentId,
       'dosage': dosage,
       'date_rappel': dateRappel?.toIso8601String(),
       'notes': notes,
@@ -83,6 +88,7 @@ class Soin {
       type: map['type'] as String,
       description: map['description'] as String,
       medicament: map['medicament'] as String?,
+      medicamentId: map['medicament_id'] as int?,
       dosage: map['dosage'] as String?,
       dateRappel: map['date_rappel'] != null
           ? DateTime.parse(map['date_rappel'] as String)

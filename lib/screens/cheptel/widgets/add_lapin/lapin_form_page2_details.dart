@@ -3,6 +3,8 @@ import 'package:flutter/services.dart';
 import 'package:animate_do/animate_do.dart';
 import '../../../../theme/app_theme.dart';
 import '../../../../widgets/cage_selector.dart';
+import '../../../../services/database_helper.dart';
+import '../../../../l10n/app_localizations.dart';
 
 /// Page 2 du formulaire d'ajout de lapin : Détails complémentaires
 class LapinFormPage2Details extends StatefulWidget {
@@ -15,6 +17,8 @@ class LapinFormPage2Details extends StatefulWidget {
   final Function(String?) onStatutChanged;
   final String? origineSelectionnee;
   final Function(String?) onOrigineChanged;
+  final int? cageIdInitiale; // ID cage pour pré-sélection
+  final Function(int?)? onCageIdChanged; // Callback quand cage sélectionnée
 
   const LapinFormPage2Details({
     super.key,
@@ -27,6 +31,8 @@ class LapinFormPage2Details extends StatefulWidget {
     required this.onStatutChanged,
     required this.origineSelectionnee,
     required this.onOrigineChanged,
+    this.cageIdInitiale,
+    this.onCageIdChanged,
   });
 
   @override
@@ -110,8 +116,8 @@ class _LapinFormPage2DetailsState extends State<LapinFormPage2Details> {
       child: TextFormField(
         controller: widget.poidsController,
         decoration: InputDecoration(
-          labelText: 'Poids',
-          hintText: 'Ex: 2.5',
+          labelText: AppLocalizations.of(context).cheptelFormPoids,
+          hintText: AppLocalizations.of(context).hintExemple25,
           prefixIcon: const Icon(Icons.monitor_weight_outlined),
           suffixText: 'kg',
           filled: true,
@@ -138,15 +144,18 @@ class _LapinFormPage2DetailsState extends State<LapinFormPage2Details> {
     return FadeInUp(
       delay: const Duration(milliseconds: 250),
       child: DropdownButtonFormField<String>(
-        initialValue:  widget.statutSelectionne,
+        initialValue: widget.statutSelectionne,
         decoration: InputDecoration(
-          labelText: 'Statut',
+          labelText: AppLocalizations.of(context).cheptelFormStatut,
           prefixIcon: const Icon(Icons.info_outline),
           filled: true,
           fillColor: Theme.of(context).colorScheme.surface,
         ),
         items: [
-          const DropdownMenuItem(value: null, child: Text('Non défini')),
+          DropdownMenuItem(
+            value: null,
+            child: Text(AppLocalizations.of(context).commonNonDefini),
+          ),
           ..._statuts.map((statut) {
             return DropdownMenuItem(value: statut, child: Text(statut));
           }),
@@ -163,26 +172,37 @@ class _LapinFormPage2DetailsState extends State<LapinFormPage2Details> {
       delay: const Duration(milliseconds: 300),
       child: InkWell(
         onTap: () async {
-          final cage = await showDialog<String>(
+          final cageId = await showDialog<int>(
             context: context,
-            builder: (context) => CageSelector(
-              cageInitiale: widget.localisationController.text.isNotEmpty
-                  ? widget.localisationController.text
-                  : null,
-            ),
+            builder: (context) =>
+                CageSelector(cageIdInitiale: widget.cageIdInitiale),
           );
-          if (cage != null) {
-            setState(() {
-              widget.localisationController.text = cage;
-            });
+          if (cageId != null && mounted) {
+            // Récupérer les infos de la cage pour afficher le texte
+            final dbHelper = await DatabaseHelper.instance.database;
+            final cageData = await dbHelper.query(
+              'cages',
+              where: 'id = ?',
+              whereArgs: [cageId],
+            );
+
+            if (cageData.isNotEmpty) {
+              final numero = cageData.first['numero'] as String;
+              setState(() {
+                widget.localisationController.text = numero;
+              });
+
+              // Notifier le parent avec le cage ID
+              widget.onCageIdChanged?.call(cageId);
+            }
           }
         },
         child: IgnorePointer(
           child: TextFormField(
             controller: widget.localisationController,
             decoration: InputDecoration(
-              labelText: 'Localisation (Cage)',
-              hintText: 'Sélectionner une cage...',
+              labelText: AppLocalizations.of(context).cheptelFormLocalisation,
+              hintText: AppLocalizations.of(context).hintSelectionnerCage,
               prefixIcon: const Icon(Icons.window_outlined),
               suffixIcon: widget.localisationController.text.isNotEmpty
                   ? IconButton(
@@ -190,6 +210,7 @@ class _LapinFormPage2DetailsState extends State<LapinFormPage2Details> {
                       onPressed: () {
                         setState(() {
                           widget.localisationController.clear();
+                          widget.onCageIdChanged?.call(null);
                         });
                       },
                     )
@@ -208,15 +229,18 @@ class _LapinFormPage2DetailsState extends State<LapinFormPage2Details> {
     return FadeInUp(
       delay: const Duration(milliseconds: 350),
       child: DropdownButtonFormField<String>(
-        initialValue:  widget.origineSelectionnee,
+        initialValue: widget.origineSelectionnee,
         decoration: InputDecoration(
-          labelText: 'Origine',
+          labelText: AppLocalizations.of(context).cheptelFormOrigine,
           prefixIcon: const Icon(Icons.history_outlined),
           filled: true,
           fillColor: Theme.of(context).colorScheme.surface,
         ),
         items: [
-          const DropdownMenuItem(value: null, child: Text('Non spécifié')),
+          DropdownMenuItem(
+            value: null,
+            child: Text(AppLocalizations.of(context).commonNonSpecifie),
+          ),
           ..._origines.map((origine) {
             return DropdownMenuItem(value: origine, child: Text(origine));
           }),
@@ -234,8 +258,8 @@ class _LapinFormPage2DetailsState extends State<LapinFormPage2Details> {
       child: TextFormField(
         controller: widget.prixAchatController,
         decoration: InputDecoration(
-          labelText: 'Prix d\'achat',
-          hintText: 'Ex: 25.00',
+          labelText: AppLocalizations.of(context).cheptelFormPrixAchat,
+          hintText: AppLocalizations.of(context).hintExemple2500,
           prefixIcon: const Icon(Icons.euro_outlined),
           suffixText: '€',
           filled: true,
@@ -255,8 +279,8 @@ class _LapinFormPage2DetailsState extends State<LapinFormPage2Details> {
       child: TextFormField(
         controller: widget.caracteristiquesController,
         decoration: InputDecoration(
-          labelText: 'Caractéristiques particulières',
-          hintText: 'Signes distinctifs, marques...',
+          labelText: AppLocalizations.of(context).cheptelFormCaracteristiques,
+          hintText: AppLocalizations.of(context).hintSignesDistinctifs,
           prefixIcon: const Icon(Icons.stars_outlined),
           filled: true,
           fillColor: Theme.of(context).colorScheme.surface,
@@ -273,8 +297,8 @@ class _LapinFormPage2DetailsState extends State<LapinFormPage2Details> {
       child: TextFormField(
         controller: widget.notesController,
         decoration: InputDecoration(
-          labelText: 'Notes',
-          hintText: 'Observations générales...',
+          labelText: AppLocalizations.of(context).cheptelFormNotes,
+          hintText: AppLocalizations.of(context).hintObservationsGenerales,
           prefixIcon: const Icon(Icons.note_outlined),
           filled: true,
           fillColor: Theme.of(context).colorScheme.surface,

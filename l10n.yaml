@@ -1,0 +1,10 @@
+# Configuration de localisation pour BunnyManager
+# Génère automatiquement la classe AppLocalizations
+
+arb-dir: lib/l10n
+template-arb-file: app_fr.arb
+output-localization-file: app_localizations.dart
+output-class: AppLocalizations
+preferred-supported-locales:
+  - fr
+nullable-getter: false

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:rabbit_farm_app/l10n/app_localizations.dart';
 import '../../../models/accouplement.dart';
 import '../../../models/lapin.dart';
 import '../../../providers/lapin_provider.dart';
@@ -45,7 +46,7 @@ class ReproductionPairingsList extends StatelessWidget {
               ),
               const SizedBox(height: 16),
               Text(
-                'No Pairings',
+                AppLocalizations.of(context).reproAucunAccouplement,
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w600,
@@ -54,7 +55,7 @@ class ReproductionPairingsList extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               Text(
-                'Schedule a pairing to get started',
+                AppLocalizations.of(context).reproPlanifierPourCommencer,
                 style: AppTheme.bodyMedium.copyWith(
                   color: isDark
                       ? AppTheme.textSecondary.withValues(alpha: 0.7)

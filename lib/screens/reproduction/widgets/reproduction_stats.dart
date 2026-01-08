@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:rabbit_farm_app/l10n/app_localizations.dart';
 import '../../../providers/reproduction_provider.dart';
+import '../../../widgets/glossaire/glossaire_cuniculture.dart';
 import 'package:rabbit_farm_app/theme/app_theme.dart';
 
 /// Widget Stats Reproduction - 3 cartes KPI
@@ -42,28 +44,31 @@ class ReproductionStats extends StatelessWidget {
             children: [
               Expanded(
                 child: _buildStatCard(
+                  context,
                   isDark,
-                  'ACTIVE',
+                  AppLocalizations.of(context).reproActives,
                   '$activePregnancies',
-                  'Pregnancies',
+                  AppLocalizations.of(context).reproGestations,
                 ),
               ),
               const SizedBox(width: 12),
               Expanded(
                 child: _buildStatCard(
+                  context,
                   isDark,
-                  'EXPECTED',
+                  AppLocalizations.of(context).reproPrevues,
                   '$expectedThisWeek',
-                  'This Week',
+                  AppLocalizations.of(context).reproCetteSemaine,
                 ),
               ),
               const SizedBox(width: 12),
               Expanded(
                 child: _buildStatCard(
+                  context,
                   isDark,
-                  'SUCCESS',
+                  AppLocalizations.of(context).reproReussite,
                   '$successRate%',
-                  'Litters',
+                  AppLocalizations.of(context).reproPortees,
                 ),
               ),
             ],
@@ -74,6 +79,7 @@ class ReproductionStats extends StatelessWidget {
   }
 
   Widget _buildStatCard(
+    BuildContext context,
     bool isDark,
     String label,
     String value,
@@ -170,18 +176,26 @@ class ReproductionPalpationAlert extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        'Palpation Required',
-                        style: AppTheme.bodyMedium.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: isDark
-                              ? AppTheme.warning.withValues(alpha: 0.2)
-                              : AppTheme.backgroundDark,
-                        ),
+                      Row(
+                        children: [
+                          Text(
+                            AppLocalizations.of(context).reproPalpationRequise,
+                            style: AppTheme.bodyMedium.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: isDark
+                                  ? AppTheme.warning.withValues(alpha: 0.2)
+                                  : AppTheme.backgroundDark,
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          TooltipGlossaire(terme: 'palpation', iconSize: 14),
+                        ],
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        'Check ${accouplementsAPalper.length} doe(s) for pregnancy',
+                        AppLocalizations.of(
+                          context,
+                        ).reproPalperCount(accouplementsAPalper.length),
                         style: AppTheme.bodyMedium.copyWith(
                           color: isDark
                               ? AppTheme.warning.withValues(alpha: 0.2)

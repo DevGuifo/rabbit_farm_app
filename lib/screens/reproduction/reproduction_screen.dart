@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:rabbit_farm_app/l10n/app_localizations.dart';
 import '../../models/accouplement.dart';
 import '../../providers/reproduction_provider.dart';
 import '../../providers/lapin_provider.dart';
+import '../../providers/sync_provider.dart';
 import '../../utils/snackbar_helper.dart';
 import '../../utils/dialog_helper.dart';
 import '../../theme/app_theme.dart';
@@ -27,14 +29,19 @@ class ReproductionScreen extends StatefulWidget {
 }
 
 class _ReproductionScreenState extends State<ReproductionScreen> {
-  String _selectedFilter = 'All';
-  final List<String> _filters = [
-    'All',
-    'Pregnant',
-    'Nursing',
-    'Weaned',
-    'Ready to Wean',
-  ];
+  String _selectedFilter = '';
+
+  List<String> _getFilters(BuildContext context) {
+    final loc = AppLocalizations.of(context);
+    return [
+      loc.reproTous,
+      loc.reproGestantes,
+      loc.reproAllaitantes,
+      loc.reproSevrees,
+      loc.reproSevrageReady,
+    ];
+  }
+
   bool _showAllPairings = false;
 
   @override
@@ -54,33 +61,33 @@ class _ReproductionScreenState extends State<ReproductionScreen> {
 
   List<Accouplement> _appliquerFiltres(List<Accouplement> accouplements) {
     var filtres = accouplements;
+    final filters = _getFilters(context);
 
-    switch (_selectedFilter) {
-      case 'All':
-        filtres = filtres.where((a) => a.statut != 'termine').toList();
-        break;
-      case 'Pregnant':
-        filtres = filtres
-            .where((a) => a.statut == 'en_attente' || a.statut == 'confirme')
-            .toList();
-        break;
-      case 'Ready to Wean':
-        filtres = filtres.where((a) {
-          if (a.statut != 'termine') return false;
-          final provider = context.read<ReproductionProvider>();
-          try {
-            final portee = provider.portees.firstWhere(
-              (p) => p.accouplementId == a.id,
-            );
-            final ageEnJours = DateTime.now()
-                .difference(portee.dateMiseBasReelle)
-                .inDays;
-            return ageEnJours >= 28 && ageEnJours <= 56;
-          } catch (e) {
-            return false;
-          }
-        }).toList();
-        break;
+    if (_selectedFilter == '' || _selectedFilter == filters[0]) {
+      // Tous
+      filtres = filtres.where((a) => a.statut != 'termine').toList();
+    } else if (_selectedFilter == filters[1]) {
+      // Gestantes
+      filtres = filtres
+          .where((a) => a.statut == 'en_attente' || a.statut == 'confirme')
+          .toList();
+    } else if (_selectedFilter == filters[4]) {
+      // Prêtes à sevrer
+      filtres = filtres.where((a) {
+        if (a.statut != 'termine') return false;
+        final provider = context.read<ReproductionProvider>();
+        try {
+          final portee = provider.portees.firstWhere(
+            (p) => p.accouplementId == a.id,
+          );
+          final ageEnJours = DateTime.now()
+              .difference(portee.dateMiseBasReelle)
+              .inDays;
+          return ageEnJours >= 28 && ageEnJours <= 56;
+        } catch (e) {
+          return false;
+        }
+      }).toList();
     }
 
     return filtres;
@@ -92,50 +99,50 @@ class _ReproductionScreenState extends State<ReproductionScreen> {
 
     return Scaffold(
       backgroundColor: isDark
-          ? AppTheme.backgroundDarkMode
+          ? AppTheme.backgroundDark
           : AppTheme.backgroundLight,
       body: Column(
         children: [
           _buildHeader(isDark),
           Expanded(
             child: RefreshIndicator(
-        onRefresh: _chargerDonnees,
-        color: AppTheme.primaryNeonGreen,
-        child: Consumer<ReproductionProvider>(
-          builder: (context, reproProvider, _) {
-            final displayedAccouplements = _appliquerFiltres(
-              reproProvider.accouplements,
-            );
-            final toDisplay = _showAllPairings
-                ? displayedAccouplements
-                : displayedAccouplements.take(3).toList();
+              onRefresh: _chargerDonnees,
+              color: AppTheme.primaryGreen,
+              child: Consumer<ReproductionProvider>(
+                builder: (context, reproProvider, _) {
+                  final displayedAccouplements = _appliquerFiltres(
+                    reproProvider.accouplements,
+                  );
+                  final toDisplay = _showAllPairings
+                      ? displayedAccouplements
+                      : displayedAccouplements.take(3).toList();
 
-            return SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const SizedBox(height: 16),
-                  ReproductionStats(isDark: isDark),
-                  const SizedBox(height: 16),
-                  ReproductionPalpationAlert(isDark: isDark),
-                  const SizedBox(height: 8),
-                  _buildFilterPills(isDark),
-                  const SizedBox(height: 16),
-                  _buildSectionHeader(isDark),
-                  const SizedBox(height: 12),
-                  ReproductionPairingsList(
-                    isDark: isDark,
-                    accouplements: toDisplay,
-                    showAll: _showAllPairings,
-                    onEditTap: _editAccouplement,
-                    onDeleteTap: _deleteAccouplement,
-                  ),
-                  const SizedBox(height: 150),
-                ],
+                  return SingleChildScrollView(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const SizedBox(height: 16),
+                        ReproductionStats(isDark: isDark),
+                        const SizedBox(height: 16),
+                        ReproductionPalpationAlert(isDark: isDark),
+                        const SizedBox(height: 8),
+                        _buildFilterPills(isDark),
+                        const SizedBox(height: 16),
+                        _buildSectionHeader(isDark),
+                        const SizedBox(height: 12),
+                        ReproductionPairingsList(
+                          isDark: isDark,
+                          accouplements: toDisplay,
+                          showAll: _showAllPairings,
+                          onEditTap: _editAccouplement,
+                          onDeleteTap: _deleteAccouplement,
+                        ),
+                        const SizedBox(height: 150),
+                      ],
+                    ),
+                  );
+                },
               ),
-            );
-          },
-        ),
             ),
           ),
         ],
@@ -144,13 +151,18 @@ class _ReproductionScreenState extends State<ReproductionScreen> {
     );
   }
 
-  /// Header - Utilise StandardHeader
+  /// Header - Utilise StandardHeader unifié
   Widget _buildHeader(bool isDark) {
     return StandardHeader(
-      title: 'Reproduction',
+      title: AppLocalizations.of(context).reproduction,
       isDark: isDark,
-      onSync: _chargerDonnees,
-      onNotifications: () {},
+      onSync: () async {
+        // Synchroniser puis recharger
+        final syncProvider = context.read<SyncProvider>();
+        await syncProvider.syncNow();
+        _chargerDonnees();
+      },
+      onNotifications: null, // Masquer car pas de fonctionnalité spécifique
       onSettings: () {
         Navigator.push(
           context,
@@ -162,19 +174,20 @@ class _ReproductionScreenState extends State<ReproductionScreen> {
 
   /// Filter Pills - Utilise FilterPill
   Widget _buildFilterPills(bool isDark) {
+    final filters = _getFilters(context);
     return SizedBox(
       height: 52,
       child: ListView.builder(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         scrollDirection: Axis.horizontal,
-        itemCount: _filters.length,
+        itemCount: filters.length,
         itemBuilder: (context, index) {
-          final filter = _filters[index];
+          final filter = filters[index];
           final isSelected = _selectedFilter == filter;
 
           return Padding(
             padding: EdgeInsets.only(
-              right: index < _filters.length - 1 ? 12 : 0,
+              right: index < filters.length - 1 ? 12 : 0,
             ),
             child: FilterPill(
               label: filter,
@@ -195,7 +208,7 @@ class _ReproductionScreenState extends State<ReproductionScreen> {
   /// Section Header - Utilise SectionHeader
   Widget _buildSectionHeader(bool isDark) {
     return SectionHeader(
-      title: 'Active Pairings',
+      title: AppLocalizations.of(context).reproAccouplementsActifs,
       isDark: isDark,
       onMoreTap: () {
         setState(() {
@@ -210,6 +223,7 @@ class _ReproductionScreenState extends State<ReproductionScreen> {
       mainAxisSize: MainAxisSize.min,
       children: [
         FloatingActionButton(
+          heroTag: 'fab_sevrage',
           mini: true,
           backgroundColor: AppTheme.warning,
           onPressed: () {
@@ -218,11 +232,12 @@ class _ReproductionScreenState extends State<ReproductionScreen> {
               MaterialPageRoute(builder: (_) => const SevrageScreen()),
             );
           },
-          tooltip: 'Weaning',
+          tooltip: AppLocalizations.of(context).reproSevrage,
           child: const Icon(Icons.pets),
         ),
         const SizedBox(height: 8),
         FloatingActionButton(
+          heroTag: 'fab_nid',
           mini: true,
           backgroundColor: AppTheme.info,
           onPressed: () {
@@ -231,14 +246,15 @@ class _ReproductionScreenState extends State<ReproductionScreen> {
               MaterialPageRoute(builder: (_) => const PreparationNidScreen()),
             );
           },
-          tooltip: 'Nesting',
+          tooltip: AppLocalizations.of(context).reproPreparationNid,
           child: const Icon(Icons.home_work),
         ),
         const SizedBox(height: 8),
         FloatingActionButton(
-          backgroundColor: AppTheme.primaryNeonGreen,
+          heroTag: 'fab_accouplement',
+          backgroundColor: AppTheme.primaryGreen,
           onPressed: _planifierAccouplement,
-          tooltip: 'Schedule Pairing',
+          tooltip: AppLocalizations.of(context).reproPlanifierSaillie,
           child: const Icon(Icons.add),
         ),
       ],
@@ -257,7 +273,7 @@ class _ReproductionScreenState extends State<ReproductionScreen> {
   void _deleteAccouplement(int accouplementId) {
     DialogHelper.showConfirmDialog(
       context,
-      'Delete Pairing',
+      AppLocalizations.of(context).reproductionDeletePairing,
       'Are you sure you want to delete this pairing?',
       () async {
         try {
@@ -265,10 +281,13 @@ class _ReproductionScreenState extends State<ReproductionScreen> {
             accouplementId,
           );
           if (!mounted) return;
-          SnackbarHelper.show(context, 'Pairing deleted');
+          SnackbarHelper.show(context, 'Accouplement supprimé');
         } catch (e) {
           if (!mounted) return;
-          SnackbarHelper.showError(context, 'Error deleting pairing: $e');
+          SnackbarHelper.showError(
+            context,
+            'Erreur lors de la suppression: $e',
+          );
         }
       },
     );
@@ -290,6 +309,7 @@ class ReproductionPalpationAlert extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Consumer<ReproductionProvider>(
       builder: (context, provider, _) {
         final now = DateTime.now();
@@ -327,17 +347,17 @@ class ReproductionPalpationAlert extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Palpation Required',
+                        l10n.reproPalpationRequise,
                         style: AppTheme.bodyMedium.copyWith(
                           fontWeight: FontWeight.bold,
                           color: isDark
-                              ? AppTheme.warning.withValues(alpha: 0.2)
-                              : AppTheme.backgroundDark,
+                              ? AppTheme.warning.withValues(alpha: 0.8)
+                              : AppTheme.textPrimary,
                         ),
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        'Check ${accouplementsAPalper.length} doe(s) for pregnancy',
+                        l10n.reproPalperCount(accouplementsAPalper.length),
                         style: AppTheme.bodyMedium.copyWith(
                           color: isDark
                               ? AppTheme.warning.withValues(alpha: 0.85)

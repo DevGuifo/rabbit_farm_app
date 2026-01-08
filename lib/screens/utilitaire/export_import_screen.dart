@@ -7,6 +7,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:path/path.dart' as p;
 import 'package:excel/excel.dart' hide Border;
+import '../../l10n/app_localizations.dart';
 import '../../models/accouplement.dart';
 import '../../models/recette.dart';
 import 'package:file_picker/file_picker.dart';
@@ -23,6 +24,7 @@ import '../../utils/snackbar_helper.dart';
 import '../../utils/logger.dart';
 import '../../models/lapin.dart';
 import '../../theme/app_theme.dart';
+import '../../widgets/uniform_app_bar.dart';
 import 'widgets/export_options_section.dart';
 import 'widgets/import_options_section.dart';
 import 'widgets/backup_info_card.dart';
@@ -89,10 +91,10 @@ class _ExportImportScreenState extends State<ExportImportScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Export / Import'),
-        backgroundColor: AppTheme.accentPink,
-        foregroundColor: AppTheme.textLight,
+      appBar: UniformAppBar(
+        title: AppLocalizations.of(context).screenExportImport,
+        icon: Icons.cloud_sync_rounded,
+        iconColor: AppTheme.accentPink,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24.0),
@@ -107,9 +109,12 @@ class _ExportImportScreenState extends State<ExportImportScreen> {
                   color: AppTheme.accentPink,
                 ),
                 const SizedBox(width: 12),
-                Text(
-                  'Sauvegarde & Restauration',
-                  style: AppTheme.titleLarge.copyWith(fontSize: 24),
+                Expanded(
+                  child: Text(
+                    'Sauvegarde & Restauration',
+                    style: AppTheme.titleLarge.copyWith(fontSize: 24),
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
               ],
             ),
@@ -118,7 +123,7 @@ class _ExportImportScreenState extends State<ExportImportScreen> {
               'Sécurisez vos données et restaurez-les facilement',
               style: AppTheme.bodyMedium.copyWith(
                 fontSize: 14,
-                color: Colors.grey[600],
+                color: AppTheme.textSecondary,
               ),
             ),
             const SizedBox(height: 24),
@@ -614,13 +619,13 @@ class _ExportImportScreenState extends State<ExportImportScreen> {
     // Confirmation avant restauration
     final confirm = await DialogHelper.showConfirmation(
       context: context,
-      title: 'Attention !',
+      title: AppLocalizations.of(context).titleAttention,
       message:
           'La restauration va remplacer TOUTES vos données actuelles '
           'par celles de la sauvegarde.\n\n'
           'Cette action est IRRÉVERSIBLE.\n\n'
           'Voulez-vous continuer ?',
-      confirmLabel: 'Restaurer',
+      confirmLabel: AppLocalizations.of(context).btnRestore,
       isDangerous: true,
       icon: Icons.warning,
     );
@@ -1128,17 +1133,19 @@ class _ExportImportScreenState extends State<ExportImportScreen> {
         showDialog(
           context: context,
           builder: (context) => AlertDialog(
-            title: const Text('Import terminé'),
+            title: Text(AppLocalizations.of(context).importTermine),
             content: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
                   children: [
-                    const Icon(Icons.check_circle, color: Colors.green),
+                    const Icon(Icons.check_circle, color: AppTheme.success),
                     const SizedBox(width: 8),
-                    Text(
-                      '$importes lapin${importes > 1 ? 's' : ''} importé${importes > 1 ? 's' : ''}',
+                    Expanded(
+                      child: Text(
+                        '$importes lapin${importes > 1 ? 's' : ''} importé${importes > 1 ? 's' : ''}',
+                      ),
                     ),
                   ],
                 ),
@@ -1146,10 +1153,12 @@ class _ExportImportScreenState extends State<ExportImportScreen> {
                   const SizedBox(height: 8),
                   Row(
                     children: [
-                      const Icon(Icons.error, color: Colors.orange),
+                      const Icon(Icons.error, color: AppTheme.warning),
                       const SizedBox(width: 8),
-                      Text(
-                        '$erreurs ligne${erreurs > 1 ? 's' : ''} ignorée${erreurs > 1 ? 's' : ''}',
+                      Expanded(
+                        child: Text(
+                          '$erreurs ligne${erreurs > 1 ? 's' : ''} ignorée${erreurs > 1 ? 's' : ''}',
+                        ),
                       ),
                     ],
                   ),
@@ -1159,7 +1168,7 @@ class _ExportImportScreenState extends State<ExportImportScreen> {
             actions: [
               ElevatedButton(
                 onPressed: () => Navigator.pop(context),
-                child: const Text('OK'),
+                child: Text(AppLocalizations.of(context).ok),
               ),
             ],
           ),
@@ -1236,17 +1245,19 @@ class _ExportImportScreenState extends State<ExportImportScreen> {
         showDialog(
           context: context,
           builder: (context) => AlertDialog(
-            title: const Text('Import terminé'),
+            title: Text(AppLocalizations.of(context).importTermine),
             content: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
                   children: [
-                    const Icon(Icons.check_circle, color: Colors.green),
+                    const Icon(Icons.check_circle, color: AppTheme.success),
                     const SizedBox(width: 8),
-                    Text(
-                      '$importes lapin${importes > 1 ? 's' : ''} importé${importes > 1 ? 's' : ''}',
+                    Expanded(
+                      child: Text(
+                        '$importes lapin${importes > 1 ? 's' : ''} importé${importes > 1 ? 's' : ''}',
+                      ),
                     ),
                   ],
                 ),
@@ -1254,10 +1265,12 @@ class _ExportImportScreenState extends State<ExportImportScreen> {
                   const SizedBox(height: 8),
                   Row(
                     children: [
-                      const Icon(Icons.error, color: Colors.orange),
+                      const Icon(Icons.error, color: AppTheme.warning),
                       const SizedBox(width: 8),
-                      Text(
-                        '$erreurs entrée${erreurs > 1 ? 's' : ''} ignorée${erreurs > 1 ? 's' : ''}',
+                      Expanded(
+                        child: Text(
+                          '$erreurs entrée${erreurs > 1 ? 's' : ''} ignorée${erreurs > 1 ? 's' : ''}',
+                        ),
                       ),
                     ],
                   ),
@@ -1267,7 +1280,7 @@ class _ExportImportScreenState extends State<ExportImportScreen> {
             actions: [
               ElevatedButton(
                 onPressed: () => Navigator.pop(context),
-                child: const Text('OK'),
+                child: Text(AppLocalizations.of(context).ok),
               ),
             ],
           ),

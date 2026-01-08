@@ -5,6 +5,8 @@ import '../../providers/protocole_soin_provider.dart';
 import '../../utils/dialog_helper.dart';
 import '../../utils/snackbar_helper.dart';
 import '../../theme/app_theme.dart';
+import '../../widgets/uniform_app_bar.dart';
+import '../../l10n/app_localizations.dart';
 
 /// Écran de gestion des protocoles de soin
 class ProtocolesScreen extends StatefulWidget {
@@ -28,8 +30,10 @@ class _ProtocolesScreenState extends State<ProtocolesScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Protocoles de soin'),
+      appBar: UniformAppBar(
+        title: AppLocalizations.of(context).screenProtocolesSoin,
+        icon: Icons.assignment_rounded,
+        iconColor: AppTheme.info,
         actions: [
           PopupMenuButton<String>(
             icon: const Icon(Icons.filter_list),
@@ -37,20 +41,26 @@ class _ProtocolesScreenState extends State<ProtocolesScreen> {
               setState(() => _filtreType = value);
             },
             itemBuilder: (context) => [
-              const PopupMenuItem(value: 'tous', child: Text('Tous')),
-              const PopupMenuItem(
+              PopupMenuItem(
+                value: 'tous',
+                child: Text(AppLocalizations.of(context).filterTous),
+              ),
+              PopupMenuItem(
                 value: 'vaccination',
-                child: Text('Vaccination'),
+                child: Text(AppLocalizations.of(context).typeVaccination),
               ),
-              const PopupMenuItem(
+              PopupMenuItem(
                 value: 'traitement',
-                child: Text('Traitement'),
+                child: Text(AppLocalizations.of(context).typeTraitement),
               ),
-              const PopupMenuItem(
+              PopupMenuItem(
                 value: 'prevention',
-                child: Text('Prévention'),
+                child: Text(AppLocalizations.of(context).typePrevention),
               ),
-              const PopupMenuItem(value: 'routine', child: Text('Routine')),
+              PopupMenuItem(
+                value: 'routine',
+                child: Text(AppLocalizations.of(context).typeRoutine),
+              ),
             ],
           ),
         ],
@@ -92,7 +102,7 @@ class _ProtocolesScreenState extends State<ProtocolesScreen> {
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _ajouterProtocole(context),
         icon: const Icon(Icons.add),
-        label: const Text('Nouveau protocole'),
+        label: Text(AppLocalizations.of(context).labelNouveauProtocole),
       ),
     );
   }
@@ -105,11 +115,11 @@ class _ProtocolesScreenState extends State<ProtocolesScreen> {
           Icon(
             Icons.medical_services_outlined,
             size: 80,
-            color: Colors.grey[400],
+            color: AppTheme.neutral400,
           ),
           const SizedBox(height: 16),
           Text(
-            'Aucun protocole',
+            AppLocalizations.of(context).emptyAucunProtocole,
             style: Theme.of(context).textTheme.titleLarge,
           ),
           const SizedBox(height: 8),
@@ -117,7 +127,7 @@ class _ProtocolesScreenState extends State<ProtocolesScreen> {
             'Créez des protocoles de soin réutilisables',
             style: Theme.of(
               context,
-            ).textTheme.bodyMedium?.copyWith(color: Colors.grey[600]),
+            ).textTheme.bodyMedium?.copyWith(color: AppTheme.neutral600),
           ),
         ],
       ),
@@ -130,27 +140,27 @@ class _ProtocolesScreenState extends State<ProtocolesScreen> {
 
     return Container(
       padding: const EdgeInsets.all(16),
-      color: Colors.purple[50],
+      color: AppTheme.accentPurple50,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
           _buildStatCard(
             icon: Icons.check_circle,
-            label: 'Actifs',
+            label: AppLocalizations.of(context).labelActifs,
             value: stats['actifs'].toString(),
-            color: Colors.green,
+            color: AppTheme.success,
           ),
           _buildStatCard(
             icon: Icons.cancel,
-            label: 'Inactifs',
+            label: AppLocalizations.of(context).labelInactifs,
             value: stats['inactifs'].toString(),
-            color: Colors.grey,
+            color: AppTheme.neutral500,
           ),
           _buildStatCard(
             icon: Icons.euro,
-            label: 'Coût total',
+            label: AppLocalizations.of(context).labelCoutTotal,
             value: '${coutTotal.toStringAsFixed(0)}€',
-            color: Colors.purple,
+            color: AppTheme.accentPurple,
           ),
         ],
       ),
@@ -167,13 +177,11 @@ class _ProtocolesScreenState extends State<ProtocolesScreen> {
       children: [
         Icon(icon, color: color, size: 28),
         const SizedBox(height: 4),
+        Text(value, style: AppTheme.titleLarge.copyWith(color: color)),
         Text(
-          value,
-          style: AppTheme.titleLarge.copyWith(
-            color: color,
-          ),
+          label,
+          style: AppTheme.caption.copyWith(color: AppTheme.neutral500),
         ),
-        Text(label, style: AppTheme.caption.copyWith(color: Colors.grey)),
       ],
     );
   }
@@ -184,23 +192,23 @@ class _ProtocolesScreenState extends State<ProtocolesScreen> {
 
     switch (protocole.type) {
       case 'vaccination':
-        typeColor = Colors.blue;
+        typeColor = AppTheme.info;
         typeIcon = Icons.vaccines;
         break;
       case 'traitement':
-        typeColor = Colors.red;
+        typeColor = AppTheme.error;
         typeIcon = Icons.medication;
         break;
       case 'prevention':
-        typeColor = Colors.green;
+        typeColor = AppTheme.success;
         typeIcon = Icons.shield;
         break;
       case 'routine':
-        typeColor = Colors.orange;
+        typeColor = AppTheme.warning;
         typeIcon = Icons.schedule;
         break;
       default:
-        typeColor = Colors.grey;
+        typeColor = AppTheme.neutral500;
         typeIcon = Icons.medical_services;
     }
 
@@ -234,7 +242,10 @@ class _ProtocolesScreenState extends State<ProtocolesScreen> {
                 Chip(
                   label: Text(protocole.type),
                   backgroundColor: typeColor.withValues(alpha: 0.1),
-                  labelStyle: AppTheme.caption.copyWith(fontSize: 11, color: typeColor),
+                  labelStyle: AppTheme.caption.copyWith(
+                    fontSize: 11,
+                    color: typeColor,
+                  ),
                   visualDensity: VisualDensity.compact,
                 ),
                 Chip(
@@ -317,35 +328,47 @@ class _ProtocolesScreenState extends State<ProtocolesScreen> {
                 children: [
                   TextFormField(
                     controller: nomController,
-                    decoration: const InputDecoration(
-                      labelText: 'Nom du protocole *',
-                      border: OutlineInputBorder(),
+                    decoration: InputDecoration(
+                      labelText: AppLocalizations.of(
+                        context,
+                      ).optimisationFormNomProtocole,
+                      border: const OutlineInputBorder(),
                     ),
-                    validator: (v) => v!.isEmpty ? 'Nom requis' : null,
+                    validator: (v) => v!.isEmpty
+                        ? AppLocalizations.of(context).validationNomRequis
+                        : null,
                   ),
                   const SizedBox(height: 16),
                   DropdownButtonFormField<String>(
-                    initialValue:  selectedType,
-                    decoration: const InputDecoration(
-                      labelText: 'Type *',
+                    initialValue: selectedType,
+                    decoration: InputDecoration(
+                      labelText: AppLocalizations.of(
+                        context,
+                      ).optimisationFormType,
                       border: OutlineInputBorder(),
                     ),
-                    items: const [
+                    items: [
                       DropdownMenuItem(
                         value: 'vaccination',
-                        child: Text('Vaccination'),
+                        child: Text(
+                          AppLocalizations.of(context).typeVaccination,
+                        ),
                       ),
                       DropdownMenuItem(
                         value: 'traitement',
-                        child: Text('Traitement'),
+                        child: Text(
+                          AppLocalizations.of(context).typeTraitement,
+                        ),
                       ),
                       DropdownMenuItem(
                         value: 'prevention',
-                        child: Text('Prévention'),
+                        child: Text(
+                          AppLocalizations.of(context).typePrevention,
+                        ),
                       ),
                       DropdownMenuItem(
                         value: 'routine',
-                        child: Text('Routine'),
+                        child: Text(AppLocalizations.of(context).typeRoutine),
                       ),
                     ],
                     onChanged: (value) => setState(() => selectedType = value!),
@@ -353,62 +376,90 @@ class _ProtocolesScreenState extends State<ProtocolesScreen> {
                   const SizedBox(height: 16),
                   TextFormField(
                     controller: descriptionController,
-                    decoration: const InputDecoration(
-                      labelText: 'Description *',
-                      border: OutlineInputBorder(),
+                    decoration: InputDecoration(
+                      labelText: AppLocalizations.of(
+                        context,
+                      ).optimisationFormDescription,
+                      border: const OutlineInputBorder(),
                     ),
                     maxLines: 3,
-                    validator: (v) => v!.isEmpty ? 'Description requise' : null,
+                    validator: (v) => v!.isEmpty
+                        ? AppLocalizations.of(
+                            context,
+                          ).validationDescriptionRequise
+                        : null,
                   ),
                   const SizedBox(height: 16),
                   TextFormField(
                     controller: frequenceController,
-                    decoration: const InputDecoration(
-                      labelText: 'Fréquence *',
-                      border: OutlineInputBorder(),
-                      hintText: 'Ex: Tous les 3 mois',
+                    decoration: InputDecoration(
+                      labelText: AppLocalizations.of(
+                        context,
+                      ).optimisationFormFrequence,
+                      border: const OutlineInputBorder(),
+                      hintText: AppLocalizations.of(context).hintExTous3Mois,
                     ),
-                    validator: (v) => v!.isEmpty ? 'Fréquence requise' : null,
+                    validator: (v) => v!.isEmpty
+                        ? AppLocalizations.of(
+                            context,
+                          ).validationFrequenceRequise
+                        : null,
                   ),
                   const SizedBox(height: 16),
                   TextFormField(
                     controller: medicamentsController,
-                    decoration: const InputDecoration(
-                      labelText: 'Médicaments (séparés par virgule) *',
-                      border: OutlineInputBorder(),
+                    decoration: InputDecoration(
+                      labelText: AppLocalizations.of(
+                        context,
+                      ).optimisationFormMedicaments,
+                      border: const OutlineInputBorder(),
                     ),
-                    validator: (v) => v!.isEmpty ? 'Médicaments requis' : null,
+                    validator: (v) => v!.isEmpty
+                        ? AppLocalizations.of(
+                            context,
+                          ).validationMedicamentsRequis
+                        : null,
                   ),
                   const SizedBox(height: 16),
                   TextFormField(
                     controller: lapinsController,
-                    decoration: const InputDecoration(
-                      labelText: 'Lapins concernés',
-                      border: OutlineInputBorder(),
-                      hintText: 'tous, adultes, lapereaux, etc.',
+                    decoration: InputDecoration(
+                      labelText: AppLocalizations.of(
+                        context,
+                      ).optimisationFormLapinsConcernes,
+                      border: const OutlineInputBorder(),
+                      hintText: AppLocalizations.of(
+                        context,
+                      ).hintTousAdultesLapereaux,
                     ),
                   ),
                   const SizedBox(height: 16),
                   TextFormField(
                     controller: coutController,
-                    decoration: const InputDecoration(
-                      labelText: 'Coût estimé (€)',
-                      border: OutlineInputBorder(),
+                    decoration: InputDecoration(
+                      labelText: AppLocalizations.of(
+                        context,
+                      ).optimisationFormCoutEstime,
+                      border: const OutlineInputBorder(),
                     ),
                     keyboardType: TextInputType.number,
                   ),
                   const SizedBox(height: 16),
                   TextFormField(
                     controller: instructionsController,
-                    decoration: const InputDecoration(
-                      labelText: 'Instructions',
-                      border: OutlineInputBorder(),
+                    decoration: InputDecoration(
+                      labelText: AppLocalizations.of(
+                        context,
+                      ).optimisationFormInstructions,
+                      border: const OutlineInputBorder(),
                     ),
                     maxLines: 3,
                   ),
                   const SizedBox(height: 16),
                   SwitchListTile(
-                    title: const Text('Protocole actif'),
+                    title: Text(
+                      AppLocalizations.of(context).switchProtocoleActif,
+                    ),
                     value: actif,
                     onChanged: (value) => setState(() => actif = value),
                   ),
@@ -419,14 +470,14 @@ class _ProtocolesScreenState extends State<ProtocolesScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Annuler'),
+              child: Text(AppLocalizations.of(context).commonCancel),
             ),
             if (protocole != null)
               TextButton(
                 onPressed: () async {
                   final confirmed = await DialogHelper.showConfirmation(
                     context: context,
-                    title: 'Supprimer ce protocole ?',
+                    title: AppLocalizations.of(context).titleSupprimerProtocole,
                     message: 'Cette action est irréversible.',
                     isDangerous: true,
                   );
@@ -442,7 +493,7 @@ class _ProtocolesScreenState extends State<ProtocolesScreen> {
                 },
                 child: const Text(
                   'Supprimer',
-                  style: TextStyle(color: Colors.red),
+                  style: TextStyle(color: AppTheme.error),
                 ),
               ),
             ElevatedButton(
@@ -500,14 +551,18 @@ class _ProtocolesScreenState extends State<ProtocolesScreen> {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
                           content: Text('Erreur: $e'),
-                          backgroundColor: Colors.red,
+                          backgroundColor: AppTheme.error,
                         ),
                       );
                     }
                   }
                 }
               },
-              child: Text(protocole == null ? 'Ajouter' : 'Modifier'),
+              child: Text(
+                protocole == null
+                    ? AppLocalizations.of(context).ajouter
+                    : AppLocalizations.of(context).modifier,
+              ),
             ),
           ],
         ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:animate_do/animate_do.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../../models/lapin.dart';
 import '../../../../providers/lapin_provider.dart';
 import '../../../../theme/app_theme.dart';
@@ -73,7 +74,7 @@ class LapinFormPage3Genealogy extends StatelessWidget {
                   .where((l) => l.sexe.toLowerCase() == 'mâle')
                   .toList();
               return ParentSelector(
-                label: 'Père',
+                label: AppLocalizations.of(context).labelPere,
                 icon: Icons.male,
                 parentSelectionne: pereSelectionne,
                 lapinsDisponibles: males,
@@ -93,7 +94,7 @@ class LapinFormPage3Genealogy extends StatelessWidget {
                   .where((l) => l.sexe.toLowerCase() == 'femelle')
                   .toList();
               return ParentSelector(
-                label: 'Mère',
+                label: AppLocalizations.of(context).labelMere,
                 icon: Icons.female,
                 parentSelectionne: mereSelectionnee,
                 lapinsDisponibles: femelles,

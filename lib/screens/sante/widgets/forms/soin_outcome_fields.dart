@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../theme/app_theme.dart';
+import '../../../../l10n/app_localizations.dart';
 
 /// Widget de sélection du statut
 class OutcomeStatusSelector extends StatelessWidget {
@@ -18,11 +19,11 @@ class OutcomeStatusSelector extends StatelessWidget {
     final surfaceColor = isDark ? AppTheme.backgroundDark : AppTheme.cardLight;
     final textPrimary = isDark ? AppTheme.cardLight : AppTheme.textPrimary;
     final textSecondary = isDark
-        ? const Color(0xFFB4C4B7)
+        ? AppTheme.stitchGreenLight
         : AppTheme.textSecondary;
     final borderColor = isDark
-        ? const Color(0xFF2A422E)
-        : const Color(0xFFDBE6DC);
+        ? AppTheme.stitchSurfaceDarkCard
+        : AppTheme.stitchSurfaceLightAlt;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -36,43 +37,43 @@ class OutcomeStatusSelector extends StatelessWidget {
             color: textSecondary,
           ),
         ),
-        const SizedBox(height: 12),
+        AppTheme.verticalSpace12,
         Container(
-          padding: const EdgeInsets.all(16),
+          padding: AppTheme.paddingAllMedium,
           decoration: BoxDecoration(
             color: surfaceColor,
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: AppTheme.borderRadiusMedium,
             border: Border.all(color: borderColor, width: 1),
           ),
           child: Column(
             children: [
               _RadioOption(
                 value: 'recovered',
-                label: 'Recovered',
+                label: AppLocalizations.of(context).statusRecovered,
                 icon: Icons.check_circle_outline,
-                iconColor: const Color(0xFF10B981),
+                iconColor: AppTheme.santeSuccess,
                 isSelected: outcomeStatus == 'recovered',
                 onTap: onChanged,
                 textPrimary: textPrimary,
                 textSecondary: textSecondary,
               ),
-              const SizedBox(height: 12),
+              AppTheme.verticalSpace12,
               _RadioOption(
                 value: 'ongoing',
-                label: 'Ongoing',
+                label: AppLocalizations.of(context).statusOngoing,
                 icon: Icons.access_time,
-                iconColor: const Color(0xFFF59E0B),
+                iconColor: AppTheme.santeWarning,
                 isSelected: outcomeStatus == 'ongoing',
                 onTap: onChanged,
                 textPrimary: textPrimary,
                 textSecondary: textSecondary,
               ),
-              const SizedBox(height: 12),
+              AppTheme.verticalSpace12,
               _RadioOption(
                 value: 'critical',
-                label: 'Critical',
+                label: AppLocalizations.of(context).statusCritical,
                 icon: Icons.warning_outlined,
-                iconColor: const Color(0xFFEF4444),
+                iconColor: AppTheme.santeError,
                 isSelected: outcomeStatus == 'critical',
                 onTap: onChanged,
                 textPrimary: textPrimary,
@@ -114,8 +115,10 @@ class _RadioOption extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         decoration: BoxDecoration(
-          color: isSelected ? iconColor.withValues(alpha: 0.1) : Colors.transparent,
-          borderRadius: BorderRadius.circular(8),
+          color: isSelected
+              ? iconColor.withValues(alpha: 0.1)
+              : Colors.transparent,
+          borderRadius: AppTheme.borderRadiusSmall,
           border: Border.all(
             color: isSelected ? iconColor : Colors.transparent,
             width: 1.5,
@@ -124,7 +127,7 @@ class _RadioOption extends StatelessWidget {
         child: Row(
           children: [
             Icon(icon, size: 20, color: iconColor),
-            const SizedBox(width: 12),
+            AppTheme.horizontalSpace12,
             Expanded(
               child: Text(
                 label,
@@ -160,4 +163,3 @@ class _RadioOption extends StatelessWidget {
     );
   }
 }
-

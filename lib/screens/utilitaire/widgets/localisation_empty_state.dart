@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:rabbit_farm_app/theme/app_theme.dart';
+import '../../../l10n/app_localizations.dart';
 
 /// État vide pour l'écran de localisation
 /// Affiché quand aucune donnée n'est disponible
@@ -11,6 +12,7 @@ class LocalisationEmptyState extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final l10n = AppLocalizations.of(context);
 
     return Center(
       child: Column(
@@ -21,31 +23,31 @@ class LocalisationEmptyState extends StatelessWidget {
             height: 128,
             decoration: BoxDecoration(
               color: isDark
-                  ? const Color(0xFF1A2C1E)
+                  ? AppTheme.stitchSurfaceDarkAlt
                   : AppTheme.stitchBackgroundLight,
               shape: BoxShape.circle,
             ),
             child: Icon(
               Icons.cottage_rounded,
               size: 64,
-              color: isDark ? const Color(0xFF3A3A3A) : const Color(0xFFCCCCCC),
+              color: isDark ? AppTheme.greyDarkAlt : AppTheme.greyMedium,
             ),
           ),
           const SizedBox(height: 24),
           Text(
-            'No Buildings Yet',
+            l10n.noBuildingsYet,
             style: AppTheme.titleLarge.copyWith(
               color: isDark
-                  ? const Color(0xFFE0E6E0)
+                  ? AppTheme.stitchTextLight
                   : AppTheme.stitchTextMainLight,
             ),
           ),
           const SizedBox(height: 8),
           Text(
-            'Start by adding your first building',
+            l10n.startByAddingBuilding,
             style: AppTheme.bodyMedium.copyWith(
               color: isDark
-                  ? const Color(0xFF8BA88E)
+                  ? AppTheme.stitchGreen
                   : AppTheme.stitchTextSecLight,
             ),
           ),
@@ -53,15 +55,8 @@ class LocalisationEmptyState extends StatelessWidget {
           ElevatedButton.icon(
             onPressed: onAddPressed,
             icon: const Icon(Icons.add_rounded, size: 20),
-            label: const Text('Add Building'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppTheme.primaryNeonGreen,
-              foregroundColor: Colors.black,
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
+            label: Text(l10n.ajouterBatiment),
+            style: AppTheme.primaryButtonStyle,
           ),
         ],
       ),

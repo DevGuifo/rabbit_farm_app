@@ -96,7 +96,7 @@ windows/flutter/ephemeral/
 *.bak
 *~
 
-# ========== Documentation temporaire ==========
+# ========== Documentation temporaire/travail ==========
 docs/historique/
 REFONTE_*.md
 HARMONISATION_*.md
@@ -113,9 +113,29 @@ DASHBOARD_*.md
 CHANGER_*.md
 REBRANDING_*.md
 CORRECTIONS_UI_*.md
-# Scripts temporaires
+RAPPORT_AUDIT_*.md
+RAPPORT_CORRECTIONS_*.md
+RAPPORT_DASHBOARD_*.md
+RAPPORT_GESTIONNAIRE_*.md
+RAPPORT_IMPLEMENTATION_*.md
+INVENTAIRE_*.md
+AUDIT_*.md
+*.arb.tmp
+*_summary.json
+i18n_extraction_report.json
+phase6_*
+nouvelles_cles_*.arb
+patch_cles_*.arb
+
+# ========== Fichiers générés Flutter i18n ==========
+lib/l10n/app_localizations*.dart
+lib/l10n/app_localizations_*.dart
+
+# ========== Scripts temporaires ==========
 fix_*.py
 run_*.sh
+scripts/
+test_langue.sh
 
 # ========== Secrets (si jamais vous en ajoutez) ==========
 .env

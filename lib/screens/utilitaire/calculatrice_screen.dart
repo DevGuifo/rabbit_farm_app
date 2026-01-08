@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:animate_do/animate_do.dart';
+import '../../l10n/app_localizations.dart';
 import '../../providers/lapin_provider.dart';
 import '../../services/advanced_calculator_service.dart';
 import '../../theme/app_theme.dart';
+import '../../widgets/uniform_app_bar.dart';
 
 class CalculatriceScreen extends StatefulWidget {
   const CalculatriceScreen({super.key});
@@ -32,17 +34,34 @@ class _CalculatriceScreenState extends State<CalculatriceScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
-      appBar: AppBar(
-        title: const Text('Calculatrice'),
+      appBar: UniformAppBar(
+        title: AppLocalizations.of(context).utilCalculatrice,
+        icon: Icons.calculate_rounded,
+        iconColor: AppTheme.info,
         bottom: TabBar(
           controller: _tabController,
           isScrollable: true,
-          tabs: const [
-            Tab(icon: Icon(Icons.medical_services_rounded), text: 'Santé'),
-            Tab(icon: Icon(Icons.restaurant_rounded), text: 'Alimentation'),
-            Tab(icon: Icon(Icons.science_rounded), text: 'Dosages Avancés'),
-            Tab(icon: Icon(Icons.analytics_rounded), text: 'Performance'),
-            Tab(icon: Icon(Icons.euro_rounded), text: 'Finance'),
+          tabs: [
+            Tab(
+              icon: const Icon(Icons.medical_services_rounded),
+              text: AppLocalizations.of(context).utilSante,
+            ),
+            Tab(
+              icon: const Icon(Icons.restaurant_rounded),
+              text: AppLocalizations.of(context).utilAlimentation,
+            ),
+            Tab(
+              icon: const Icon(Icons.science_rounded),
+              text: AppLocalizations.of(context).utilDosagesAvances,
+            ),
+            Tab(
+              icon: const Icon(Icons.analytics_rounded),
+              text: AppLocalizations.of(context).utilPerformance,
+            ),
+            Tab(
+              icon: const Icon(Icons.euro_rounded),
+              text: AppLocalizations.of(context).utilFinance,
+            ),
           ],
         ),
       ),
@@ -87,7 +106,9 @@ class _SanteTabState extends State<_SanteTab> {
     final dosageKg = double.tryParse(_dosageKgController.text);
 
     if (poids == null || dosageKg == null) {
-      setState(() => _resultat = 'Veuillez remplir tous les champs');
+      setState(
+        () => _resultat = AppLocalizations.of(context).utilRemplirChamps,
+      );
       return;
     }
 
@@ -117,12 +138,14 @@ class _SanteTabState extends State<_SanteTab> {
                       Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFE91E63).withValues(alpha: 0.1),
+                          color: AppTheme.accentPinkMaterial.withValues(
+                            alpha: 0.1,
+                          ),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: const Icon(
                           Icons.medication_rounded,
-                          color: Color(0xFFE91E63),
+                          color: AppTheme.accentPinkMaterial,
                           size: 28,
                         ),
                       ),
@@ -154,20 +177,18 @@ class _SanteTabState extends State<_SanteTab> {
                   TextField(
                     controller: _poidsController,
                     keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(
-                      labelText: 'Poids du lapin (kg)',
-                      border: OutlineInputBorder(),
-                      prefixIcon: Icon(Icons.scale_rounded),
+                    decoration: AppTheme.inputDecoration(
+                      label: AppLocalizations.of(context).labelPoidsLapinKg,
+                      prefixIcon: Icons.scale_rounded,
                     ),
                   ),
                   const SizedBox(height: 16),
                   TextField(
                     controller: _dosageKgController,
                     keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(
-                      labelText: 'Dosage (ml/kg)',
-                      border: OutlineInputBorder(),
-                      prefixIcon: Icon(Icons.medication_rounded),
+                    decoration: AppTheme.inputDecoration(
+                      label: AppLocalizations.of(context).utilDosageKg,
+                      prefixIcon: Icons.medication_rounded,
                     ),
                   ),
                   const SizedBox(height: 24),
@@ -175,10 +196,8 @@ class _SanteTabState extends State<_SanteTab> {
                     width: double.infinity,
                     child: ElevatedButton(
                       onPressed: _calculer,
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                      ),
-                      child: const Text('Calculer'),
+                      style: AppTheme.primaryButtonStyle,
+                      child: Text(AppLocalizations.of(context).calculer),
                     ),
                   ),
                   if (_resultat.isNotEmpty) ...[
@@ -186,19 +205,23 @@ class _SanteTabState extends State<_SanteTab> {
                     Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFE91E63).withValues(alpha: 0.1),
+                        color: AppTheme.accentPinkMaterial.withValues(
+                          alpha: 0.1,
+                        ),
                         borderRadius: BorderRadius.circular(
                           AppTheme.radiusMedium,
                         ),
                         border: Border.all(
-                          color: const Color(0xFFE91E63).withValues(alpha: 0.3),
+                          color: AppTheme.accentPinkMaterial.withValues(
+                            alpha: 0.3,
+                          ),
                         ),
                       ),
                       child: Row(
                         children: [
                           const Icon(
                             Icons.info_rounded,
-                            color: Color(0xFFE91E63),
+                            color: AppTheme.accentPinkMaterial,
                           ),
                           const SizedBox(width: 12),
                           Expanded(
@@ -208,13 +231,13 @@ class _SanteTabState extends State<_SanteTab> {
                                 Text(
                                   'Dose à administrer',
                                   style: AppTheme.labelSmall.copyWith(
-                                    color: const Color(0xFFE91E63),
+                                    color: AppTheme.accentPinkMaterial,
                                   ),
                                 ),
                                 Text(
                                   _resultat,
                                   style: AppTheme.headingSmall.copyWith(
-                                    color: const Color(0xFFE91E63),
+                                    color: AppTheme.accentPinkMaterial,
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
@@ -292,12 +315,12 @@ class _AlimentationTabState extends State<_AlimentationTab> {
                       Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF4CAF50).withValues(alpha: 0.1),
+                          color: AppTheme.primary.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: const Icon(
                           Icons.restaurant_rounded,
-                          color: Color(0xFF4CAF50),
+                          color: AppTheme.primary,
                           size: 28,
                         ),
                       ),
@@ -329,40 +352,42 @@ class _AlimentationTabState extends State<_AlimentationTab> {
                   TextField(
                     controller: _poidsController,
                     keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(
-                      labelText: 'Poids du lapin (kg)',
-                      border: OutlineInputBorder(),
-                      prefixIcon: Icon(Icons.scale_rounded),
+                    decoration: AppTheme.inputDecoration(
+                      label: AppLocalizations.of(context).utilPoidsLapin,
+                      prefixIcon: Icons.scale_rounded,
                     ),
                   ),
                   const SizedBox(height: 16),
                   DropdownButtonFormField<String>(
-                    initialValue:  _statut,
-                    decoration: const InputDecoration(
-                      labelText: 'Statut physiologique',
-                      border: OutlineInputBorder(),
-                      prefixIcon: Icon(Icons.category_rounded),
+                    initialValue: _statut,
+                    decoration: AppTheme.inputDecoration(
+                      label: AppLocalizations.of(
+                        context,
+                      ).utilStatutPhysiologique,
+                      prefixIcon: Icons.category_rounded,
                     ),
-                    items: const [
+                    items: [
                       DropdownMenuItem(
                         value: 'lapereau',
-                        child: Text('Lapereau (0-8 sem)'),
+                        child: Text(AppLocalizations.of(context).utilLapereau),
                       ),
                       DropdownMenuItem(
                         value: 'jeune',
-                        child: Text('Jeune (8 sem - 5 mois)'),
+                        child: Text(AppLocalizations.of(context).utilJeune),
                       ),
                       DropdownMenuItem(
                         value: 'adulte',
-                        child: Text('Adulte (entretien)'),
+                        child: Text(AppLocalizations.of(context).utilAdulte),
                       ),
                       DropdownMenuItem(
                         value: 'gestante',
-                        child: Text('Gestante'),
+                        child: Text(AppLocalizations.of(context).utilGestante),
                       ),
                       DropdownMenuItem(
                         value: 'allaitante',
-                        child: Text('Allaitante'),
+                        child: Text(
+                          AppLocalizations.of(context).utilAllaitante,
+                        ),
                       ),
                     ],
                     onChanged: (value) {
@@ -374,10 +399,8 @@ class _AlimentationTabState extends State<_AlimentationTab> {
                     width: double.infinity,
                     child: ElevatedButton(
                       onPressed: _calculer,
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                      ),
-                      child: const Text('Calculer'),
+                      style: AppTheme.primaryButtonStyle,
+                      child: Text(AppLocalizations.of(context).calculer),
                     ),
                   ),
                   if (_resultat != null) ...[
@@ -385,12 +408,12 @@ class _AlimentationTabState extends State<_AlimentationTab> {
                     Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF4CAF50).withValues(alpha: 0.1),
+                        color: AppTheme.primary.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(
                           AppTheme.radiusMedium,
                         ),
                         border: Border.all(
-                          color: const Color(0xFF4CAF50).withValues(alpha: 0.3),
+                          color: AppTheme.primary.withValues(alpha: 0.3),
                         ),
                       ),
                       child: Column(
@@ -400,7 +423,7 @@ class _AlimentationTabState extends State<_AlimentationTab> {
                             'Ration quotidienne',
                             style: AppTheme.bodyMedium.copyWith(
                               fontWeight: FontWeight.bold,
-                              color: const Color(0xFF4CAF50),
+                              color: AppTheme.primary,
                             ),
                           ),
                           const SizedBox(height: 12),
@@ -437,10 +460,16 @@ class _AlimentationTabState extends State<_AlimentationTab> {
       padding: const EdgeInsets.only(bottom: 8),
       child: Row(
         children: [
-          Icon(icon, size: 20, color: const Color(0xFF4CAF50)),
+          Icon(icon, size: 20, color: AppTheme.primary),
           const SizedBox(width: 12),
-          Text(label, style: AppTheme.bodyMedium),
-          const Spacer(),
+          Flexible(
+            child: Text(
+              label,
+              style: AppTheme.bodyMedium,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          const SizedBox(width: 8),
           Text(
             value,
             style: AppTheme.bodyMedium.copyWith(fontWeight: FontWeight.bold),
@@ -510,12 +539,14 @@ class _PerformanceTabState extends State<_PerformanceTab> {
                       Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFFF9800).withValues(alpha: 0.1),
+                          color: AppTheme.accentOrangeMaterial.withValues(
+                            alpha: 0.1,
+                          ),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: const Icon(
                           Icons.trending_up_rounded,
-                          color: Color(0xFFFF9800),
+                          color: AppTheme.accentOrangeMaterial,
                           size: 28,
                         ),
                       ),
@@ -547,30 +578,27 @@ class _PerformanceTabState extends State<_PerformanceTab> {
                   TextField(
                     controller: _poidsInitialController,
                     keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(
-                      labelText: 'Poids initial (kg)',
-                      border: OutlineInputBorder(),
-                      prefixIcon: Icon(Icons.scale_rounded),
+                    decoration: AppTheme.inputDecoration(
+                      label: AppLocalizations.of(context).utilPoidsInitial,
+                      prefixIcon: Icons.scale_rounded,
                     ),
                   ),
                   const SizedBox(height: 16),
                   TextField(
                     controller: _poidsFinalController,
                     keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(
-                      labelText: 'Poids final (kg)',
-                      border: OutlineInputBorder(),
-                      prefixIcon: Icon(Icons.scale_rounded),
+                    decoration: AppTheme.inputDecoration(
+                      label: AppLocalizations.of(context).utilPoidsFinal,
+                      prefixIcon: Icons.scale_rounded,
                     ),
                   ),
                   const SizedBox(height: 16),
                   TextField(
                     controller: _joursController,
                     keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(
-                      labelText: 'Nombre de jours',
-                      border: OutlineInputBorder(),
-                      prefixIcon: Icon(Icons.calendar_today_rounded),
+                    decoration: AppTheme.inputDecoration(
+                      label: AppLocalizations.of(context).utilNombreJours,
+                      prefixIcon: Icons.calendar_today_rounded,
                     ),
                   ),
                   const SizedBox(height: 24),
@@ -578,10 +606,8 @@ class _PerformanceTabState extends State<_PerformanceTab> {
                     width: double.infinity,
                     child: ElevatedButton(
                       onPressed: _calculer,
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                      ),
-                      child: const Text('Calculer GMQ'),
+                      style: AppTheme.primaryButtonStyle,
+                      child: Text(AppLocalizations.of(context).calculerGmq),
                     ),
                   ),
                   if (_resultat.isNotEmpty) ...[
@@ -589,19 +615,23 @@ class _PerformanceTabState extends State<_PerformanceTab> {
                     Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFFF9800).withValues(alpha: 0.1),
+                        color: AppTheme.accentOrangeMaterial.withValues(
+                          alpha: 0.1,
+                        ),
                         borderRadius: BorderRadius.circular(
                           AppTheme.radiusMedium,
                         ),
                         border: Border.all(
-                          color: const Color(0xFFFF9800).withValues(alpha: 0.3),
+                          color: AppTheme.accentOrangeMaterial.withValues(
+                            alpha: 0.3,
+                          ),
                         ),
                       ),
                       child: Row(
                         children: [
                           const Icon(
                             Icons.speed_rounded,
-                            color: Color(0xFFFF9800),
+                            color: AppTheme.accentOrangeMaterial,
                           ),
                           const SizedBox(width: 12),
                           Expanded(
@@ -611,13 +641,13 @@ class _PerformanceTabState extends State<_PerformanceTab> {
                                 Text(
                                   'Gain Moyen Quotidien',
                                   style: AppTheme.labelSmall.copyWith(
-                                    color: const Color(0xFFFF9800),
+                                    color: AppTheme.accentOrangeMaterial,
                                   ),
                                 ),
                                 Text(
                                   _resultat,
                                   style: AppTheme.headingSmall.copyWith(
-                                    color: const Color(0xFFFF9800),
+                                    color: AppTheme.accentOrangeMaterial,
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
@@ -734,7 +764,8 @@ class _DosagesAvancesTabState extends State<_DosagesAvancesTab> {
           _resultat = {
             'type': 'Dose pour groupe',
             'dose': '${dose.toStringAsFixed(2)} ml',
-            'details': 'Pour un poids total de ${poidsTotal.toStringAsFixed(2)} kg',
+            'details':
+                'Pour un poids total de ${poidsTotal.toStringAsFixed(2)} kg',
           };
         });
         break;
@@ -759,12 +790,14 @@ class _DosagesAvancesTabState extends State<_DosagesAvancesTab> {
                       Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF9C27B0).withValues(alpha: 0.1),
+                          color: AppTheme.accentPurpleMaterial.withValues(
+                            alpha: 0.1,
+                          ),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: const Icon(
                           Icons.science_rounded,
-                          color: Color(0xFF9C27B0),
+                          color: AppTheme.accentPurpleMaterial,
                           size: 28,
                         ),
                       ),
@@ -782,10 +815,9 @@ class _DosagesAvancesTabState extends State<_DosagesAvancesTab> {
                             Text(
                               'Dilution, concentration, groupe',
                               style: AppTheme.labelSmall.copyWith(
-                                color: Theme.of(context)
-                                    .colorScheme
-                                    .onSurface
-                                    .withValues(alpha: 0.6),
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onSurface.withValues(alpha: 0.6),
                               ),
                             ),
                           ],
@@ -796,23 +828,28 @@ class _DosagesAvancesTabState extends State<_DosagesAvancesTab> {
                   const SizedBox(height: 24),
                   DropdownButtonFormField<String>(
                     initialValue: _mode,
-                    decoration: const InputDecoration(
-                      labelText: 'Mode de calcul',
-                      border: OutlineInputBorder(),
-                      prefixIcon: Icon(Icons.tune_rounded),
+                    decoration: AppTheme.inputDecoration(
+                      label: AppLocalizations.of(context).utilModeCalcul,
+                      prefixIcon: Icons.tune_rounded,
                     ),
-                    items: const [
+                    items: [
                       DropdownMenuItem(
                         value: 'simple',
-                        child: Text('Dosage simple'),
+                        child: Text(
+                          AppLocalizations.of(context).utilDosageSimple,
+                        ),
                       ),
                       DropdownMenuItem(
                         value: 'dilution',
-                        child: Text('Dosage avec dilution'),
+                        child: Text(
+                          AppLocalizations.of(context).utilDosageDilution,
+                        ),
                       ),
                       DropdownMenuItem(
                         value: 'groupe',
-                        child: Text('Dosage pour groupe'),
+                        child: Text(
+                          AppLocalizations.of(context).utilDosageGroupe,
+                        ),
                       ),
                     ],
                     onChanged: (value) {
@@ -826,24 +863,22 @@ class _DosagesAvancesTabState extends State<_DosagesAvancesTab> {
                   TextField(
                     controller: _poidsController,
                     keyboardType: TextInputType.number,
-                    decoration: InputDecoration(
-                      labelText: _mode == 'groupe'
+                    decoration: AppTheme.inputDecoration(
+                      label: _mode == 'groupe'
                           ? 'Poids total du groupe (kg)'
                           : 'Poids du lapin (kg)',
-                      border: const OutlineInputBorder(),
-                      prefixIcon: const Icon(Icons.scale_rounded),
+                      prefixIcon: Icons.scale_rounded,
                     ),
                   ),
                   const SizedBox(height: 16),
                   TextField(
                     controller: _dosageKgController,
                     keyboardType: TextInputType.number,
-                    decoration: InputDecoration(
-                      labelText: _mode == 'dilution'
+                    decoration: AppTheme.inputDecoration(
+                      label: _mode == 'dilution'
                           ? 'Dosage (mg/kg)'
                           : 'Dosage (ml/kg)',
-                      border: const OutlineInputBorder(),
-                      prefixIcon: const Icon(Icons.medication_rounded),
+                      prefixIcon: Icons.medication_rounded,
                     ),
                   ),
                   if (_mode == 'dilution') ...[
@@ -851,11 +886,12 @@ class _DosagesAvancesTabState extends State<_DosagesAvancesTab> {
                     TextField(
                       controller: _concentrationController,
                       keyboardType: TextInputType.number,
-                      decoration: const InputDecoration(
-                        labelText: 'Concentration produit mère (mg/ml)',
-                        border: OutlineInputBorder(),
-                        prefixIcon: Icon(Icons.water_drop_rounded),
-                        helperText: 'Concentration du médicament non dilué',
+                      decoration: AppTheme.inputDecoration(
+                        label: AppLocalizations.of(
+                          context,
+                        ).utilConcentrationProduit,
+                        prefixIcon: Icons.water_drop_rounded,
+                        hint: 'Concentration du médicament non dilué',
                       ),
                     ),
                   ],
@@ -864,12 +900,12 @@ class _DosagesAvancesTabState extends State<_DosagesAvancesTab> {
                     width: double.infinity,
                     child: ElevatedButton(
                       onPressed: _calculer,
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        backgroundColor: const Color(0xFF9C27B0),
-                        foregroundColor: Colors.white,
+                      style: AppTheme.primaryButtonStyle.copyWith(
+                        backgroundColor: WidgetStateProperty.all(
+                          AppTheme.accentPurpleMaterial,
+                        ),
                       ),
-                      child: const Text('Calculer'),
+                      child: Text(AppLocalizations.of(context).calculer),
                     ),
                   ),
                   if (_resultat != null) ...[
@@ -877,12 +913,16 @@ class _DosagesAvancesTabState extends State<_DosagesAvancesTab> {
                     Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF9C27B0).withValues(alpha: 0.1),
+                        color: AppTheme.accentPurpleMaterial.withValues(
+                          alpha: 0.1,
+                        ),
                         borderRadius: BorderRadius.circular(
                           AppTheme.radiusMedium,
                         ),
                         border: Border.all(
-                          color: const Color(0xFF9C27B0).withValues(alpha: 0.3),
+                          color: AppTheme.accentPurpleMaterial.withValues(
+                            alpha: 0.3,
+                          ),
                         ),
                       ),
                       child: Column(
@@ -892,7 +932,7 @@ class _DosagesAvancesTabState extends State<_DosagesAvancesTab> {
                             _resultat!['type']!,
                             style: AppTheme.bodyMedium.copyWith(
                               fontWeight: FontWeight.bold,
-                              color: const Color(0xFF9C27B0),
+                              color: AppTheme.accentPurpleMaterial,
                             ),
                           ),
                           const SizedBox(height: 12),
@@ -900,7 +940,7 @@ class _DosagesAvancesTabState extends State<_DosagesAvancesTab> {
                             children: [
                               const Icon(
                                 Icons.medication_rounded,
-                                color: Color(0xFF9C27B0),
+                                color: AppTheme.accentPurpleMaterial,
                               ),
                               const SizedBox(width: 12),
                               Expanded(
@@ -910,13 +950,13 @@ class _DosagesAvancesTabState extends State<_DosagesAvancesTab> {
                                     Text(
                                       'Dose à administrer',
                                       style: AppTheme.labelSmall.copyWith(
-                                        color: const Color(0xFF9C27B0),
+                                        color: AppTheme.accentPurpleMaterial,
                                       ),
                                     ),
                                     Text(
                                       _resultat!['dose']!,
                                       style: AppTheme.headingSmall.copyWith(
-                                        color: const Color(0xFF9C27B0),
+                                        color: AppTheme.accentPurpleMaterial,
                                         fontWeight: FontWeight.bold,
                                       ),
                                     ),
@@ -937,10 +977,9 @@ class _DosagesAvancesTabState extends State<_DosagesAvancesTab> {
                             Text(
                               _resultat!['details']!,
                               style: AppTheme.labelSmall.copyWith(
-                                color: Theme.of(context)
-                                    .colorScheme
-                                    .onSurface
-                                    .withValues(alpha: 0.6),
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onSurface.withValues(alpha: 0.6),
                               ),
                             ),
                           ],
@@ -998,12 +1037,12 @@ class _FinanceTab extends StatelessWidget {
                           Container(
                             padding: const EdgeInsets.all(12),
                             decoration: BoxDecoration(
-                              color: const Color(0xFF4CAF50).withValues(alpha: 0.1),
+                              color: AppTheme.primary.withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: const Icon(
                               Icons.euro_rounded,
-                              color: Color(0xFF4CAF50),
+                              color: AppTheme.primary,
                               size: 28,
                             ),
                           ),
@@ -1021,9 +1060,10 @@ class _FinanceTab extends StatelessWidget {
                                 Text(
                                   '$nombreLapins lapin(s) actif(s)',
                                   style: AppTheme.labelSmall.copyWith(
-                                    color: Theme.of(
-                                      context,
-                                    ).colorScheme.onSurface.withValues(alpha: 0.6),
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onSurface
+                                        .withValues(alpha: 0.6),
                                   ),
                                 ),
                               ],
@@ -1035,7 +1075,7 @@ class _FinanceTab extends StatelessWidget {
                       Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF4CAF50).withValues(alpha: 0.05),
+                          color: AppTheme.primary.withValues(alpha: 0.05),
                           borderRadius: BorderRadius.circular(
                             AppTheme.radiusMedium,
                           ),
@@ -1048,7 +1088,7 @@ class _FinanceTab extends StatelessWidget {
                               'Granulés',
                               '${granulesMois.toStringAsFixed(1)} kg',
                               '${coutGranules.toStringAsFixed(2)} €',
-                              const Color(0xFF4CAF50),
+                              AppTheme.primary,
                             ),
                             const Divider(height: 24),
                             _buildBesoinsRow(
@@ -1057,7 +1097,7 @@ class _FinanceTab extends StatelessWidget {
                               'Foin',
                               '${foinMois.toStringAsFixed(1)} kg',
                               '${coutFoin.toStringAsFixed(2)} €',
-                              const Color(0xFFFF9800),
+                              AppTheme.accentOrangeMaterial,
                             ),
                             const Divider(height: 24),
                             _buildBesoinsRow(
@@ -1066,7 +1106,7 @@ class _FinanceTab extends StatelessWidget {
                               'Total mensuel',
                               '',
                               '${coutTotal.toStringAsFixed(2)} €',
-                              const Color(0xFF2196F3),
+                              AppTheme.accentBlue500,
                             ),
                           ],
                         ),

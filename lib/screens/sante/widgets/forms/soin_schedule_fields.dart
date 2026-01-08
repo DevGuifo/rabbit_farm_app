@@ -20,11 +20,11 @@ class RappelDateFieldWidget extends StatelessWidget {
     final surfaceColor = isDark ? AppTheme.backgroundDark : AppTheme.cardLight;
     final textPrimary = isDark ? AppTheme.cardLight : AppTheme.textPrimary;
     final textSecondary = isDark
-        ? const Color(0xFFB4C4B7)
+        ? AppTheme.stitchGreenLight
         : AppTheme.textSecondary;
     final borderColor = isDark
-        ? const Color(0xFF2A422E)
-        : const Color(0xFFDBE6DC);
+        ? AppTheme.stitchSurfaceDarkCard
+        : AppTheme.stitchSurfaceLightAlt;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -38,21 +38,23 @@ class RappelDateFieldWidget extends StatelessWidget {
             color: textSecondary,
           ),
         ),
-        const SizedBox(height: 8),
+        AppTheme.verticalSpace8,
         InkWell(
           onTap: onTap,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: AppTheme.borderRadiusMedium,
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            padding: AppTheme.paddingHorizontal.add(
+              const EdgeInsets.symmetric(vertical: 14),
+            ),
             decoration: BoxDecoration(
               color: surfaceColor,
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: AppTheme.borderRadiusMedium,
               border: Border.all(color: borderColor, width: 1),
             ),
             child: Row(
               children: [
                 Icon(Icons.event_outlined, size: 20, color: primaryColor),
-                const SizedBox(width: 12),
+                AppTheme.horizontalSpace12,
                 Text(
                   dateRappel != null
                       ? DateFormat('MMMM dd, yyyy', 'fr_FR').format(dateRappel!)
@@ -92,17 +94,17 @@ class ReminderCheckbox extends StatelessWidget {
     final surfaceColor = isDark ? AppTheme.backgroundDark : AppTheme.cardLight;
     final textPrimary = isDark ? AppTheme.cardLight : AppTheme.textPrimary;
     final textSecondary = isDark
-        ? const Color(0xFFB4C4B7)
+        ? AppTheme.stitchGreenLight
         : AppTheme.textSecondary;
     final borderColor = isDark
-        ? const Color(0xFF2A422E)
-        : const Color(0xFFDBE6DC);
+        ? AppTheme.stitchSurfaceDarkCard
+        : AppTheme.stitchSurfaceLightAlt;
 
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: AppTheme.paddingAllMedium,
       decoration: BoxDecoration(
         color: surfaceColor,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: AppTheme.borderRadiusMedium,
         border: Border.all(color: borderColor, width: 1),
       ),
       child: Row(
@@ -115,7 +117,7 @@ class ReminderCheckbox extends StatelessWidget {
               borderRadius: BorderRadius.circular(4),
             ),
           ),
-          const SizedBox(width: 12),
+          AppTheme.horizontalSpace12,
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -129,7 +131,7 @@ class ReminderCheckbox extends StatelessWidget {
                     color: textPrimary,
                   ),
                 ),
-                const SizedBox(height: 4),
+                AppTheme.verticalSpace4,
                 Text(
                   'Recevoir une notification pour le prochain soin',
                   style: TextStyle(
@@ -146,4 +148,3 @@ class ReminderCheckbox extends StatelessWidget {
     );
   }
 }
-

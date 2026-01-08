@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:rabbit_farm_app/theme/app_theme.dart';
+import '../../../../l10n/app_localizations.dart';
 
 /// Barre de recherche Stitch pour Treatments & Care
 class TreatmentsSearchBar extends StatelessWidget {
@@ -41,7 +42,7 @@ class TreatmentsSearchBar extends StatelessWidget {
           controller: controller,
           style: TextStyle(fontSize: 16, color: textPrimary),
           decoration: InputDecoration(
-            hintText: 'Search by rabbit ID or treatment type...',
+            hintText: AppLocalizations.of(context).hintSearchRabbitTreatment,
             hintStyle: TextStyle(color: textSecondary),
             prefixIcon: Icon(Icons.search, color: textSecondary, size: 22),
             border: InputBorder.none,

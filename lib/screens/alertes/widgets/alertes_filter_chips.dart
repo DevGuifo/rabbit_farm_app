@@ -74,7 +74,7 @@ class AlertesFilterChips extends StatelessWidget {
   }) {
     final primaryColor = AppTheme.primaryGreen;
     final surfaceColor = isDark ? AppTheme.backgroundDark : AppTheme.cardLight;
-    final borderColor = isDark ? Colors.grey.shade700 : Colors.grey.shade200;
+    final borderColor = isDark ? AppTheme.neutral700 : AppTheme.neutral200;
     final textColor = isDark ? AppTheme.textLight : AppTheme.textPrimary;
     final textSubColor = isDark
         ? AppTheme.textSecondary

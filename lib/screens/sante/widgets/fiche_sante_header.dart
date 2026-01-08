@@ -41,10 +41,10 @@ class FicheSanteHeader extends StatelessWidget {
             style: IconButton.styleFrom(
               backgroundColor: isDark
                   ? AppTheme.cardLight.withValues(alpha: 0.1)
-                  : Colors.black.withValues(alpha: 0.05),
+                  : AppTheme.textPrimary.withValues(alpha: 0.05),
             ),
           ),
-          const SizedBox(width: 12),
+          AppTheme.horizontalSpace12,
           Expanded(
             child: Text(
               'Health Details',
@@ -66,7 +66,7 @@ class FicheSanteHeader extends StatelessWidget {
                     : AppTheme.backgroundDark.withValues(alpha: 0.05),
               ),
             ),
-            const SizedBox(width: 4),
+            AppTheme.horizontalSpace4,
           ],
           if (onNotification != null) ...[
             IconButton(
@@ -75,10 +75,10 @@ class FicheSanteHeader extends StatelessWidget {
               style: IconButton.styleFrom(
                 backgroundColor: isDark
                     ? AppTheme.cardLight.withValues(alpha: 0.1)
-                    : Colors.black.withValues(alpha: 0.05),
+                    : AppTheme.textPrimary.withValues(alpha: 0.05),
               ),
             ),
-            const SizedBox(width: 4),
+            AppTheme.horizontalSpace4,
           ],
           if (onSettings != null)
             IconButton(
@@ -87,7 +87,7 @@ class FicheSanteHeader extends StatelessWidget {
               style: IconButton.styleFrom(
                 backgroundColor: isDark
                     ? AppTheme.cardLight.withValues(alpha: 0.1)
-                    : Colors.black.withValues(alpha: 0.05),
+                    : AppTheme.textPrimary.withValues(alpha: 0.05),
               ),
             ),
         ],

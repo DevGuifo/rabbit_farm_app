@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../../../../models/pesee.dart';
@@ -10,7 +11,6 @@ import '../../../../theme/app_theme.dart';
 import '../../../../services/rentabilite_service.dart';
 import '../../../../providers/alimentation_provider.dart';
 import '../../../../providers/medicament_provider.dart';
-import '../constants/stitch_theme_constants.dart';
 
 /// Onglet Statistics - Préserve la logique existante avec style Stitch
 class StatisticsTab extends StatelessWidget {
@@ -79,7 +79,7 @@ class StatisticsTab extends StatelessWidget {
                 accouplements.length.toString(),
                 AppTheme.accentPink,
                 subtitle:
-                    '${accouplements.where((a) => a.statut == 'confirme').length} confirmés',
+                    '${accouplements.where((a) => a.statut == 'confirme').length} ${AppLocalizations.of(context).cheptelConfirmes.toLowerCase()}',
               ),
               _buildStatCard(
                 context,
@@ -98,13 +98,13 @@ class StatisticsTab extends StatelessWidget {
             const SizedBox(height: 24),
             _buildWeightEvolutionCard(context, isDark, formatDate),
           ],
-          
+
           // Section Rentabilité
           if (lapin.id != null) ...[
             const SizedBox(height: 24),
             _buildRentabiliteCard(context, isDark),
           ],
-          
+
           const SizedBox(height: 120), // Espace pour FAB
         ],
       ),
@@ -120,16 +120,16 @@ class StatisticsTab extends StatelessWidget {
     Color color, {
     String? subtitle,
   }) {
-    final surfaceColor = StitchTheme.getSurfaceColor(context);
-    final outlineColor = StitchTheme.getOutlineColor(context);
+    final surfaceColor = AppTheme.getSurfaceColor(context);
+    final outlineColor = AppTheme.getOutlineColor(context);
 
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: surfaceColor,
-        borderRadius: BorderRadius.circular(StitchTheme.radiusLarge),
+        borderRadius: BorderRadius.circular(AppTheme.radiusLarge),
         border: Border.all(color: outlineColor),
-        boxShadow: StitchTheme.cardShadow(context),
+        boxShadow: AppTheme.cardShadow(isDark: isDark),
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -148,14 +148,14 @@ class StatisticsTab extends StatelessWidget {
             label,
             style: AppTheme.caption.copyWith(
               fontWeight: FontWeight.w600,
-              color: isDark ? StitchTheme.neutral400 : StitchTheme.neutral600,
+              color: isDark ? AppTheme.neutral400 : AppTheme.neutral600,
             ),
           ),
           if (subtitle != null)
             Text(
               subtitle,
               style: AppTheme.caption.copyWith(
-                color: isDark ? StitchTheme.neutral500 : StitchTheme.neutral400,
+                color: isDark ? AppTheme.neutral500 : AppTheme.neutral400,
               ),
             ),
         ],
@@ -168,8 +168,8 @@ class StatisticsTab extends StatelessWidget {
     bool isDark,
     DateFormat formatDate,
   ) {
-    final surfaceColor = StitchTheme.getSurfaceColor(context);
-    final outlineColor = StitchTheme.getOutlineColor(context);
+    final surfaceColor = AppTheme.getSurfaceColor(context);
+    final outlineColor = AppTheme.getOutlineColor(context);
 
     // Prendre les 5 dernières pesées
     final peseesTri = List<Pesee>.from(pesees)
@@ -180,20 +180,16 @@ class StatisticsTab extends StatelessWidget {
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         color: surfaceColor,
-        borderRadius: BorderRadius.circular(StitchTheme.radiusLarge),
+        borderRadius: BorderRadius.circular(AppTheme.radiusLarge),
         border: Border.all(color: outlineColor),
-        boxShadow: StitchTheme.cardShadow(context),
+        boxShadow: AppTheme.cardShadow(isDark: isDark),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(
-                Icons.trending_up,
-                color: AppTheme.primaryGreen,
-                size: 20,
-              ),
+              Icon(Icons.trending_up, color: AppTheme.primaryGreen, size: 20),
               const SizedBox(width: 8),
               Text(
                 'Évolution du poids',
@@ -212,9 +208,7 @@ class StatisticsTab extends StatelessWidget {
                   Text(
                     formatDate.format(pesee.date),
                     style: AppTheme.caption.copyWith(
-                      color: isDark
-                          ? StitchTheme.neutral400
-                          : StitchTheme.neutral600,
+                      color: isDark ? AppTheme.neutral400 : AppTheme.neutral600,
                     ),
                   ),
                   const SizedBox(width: 16),
@@ -223,8 +217,8 @@ class StatisticsTab extends StatelessWidget {
                       height: 24,
                       decoration: BoxDecoration(
                         color: isDark
-                            ? StitchTheme.neutral800
-                            : StitchTheme.neutral200,
+                            ? AppTheme.neutral800
+                            : AppTheme.neutral200,
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: FractionallySizedBox(
@@ -257,8 +251,8 @@ class StatisticsTab extends StatelessWidget {
   }
 
   Widget _buildRentabiliteCard(BuildContext context, bool isDark) {
-    final surfaceColor = StitchTheme.getSurfaceColor(context);
-    final outlineColor = StitchTheme.getOutlineColor(context);
+    final surfaceColor = AppTheme.getSurfaceColor(context);
+    final outlineColor = AppTheme.getOutlineColor(context);
     final formatMontant = NumberFormat.currency(symbol: '€', decimalDigits: 2);
 
     return Consumer2<AlimentationProvider, MedicamentProvider>(
@@ -276,7 +270,7 @@ class StatisticsTab extends StatelessWidget {
                 padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
                   color: surfaceColor,
-                  borderRadius: BorderRadius.circular(StitchTheme.radiusLarge),
+                  borderRadius: BorderRadius.circular(AppTheme.radiusLarge),
                   border: Border.all(color: outlineColor),
                 ),
                 child: const Center(child: CircularProgressIndicator()),
@@ -289,16 +283,20 @@ class StatisticsTab extends StatelessWidget {
             final benefice = rentabilite['benefice'] as double;
             final tauxRentabilite = rentabilite['rentabilite'] as double;
 
-            final beneficeColor = benefice >= 0 ? AppTheme.primaryGreen : AppTheme.error;
-            final rentabiliteColor = tauxRentabilite >= 0 ? AppTheme.primaryGreen : AppTheme.error;
+            final beneficeColor = benefice >= 0
+                ? AppTheme.primaryGreen
+                : AppTheme.error;
+            final rentabiliteColor = tauxRentabilite >= 0
+                ? AppTheme.primaryGreen
+                : AppTheme.error;
 
             return Container(
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
                 color: surfaceColor,
-                borderRadius: BorderRadius.circular(StitchTheme.radiusLarge),
+                borderRadius: BorderRadius.circular(AppTheme.radiusLarge),
                 border: Border.all(color: outlineColor),
-                boxShadow: StitchTheme.cardShadow(context),
+                boxShadow: AppTheme.cardShadow(isDark: isDark),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -320,44 +318,49 @@ class StatisticsTab extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(height: 20),
-                  
+
                   // Résumé
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
                       _buildRentabiliteItem(
-                        'Coût total',
+                        AppLocalizations.of(context).cheptelCoutTotal,
                         formatMontant.format(couts['total']!),
                         isDark,
                         AppTheme.textSecondary,
                       ),
                       _buildRentabiliteItem(
-                        'Revenus',
+                        AppLocalizations.of(context).cheptelRevenusTotal,
                         formatMontant.format(revenus['total']!),
                         isDark,
                         AppTheme.primaryGreen,
                       ),
                       _buildRentabiliteItem(
-                        'Bénéfice',
+                        AppLocalizations.of(context).cheptelBenefice,
                         formatMontant.format(benefice),
                         isDark,
                         beneficeColor,
                       ),
                     ],
                   ),
-                  
+
                   const SizedBox(height: 16),
                   Divider(color: outlineColor),
                   const SizedBox(height: 16),
-                  
+
                   // Taux de rentabilité
                   Center(
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 24,
+                        vertical: 12,
+                      ),
                       decoration: BoxDecoration(
                         color: rentabiliteColor.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: rentabiliteColor.withValues(alpha: 0.3)),
+                        border: Border.all(
+                          color: rentabiliteColor.withValues(alpha: 0.3),
+                        ),
                       ),
                       child: Text(
                         'Taux de rentabilité: ${tauxRentabilite.toStringAsFixed(1)}%',
@@ -367,26 +370,51 @@ class StatisticsTab extends StatelessWidget {
                       ),
                     ),
                   ),
-                  
+
                   const SizedBox(height: 16),
                   Divider(color: outlineColor),
                   const SizedBox(height: 12),
-                  
+
                   // Détail des coûts
                   Text(
                     'Détail des coûts',
                     style: AppTheme.bodyMedium.copyWith(
                       fontWeight: FontWeight.w600,
-                      color: isDark ? StitchTheme.neutral400 : StitchTheme.neutral600,
+                      color: isDark ? AppTheme.neutral400 : AppTheme.neutral600,
                     ),
                   ),
                   const SizedBox(height: 8),
-                  _buildCoutRow('Achat', couts['achat']!, formatMontant, isDark),
-                  _buildCoutRow('Alimentation', couts['alimentation']!, formatMontant, isDark),
-                  _buildCoutRow('Soins', couts['soins']!, formatMontant, isDark),
-                  _buildCoutRow('Médicaments', couts['medicaments']!, formatMontant, isDark),
+                  _buildCoutRow(
+                    'Achat',
+                    couts['achat']!,
+                    formatMontant,
+                    isDark,
+                  ),
+                  _buildCoutRow(
+                    'Alimentation',
+                    couts['alimentation']!,
+                    formatMontant,
+                    isDark,
+                  ),
+                  _buildCoutRow(
+                    'Soins',
+                    couts['soins']!,
+                    formatMontant,
+                    isDark,
+                  ),
+                  _buildCoutRow(
+                    'Médicaments',
+                    couts['medicaments']!,
+                    formatMontant,
+                    isDark,
+                  ),
                   if (couts['autres']! > 0)
-                    _buildCoutRow('Autres', couts['autres']!, formatMontant, isDark),
+                    _buildCoutRow(
+                      'Autres',
+                      couts['autres']!,
+                      formatMontant,
+                      isDark,
+                    ),
                 ],
               ),
             );
@@ -396,27 +424,32 @@ class StatisticsTab extends StatelessWidget {
     );
   }
 
-  Widget _buildRentabiliteItem(String label, String value, bool isDark, Color color) {
+  Widget _buildRentabiliteItem(
+    String label,
+    String value,
+    bool isDark,
+    Color color,
+  ) {
     return Column(
       children: [
-        Text(
-          value,
-          style: AppTheme.titleMedium.copyWith(
-            color: color,
-          ),
-        ),
+        Text(value, style: AppTheme.titleMedium.copyWith(color: color)),
         const SizedBox(height: 4),
         Text(
           label,
           style: AppTheme.caption.copyWith(
-            color: isDark ? StitchTheme.neutral500 : StitchTheme.neutral400,
+            color: isDark ? AppTheme.neutral500 : AppTheme.neutral400,
           ),
         ),
       ],
     );
   }
 
-  Widget _buildCoutRow(String label, double montant, NumberFormat format, bool isDark) {
+  Widget _buildCoutRow(
+    String label,
+    double montant,
+    NumberFormat format,
+    bool isDark,
+  ) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
@@ -425,14 +458,14 @@ class StatisticsTab extends StatelessWidget {
           Text(
             label,
             style: AppTheme.caption.copyWith(
-              color: isDark ? StitchTheme.neutral400 : StitchTheme.neutral600,
+              color: isDark ? AppTheme.neutral400 : AppTheme.neutral600,
             ),
           ),
           Text(
             format.format(montant),
             style: AppTheme.caption.copyWith(
               fontWeight: FontWeight.w600,
-              color: isDark ? StitchTheme.neutral300 : StitchTheme.neutral700,
+              color: isDark ? AppTheme.neutral300 : AppTheme.neutral700,
             ),
           ),
         ],

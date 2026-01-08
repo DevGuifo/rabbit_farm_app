@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../l10n/app_localizations.dart';
 import '../../models/deces.dart';
 import '../../models/lapin.dart';
 import '../../providers/deces_provider.dart';
 import '../../providers/lapin_provider.dart';
 import '../../theme/app_theme.dart';
+import '../../widgets/uniform_app_bar.dart';
 
 /// Écran pour enregistrer un décès
 class EnregistrerDecesScreen extends StatefulWidget {
@@ -95,7 +97,9 @@ class _EnregistrerDecesScreenState extends State<EnregistrerDecesScreen> {
       if (result != null) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Décès de ${widget.lapin.nom} enregistré'),
+            content: Text(
+              AppLocalizations.of(context).decesSucces(widget.lapin.nom),
+            ),
             backgroundColor: AppTheme.success,
           ),
         );
@@ -106,7 +110,10 @@ class _EnregistrerDecesScreenState extends State<EnregistrerDecesScreen> {
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erreur: $e'), backgroundColor: AppTheme.error),
+        SnackBar(
+          content: Text(AppLocalizations.of(context).decesErreur(e.toString())),
+          backgroundColor: AppTheme.error,
+        ),
       );
     } finally {
       if (mounted) {
@@ -122,9 +129,10 @@ class _EnregistrerDecesScreenState extends State<EnregistrerDecesScreen> {
     final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Enregistrer un décès'),
-        backgroundColor: theme.colorScheme.surface,
+      appBar: UniformAppBar(
+        title: AppLocalizations.of(context).decesEnregistrerDeces,
+        icon: Icons.sentiment_very_dissatisfied_rounded,
+        iconColor: AppTheme.textSecondary,
       ),
       backgroundColor: theme.colorScheme.surface,
       body: SingleChildScrollView(
@@ -149,10 +157,14 @@ class _EnregistrerDecesScreenState extends State<EnregistrerDecesScreen> {
                         ],
                       ),
                       const SizedBox(height: 8),
-                      Text('Race: ${widget.lapin.race}'),
-                      Text('Sexe: ${widget.lapin.sexe}'),
                       Text(
-                        'Né(e) le: ${widget.lapin.dateNaissance.day}/${widget.lapin.dateNaissance.month}/${widget.lapin.dateNaissance.year}',
+                        '${AppLocalizations.of(context).decesRace}: ${widget.lapin.race}',
+                      ),
+                      Text(
+                        '${AppLocalizations.of(context).decesSexe}: ${widget.lapin.sexe}',
+                      ),
+                      Text(
+                        '${AppLocalizations.of(context).decesNeLe}: ${widget.lapin.dateNaissance.day}/${widget.lapin.dateNaissance.month}/${widget.lapin.dateNaissance.year}',
                       ),
                     ],
                   ),
@@ -162,7 +174,7 @@ class _EnregistrerDecesScreenState extends State<EnregistrerDecesScreen> {
 
               // Date du décès
               Text(
-                'Date du décès *',
+                AppLocalizations.of(context).decesDateDeces,
                 style: AppTheme.titleSmall.copyWith(
                   color: theme.colorScheme.onSurface,
                 ),
@@ -195,7 +207,7 @@ class _EnregistrerDecesScreenState extends State<EnregistrerDecesScreen> {
 
               // Cause du décès
               Text(
-                'Cause du décès *',
+                AppLocalizations.of(context).decesCauseDeces,
                 style: AppTheme.titleSmall.copyWith(
                   color: theme.colorScheme.onSurface,
                 ),
@@ -230,7 +242,7 @@ class _EnregistrerDecesScreenState extends State<EnregistrerDecesScreen> {
 
               // Circonstances détaillées
               Text(
-                'Circonstances détaillées *',
+                AppLocalizations.of(context).decesCirconstancesDetaillees,
                 style: AppTheme.titleSmall.copyWith(
                   color: theme.colorScheme.onSurface,
                 ),
@@ -239,7 +251,7 @@ class _EnregistrerDecesScreenState extends State<EnregistrerDecesScreen> {
               TextFormField(
                 controller: _circonstancesController,
                 decoration: InputDecoration(
-                  hintText: 'Décrivez les circonstances du décès...',
+                  hintText: AppLocalizations.of(context).decesHintCirconstances,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),
@@ -248,7 +260,9 @@ class _EnregistrerDecesScreenState extends State<EnregistrerDecesScreen> {
                 maxLines: 4,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Veuillez décrire les circonstances';
+                    return AppLocalizations.of(
+                      context,
+                    ).decesValidationCirconstances;
                   }
                   return null;
                 },
@@ -257,7 +271,7 @@ class _EnregistrerDecesScreenState extends State<EnregistrerDecesScreen> {
 
               // Autopsie
               CheckboxListTile(
-                title: const Text('Autopsie réalisée'),
+                title: Text(AppLocalizations.of(context).decesAutopsieRealisee),
                 value: _autopsieRealisee,
                 onChanged: (value) {
                   setState(() {
@@ -271,7 +285,7 @@ class _EnregistrerDecesScreenState extends State<EnregistrerDecesScreen> {
               if (_autopsieRealisee) ...[
                 const SizedBox(height: 8),
                 Text(
-                  'Résultats de l\'autopsie',
+                  AppLocalizations.of(context).decesResultatsAutopsie,
                   style: AppTheme.titleSmall.copyWith(
                     color: theme.colorScheme.onSurface,
                   ),
@@ -280,7 +294,9 @@ class _EnregistrerDecesScreenState extends State<EnregistrerDecesScreen> {
                 TextFormField(
                   controller: _resultatsAutopsieController,
                   decoration: InputDecoration(
-                    hintText: 'Résultats de l\'autopsie...',
+                    hintText: AppLocalizations.of(
+                      context,
+                    ).decesHintResultatsAutopsie,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
@@ -293,7 +309,7 @@ class _EnregistrerDecesScreenState extends State<EnregistrerDecesScreen> {
 
               // Mesures préventives
               Text(
-                'Mesures préventives (optionnel)',
+                AppLocalizations.of(context).decesMesuresPreventives,
                 style: AppTheme.titleSmall.copyWith(
                   color: theme.colorScheme.onSurface,
                 ),
@@ -302,7 +318,9 @@ class _EnregistrerDecesScreenState extends State<EnregistrerDecesScreen> {
               TextFormField(
                 controller: _mesuresPreventivesController,
                 decoration: InputDecoration(
-                  hintText: 'Mesures à prendre pour éviter d\'autres décès...',
+                  hintText: AppLocalizations.of(
+                    context,
+                  ).decesHintMesuresPreventives,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),
@@ -317,14 +335,7 @@ class _EnregistrerDecesScreenState extends State<EnregistrerDecesScreen> {
                 width: double.infinity,
                 child: ElevatedButton(
                   onPressed: _isSubmitting ? null : _enregistrerDeces,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppTheme.error,
-                    foregroundColor: AppTheme.textLight,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
+                  style: AppTheme.dangerButtonStyle,
                   child: _isSubmitting
                       ? SizedBox(
                           height: 20,
@@ -336,8 +347,8 @@ class _EnregistrerDecesScreenState extends State<EnregistrerDecesScreen> {
                             ),
                           ),
                         )
-                      : const Text(
-                          'Enregistrer le décès',
+                      : Text(
+                          AppLocalizations.of(context).decesBoutonEnregistrer,
                           style: AppTheme.titleSmall,
                         ),
                 ),

@@ -67,16 +67,13 @@ class _AuthFormFieldsState extends State<AuthFormFields> {
           crossAxisAlignment: CrossAxisAlignment.baseline,
           textBaseline: TextBaseline.alphabetic,
           children: [
-            Flexible(
-              child: _buildLabel('Password'),
-            ),
+            Flexible(child: _buildLabel('Password')),
             if (!widget.isSignUp && widget.onForgotPassword != null)
               GestureDetector(
                 onTap: widget.onForgotPassword,
                 child: Text(
                   'Forgot Password?',
-                  style: TextStyle(
-                    fontSize: 12,
+                  style: AppTheme.bodySmall.copyWith(
                     fontWeight: FontWeight.w600,
                     color: AppTheme.primaryNeonGreen,
                   ),
@@ -100,8 +97,9 @@ class _AuthFormFieldsState extends State<AuthFormFields> {
           _buildConfirmPasswordField(
             controller: widget.confirmPasswordController!,
             isObscure: _obscureConfirmPassword,
-            onToggle: () =>
-                setState(() => _obscureConfirmPassword = !_obscureConfirmPassword),
+            onToggle: () => setState(
+              () => _obscureConfirmPassword = !_obscureConfirmPassword,
+            ),
             isDark: isDark,
           ),
         ],
@@ -113,10 +111,9 @@ class _AuthFormFieldsState extends State<AuthFormFields> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Text(
       label,
-      style: TextStyle(
-        fontSize: 14,
+      style: AppTheme.bodyMedium.copyWith(
         fontWeight: FontWeight.bold,
-        color: isDark ? Colors.grey.shade200 : const Color(0xFF111812),
+        color: isDark ? AppTheme.stitchTextMainDark : AppTheme.textPrimary,
       ),
     );
   }
@@ -131,28 +128,27 @@ class _AuthFormFieldsState extends State<AuthFormFields> {
     return Container(
       height: 56,
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1a2e1c) : Colors.white,
-        borderRadius: BorderRadius.circular(8),
+        color: isDark ? AppTheme.surfaceDark : AppTheme.surfaceWhite,
+        borderRadius: AppTheme.borderRadiusSmall,
         border: Border.all(
-          color: isDark ? const Color(0xFF2a4e2d) : const Color(0xFFdbe6dc),
+          color: isDark ? AppTheme.borderDark : AppTheme.borderLight,
         ),
       ),
       child: TextField(
         controller: controller,
         keyboardType: keyboardType,
-        style: TextStyle(
-          fontSize: 16,
+        style: AppTheme.bodyLarge.copyWith(
           fontWeight: FontWeight.w500,
-          color: isDark ? Colors.white : const Color(0xFF111812),
+          color: isDark ? AppTheme.stitchTextMainDark : AppTheme.textPrimary,
         ),
         decoration: InputDecoration(
           hintText: hintText,
           hintStyle: TextStyle(
-            color: isDark ? const Color(0xFF4a704e) : const Color(0xFF618965),
+            color: isDark ? AppTheme.stitchGreenMuted : AppTheme.stitchGreenAccent,
           ),
           prefixIcon: Icon(
             icon,
-            color: isDark ? const Color(0xFF4a704e) : const Color(0xFF618965),
+            color: isDark ? AppTheme.stitchGreenMuted : AppTheme.stitchGreenAccent,
           ),
           border: InputBorder.none,
           contentPadding: const EdgeInsets.symmetric(
@@ -173,10 +169,10 @@ class _AuthFormFieldsState extends State<AuthFormFields> {
     return Container(
       height: 56,
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1a2e1c) : Colors.white,
+        color: isDark ? AppTheme.surfaceDarkForest : AppTheme.textOnPrimary,
         borderRadius: BorderRadius.circular(8),
         border: Border.all(
-          color: isDark ? const Color(0xFF2a4e2d) : const Color(0xFFdbe6dc),
+          color: isDark ? AppTheme.stitchSurfaceDarkElevated : AppTheme.stitchSurfaceLightCard,
         ),
       ),
       child: TextField(
@@ -185,21 +181,21 @@ class _AuthFormFieldsState extends State<AuthFormFields> {
         style: TextStyle(
           fontSize: 16,
           fontWeight: FontWeight.w500,
-          color: isDark ? Colors.white : const Color(0xFF111812),
+          color: isDark ? AppTheme.textOnPrimary : AppTheme.stitchTextDark,
         ),
         decoration: InputDecoration(
           hintText: '••••••••',
           hintStyle: TextStyle(
-            color: isDark ? const Color(0xFF4a704e) : const Color(0xFF618965),
+            color: isDark ? AppTheme.stitchGreenMuted : AppTheme.stitchGreenAccent,
           ),
           prefixIcon: Icon(
             Icons.lock,
-            color: isDark ? const Color(0xFF4a704e) : const Color(0xFF618965),
+            color: isDark ? AppTheme.stitchGreenMuted : AppTheme.stitchGreenAccent,
           ),
           suffixIcon: IconButton(
             icon: Icon(
               isObscure ? Icons.visibility : Icons.visibility_off,
-              color: isDark ? const Color(0xFF4a704e) : const Color(0xFF618965),
+              color: isDark ? AppTheme.stitchGreenMuted : AppTheme.stitchGreenAccent,
             ),
             onPressed: onToggle,
           ),
@@ -222,33 +218,32 @@ class _AuthFormFieldsState extends State<AuthFormFields> {
     return Container(
       height: 56,
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1a2e1c) : Colors.white,
-        borderRadius: BorderRadius.circular(8),
+        color: isDark ? AppTheme.surfaceDark : AppTheme.surfaceWhite,
+        borderRadius: AppTheme.borderRadiusSmall,
         border: Border.all(
-          color: isDark ? const Color(0xFF2a4e2d) : const Color(0xFFdbe6dc),
+          color: isDark ? AppTheme.borderDark : AppTheme.borderLight,
         ),
       ),
       child: TextField(
         controller: controller,
         obscureText: isObscure,
-        style: TextStyle(
-          fontSize: 16,
+        style: AppTheme.bodyLarge.copyWith(
           fontWeight: FontWeight.w500,
-          color: isDark ? Colors.white : const Color(0xFF111812),
+          color: isDark ? AppTheme.stitchTextMainDark : AppTheme.textPrimary,
         ),
         decoration: InputDecoration(
           hintText: '••••••••',
           hintStyle: TextStyle(
-            color: isDark ? const Color(0xFF4a704e) : const Color(0xFF618965),
+            color: isDark ? AppTheme.textTertiary : AppTheme.textSecondary,
           ),
           prefixIcon: Icon(
             Icons.lock_reset,
-            color: isDark ? const Color(0xFF4a704e) : const Color(0xFF618965),
+            color: isDark ? AppTheme.textTertiary : AppTheme.textSecondary,
           ),
           suffixIcon: IconButton(
             icon: Icon(
               isObscure ? Icons.visibility : Icons.visibility_off,
-              color: isDark ? const Color(0xFF4a704e) : const Color(0xFF618965),
+              color: isDark ? AppTheme.textTertiary : AppTheme.textSecondary,
             ),
             onPressed: onToggle,
           ),
@@ -262,4 +257,3 @@ class _AuthFormFieldsState extends State<AuthFormFields> {
     );
   }
 }
-

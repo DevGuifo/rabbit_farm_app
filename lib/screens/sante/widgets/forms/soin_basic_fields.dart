@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../../../theme/app_theme.dart';
+import '../../../../l10n/app_localizations.dart';
 
 /// Widget de sélection de date
 class DateFieldWidget extends StatelessWidget {
@@ -22,11 +23,11 @@ class DateFieldWidget extends StatelessWidget {
     final surfaceColor = isDark ? AppTheme.backgroundDark : AppTheme.cardLight;
     final textPrimary = isDark ? AppTheme.cardLight : AppTheme.textPrimary;
     final textSecondary = isDark
-        ? const Color(0xFFB4C4B7)
+        ? AppTheme.stitchGreenLight
         : AppTheme.textSecondary;
     final borderColor = isDark
-        ? const Color(0xFF2A422E)
-        : const Color(0xFFDBE6DC);
+        ? AppTheme.stitchSurfaceDarkCard
+        : AppTheme.stitchSurfaceLightAlt;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -40,15 +41,17 @@ class DateFieldWidget extends StatelessWidget {
             color: textSecondary,
           ),
         ),
-        const SizedBox(height: 8),
+        AppTheme.verticalSpace8,
         InkWell(
           onTap: onTap,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: AppTheme.borderRadiusMedium,
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            padding: AppTheme.paddingHorizontal.add(
+              const EdgeInsets.symmetric(vertical: 14),
+            ),
             decoration: BoxDecoration(
               color: surfaceColor,
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: AppTheme.borderRadiusMedium,
               border: Border.all(color: borderColor, width: 1),
             ),
             child: Row(
@@ -58,7 +61,7 @@ class DateFieldWidget extends StatelessWidget {
                   size: 20,
                   color: primaryColor,
                 ),
-                const SizedBox(width: 12),
+                AppTheme.horizontalSpace12,
                 Text(
                   DateFormat('MMMM dd, yyyy', 'fr_FR').format(date),
                   style: TextStyle(
@@ -94,7 +97,7 @@ class EventTypeSelector extends StatelessWidget {
     final surfaceColor = isDark ? AppTheme.backgroundDark : AppTheme.cardLight;
     final textPrimary = isDark ? AppTheme.cardLight : AppTheme.textPrimary;
     final textSecondary = isDark
-        ? const Color(0xFFB4C4B7)
+        ? AppTheme.stitchGreenLight
         : AppTheme.textSecondary;
 
     return Column(
@@ -109,18 +112,20 @@ class EventTypeSelector extends StatelessWidget {
             color: textSecondary,
           ),
         ),
-        const SizedBox(height: 8),
+        AppTheme.verticalSpace8,
         Container(
           padding: const EdgeInsets.all(4),
           decoration: BoxDecoration(
-            color: isDark ? const Color(0xFF0F1F13) : const Color(0xFFF0F4F1),
-            borderRadius: BorderRadius.circular(12),
+            color: isDark
+                ? AppTheme.santeSurfaceDark
+                : AppTheme.santeSurfaceLight,
+            borderRadius: AppTheme.borderRadiusMedium,
           ),
           child: Row(
             children: [
               _SegmentedOption(
                 value: 'vaccination',
-                label: 'Vaccination',
+                label: AppLocalizations.of(context).labelVaccination,
                 isSelected: typeSoin == 'vaccination',
                 onTap: onChanged,
                 primaryColor: primaryColor,
@@ -129,10 +134,10 @@ class EventTypeSelector extends StatelessWidget {
                 textSecondary: textSecondary,
                 isDark: isDark,
               ),
-              const SizedBox(width: 4),
+              AppTheme.horizontalSpace4,
               _SegmentedOption(
                 value: 'traitement',
-                label: 'Treatment',
+                label: AppLocalizations.of(context).labelTreatment,
                 isSelected: typeSoin == 'traitement',
                 onTap: onChanged,
                 primaryColor: primaryColor,
@@ -141,10 +146,10 @@ class EventTypeSelector extends StatelessWidget {
                 textSecondary: textSecondary,
                 isDark: isDark,
               ),
-              const SizedBox(width: 4),
+              AppTheme.horizontalSpace4,
               _SegmentedOption(
                 value: 'observation',
-                label: 'Obs.',
+                label: AppLocalizations.of(context).labelObs,
                 isSelected: typeSoin == 'observation',
                 onTap: onChanged,
                 primaryColor: primaryColor,
@@ -194,11 +199,13 @@ class _SegmentedOption extends StatelessWidget {
           padding: const EdgeInsets.symmetric(vertical: 12),
           decoration: BoxDecoration(
             color: isSelected ? surfaceColor : Colors.transparent,
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: AppTheme.borderRadiusMedium,
             boxShadow: isSelected
                 ? [
                     BoxShadow(
-                      color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.08),
+                      color: AppTheme.textPrimary.withValues(
+                        alpha: isDark ? 0.3 : 0.08,
+                      ),
                       blurRadius: 8,
                       offset: const Offset(0, 2),
                     ),
@@ -234,11 +241,11 @@ class DescriptionField extends StatelessWidget {
     final surfaceColor = isDark ? AppTheme.backgroundDark : AppTheme.cardLight;
     final textPrimary = isDark ? AppTheme.cardLight : AppTheme.textPrimary;
     final textSecondary = isDark
-        ? const Color(0xFFB4C4B7)
+        ? AppTheme.stitchGreenLight
         : AppTheme.textSecondary;
     final borderColor = isDark
-        ? const Color(0xFF2A422E)
-        : const Color(0xFFDBE6DC);
+        ? AppTheme.stitchSurfaceDarkCard
+        : AppTheme.stitchSurfaceLightAlt;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -269,7 +276,7 @@ class DescriptionField extends StatelessWidget {
               color: textPrimary,
             ),
             decoration: InputDecoration(
-              hintText: 'Describe the health event...',
+              hintText: AppLocalizations.of(context).hintDescribeHealthEvent,
               hintStyle: TextStyle(
                 fontFamily: 'Manrope',
                 fontSize: 16,
@@ -326,11 +333,11 @@ class TypeSoinDropdown extends StatelessWidget {
     final surfaceColor = isDark ? AppTheme.backgroundDark : AppTheme.cardLight;
     final textPrimary = isDark ? AppTheme.cardLight : AppTheme.textPrimary;
     final textSecondary = isDark
-        ? const Color(0xFFB4C4B7)
+        ? AppTheme.stitchGreenLight
         : AppTheme.textSecondary;
     final borderColor = isDark
-        ? const Color(0xFF2A422E)
-        : const Color(0xFFDBE6DC);
+        ? AppTheme.stitchSurfaceDarkCard
+        : AppTheme.stitchSurfaceLightAlt;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -384,4 +391,3 @@ class TypeSoinDropdown extends StatelessWidget {
     );
   }
 }
-

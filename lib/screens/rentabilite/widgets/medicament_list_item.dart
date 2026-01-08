@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../models/medicament.dart';
 import '../../../theme/app_theme.dart';
 
@@ -50,7 +51,10 @@ class MedicamentListItem extends StatelessWidget {
       child: ExpansionTile(
         leading: CircleAvatar(
           backgroundColor: _getTypeColor(medicament.type),
-          child: Icon(_getTypeIcon(medicament.type), color: Colors.white),
+          child: Icon(
+            _getTypeIcon(medicament.type),
+            color: AppTheme.textOnPrimary,
+          ),
         ),
         title: Text(
           medicament.nom,
@@ -106,37 +110,37 @@ class MedicamentListItem extends StatelessWidget {
         ),
         trailing: PopupMenuButton<String>(
           onSelected: onActionSelected,
-          itemBuilder: (context) => const [
+          itemBuilder: (context) => [
             PopupMenuItem(
               value: 'utiliser',
               child: _MenuRow(
                 icon: Icons.remove_circle,
-                color: Colors.orange,
-                text: 'Utiliser',
+                color: AppTheme.warning,
+                text: AppLocalizations.of(context).medicamentUtiliser,
               ),
             ),
             PopupMenuItem(
               value: 'reapprovisionner',
               child: _MenuRow(
                 icon: Icons.add_circle,
-                color: Colors.green,
-                text: 'Réapprovisionner',
+                color: AppTheme.success,
+                text: AppLocalizations.of(context).medicamentReapprovisionner,
               ),
             ),
             PopupMenuItem(
               value: 'modifier',
               child: _MenuRow(
                 icon: Icons.edit,
-                color: Colors.blue,
-                text: 'Modifier',
+                color: AppTheme.info,
+                text: AppLocalizations.of(context).modifier,
               ),
             ),
             PopupMenuItem(
               value: 'supprimer',
               child: _MenuRow(
                 icon: Icons.delete,
-                color: Colors.red,
-                text: 'Supprimer',
+                color: AppTheme.error,
+                text: AppLocalizations.of(context).supprimer,
               ),
             ),
           ],

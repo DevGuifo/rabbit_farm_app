@@ -3,6 +3,7 @@ import 'package:rabbit_farm_app/theme/app_theme.dart';
 import 'package:intl/intl.dart';
 import '../../../../models/lapin.dart';
 import '../../../../models/soin.dart';
+import '../../../../l10n/app_localizations.dart';
 
 /// Item compact pour l'historique (Design Stitch)
 class HistoryItemCard extends StatelessWidget {
@@ -90,7 +91,7 @@ class HistoryItemCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Text(
-                  _formatDate(soin.date),
+                  _formatDate(context, soin.date),
                   style: AppTheme.caption.copyWith(
                     fontWeight: FontWeight.w500,
                     color: textSecondary,
@@ -108,13 +109,13 @@ class HistoryItemCard extends StatelessWidget {
     );
   }
 
-  String _formatDate(DateTime date) {
+  String _formatDate(BuildContext context, DateTime date) {
     final now = DateTime.now();
     final diff = now.difference(date).inDays;
 
-    if (diff == 0) return 'Today';
-    if (diff == 1) return 'Yesterday';
-    if (diff < 7) return '$diff days ago';
+    if (diff == 0) return AppLocalizations.of(context).santeToday;
+    if (diff == 1) return AppLocalizations.of(context).santeYesterday;
+    if (diff < 7) return AppLocalizations.of(context).santeDaysAgo(diff);
     return DateFormat('MMM dd').format(date);
   }
 }

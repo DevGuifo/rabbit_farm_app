@@ -29,6 +29,9 @@ class Lapin {
   final String? notes;
   final String? caracteristiques;
 
+  // Champ FK pour localisation (Phase 2 Refactoring)
+  final int? cageId; // FK vers cages.id
+
   // Champs de synchronisation (réservés pour migration future Supabase)
   // À décommenter lors de la migration vers Supabase
   // final String? userId;
@@ -55,6 +58,7 @@ class Lapin {
     this.origine,
     this.notes,
     this.caracteristiques,
+    this.cageId,
   });
 
   /// Calculer l'âge du lapin en jours
@@ -134,6 +138,7 @@ class Lapin {
     String? origine,
     String? notes,
     String? caracteristiques,
+    int? cageId,
   }) {
     return Lapin(
       id: id ?? this.id,
@@ -151,6 +156,7 @@ class Lapin {
       origine: origine ?? this.origine,
       notes: notes ?? this.notes,
       caracteristiques: caracteristiques ?? this.caracteristiques,
+      cageId: cageId ?? this.cageId,
     );
   }
 
@@ -172,6 +178,7 @@ class Lapin {
       'origine': origine,
       'notes': notes,
       'caracteristiques': caracteristiques,
+      'cage_id': cageId,
     };
   }
 
@@ -193,6 +200,7 @@ class Lapin {
       origine: map['origine'] as String?,
       notes: map['notes'] as String?,
       caracteristiques: map['caracteristiques'] as String?,
+      cageId: map['cage_id'] as int?,
     );
   }
 

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:rabbit_farm_app/theme/app_theme.dart';
+import '../../../l10n/app_localizations.dart';
 
 class FicheSanteFilters extends StatelessWidget {
   final String activeFilter;
@@ -21,7 +22,9 @@ class FicheSanteFilters extends StatelessWidget {
     final textSub = isDark ? AppTheme.border : AppTheme.textSecondary;
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: AppTheme.paddingHorizontal.add(
+        const EdgeInsets.symmetric(vertical: 8),
+      ),
       color: isDark ? AppTheme.backgroundDarkMode : AppTheme.backgroundLight,
       child: Row(
         children: [
@@ -31,7 +34,7 @@ class FicheSanteFilters extends StatelessWidget {
               child: Row(
                 children: [
                   _FilterChip(
-                    label: 'All',
+                    label: AppLocalizations.of(context).filterAll,
                     isActive: activeFilter == 'All',
                     onTap: () => onFilterChanged('All'),
                     isDark: isDark,
@@ -40,16 +43,16 @@ class FicheSanteFilters extends StatelessWidget {
                   ),
                   const SizedBox(width: 8),
                   _FilterChip(
-                    label: 'Medical',
+                    label: AppLocalizations.of(context).filterMedical,
                     isActive: activeFilter == 'Medical',
                     onTap: () => onFilterChanged('Medical'),
                     isDark: isDark,
                     textMain: textMain,
                     textSub: textSub,
                   ),
-                  const SizedBox(width: 8),
+                  AppTheme.horizontalSpace8,
                   _FilterChip(
-                    label: 'Weight',
+                    label: AppLocalizations.of(context).filterWeight,
                     isActive: activeFilter == 'Weight',
                     onTap: () => onFilterChanged('Weight'),
                     isDark: isDark,
@@ -61,7 +64,7 @@ class FicheSanteFilters extends StatelessWidget {
             ),
           ),
           if (onSort != null) ...[
-            const SizedBox(width: 8),
+            AppTheme.horizontalSpace8,
             Container(
               width: 32,
               height: 32,
@@ -112,12 +115,12 @@ class _FilterChip extends StatelessWidget {
       onTap: onTap,
       child: Container(
         height: 32,
-        padding: const EdgeInsets.symmetric(horizontal: 16),
+        padding: AppTheme.paddingHorizontal,
         decoration: BoxDecoration(
           color: isActive
               ? (isDark ? AppTheme.cardLight : AppTheme.backgroundDarkMode)
               : (isDark ? AppTheme.cardDark : AppTheme.cardLight),
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: AppTheme.borderRadiusLarge,
           border: isActive
               ? null
               : Border.all(

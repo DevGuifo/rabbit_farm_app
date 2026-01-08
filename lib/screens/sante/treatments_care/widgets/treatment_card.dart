@@ -3,6 +3,7 @@ import 'package:rabbit_farm_app/theme/app_theme.dart';
 import 'package:intl/intl.dart';
 import '../../../../models/lapin.dart';
 import '../../../../models/soin.dart';
+import '../../../../l10n/app_localizations.dart';
 
 /// Carte de traitement détaillée (Design Stitch)
 /// Affiche: badge statut, progress bar, info next dose, bouton edit
@@ -122,9 +123,7 @@ class TreatmentCard extends StatelessWidget {
                       const SizedBox(height: 8),
                       Text(
                         lapin.nom,
-                        style: AppTheme.titleLarge.copyWith(
-                            color: textPrimary,
-                          ),
+                        style: AppTheme.titleLarge.copyWith(color: textPrimary),
                       ),
                       Text(
                         soin.description,
@@ -162,7 +161,7 @@ class TreatmentCard extends StatelessWidget {
                         Icon(Icons.schedule, size: 18, color: textSecondary),
                         const SizedBox(width: 8),
                         Text(
-                          'Next: ${DateFormat('MMM dd, yyyy').format(soin.dateRappel!)}',
+                          '${AppLocalizations.of(context).santeNext}: ${DateFormat('MMM dd, yyyy').format(soin.dateRappel!)}',
                           style: AppTheme.bodyMedium.copyWith(
                             fontWeight: FontWeight.w600,
                             color: textPrimary,
@@ -207,11 +206,11 @@ class TreatmentCard extends StatelessWidget {
                     children: [
                       Text(
                         'Progress',
-                        style: AppTheme.caption.copyWith( color: textSecondary),
+                        style: AppTheme.caption.copyWith(color: textSecondary),
                       ),
                       Text(
                         '${progress.toInt()}%',
-                        style: AppTheme.caption.copyWith( color: textSecondary),
+                        style: AppTheme.caption.copyWith(color: textSecondary),
                       ),
                     ],
                   ),

@@ -69,7 +69,7 @@ class WelcomeHeroSection extends StatelessWidget {
                           end: Alignment.bottomCenter,
                           colors: [
                             Colors.transparent,
-                            Colors.black.withValues(alpha: 0.6),
+                            AppTheme.textPrimary.withValues(alpha: 0.6),
                           ],
                         ),
                       ),
@@ -104,12 +104,12 @@ class WelcomeHeroSection extends StatelessWidget {
             .withValues(alpha: 0.95),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: Colors.white.withValues(alpha: 0.2),
+          color: AppTheme.textOnPrimary.withValues(alpha: 0.2),
           width: 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
+            color: AppTheme.textPrimary.withValues(alpha: 0.1),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -123,14 +123,14 @@ class WelcomeHeroSection extends StatelessWidget {
             decoration: BoxDecoration(
               color: isDark
                   ? AppTheme.primaryGreen.withValues(alpha: 0.3)
-                  : const Color(0xFFE8F5E9),
+                  : AppTheme.backgroundGreenVeryLight,
               shape: BoxShape.circle,
             ),
             child: Icon(
               Icons.trending_up,
               color: isDark
                   ? AppTheme.primaryGreen
-                  : const Color(0xFF4CAF50),
+                  : AppTheme.primary,
               size: 20,
             ),
           ),

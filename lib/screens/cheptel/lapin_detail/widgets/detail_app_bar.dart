@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../../theme/app_theme.dart';
-import '../constants/stitch_theme_constants.dart';
 
 /// AppBar personnalisée pour l'écran de détail (Stitch Design)
+/// Actions simplifiées - les actions principales sont dans l'onglet Identity
 class DetailAppBar extends StatelessWidget {
   final VoidCallback onBack;
   final VoidCallback onSync;
-  final VoidCallback? onNotifications;
+  // Actions conservées dans l'AppBar (optionnel)
   final VoidCallback? onViewGenealogie;
   final VoidCallback? onExportPDF;
   final VoidCallback? onMarkQuarantaine;
@@ -16,7 +17,6 @@ class DetailAppBar extends StatelessWidget {
     super.key,
     required this.onBack,
     required this.onSync,
-    this.onNotifications,
     this.onViewGenealogie,
     this.onExportPDF,
     this.onMarkQuarantaine,
@@ -26,8 +26,7 @@ class DetailAppBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final backgroundColor = StitchTheme.getBackgroundColor(context);
-    final textColor = StitchTheme.getTextColor(context);
+    final backgroundColor = AppTheme.getBackgroundColor(context);
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -48,7 +47,12 @@ class DetailAppBar extends StatelessWidget {
           ),
           const SizedBox(width: 12),
           // Title
-          Expanded(child: Text('Rabbit Details', style: AppTheme.titleLarge)),
+          Expanded(
+            child: Text(
+              AppLocalizations.of(context).cheptelRabbitDetails,
+              style: AppTheme.titleLarge,
+            ),
+          ),
           // Sync button
           _buildIconButton(
             context: context,
@@ -56,17 +60,6 @@ class DetailAppBar extends StatelessWidget {
             icon: Icons.sync,
             onPressed: onSync,
           ),
-          const SizedBox(width: 8),
-          // Notifications button
-          _buildIconButton(
-            context: context,
-            isDark: isDark,
-            icon: Icons.notifications,
-            onPressed: onNotifications ?? () {},
-          ),
-          const SizedBox(width: 8),
-          // Settings menu
-          _buildSettingsMenu(context, isDark, textColor),
         ],
       ),
     );
@@ -85,7 +78,7 @@ class DetailAppBar extends StatelessWidget {
         shape: BoxShape.circle,
         color: isDark
             ? AppTheme.textLight.withValues(alpha: 0.1)
-            : Colors.black.withValues(alpha: 0.05),
+            : AppTheme.borderDark.withValues(alpha: 0.5),
       ),
       child: IconButton(
         onPressed: onPressed,
@@ -95,94 +88,6 @@ class DetailAppBar extends StatelessWidget {
           size: icon == Icons.arrow_back ? 20 : 22,
         ),
         padding: EdgeInsets.zero,
-      ),
-    );
-  }
-
-  Widget _buildSettingsMenu(
-    BuildContext context,
-    bool isDark,
-    Color textColor,
-  ) {
-    return Container(
-      width: 40,
-      height: 40,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: isDark
-            ? AppTheme.textLight.withValues(alpha: 0.1)
-            : Colors.black.withValues(alpha: 0.05),
-      ),
-      child: PopupMenuButton<String>(
-        icon: Icon(
-          Icons.settings,
-          color: isDark ? AppTheme.textLight : AppTheme.stitchTextMainLight,
-          size: 22,
-        ),
-        padding: EdgeInsets.zero,
-        onSelected: (value) {
-          if (value == 'genealogie' && onViewGenealogie != null) {
-            onViewGenealogie!();
-          } else if (value == 'pdf' && onExportPDF != null) {
-            onExportPDF!();
-          } else if (value == 'quarantaine' && onMarkQuarantaine != null) {
-            onMarkQuarantaine!();
-          } else if (value == 'decede' && onMarkDecede != null) {
-            onMarkDecede!();
-          }
-        },
-        itemBuilder: (context) => [
-          const PopupMenuItem(
-            value: 'genealogie',
-            child: Row(
-              children: [
-                Icon(Icons.account_tree, size: 20),
-                SizedBox(width: 12),
-                Text('Généalogie'),
-              ],
-            ),
-          ),
-          const PopupMenuItem(
-            value: 'pdf',
-            child: Row(
-              children: [
-                Icon(Icons.picture_as_pdf, size: 20),
-                SizedBox(width: 12),
-                Text('Exporter PDF'),
-              ],
-            ),
-          ),
-          PopupMenuItem(
-            value: 'quarantaine',
-            child: Row(
-              children: [
-                const Icon(
-                  Icons.health_and_safety,
-                  size: 20,
-                  color: AppTheme.warning,
-                ),
-                const SizedBox(width: 12),
-                Text(
-                  'Mettre en quarantaine',
-                  style: AppTheme.bodyMedium.copyWith(color: AppTheme.warning),
-                ),
-              ],
-            ),
-          ),
-          PopupMenuItem(
-            value: 'decede',
-            child: Row(
-              children: [
-                Icon(Icons.cancel, size: 20, color: AppTheme.error),
-                const SizedBox(width: 12),
-                Text(
-                  'Marquer décédé',
-                  style: AppTheme.bodyMedium.copyWith(color: AppTheme.error),
-                ),
-              ],
-            ),
-          ),
-        ],
       ),
     );
   }

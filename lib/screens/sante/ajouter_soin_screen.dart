@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../l10n/app_localizations.dart';
 import '../../models/lapin.dart';
 import '../../models/soin.dart';
 import '../../providers/sante_provider.dart';
 import '../../utils/snackbar_helper.dart';
 import 'widgets/soin_form_layout.dart';
 import 'package:rabbit_farm_app/theme/app_theme.dart';
+import '../../widgets/uniform_app_bar.dart';
 import '../alertes/alertes_screen.dart';
 import '../parametres/parametres_screen.dart';
 
@@ -31,6 +33,10 @@ class _AjouterSoinScreenState extends State<AjouterSoinScreen> {
   DateTime? _dateRappel;
   bool _avecRappel = false;
   String _outcomeStatus = 'recovered';
+
+  // Phase 4: Ajout medicament_id FK
+  int? _medicamentId;
+  String? _medicamentNom;
 
   final List<String> _typesSoins = [
     'vaccination',
@@ -107,21 +113,20 @@ class _AjouterSoinScreenState extends State<AjouterSoinScreen> {
     }
 
     String outcomeLabel = _outcomeStatus == 'recovered'
-        ? 'Récupéré'
+        ? AppLocalizations.of(context).santeRecupere
         : _outcomeStatus == 'ongoing'
-        ? 'En cours'
-        : 'Critique';
+        ? AppLocalizations.of(context).santeEnCours
+        : AppLocalizations.of(context).santeCritique;
 
-    String notes = 'Statut: $outcomeLabel';
+    String notes = '${AppLocalizations.of(context).santeStatut}: $outcomeLabel';
 
     final soin = Soin(
       lapinId: widget.lapin.id!,
       date: _date,
       type: _typeSoin,
       description: _descriptionController.text,
-      medicament: _medicamentController.text.isNotEmpty
-          ? _medicamentController.text
-          : null,
+      medicament: _medicamentNom, // Garde STRING pour backward compatibility
+      medicamentId: _medicamentId, // Phase 4: FK medicament_id
       dosage: _dosageController.text.isNotEmpty ? _dosageController.text : null,
       dateRappel: _avecRappel ? _dateRappel : null,
       notes: notes,
@@ -132,7 +137,10 @@ class _AjouterSoinScreenState extends State<AjouterSoinScreen> {
       await santeProvider.ajouterSoin(soin);
 
       if (mounted) {
-        SnackbarHelper.showSuccess(context, 'Soin enregistré avec succès');
+        SnackbarHelper.showSuccess(
+          context,
+          AppLocalizations.of(context).santeSoinEnregistreSucces,
+        );
         Navigator.of(context).pop();
       }
     } catch (e) {
@@ -148,29 +156,16 @@ class _AjouterSoinScreenState extends State<AjouterSoinScreen> {
     final backgroundColor = isDark
         ? AppTheme.backgroundDark
         : AppTheme.backgroundLight;
-    final surfaceColor = isDark ? AppTheme.backgroundDark : AppTheme.cardLight;
-    final textPrimary = isDark ? AppTheme.cardLight : AppTheme.textPrimary;
     final textSecondary = isDark
         ? AppTheme.textSecondary
         : AppTheme.textSecondary;
 
     return Scaffold(
       backgroundColor: backgroundColor,
-      appBar: AppBar(
-        backgroundColor: surfaceColor,
-        elevation: 0,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: textPrimary),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: Text(
-          'Add Health Record',
-          style: AppTheme.titleLarge.copyWith(
-            fontSize: 22,
-            fontWeight: FontWeight.w600,
-            color: textPrimary,
-          ),
-        ),
+      appBar: UniformAppBar(
+        title: AppLocalizations.of(context).santeAjouterSoin,
+        icon: Icons.medical_services_rounded,
+        iconColor: AppTheme.info,
         actions: [
           IconButton(
             icon: Icon(Icons.sync, color: textSecondary, size: 22),
@@ -188,9 +183,7 @@ class _AjouterSoinScreenState extends State<AjouterSoinScreen> {
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(
-                  builder: (_) => const AlertesScreen(),
-                ),
+                MaterialPageRoute(builder: (_) => const AlertesScreen()),
               );
             },
           ),
@@ -199,9 +192,7 @@ class _AjouterSoinScreenState extends State<AjouterSoinScreen> {
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(
-                  builder: (_) => const ParametresScreen(),
-                ),
+                MaterialPageRoute(builder: (_) => const ParametresScreen()),
               );
             },
           ),
@@ -216,7 +207,13 @@ class _AjouterSoinScreenState extends State<AjouterSoinScreen> {
         onTypeSoinChanged: (value) => setState(() => _typeSoin = value),
         descriptionController: _descriptionController,
         typesSoins: _typesSoins,
-        medicamentController: _medicamentController,
+        medicamentIdInitial: _medicamentId,
+        onMedicamentChanged: (int? id, String? nom) {
+          setState(() {
+            _medicamentId = id;
+            _medicamentNom = nom;
+          });
+        },
         dosageController: _dosageController,
         outcomeStatus: _outcomeStatus,
         onOutcomeStatusChanged: (value) =>

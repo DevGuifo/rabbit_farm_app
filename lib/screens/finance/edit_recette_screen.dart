@@ -2,12 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
+import '../../l10n/app_localizations.dart';
 import '../../models/recette.dart';
 import '../../models/lapin.dart';
 import '../../providers/finance_provider.dart';
 import '../../providers/lapin_provider.dart';
 import '../../utils/snackbar_helper.dart';
 import '../../theme/app_theme.dart';
+import '../../widgets/uniform_app_bar.dart';
 
 class EditRecetteScreen extends StatefulWidget {
   final Recette recette;
@@ -74,18 +76,10 @@ class _EditRecetteScreenState extends State<EditRecetteScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
-      appBar: AppBar(
-        title: Text(
-          'Modifier une recette',
-          style: AppTheme.titleLarge.copyWith(
-            color: Theme.of(context).colorScheme.onSurface,
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        backgroundColor: Theme.of(context).colorScheme.surface,
-        elevation: 0,
-        iconTheme: IconThemeData(color: Theme.of(context).colorScheme.primary),
+      appBar: UniformAppBar(
+        title: AppLocalizations.of(context).screenModifierRecette,
+        icon: Icons.edit_rounded,
+        iconColor: AppTheme.success,
       ),
       body: Form(
         key: _formKey,
@@ -96,7 +90,7 @@ class _EditRecetteScreenState extends State<EditRecetteScreen> {
             Card(
               child: ListTile(
                 leading: const Icon(Icons.calendar_today),
-                title: const Text('Date'),
+                title: Text(AppLocalizations.of(context).financeDate),
                 subtitle: Text(_formatDate.format(_dateSelectionnee)),
                 onTap: _selectionnerDate,
               ),
@@ -105,11 +99,11 @@ class _EditRecetteScreenState extends State<EditRecetteScreen> {
 
             // Catégorie
             DropdownButtonFormField<String>(
-              initialValue:  _categorieSelectionnee,
-              decoration: const InputDecoration(
-                labelText: 'Catégorie',
-                prefixIcon: Icon(Icons.category),
-                border: OutlineInputBorder(),
+              initialValue: _categorieSelectionnee,
+              decoration: InputDecoration(
+                labelText: AppLocalizations.of(context).financeCategorie,
+                prefixIcon: const Icon(Icons.category),
+                border: const OutlineInputBorder(),
               ),
               items: const [
                 DropdownMenuItem(
@@ -139,11 +133,11 @@ class _EditRecetteScreenState extends State<EditRecetteScreen> {
               Consumer<LapinProvider>(
                 builder: (context, lapinProvider, child) {
                   return DropdownButtonFormField<Lapin>(
-                    initialValue:  _lapinSelectionne,
-                    decoration: const InputDecoration(
-                      labelText: 'Lapin vendu (optionnel)',
-                      prefixIcon: Icon(Icons.pets),
-                      border: OutlineInputBorder(),
+                    initialValue: _lapinSelectionne,
+                    decoration: InputDecoration(
+                      labelText: AppLocalizations.of(context).financeLapinVendu,
+                      prefixIcon: const Icon(Icons.pets),
+                      border: const OutlineInputBorder(),
                     ),
                     items: [
                       const DropdownMenuItem<Lapin>(
@@ -171,10 +165,10 @@ class _EditRecetteScreenState extends State<EditRecetteScreen> {
             // Montant
             TextFormField(
               controller: _montantController,
-              decoration: const InputDecoration(
-                labelText: 'Montant (€)',
-                prefixIcon: Icon(Icons.euro),
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                labelText: AppLocalizations.of(context).financeMontant,
+                prefixIcon: const Icon(Icons.euro),
+                border: const OutlineInputBorder(),
               ),
               keyboardType: const TextInputType.numberWithOptions(
                 decimal: true,
@@ -184,11 +178,13 @@ class _EditRecetteScreenState extends State<EditRecetteScreen> {
               ],
               validator: (value) {
                 if (value == null || value.isEmpty) {
-                  return 'Veuillez saisir un montant';
+                  return AppLocalizations.of(
+                    context,
+                  ).financeVeuillezSaisirMontant;
                 }
                 final montant = double.tryParse(value);
                 if (montant == null || montant <= 0) {
-                  return 'Veuillez saisir un montant valide';
+                  return AppLocalizations.of(context).financeMontantInvalide;
                 }
                 return null;
               },
@@ -198,15 +194,15 @@ class _EditRecetteScreenState extends State<EditRecetteScreen> {
             // Description
             TextFormField(
               controller: _descriptionController,
-              decoration: const InputDecoration(
-                labelText: 'Description',
-                prefixIcon: Icon(Icons.description),
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                labelText: AppLocalizations.of(context).financeDescription,
+                prefixIcon: const Icon(Icons.description),
+                border: const OutlineInputBorder(),
               ),
               maxLines: 2,
               validator: (value) {
                 if (value == null || value.isEmpty) {
-                  return 'Veuillez saisir une description';
+                  return AppLocalizations.of(context).erreurDescriptionRequise;
                 }
                 return null;
               },
@@ -216,10 +212,10 @@ class _EditRecetteScreenState extends State<EditRecetteScreen> {
             // Notes
             TextFormField(
               controller: _notesController,
-              decoration: const InputDecoration(
-                labelText: 'Notes (optionnel)',
-                prefixIcon: Icon(Icons.note),
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                labelText: AppLocalizations.of(context).financeNotes,
+                prefixIcon: const Icon(Icons.note),
+                border: const OutlineInputBorder(),
               ),
               maxLines: 3,
             ),
@@ -232,7 +228,7 @@ class _EditRecetteScreenState extends State<EditRecetteScreen> {
                   child: OutlinedButton.icon(
                     onPressed: () => Navigator.pop(context),
                     icon: const Icon(Icons.close),
-                    label: const Text('Annuler'),
+                    label: Text(AppLocalizations.of(context).actionAnnuler),
                     style: OutlinedButton.styleFrom(
                       padding: const EdgeInsets.all(16),
                     ),
@@ -241,10 +237,10 @@ class _EditRecetteScreenState extends State<EditRecetteScreen> {
                 const SizedBox(width: 16),
                 Expanded(
                   flex: 2,
-                  child: ElevatedButton.icon(
+                  child: FilledButton.icon(
                     onPressed: _modifier,
-                    icon: const Icon(Icons.check),
-                    label: const Text('Enregistrer'),
+                    icon: const Icon(Icons.save),
+                    label: Text(AppLocalizations.of(context).actionEnregistrer),
                     style: ElevatedButton.styleFrom(
                       padding: const EdgeInsets.all(16),
                       backgroundColor: AppTheme.success,
@@ -298,7 +294,10 @@ class _EditRecetteScreenState extends State<EditRecetteScreen> {
       ).modifierRecette(recetteModifiee);
 
       if (mounted) {
-        SnackbarHelper.showSuccess(context, 'Recette modifiée avec succès');
+        SnackbarHelper.showSuccess(
+          context,
+          AppLocalizations.of(context).financeRecetteModifiee,
+        );
         Navigator.pop(context, true);
       }
     } catch (e) {

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
+import '../../l10n/app_localizations.dart';
 import '../../providers/quarantaine_provider.dart';
 import '../../providers/lapin_provider.dart';
 import '../../utils/dialog_helper.dart';
@@ -41,9 +42,18 @@ class _QuarantaineScreenState extends State<QuarantaineScreen> {
               });
             },
             itemBuilder: (context) => [
-              const PopupMenuItem(value: 'tous', child: Text('Tous')),
-              const PopupMenuItem(value: 'en_cours', child: Text('En cours')),
-              const PopupMenuItem(value: 'termine', child: Text('Terminés')),
+              PopupMenuItem(
+                value: 'tous',
+                child: Text(AppLocalizations.of(context).filterTous),
+              ),
+              PopupMenuItem(
+                value: 'en_cours',
+                child: Text(AppLocalizations.of(context).filterEnCours),
+              ),
+              PopupMenuItem(
+                value: 'termine',
+                child: Text(AppLocalizations.of(context).filterTermines),
+              ),
             ],
           ),
         ],
@@ -199,13 +209,8 @@ class _QuarantaineScreenState extends State<QuarantaineScreen> {
       children: [
         Icon(icon, color: color, size: 28),
         const SizedBox(height: 4),
-        Text(
-          value,
-          style: AppTheme.titleLarge.copyWith(
-            color: color,
-          ),
-        ),
-        Text(label, style: AppTheme.caption.copyWith( color: Colors.grey[600])),
+        Text(value, style: AppTheme.titleLarge.copyWith(color: color)),
+        Text(label, style: AppTheme.caption.copyWith(color: Colors.grey[600])),
       ],
     );
   }
@@ -266,7 +271,7 @@ class _QuarantaineScreenState extends State<QuarantaineScreen> {
             const SizedBox(height: 4),
             Text(
               '${_getMotifLabel(quarantaine.motif)} • Début: ${dateFormat.format(quarantaine.dateDebut)}',
-              style: AppTheme.caption.copyWith( color: Colors.grey[600]),
+              style: AppTheme.caption.copyWith(color: Colors.grey[600]),
             ),
           ],
         ),
@@ -292,23 +297,23 @@ class _QuarantaineScreenState extends State<QuarantaineScreen> {
                       ],
                     ),
                   ),
-                  const PopupMenuItem(
+                  PopupMenuItem(
                     value: 'observation',
                     child: Row(
                       children: [
-                        Icon(Icons.note_add, color: Colors.blue),
-                        SizedBox(width: 8),
-                        Text('Ajouter observation'),
+                        const Icon(Icons.note_add, color: Colors.blue),
+                        const SizedBox(width: 8),
+                        Text(AppLocalizations.of(context).ajouterObservation),
                       ],
                     ),
                   ),
-                  const PopupMenuItem(
+                  PopupMenuItem(
                     value: 'supprimer',
                     child: Row(
                       children: [
-                        Icon(Icons.delete, color: Colors.red),
-                        SizedBox(width: 8),
-                        Text('Supprimer'),
+                        const Icon(Icons.delete, color: Colors.red),
+                        const SizedBox(width: 8),
+                        Text(AppLocalizations.of(context).supprimer),
                       ],
                     ),
                   ),
@@ -365,7 +370,10 @@ class _QuarantaineScreenState extends State<QuarantaineScreen> {
             ),
           ),
           Expanded(
-            child: Text(value, style: AppTheme.bodyMedium.copyWith(color: Colors.black87)),
+            child: Text(
+              value,
+              style: AppTheme.bodyMedium.copyWith(color: Colors.black87),
+            ),
           ),
         ],
       ),
@@ -516,7 +524,7 @@ class _QuarantaineScreenState extends State<QuarantaineScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Annuler'),
+              child: Text(AppLocalizations.of(context).annuler),
             ),
             ElevatedButton(
               onPressed: () {
@@ -586,7 +594,7 @@ class _QuarantaineScreenState extends State<QuarantaineScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Ajouter une observation'),
+        title: Text(AppLocalizations.of(context).ajouterObservation),
         content: TextField(
           controller: observationController,
           decoration: const InputDecoration(
@@ -599,7 +607,7 @@ class _QuarantaineScreenState extends State<QuarantaineScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('Annuler'),
+            child: Text(AppLocalizations.of(context).annuler),
           ),
           ElevatedButton(
             onPressed: () {
@@ -611,7 +619,7 @@ class _QuarantaineScreenState extends State<QuarantaineScreen> {
               );
               Navigator.pop(context);
             },
-            child: const Text('Enregistrer'),
+            child: Text(AppLocalizations.of(context).enregistrer),
           ),
         ],
       ),

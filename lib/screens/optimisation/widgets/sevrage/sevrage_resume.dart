@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../../theme/app_theme.dart';
 
 class SevrageResume extends StatelessWidget {
@@ -21,15 +22,16 @@ class SevrageResume extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: tousCagesSelectionnees
-            ? const Color(0xFF1E3A28)
-            : const Color(0xFF3A2A1E),
+            ? AppTheme.surfaceDarkGreen
+            : AppTheme.surfaceDarkBrown,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: tousCagesSelectionnees ? Colors.green : Colors.orange,
+          color: tousCagesSelectionnees ? AppTheme.success : AppTheme.warning,
           width: 2,
         ),
       ),
@@ -40,13 +42,15 @@ class SevrageResume extends StatelessWidget {
             children: [
               Icon(
                 tousCagesSelectionnees ? Icons.check_circle : Icons.warning,
-                color: tousCagesSelectionnees ? Colors.green : Colors.orange,
+                color: tousCagesSelectionnees
+                    ? AppTheme.success
+                    : AppTheme.warning,
               ),
               const SizedBox(width: 8),
-              const Text(
-                'Résumé du sevrage',
-                style: TextStyle(
-                  color: Colors.white,
+              Text(
+                l10n.sevrageResumeLabel,
+                style: const TextStyle(
+                  color: AppTheme.textOnPrimary,
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
                 ),
@@ -54,25 +58,28 @@ class SevrageResume extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 16),
-          _buildResumeItem('Lapereaux à sevrer', '$totalPetits'),
-          _buildResumeItem('Mâles', '$nbMales'),
-          _buildResumeItem('Femelles', '$nbFemelles'),
-          _buildResumeItem('Cages utilisées', '$nbCagesUtilisees'),
+          _buildResumeItem(l10n.sevrageLapreauxASevrer, '$totalPetits'),
+          _buildResumeItem(l10n.sevrageMaleLabel, '$nbMales'),
+          _buildResumeItem(l10n.sevrageFemaleLabel, '$nbFemelles'),
+          _buildResumeItem(l10n.sevrageCagesUtilisees, '$nbCagesUtilisees'),
           if (poidsMoyen != null)
             _buildResumeItem(
-              'Poids moyen',
+              l10n.sevragePoidsMoyen,
               '${poidsMoyen!.toStringAsFixed(0)} g',
             ),
           const SizedBox(height: 12),
           if (!tousCagesSelectionnees)
-            const Row(
+            Row(
               children: [
-                Icon(Icons.info, color: Colors.orange, size: 16),
-                SizedBox(width: 8),
+                const Icon(Icons.info, color: AppTheme.warning, size: 16),
+                const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    'Veuillez sélectionner une cage pour chaque lapereau',
-                    style: TextStyle(color: Colors.orange, fontSize: 12),
+                    l10n.sevrageSelectionnerCage,
+                    style: const TextStyle(
+                      color: AppTheme.warning,
+                      fontSize: 12,
+                    ),
                   ),
                 ),
               ],
@@ -90,12 +97,15 @@ class SevrageResume extends StatelessWidget {
         children: [
           Text(
             label,
-            style: AppTheme.bodyMedium.copyWith(color: Colors.white70, fontSize: 14),
+            style: AppTheme.bodyMedium.copyWith(
+              color: AppTheme.textOnPrimary70,
+              fontSize: 14,
+            ),
           ),
           Text(
             value,
             style: AppTheme.bodyMedium.copyWith(
-              color: Colors.white,
+              color: AppTheme.textOnPrimary,
               fontSize: 14,
               fontWeight: FontWeight.bold,
             ),

@@ -41,13 +41,13 @@ class HistorySection extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Recent History',
+                'Historique récent',
                 style: AppTheme.titleMedium.copyWith(color: textPrimary),
               ),
               TextButton(
                 onPressed: onViewAll ?? () {},
                 child: Text(
-                  'View All',
+                  'Voir tout',
                   style: AppTheme.bodyMedium.copyWith(
                     fontWeight: FontWeight.bold,
                     color: primaryColor,

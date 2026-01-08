@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../l10n/app_localizations.dart';
 import '../../models/medicament.dart';
 import '../../providers/medicament_provider.dart';
 import 'ajouter_medicament_screen.dart';
@@ -46,102 +47,52 @@ class _PharmacieScreenState extends State<PharmacieScreen> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    // Stitch Colors - Blue/Teal Theme for Pharmacy
-    final primaryColor = AppTheme.info; // Blue
-    final accentColor = AppTheme.accentTeal; // Teal
-    final backgroundColor = isDark
-        ? AppTheme.backgroundDarkMode
-        : AppTheme.backgroundLight;
-    final surfaceColor = isDark ? AppTheme.cardDark : AppTheme.cardLight;
-    final textPrimary = isDark ? AppTheme.border : AppTheme.textPrimary;
-    final textSecondary = isDark ? AppTheme.border : AppTheme.textSecondary;
-
     return Scaffold(
-      backgroundColor: backgroundColor,
+      backgroundColor: isDark
+          ? AppTheme.backgroundDarkMode
+          : AppTheme.backgroundLight,
       body: Column(
         children: [
-          _buildHeader(
-            isDark,
-            surfaceColor,
-            primaryColor,
-            textPrimary,
-            textSecondary,
-          ),
+          _buildHeader(isDark),
           Expanded(
             child: SingleChildScrollView(
               padding: const EdgeInsets.only(bottom: 100),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const SizedBox(height: 16),
-                  _buildStatsCards(
-                    isDark,
-                    surfaceColor,
-                    primaryColor,
-                    accentColor,
-                    textPrimary,
-                    textSecondary,
-                  ),
-                  const SizedBox(height: 16),
-                  _buildSearchBar(
-                    isDark,
-                    surfaceColor,
-                    primaryColor,
-                    textPrimary,
-                    textSecondary,
-                  ),
-                  const SizedBox(height: 12),
-                  _buildFilterChips(
-                    isDark,
-                    surfaceColor,
-                    primaryColor,
-                    textPrimary,
-                    textSecondary,
-                  ),
-                  const SizedBox(height: 24),
-                  _buildLowStockAlert(
-                    isDark,
-                    surfaceColor,
-                    primaryColor,
-                    textPrimary,
-                    textSecondary,
-                  ),
-                  const SizedBox(height: 16),
-                  _buildMedicamentsList(
-                    isDark,
-                    surfaceColor,
-                    primaryColor,
-                    accentColor,
-                    textPrimary,
-                    textSecondary,
-                  ),
-                  const SizedBox(height: 32),
+                  AppTheme.verticalSpace16,
+                  _buildStatsCards(isDark),
+                  AppTheme.verticalSpace16,
+                  _buildSearchBar(isDark),
+                  AppTheme.verticalSpace12,
+                  _buildFilterChips(isDark),
+                  AppTheme.verticalSpace24,
+                  _buildLowStockAlert(isDark),
+                  AppTheme.verticalSpace16,
+                  _buildMedicamentsList(isDark),
+                  AppTheme.verticalSpace32,
                 ],
               ),
             ),
           ),
         ],
       ),
-      floatingActionButton: _buildFAB(primaryColor),
+      floatingActionButton: _buildFAB(),
     );
   }
 
   // Header
-  Widget _buildHeader(
-    bool isDark,
-    Color surfaceColor,
-    Color primaryColor,
-    Color textPrimary,
-    Color textSecondary,
-  ) {
+  Widget _buildHeader(bool isDark) {
+    final textPrimary = isDark ? AppTheme.textLight : AppTheme.textPrimary;
+
     return Container(
       decoration: BoxDecoration(
-        color: backgroundColor(isDark).withValues(alpha: 0.95),
+        color: (isDark ? AppTheme.backgroundDarkMode : AppTheme.backgroundLight)
+            .withValues(alpha: 0.95),
         border: Border(
           bottom: BorderSide(
-            color: isDark
-                ? AppTheme.cardLight.withValues(alpha: 0.05)
-                : Colors.black.withValues(alpha: 0.05),
+            color: (isDark ? AppTheme.neutral700 : AppTheme.neutral200)
+                .withValues(alpha: 0.5),
             width: 1,
           ),
         ),
@@ -161,13 +112,16 @@ class _PharmacieScreenState extends State<PharmacieScreen> {
                 ),
               ),
               const SizedBox(width: 12),
-              Icon(Icons.medication, color: primaryColor, size: 28),
+              Icon(Icons.medication, color: AppTheme.info, size: 28),
               const SizedBox(width: 8),
-              Text(
-                'Pharmacie',
-                style: AppTheme.titleLarge.copyWith(color: textPrimary),
+              Expanded(
+                child: Text(
+                  AppLocalizations.of(context).santePharmacie,
+                  style: AppTheme.titleLarge.copyWith(color: textPrimary),
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
-              const Spacer(),
+              const SizedBox(width: 8),
               IconButton(
                 icon: Icon(Icons.sync, color: textPrimary, size: 22),
                 onPressed: _chargerDonnees,
@@ -206,14 +160,12 @@ class _PharmacieScreenState extends State<PharmacieScreen> {
   }
 
   // Stats Cards
-  Widget _buildStatsCards(
-    bool isDark,
-    Color surfaceColor,
-    Color primaryColor,
-    Color accentColor,
-    Color textPrimary,
-    Color textSecondary,
-  ) {
+  Widget _buildStatsCards(bool isDark) {
+    final textPrimary = isDark ? AppTheme.textLight : AppTheme.textPrimary;
+    final textSecondary = isDark
+        ? AppTheme.textSecondary
+        : AppTheme.textTertiary;
+
     return Consumer<MedicamentProvider>(
       builder: (context, medicamentProvider, _) {
         final medicaments = medicamentProvider.medicaments;
@@ -227,43 +179,42 @@ class _PharmacieScreenState extends State<PharmacieScreen> {
         );
 
         return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
+          padding: AppTheme.paddingHorizontal,
           child: Row(
             children: [
               Expanded(
                 child: _buildStatCard(
                   isDark: isDark,
-                  surfaceColor: surfaceColor,
                   icon: Icons.medication_liquid,
-                  iconColor: primaryColor,
-                  label: 'TOTAL',
+                  iconColor: AppTheme.info,
+                  label: AppLocalizations.of(context).labelTotal,
                   value: totalItems.toString(),
                   textPrimary: textPrimary,
                   textSecondary: textSecondary,
                 ),
               ),
-              const SizedBox(width: 12),
+              AppTheme.horizontalSpace12,
               Expanded(
                 child: _buildStatCard(
                   isDark: isDark,
-                  surfaceColor: surfaceColor,
                   icon: Icons.warning_outlined,
                   iconColor: AppTheme.warning,
-                  label: 'LOW STOCK',
+                  label: AppLocalizations.of(
+                    context,
+                  ).santeStockBas.toUpperCase(),
                   value: lowStockItems.toString(),
                   textPrimary: textPrimary,
                   textSecondary: textSecondary,
                   isWarning: lowStockItems > 0,
                 ),
               ),
-              const SizedBox(width: 12),
+              AppTheme.horizontalSpace12,
               Expanded(
                 child: _buildStatCard(
                   isDark: isDark,
-                  surfaceColor: surfaceColor,
                   icon: Icons.attach_money,
-                  iconColor: accentColor,
-                  label: 'VALUE',
+                  iconColor: AppTheme.accentTeal,
+                  label: AppLocalizations.of(context).labelValue,
                   value: '${totalValue.toStringAsFixed(0)} €',
                   textPrimary: textPrimary,
                   textSecondary: textSecondary,
@@ -279,7 +230,6 @@ class _PharmacieScreenState extends State<PharmacieScreen> {
 
   Widget _buildStatCard({
     required bool isDark,
-    required Color surfaceColor,
     required IconData icon,
     required Color iconColor,
     required String label,
@@ -289,25 +239,21 @@ class _PharmacieScreenState extends State<PharmacieScreen> {
     bool isWarning = false,
     bool isSmallText = false,
   }) {
+    final surfaceColor = isDark ? AppTheme.cardDark : AppTheme.cardLight;
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: surfaceColor,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppTheme.radiusLarge),
         border: Border.all(
           color: isWarning
               ? AppTheme.warning.withValues(alpha: 0.3)
-              : isDark
-              ? AppTheme.cardLight.withValues(alpha: 0.05)
-              : Colors.black.withValues(alpha: 0.05),
+              : (isDark ? AppTheme.neutral700 : AppTheme.neutral200).withValues(
+                  alpha: 0.5,
+                ),
         ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.05),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        boxShadow: AppTheme.cardShadow(isDark: isDark),
       ),
       child: Column(
         children: [
@@ -340,33 +286,27 @@ class _PharmacieScreenState extends State<PharmacieScreen> {
   }
 
   // Search Bar
-  Widget _buildSearchBar(
-    bool isDark,
-    Color surfaceColor,
-    Color primaryColor,
-    Color textPrimary,
-    Color textSecondary,
-  ) {
+  Widget _buildSearchBar(bool isDark) {
+    final surfaceColor = isDark ? AppTheme.cardDark : AppTheme.cardLight;
+    final textPrimary = isDark ? AppTheme.textLight : AppTheme.textPrimary;
+    final textSecondary = isDark
+        ? AppTheme.textSecondary
+        : AppTheme.textTertiary;
+
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.symmetric(horizontal: AppTheme.spacing16),
       child: Container(
         height: 48,
         decoration: BoxDecoration(
           color: surfaceColor,
-          borderRadius: BorderRadius.circular(12),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.05),
-              blurRadius: 4,
-              offset: const Offset(0, 2),
-            ),
-          ],
+          borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
+          boxShadow: AppTheme.cardShadow(isDark: isDark),
         ),
         child: TextField(
           controller: _searchController,
           style: AppTheme.bodyLarge.copyWith(color: textPrimary),
           decoration: InputDecoration(
-            hintText: 'Rechercher un médicament...',
+            hintText: AppLocalizations.of(context).hintRechercherMedicament,
             hintStyle: AppTheme.bodyMedium.copyWith(color: textSecondary),
             prefixIcon: Icon(Icons.search, color: textSecondary, size: 22),
             border: InputBorder.none,
@@ -382,52 +322,44 @@ class _PharmacieScreenState extends State<PharmacieScreen> {
   }
 
   // Filter Chips
-  Widget _buildFilterChips(
-    bool isDark,
-    Color surfaceColor,
-    Color primaryColor,
-    Color textPrimary,
-    Color textSecondary,
-  ) {
+  Widget _buildFilterChips(bool isDark) {
+    final textPrimary = isDark ? AppTheme.textLight : AppTheme.textPrimary;
+    final textSecondary = isDark
+        ? AppTheme.textSecondary
+        : AppTheme.textTertiary;
+
+    final l10n = AppLocalizations.of(context);
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.symmetric(horizontal: AppTheme.spacing16),
       child: Wrap(
-        spacing: 8,
-        runSpacing: 8,
+        spacing: AppTheme.spacing8,
+        runSpacing: AppTheme.spacing8,
         children: [
           _buildFilterChip(
-            'Tous',
+            l10n.filtreTous,
             'all',
             isDark,
-            surfaceColor,
-            primaryColor,
             textPrimary,
             textSecondary,
           ),
           _buildFilterChip(
-            'Stock bas',
+            l10n.filtreStockBas,
             'low_stock',
             isDark,
-            surfaceColor,
-            primaryColor,
             textPrimary,
             textSecondary,
           ),
           _buildFilterChip(
-            'Vaccins',
+            l10n.filtreVaccins,
             'vaccines',
             isDark,
-            surfaceColor,
-            primaryColor,
             textPrimary,
             textSecondary,
           ),
           _buildFilterChip(
-            'Traitements',
+            l10n.filtreTraitements,
             'treatments',
             isDark,
-            surfaceColor,
-            primaryColor,
             textPrimary,
             textSecondary,
           ),
@@ -440,34 +372,36 @@ class _PharmacieScreenState extends State<PharmacieScreen> {
     String label,
     String value,
     bool isDark,
-    Color surfaceColor,
-    Color primaryColor,
     Color textPrimary,
     Color textSecondary,
   ) {
     final isSelected = _selectedFilter == value;
+    final surfaceColor = isDark ? AppTheme.cardDark : AppTheme.cardLight;
+
     return GestureDetector(
       onTap: () => setState(() => _selectedFilter = value),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppTheme.spacing16,
+          vertical: AppTheme.spacing8,
+        ),
         decoration: BoxDecoration(
           color: isSelected
-              ? primaryColor.withValues(alpha: 0.15)
+              ? AppTheme.info.withValues(alpha: 0.15)
               : surfaceColor,
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(AppTheme.radiusRound),
           border: Border.all(
             color: isSelected
-                ? primaryColor
-                : (isDark
-                      ? AppTheme.cardLight.withValues(alpha: 0.1)
-                      : Colors.black.withValues(alpha: 0.1)),
+                ? AppTheme.info
+                : (isDark ? AppTheme.neutral700 : AppTheme.neutral200)
+                      .withValues(alpha: 0.5),
           ),
         ),
         child: Text(
           label,
           style: AppTheme.bodyMedium.copyWith(
             fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-            color: isSelected ? primaryColor : textSecondary,
+            color: isSelected ? AppTheme.info : textSecondary,
           ),
         ),
       ),
@@ -475,13 +409,12 @@ class _PharmacieScreenState extends State<PharmacieScreen> {
   }
 
   // Low Stock Alert Banner
-  Widget _buildLowStockAlert(
-    bool isDark,
-    Color surfaceColor,
-    Color primaryColor,
-    Color textPrimary,
-    Color textSecondary,
-  ) {
+  Widget _buildLowStockAlert(bool isDark) {
+    final textPrimary = isDark ? AppTheme.textLight : AppTheme.textPrimary;
+    final textSecondary = isDark
+        ? AppTheme.textSecondary
+        : AppTheme.textTertiary;
+
     return Consumer<MedicamentProvider>(
       builder: (context, medicamentProvider, _) {
         final lowStockCount = medicamentProvider.medicaments
@@ -491,17 +424,17 @@ class _PharmacieScreenState extends State<PharmacieScreen> {
         if (lowStockCount == 0) return const SizedBox.shrink();
 
         return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
+          padding: const EdgeInsets.symmetric(horizontal: AppTheme.spacing16),
           child: Container(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(AppTheme.spacing16),
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
                   AppTheme.warning.withValues(alpha: 0.15),
-                  Colors.deepOrange.withValues(alpha: 0.15),
+                  AppTheme.accentOrange.withValues(alpha: 0.15),
                 ],
               ),
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(AppTheme.radiusLarge),
               border: Border.all(
                 color: AppTheme.warning.withValues(alpha: 0.3),
               ),
@@ -521,7 +454,7 @@ class _PharmacieScreenState extends State<PharmacieScreen> {
                     size: 24,
                   ),
                 ),
-                const SizedBox(width: 16),
+                AppTheme.horizontalSpace16,
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -549,14 +482,12 @@ class _PharmacieScreenState extends State<PharmacieScreen> {
   }
 
   // Medicaments List
-  Widget _buildMedicamentsList(
-    bool isDark,
-    Color surfaceColor,
-    Color primaryColor,
-    Color accentColor,
-    Color textPrimary,
-    Color textSecondary,
-  ) {
+  Widget _buildMedicamentsList(bool isDark) {
+    final textPrimary = isDark ? AppTheme.textLight : AppTheme.textPrimary;
+    final textSecondary = isDark
+        ? AppTheme.textSecondary
+        : AppTheme.textTertiary;
+
     return Consumer<MedicamentProvider>(
       builder: (context, medicamentProvider, _) {
         var medicaments = medicamentProvider.medicaments;
@@ -616,7 +547,7 @@ class _PharmacieScreenState extends State<PharmacieScreen> {
         }
 
         return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
+          padding: const EdgeInsets.symmetric(horizontal: AppTheme.spacing16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -624,15 +555,12 @@ class _PharmacieScreenState extends State<PharmacieScreen> {
                 'Inventaire (${medicaments.length})',
                 style: AppTheme.titleMedium.copyWith(color: textPrimary),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: AppTheme.spacing16),
               ...medicaments.map((medicament) {
                 return Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
+                  padding: const EdgeInsets.only(bottom: AppTheme.spacing12),
                   child: _buildMedicamentCard(
                     isDark,
-                    surfaceColor,
-                    primaryColor,
-                    accentColor,
                     textPrimary,
                     textSecondary,
                     medicament,
@@ -648,38 +576,29 @@ class _PharmacieScreenState extends State<PharmacieScreen> {
 
   Widget _buildMedicamentCard(
     bool isDark,
-    Color surfaceColor,
-    Color primaryColor,
-    Color accentColor,
     Color textPrimary,
     Color textSecondary,
     Medicament medicament,
   ) {
     final isLowStock = medicament.quantiteStock < 10;
-    final stockColor = isLowStock ? AppTheme.warning : accentColor;
+    final stockColor = isLowStock ? AppTheme.warning : AppTheme.accentTeal;
+    final surfaceColor = isDark ? AppTheme.cardDark : AppTheme.cardLight;
 
     return GestureDetector(
       onTap: () => _afficherDetailsMedicament(medicament),
       onLongPress: () => _afficherMenuContextuel(context, medicament),
       child: Container(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(AppTheme.spacing16),
         decoration: BoxDecoration(
           color: surfaceColor,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(AppTheme.radiusLarge),
           border: Border.all(
             color: isLowStock
                 ? AppTheme.warning.withValues(alpha: 0.3)
-                : isDark
-                ? AppTheme.cardLight.withValues(alpha: 0.05)
-                : Colors.black.withValues(alpha: 0.05),
+                : (isDark ? AppTheme.neutral700 : AppTheme.neutral200)
+                      .withValues(alpha: 0.5),
           ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.05),
-              blurRadius: 4,
-              offset: const Offset(0, 2),
-            ),
-          ],
+          boxShadow: AppTheme.cardShadow(isDark: isDark),
         ),
         child: Row(
           children: [
@@ -687,18 +606,18 @@ class _PharmacieScreenState extends State<PharmacieScreen> {
               width: 56,
               height: 56,
               decoration: BoxDecoration(
-                color: primaryColor.withValues(alpha: isDark ? 0.2 : 0.15),
-                borderRadius: BorderRadius.circular(12),
+                color: AppTheme.info.withValues(alpha: isDark ? 0.2 : 0.15),
+                borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
               ),
               child: Icon(
                 medicament.type.toLowerCase().contains('vaccin')
                     ? Icons.vaccines
                     : Icons.medication_liquid,
-                color: primaryColor,
+                color: AppTheme.info,
                 size: 28,
               ),
             ),
-            const SizedBox(width: 16),
+            const SizedBox(width: AppTheme.spacing16),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -710,14 +629,14 @@ class _PharmacieScreenState extends State<PharmacieScreen> {
                   const SizedBox(height: 4),
                   Text(
                     medicament.type,
-                    style: TextStyle(fontSize: 13, color: textSecondary),
+                    style: AppTheme.bodySmall.copyWith(color: textSecondary),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: AppTheme.spacing8),
                   Row(
                     children: [
                       Container(
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
+                          horizontal: AppTheme.spacing8,
                           vertical: 4,
                         ),
                         decoration: BoxDecoration(
@@ -744,11 +663,10 @@ class _PharmacieScreenState extends State<PharmacieScreen> {
                           ],
                         ),
                       ),
-                      const SizedBox(width: 8),
+                      const SizedBox(width: AppTheme.spacing8),
                       Text(
                         '${(medicament.prixUnitaire ?? 0).toStringAsFixed(2)} €',
-                        style: TextStyle(
-                          fontSize: 13,
+                        style: AppTheme.bodySmall.copyWith(
                           fontWeight: FontWeight.w600,
                           color: textSecondary,
                         ),
@@ -808,7 +726,10 @@ class _PharmacieScreenState extends State<PharmacieScreen> {
                 const SizedBox(height: 20),
                 ListTile(
                   leading: const Icon(Icons.edit, color: AppTheme.info),
-                  title: Text('Modifier', style: TextStyle(color: textPrimary)),
+                  title: Text(
+                    AppLocalizations.of(context).actionModifier,
+                    style: TextStyle(color: textPrimary),
+                  ),
                   onTap: () {
                     Navigator.pop(context);
                     _afficherDetailsMedicament(medicament);
@@ -816,9 +737,9 @@ class _PharmacieScreenState extends State<PharmacieScreen> {
                 ),
                 ListTile(
                   leading: const Icon(Icons.delete, color: AppTheme.error),
-                  title: const Text(
-                    'Supprimer',
-                    style: TextStyle(color: AppTheme.error),
+                  title: Text(
+                    AppLocalizations.of(context).actionSupprimer,
+                    style: const TextStyle(color: AppTheme.error),
                   ),
                   onTap: () {
                     Navigator.pop(context);
@@ -837,21 +758,24 @@ class _PharmacieScreenState extends State<PharmacieScreen> {
   Future<void> _confirmerSuppression(Medicament medicament) async {
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Confirmer la suppression'),
-        content: Text('Voulez-vous vraiment supprimer "${medicament.nom}" ?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Annuler'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            style: TextButton.styleFrom(foregroundColor: AppTheme.error),
-            child: const Text('Supprimer'),
-          ),
-        ],
-      ),
+      builder: (context) {
+        final l10n = AppLocalizations.of(context);
+        return AlertDialog(
+          title: Text(l10n.confirmerSuppression),
+          content: Text('${l10n.actionSupprimer} "${medicament.nom}" ?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: Text(l10n.actionAnnuler),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(context, true),
+              style: TextButton.styleFrom(foregroundColor: AppTheme.error),
+              child: Text(l10n.actionSupprimer),
+            ),
+          ],
+        );
+      },
     );
 
     if (confirmed == true) {
@@ -864,14 +788,20 @@ class _PharmacieScreenState extends State<PharmacieScreen> {
         await provider.supprimerMedicament(medicament.id!);
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Médicament supprimé avec succès')),
+            SnackBar(
+              content: Text(
+                AppLocalizations.of(context).santeMedicamentSupprime,
+              ),
+            ),
           );
         }
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Erreur: ${e.toString()}'),
+              content: Text(
+                AppLocalizations.of(context).msgErreurGenerique(e.toString()),
+              ),
               backgroundColor: AppTheme.error,
             ),
           );
@@ -881,7 +811,7 @@ class _PharmacieScreenState extends State<PharmacieScreen> {
   }
 
   // FAB
-  Widget _buildFAB(Color primaryColor) {
+  Widget _buildFAB() {
     return FloatingActionButton.extended(
       onPressed: () {
         Navigator.push(
@@ -892,17 +822,13 @@ class _PharmacieScreenState extends State<PharmacieScreen> {
           _chargerDonnees();
         });
       },
-      backgroundColor: primaryColor,
+      backgroundColor: AppTheme.info,
       elevation: 8,
       icon: Icon(Icons.add, color: AppTheme.cardLight, size: 26),
       label: Text(
-        'Ajouter',
+        AppLocalizations.of(context).ajouter,
         style: AppTheme.titleSmall.copyWith(color: AppTheme.cardLight),
       ),
     );
-  }
-
-  Color backgroundColor(bool isDark) {
-    return isDark ? AppTheme.backgroundDarkMode : AppTheme.backgroundLight;
   }
 }

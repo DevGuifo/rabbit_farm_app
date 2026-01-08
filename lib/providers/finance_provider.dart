@@ -1,10 +1,13 @@
 import 'package:flutter/foundation.dart';
 import '../models/recette.dart';
 import '../models/depense.dart';
+import '../models/journal_entry.dart';
 import '../services/database_helper.dart';
+import '../services/journal_service.dart';
 
 class FinanceProvider with ChangeNotifier {
   final DatabaseHelper _db = DatabaseHelper.instance;
+  final JournalService _journal = JournalService();
 
   List<Recette> _recettes = [];
   List<Depense> _depenses = [];
@@ -28,6 +31,18 @@ class FinanceProvider with ChangeNotifier {
     final nouvelleRecette = await _db.insertRecette(recette);
     _recettes.insert(0, nouvelleRecette);
     notifyListeners();
+
+    // 📝 Journal automatique
+    await _journal.recette(
+      action: TypeAction.creation,
+      recetteId: nouvelleRecette.id!,
+      montant: nouvelleRecette.montant,
+      categorie: nouvelleRecette.categorie,
+      contexte: {
+        'date': nouvelleRecette.date.toIso8601String(),
+        'description': nouvelleRecette.description,
+      },
+    );
   }
 
   /// Ajouter une dépense
@@ -35,6 +50,18 @@ class FinanceProvider with ChangeNotifier {
     final nouvelleDepense = await _db.insertDepense(depense);
     _depenses.insert(0, nouvelleDepense);
     notifyListeners();
+
+    // 📝 Journal automatique
+    await _journal.depense(
+      action: TypeAction.creation,
+      depenseId: nouvelleDepense.id!,
+      montant: nouvelleDepense.montant,
+      categorie: nouvelleDepense.categorie,
+      contexte: {
+        'date': nouvelleDepense.date.toIso8601String(),
+        'description': nouvelleDepense.description,
+      },
+    );
   }
 
   /// Mettre à jour une recette

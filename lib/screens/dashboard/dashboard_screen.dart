@@ -1,16 +1,24 @@
 import 'package:flutter/material.dart';
-import 'dart:ui';
 import 'package:provider/provider.dart';
+import '../../l10n/app_localizations.dart';
 import '../../providers/lapin_provider.dart';
 import '../../providers/reproduction_provider.dart';
 import '../../providers/sante_provider.dart';
+import '../../providers/sync_provider.dart';
+import '../../providers/rituel_provider.dart';
 import '../../services/kpi_service.dart';
 import '../../theme/app_theme.dart';
 import '../parametres/parametres_screen.dart';
 import '../alertes/alertes_screen.dart';
 import '../cheptel/add_lapin_screen.dart';
 import '../../utils/logger.dart';
-import 'kpi_cards_section.dart';
+import '../../widgets/common/common_widgets.dart';
+import '../../providers/alerte_provider.dart';
+import '../../providers/anomalie_provider.dart';
+import '../../widgets/dashboard/critical_indicators_section.dart';
+import '../../widgets/dashboard/performance_indicators_section.dart';
+import '../../widgets/dashboard/discipline_section.dart';
+import '../../widgets/rituel_card.dart';
 
 /// Dashboard moderne Stitch Design - Farm Overview
 /// Reconstruction complète UI selon design Stitch
@@ -24,7 +32,6 @@ class ModernDashboardScreen extends StatefulWidget {
 }
 
 class _ModernDashboardScreenState extends State<ModernDashboardScreen> {
-  final ScrollController _scrollController = ScrollController();
   final KpiService _kpiService = KpiService();
   KpiData? _kpiData;
   bool _isLoadingKpis = false;
@@ -39,7 +46,6 @@ class _ModernDashboardScreenState extends State<ModernDashboardScreen> {
 
   @override
   void dispose() {
-    _scrollController.dispose();
     super.dispose();
   }
 
@@ -49,6 +55,8 @@ class _ModernDashboardScreenState extends State<ModernDashboardScreen> {
         context.read<LapinProvider>().chargerLapins(),
         context.read<ReproductionProvider>().chargerTout(),
         context.read<SanteProvider>().chargerTout(),
+        context.read<RituelProvider>().chargerRituelsJour(),
+        context.read<AnomalieProvider>().chargerTout(),
       ]);
 
       // Charger les KPIs
@@ -82,7 +90,6 @@ class _ModernDashboardScreenState extends State<ModernDashboardScreen> {
         onRefresh: _chargerDonnees,
         color: AppTheme.primaryYellow,
         child: CustomScrollView(
-          controller: _scrollController,
           physics: const BouncingScrollPhysics(),
           slivers: [
             _buildStickyHeader(isDark),
@@ -92,17 +99,38 @@ class _ModernDashboardScreenState extends State<ModernDashboardScreen> {
                 children: [
                   _buildGreetingSection(isDark),
                   const SizedBox(height: 16),
-                  _buildStatsCardsHorizontal(isDark),
+
+                  // 🌅 RITUELS QUOTIDIENS - Section prioritaire
+                  const RituelCard(),
                   const SizedBox(height: 20),
+
+                  // 📊 DISCIPLINE OPÉRATIONNELLE - Miroir de rigueur
+                  DisciplineSection(isDark: isDark),
+                  const SizedBox(height: 20),
+
+                  _buildStatsCardsHorizontal(isDark),
+
                   if (_kpiData != null && !_isLoadingKpis) ...[
-                    KpiCardsSection(
+                    CriticalIndicatorsSection(kpis: _kpiData!, isDark: isDark),
+                    const SizedBox(height: 24),
+
+                    // ✅ NOUVELLE SECTION : Performance globale
+                    PerformanceIndicatorsSection(
                       kpis: _kpiData!,
                       isDark: isDark,
                     ),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 24),
                   ],
-                  _buildHealthAlert(isDark),
-                  const SizedBox(height: 20),
+
+                  // Message de chargement
+                  if (_isLoadingKpis)
+                    const Center(
+                      child: Padding(
+                        padding: EdgeInsets.all(32),
+                        child: CircularProgressIndicator(),
+                      ),
+                    ),
+
                   _buildUpcomingTasks(isDark),
                   const SizedBox(height: 100), // Space pour FAB
                 ],
@@ -115,99 +143,44 @@ class _ModernDashboardScreenState extends State<ModernDashboardScreen> {
     );
   }
 
-  /// Header sticky avec backdrop blur
+  /// Header sticky - Utilise StandardHeader unifié
   Widget _buildStickyHeader(bool isDark) {
-    return SliverAppBar(
-      pinned: true,
-      floating: false,
-      elevation: 0,
-      backgroundColor:
-          (isDark ? AppTheme.backgroundDarkMode : AppTheme.backgroundLight)
-              .withValues(alpha: 0.95),
-      surfaceTintColor: Colors.transparent,
-      toolbarHeight: 60,
-      flexibleSpace: ClipRect(
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-          child: Container(color: Colors.transparent),
-        ),
+    return SliverToBoxAdapter(
+      child: StandardHeader(
+        title: AppLocalizations.of(context).dashFarmOverview,
+        isDark: isDark,
+        onSync: () async {
+          // Synchroniser puis recharger
+          final syncProvider = context.read<SyncProvider>();
+          await syncProvider.syncNow();
+          _chargerDonnees();
+        },
+        onNotifications: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const AlertesScreen()),
+          );
+        },
+        onSettings: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const ParametresScreen()),
+          );
+        },
+        showNotificationBadge: true,
+        notificationCount: context.read<AlerteProvider>().nombreAlertesNonLues,
       ),
-      title: Text(
-        'Farm Overview',
-        style: AppTheme.titleLarge.copyWith(
-          color: isDark ? AppTheme.textLight : AppTheme.textPrimary,
-        ),
-      ),
-      actions: [
-        IconButton(
-          icon: Icon(
-            Icons.sync,
-            color: isDark ? AppTheme.textLight : AppTheme.textPrimary,
-            size: 24,
-          ),
-          onPressed: _chargerDonnees,
-        ),
-        Stack(
-          children: [
-            IconButton(
-              icon: Icon(
-                Icons.notifications,
-                color: isDark ? AppTheme.textLight : AppTheme.textPrimary,
-                size: 24,
-              ),
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const AlertesScreen()),
-                );
-              },
-            ),
-            Positioned(
-              right: 10,
-              top: 10,
-              child: Container(
-                height: 10,
-                width: 10,
-                decoration: BoxDecoration(
-                  color: AppTheme.primaryYellow,
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: isDark
-                        ? AppTheme.backgroundDarkMode
-                        : AppTheme.backgroundLight,
-                    width: 2,
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-        IconButton(
-          icon: Icon(
-            Icons.settings,
-            color: isDark ? AppTheme.textLight : AppTheme.textPrimary,
-            size: 24,
-          ),
-          onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const ParametresScreen()),
-            );
-          },
-        ),
-        const SizedBox(width: 4),
-      ],
     );
   }
 
   /// Section greeting personnalisée
   Widget _buildGreetingSection(bool isDark) {
     final hour = DateTime.now().hour;
-    String greeting = 'Bonjour';
+    String greeting = AppLocalizations.of(context).dashBonjour;
     if (hour >= 12 && hour < 18) {
-      greeting = 'Bon après-midi';
+      greeting = AppLocalizations.of(context).dashBonApresMidi;
     } else if (hour >= 18) {
-      greeting = 'Bonsoir';
+      greeting = AppLocalizations.of(context).dashBonsoir;
     }
 
     return Padding(
@@ -225,7 +198,7 @@ class _ModernDashboardScreenState extends State<ModernDashboardScreen> {
           ),
           const SizedBox(height: 4),
           Text(
-            'Voici ce qui se passe dans votre élevage aujourd\'hui.',
+            AppLocalizations.of(context).dashVoiciCeQuiSePasse,
             style: AppTheme.bodyMedium.copyWith(
               fontWeight: FontWeight.w500,
               color: (isDark ? AppTheme.textLight : AppTheme.textSecondary)
@@ -246,248 +219,109 @@ class _ModernDashboardScreenState extends State<ModernDashboardScreen> {
         final cardsData = [
           {
             'icon': Icons.cruelty_free,
-            'label': 'Total Rabbits',
+            'label': AppLocalizations.of(context).dashTotalLapins,
             'value': '${stats['total'] ?? 0}',
           },
           {
             'icon': Icons.pets,
-            'label': 'Breeding Does',
+            'label': AppLocalizations.of(context).dashFemellesReproduction,
             'value': '${stats['femelles'] ?? 0}',
           },
           {
             'icon': Icons.child_care,
-            'label': 'Kits (0-8 wks)',
+            'label': AppLocalizations.of(context).dashLapereaux,
             'value': '${stats['lapereaux'] ?? 0}',
           },
         ];
 
-        return SizedBox(
-          height: 120,
-          child: ListView.builder(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            scrollDirection: Axis.horizontal,
-            itemCount: cardsData.length,
-            itemBuilder: (context, index) {
-              final card = cardsData[index];
-              return Container(
-                width: 160,
-                margin: EdgeInsets.only(
-                  right: index < cardsData.length - 1 ? 16 : 0,
-                ),
-                decoration: BoxDecoration(
-                  color: isDark ? AppTheme.cardDark : AppTheme.cardLight,
-                  borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
-                  border: Border.all(
-                    color: isDark ? Colors.grey.shade800 : Colors.grey.shade100,
-                    width: 1,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.03),
-                      blurRadius: 4,
-                      offset: const Offset(0, 1),
+        return LayoutBuilder(
+          builder: (context, constraints) {
+            final cardWidth = constraints.maxWidth > 600 ? 180.0 : 150.0;
+
+            return SizedBox(
+              height: 120,
+              child: ListView.builder(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                scrollDirection: Axis.horizontal,
+                itemCount: cardsData.length,
+                itemBuilder: (context, index) {
+                  final card = cardsData[index];
+                  return Container(
+                    width: cardWidth,
+                    margin: EdgeInsets.only(
+                      right: index < cardsData.length - 1 ? 16 : 0,
                     ),
-                  ],
-                ),
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Icon(
-                          card['icon'] as IconData,
-                          size: 20,
-                          color:
-                              (isDark
-                                      ? AppTheme.textLight
-                                      : AppTheme.textSecondary)
-                                  .withValues(alpha: 0.7),
+                    decoration: BoxDecoration(
+                      color: isDark ? AppTheme.cardDark : AppTheme.cardLight,
+                      borderRadius: BorderRadius.circular(
+                        AppTheme.radiusMedium,
+                      ),
+                      border: Border.all(
+                        color: isDark
+                            ? AppTheme.neutral800
+                            : AppTheme.neutral100,
+                        width: 1,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppTheme.textPrimary.withValues(alpha: 0.03),
+                          blurRadius: 4,
+                          offset: const Offset(0, 1),
                         ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            card['label'] as String,
-                            style: AppTheme.caption.copyWith(
-                              fontWeight: FontWeight.w600,
+                      ],
+                    ),
+                    padding: const EdgeInsets.all(20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(
+                              card['icon'] as IconData,
+                              size: 20,
                               color:
                                   (isDark
                                           ? AppTheme.textLight
                                           : AppTheme.textSecondary)
                                       .withValues(alpha: 0.7),
                             ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                card['label'] as String,
+                                style: AppTheme.caption.copyWith(
+                                  fontWeight: FontWeight.w600,
+                                  color:
+                                      (isDark
+                                              ? AppTheme.textLight
+                                              : AppTheme.textSecondary)
+                                          .withValues(alpha: 0.7),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const Spacer(),
+                        FittedBox(
+                          fit: BoxFit.scaleDown,
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            card['value'] as String,
+                            style: AppTheme.titleLarge.copyWith(
+                              fontSize: 30,
+                              color: isDark
+                                  ? AppTheme.textOnPrimary
+                                  : AppTheme.textPrimary,
+                            ),
                           ),
                         ),
                       ],
                     ),
-                    const Spacer(),
-                    Text(
-                      card['value'] as String,
-                      style: AppTheme.titleLarge.copyWith(
-                        fontSize: 30,
-                        color: isDark ? Colors.white : AppTheme.textPrimary,
-                      ),
-                    ),
-                  ],
-                ),
-              );
-            },
-          ),
-        );
-      },
-    );
-  }
-
-  /// Health Alert card (orange)
-  Widget _buildHealthAlert(bool isDark) {
-    return Consumer<SanteProvider>(
-      builder: (context, santeProvider, _) {
-        // Compter les lapins nécessitant des soins urgents
-        final soinsUrgents = santeProvider.soins
-            .where(
-              (soin) =>
-                  soin.dateRappel != null &&
-                  soin.dateRappel!.isBefore(
-                    DateTime.now().add(const Duration(days: 3)),
-                  ),
-            )
-            .length;
-
-        if (soinsUrgents == 0) {
-          // Pas d'alerte, retour vide
-          return const SizedBox.shrink();
-        }
-
-        return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          child: Container(
-            decoration: BoxDecoration(
-              color: isDark
-                  ? AppTheme.warning.withValues(alpha: 0.15)
-                  : AppTheme.warning.withValues(alpha: 0.08),
-              borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
-              border: Border.all(
-                color: isDark
-                    ? AppTheme.warning.withValues(alpha: 0.4)
-                    : AppTheme.warning.withValues(alpha: 0.2),
-                width: 1,
+                  );
+                },
               ),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.03),
-                  blurRadius: 4,
-                  offset: const Offset(0, 1),
-                ),
-              ],
-            ),
-            child: Stack(
-              children: [
-                // Icône en arrière-plan
-                Positioned(
-                  top: 16,
-                  right: 16,
-                  child: Icon(
-                    Icons.medical_services,
-                    size: 64,
-                    color: Colors.orange.shade500.withValues(alpha: 0.1),
-                  ),
-                ),
-                // Contenu
-                Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Container(
-                            height: 32,
-                            width: 32,
-                            decoration: BoxDecoration(
-                              color: isDark
-                                  ? AppTheme.warning.withValues(alpha: 0.3)
-                                  : AppTheme.warning.withValues(alpha: 0.15),
-                              shape: BoxShape.circle,
-                            ),
-                            child: Icon(
-                              Icons.priority_high,
-                              size: 18,
-                              color: AppTheme.warning,
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            'Alerte Santé',
-                            style: AppTheme.titleMedium.copyWith(
-                              color: isDark
-                                  ? Colors.white
-                                  : AppTheme.textPrimary,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        '$soinsUrgents lapin${soinsUrgents > 1 ? 's' : ''} nécessite${soinsUrgents > 1 ? 'nt' : ''} un suivi de santé dans les prochains jours.',
-                        style: AppTheme.titleSmall.copyWith(
-                          color: isDark
-                              ? Colors.grey.shade200
-                              : Colors.grey.shade800,
-                          height: 1.5,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      ElevatedButton(
-                        onPressed: () {
-                          // Navigation vers Santé
-                          if (widget.onNavigate != null) {
-                            widget.onNavigate!(3); // Index Santé
-                          }
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: isDark
-                              ? AppTheme.warning.withValues(alpha: 0.3)
-                              : AppTheme.cardLight,
-                          foregroundColor: isDark
-                              ? AppTheme.warning
-                              : AppTheme.warning,
-                          elevation: 0,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 24,
-                            vertical: 12,
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(
-                              AppTheme.radiusRound,
-                            ),
-                            side: BorderSide(
-                              color: isDark
-                                  ? Colors.transparent
-                                  : AppTheme.warning.withValues(alpha: 0.2),
-                              width: 1,
-                            ),
-                          ),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              'Voir détails',
-                              style: AppTheme.bodyMedium.copyWith(
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            const Icon(Icons.arrow_forward, size: 14),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
+            );
+          },
         );
       },
     );
@@ -515,7 +349,7 @@ class _ModernDashboardScreenState extends State<ModernDashboardScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'Tâches à venir',
+                    AppLocalizations.of(context).dashTachesAVenir,
                     style: AppTheme.titleLarge.copyWith(
                       fontSize: 22,
                       color: isDark ? AppTheme.textLight : AppTheme.textPrimary,
@@ -529,7 +363,7 @@ class _ModernDashboardScreenState extends State<ModernDashboardScreen> {
                       }
                     },
                     child: Text(
-                      'Voir tout',
+                      AppLocalizations.of(context).dashVoirTout,
                       style: AppTheme.bodyMedium.copyWith(
                         fontWeight: FontWeight.bold,
                         color: AppTheme.textSecondary,
@@ -570,17 +404,19 @@ class _ModernDashboardScreenState extends State<ModernDashboardScreen> {
     IconData icon = Icons.family_restroom;
 
     if (joursRestants < 0) {
-      status = 'En retard (${-joursRestants} jours)';
-      statusColor = Colors.red;
+      status = AppLocalizations.of(context).dashEnRetard(-joursRestants);
+      statusColor = AppTheme.error;
     } else if (joursRestants == 0) {
-      status = 'Aujourd\'hui';
-      statusColor = Colors.orange;
+      status = AppLocalizations.of(context).dashAujourdhui;
+      statusColor = AppTheme.warning;
     } else if (joursRestants <= 3) {
-      status = 'Dans $joursRestants jour${joursRestants > 1 ? 's' : ''}';
-      statusColor = Colors.orange;
+      status = joursRestants == 1
+          ? AppLocalizations.of(context).dashDansJour(joursRestants)
+          : AppLocalizations.of(context).dashDansJours(joursRestants);
+      statusColor = AppTheme.warning;
     } else {
-      status = 'Dans $joursRestants jours';
-      statusColor = Colors.grey;
+      status = AppLocalizations.of(context).dashDansJours(joursRestants);
+      statusColor = AppTheme.neutral500;
     }
 
     return Container(
@@ -589,12 +425,12 @@ class _ModernDashboardScreenState extends State<ModernDashboardScreen> {
         color: isDark ? AppTheme.cardDark : AppTheme.cardLight,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: isDark ? Colors.grey.shade800 : Colors.grey.shade100,
+          color: isDark ? AppTheme.neutral800 : AppTheme.neutral100,
           width: 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
+            color: AppTheme.textPrimary.withValues(alpha: 0.03),
             blurRadius: 4,
             offset: const Offset(0, 1),
           ),
@@ -609,9 +445,13 @@ class _ModernDashboardScreenState extends State<ModernDashboardScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Mise bas prévue #${accouplement.id}',
+                  AppLocalizations.of(
+                    context,
+                  ).dashMiseBasPrevue(accouplement.id!),
                   style: AppTheme.titleSmall.copyWith(
-                    color: isDark ? Colors.white : AppTheme.textPrimary,
+                    color: isDark
+                        ? AppTheme.textOnPrimary
+                        : AppTheme.textPrimary,
                   ),
                 ),
                 const SizedBox(height: 4),
@@ -630,7 +470,7 @@ class _ModernDashboardScreenState extends State<ModernDashboardScreen> {
             height: 32,
             width: 32,
             decoration: BoxDecoration(
-              color: isDark ? Colors.grey.shade800 : Colors.grey.shade100,
+              color: isDark ? AppTheme.neutral800 : AppTheme.neutral100,
               shape: BoxShape.circle,
             ),
             child: Icon(
@@ -647,6 +487,7 @@ class _ModernDashboardScreenState extends State<ModernDashboardScreen> {
   /// FAB jaune
   Widget _buildFAB() {
     return FloatingActionButton(
+      heroTag: 'fab_dashboard',
       onPressed: () {
         Navigator.push(
           context,

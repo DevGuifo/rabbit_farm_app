@@ -4,8 +4,10 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 import 'package:intl/intl.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../../providers/finance_provider.dart';
 import '../../../../theme/app_theme.dart';
+import '../../../../theme/pdf_app_theme.dart';
 
 /// Rapport financier avec comptabilité et résultats
 class RapportFinancierRapport extends StatelessWidget {
@@ -25,7 +27,10 @@ class RapportFinancierRapport extends StatelessWidget {
               color: Theme.of(context).colorScheme.primary,
             ),
             const SizedBox(height: 16),
-            Text('Rapport Financier', style: AppTheme.headingSmall),
+            Text(
+              AppLocalizations.of(context).titleRapportFinancier,
+              style: AppTheme.headingSmall,
+            ),
             const SizedBox(height: 8),
             Text(
               'Comptabilité et résultats',
@@ -33,10 +38,15 @@ class RapportFinancierRapport extends StatelessWidget {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),
-            ElevatedButton.icon(
-              onPressed: () => _genererPDF(context),
-              icon: const Icon(Icons.picture_as_pdf_rounded),
-              label: const Text('Générer le PDF'),
+            Builder(
+              builder: (context) {
+                final l10n = AppLocalizations.of(context);
+                return ElevatedButton.icon(
+                  onPressed: () => _genererPDF(context),
+                  icon: const Icon(Icons.picture_as_pdf_rounded),
+                  label: Text(l10n.genererPdf),
+                );
+              },
             ),
           ],
         ),
@@ -77,13 +87,16 @@ class RapportFinancierRapport extends StatelessWidget {
                     style: pw.TextStyle(
                       fontSize: 24,
                       fontWeight: pw.FontWeight.bold,
-                      color: PdfColors.green900,
+                      color: PdfAppTheme.success900,
                     ),
                   ),
                   pw.SizedBox(height: 8),
                   pw.Text(
                     'Généré le ${DateFormat('dd/MM/yyyy à HH:mm').format(DateTime.now())}',
-                    style: pw.TextStyle(fontSize: 10, color: PdfColors.grey700),
+                    style: pw.TextStyle(
+                      fontSize: 10,
+                      color: PdfAppTheme.neutral500700,
+                    ),
                   ),
                   pw.Divider(thickness: 2),
                 ],
@@ -101,9 +114,13 @@ class RapportFinancierRapport extends StatelessWidget {
             pw.Container(
               padding: const pw.EdgeInsets.all(12),
               decoration: pw.BoxDecoration(
-                color: benefice >= 0 ? PdfColors.green50 : PdfColors.red50,
+                color: benefice >= 0
+                    ? PdfAppTheme.success50
+                    : PdfAppTheme.error50,
                 border: pw.Border.all(
-                  color: benefice >= 0 ? PdfColors.green700 : PdfColors.red700,
+                  color: benefice >= 0
+                      ? PdfAppTheme.success700
+                      : PdfAppTheme.error700,
                   width: 2,
                 ),
                 borderRadius: const pw.BorderRadius.all(pw.Radius.circular(8)),
@@ -124,7 +141,7 @@ class RapportFinancierRapport extends StatelessWidget {
                         '${NumberFormat('#,##0.00', 'fr_FR').format(totalRecettes)} €',
                         style: pw.TextStyle(
                           fontSize: 12,
-                          color: PdfColors.green700,
+                          color: PdfAppTheme.success700,
                           fontWeight: pw.FontWeight.bold,
                         ),
                       ),
@@ -145,7 +162,7 @@ class RapportFinancierRapport extends StatelessWidget {
                         '${NumberFormat('#,##0.00', 'fr_FR').format(totalDepenses)} €',
                         style: pw.TextStyle(
                           fontSize: 12,
-                          color: PdfColors.red700,
+                          color: PdfAppTheme.error700,
                           fontWeight: pw.FontWeight.bold,
                         ),
                       ),
@@ -167,8 +184,8 @@ class RapportFinancierRapport extends StatelessWidget {
                         style: pw.TextStyle(
                           fontSize: 16,
                           color: benefice >= 0
-                              ? PdfColors.green900
-                              : PdfColors.red900,
+                              ? PdfAppTheme.success900
+                              : PdfAppTheme.error900,
                           fontWeight: pw.FontWeight.bold,
                         ),
                       ),
@@ -191,7 +208,7 @@ class RapportFinancierRapport extends StatelessWidget {
                 margin: const pw.EdgeInsets.only(bottom: 4),
                 padding: const pw.EdgeInsets.all(6),
                 decoration: pw.BoxDecoration(
-                  border: pw.Border.all(color: PdfColors.grey300),
+                  border: pw.Border.all(color: PdfAppTheme.neutral500300),
                   borderRadius: const pw.BorderRadius.all(
                     pw.Radius.circular(4),
                   ),
@@ -209,7 +226,7 @@ class RapportFinancierRapport extends StatelessWidget {
                       '${NumberFormat('#,##0.00', 'fr_FR').format(recette.montant)} €',
                       style: pw.TextStyle(
                         fontSize: 10,
-                        color: PdfColors.green700,
+                        color: PdfAppTheme.success700,
                       ),
                     ),
                   ],
@@ -230,7 +247,7 @@ class RapportFinancierRapport extends StatelessWidget {
                 margin: const pw.EdgeInsets.only(bottom: 4),
                 padding: const pw.EdgeInsets.all(6),
                 decoration: pw.BoxDecoration(
-                  border: pw.Border.all(color: PdfColors.grey300),
+                  border: pw.Border.all(color: PdfAppTheme.neutral500300),
                   borderRadius: const pw.BorderRadius.all(
                     pw.Radius.circular(4),
                   ),
@@ -248,7 +265,7 @@ class RapportFinancierRapport extends StatelessWidget {
                       '${NumberFormat('#,##0.00', 'fr_FR').format(depense.montant)} €',
                       style: pw.TextStyle(
                         fontSize: 10,
-                        color: PdfColors.red700,
+                        color: PdfAppTheme.error700,
                       ),
                     ),
                   ],
@@ -265,7 +282,7 @@ class RapportFinancierRapport extends StatelessWidget {
     );
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Rapport financier généré ✓')),
+        SnackBar(content: Text(AppLocalizations.of(context).msgRapportGenere)),
       );
     }
   }

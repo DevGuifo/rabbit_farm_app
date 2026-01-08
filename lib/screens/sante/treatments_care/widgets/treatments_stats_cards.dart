@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:rabbit_farm_app/theme/app_theme.dart';
 import 'package:provider/provider.dart';
 import '../../../../providers/sante_provider.dart';
+import '../../../../l10n/app_localizations.dart';
 
 /// Cartes statistiques (Active, Scheduled, History)
 /// Design: Horizontal scroll avec cartes cliquables
@@ -48,7 +49,7 @@ class TreatmentsStatsCards extends StatelessWidget {
                 onTap: () => onTabChanged('active'),
                 child: _buildStatCard(
                   icon: Icons.healing,
-                  label: 'ACTIVE',
+                  label: AppLocalizations.of(context).labelActifs,
                   value: activeTreatments.toString(),
                   isHighlighted: selectedTab == 'active',
                 ),
@@ -59,7 +60,7 @@ class TreatmentsStatsCards extends StatelessWidget {
                 child: _buildStatCard(
                   icon: Icons.calendar_month_outlined,
                   iconColor: AppTheme.warning,
-                  label: 'SCHEDULED',
+                  label: AppLocalizations.of(context).labelPlanifies,
                   value: scheduledCount.toString(),
                   isHighlighted: selectedTab == 'scheduled',
                 ),
@@ -70,7 +71,7 @@ class TreatmentsStatsCards extends StatelessWidget {
                 child: _buildStatCard(
                   icon: Icons.history,
                   iconColor: AppTheme.textSecondary,
-                  label: 'HISTORY',
+                  label: AppLocalizations.of(context).labelHistorique,
                   value: historyCount.toString(),
                   isHighlighted: selectedTab == 'history',
                 ),

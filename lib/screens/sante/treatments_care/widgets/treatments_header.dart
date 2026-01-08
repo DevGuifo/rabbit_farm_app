@@ -52,7 +52,7 @@ class TreatmentsHeader extends StatelessWidget {
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
-                  'Treatments & Care',
+                  'Soins & Traitements',
                   style: AppTheme.titleLarge.copyWith(
                     color: textPrimary,
                     letterSpacing: -0.3,

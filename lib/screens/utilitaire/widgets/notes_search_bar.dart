@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:rabbit_farm_app/l10n/app_localizations.dart';
+import 'package:rabbit_farm_app/theme/app_theme.dart';
 
 class NotesSearchBar extends StatelessWidget {
   final String searchQuery;
@@ -33,13 +35,13 @@ class NotesSearchBar extends StatelessWidget {
           padding: const EdgeInsets.all(16.0),
           child: TextField(
             decoration: InputDecoration(
-              hintText: 'Rechercher...',
+              hintText: AppLocalizations.of(context).hintRechercher,
               prefixIcon: const Icon(Icons.search),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
               filled: true,
-              fillColor: Colors.grey[100],
+              fillColor: AppTheme.neutral100,
             ),
             onChanged: onSearchChanged,
           ),

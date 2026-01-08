@@ -5,6 +5,7 @@ import '../../../providers/medicament_provider.dart';
 import '../../../models/medicament.dart';
 import '../../../utils/dialog_helper.dart';
 import '../../../theme/app_theme.dart';
+import '../../../l10n/app_localizations.dart';
 
 class MedicamentDialogs {
   static Future<void> showAjouterMedicamentDialog(BuildContext context) async {
@@ -22,24 +23,24 @@ class MedicamentDialogs {
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setState) => AlertDialog(
-          title: const Text('Ajouter un médicament'),
+          title: Text(AppLocalizations.of(context).commonAdd),
           content: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 TextField(
                   controller: nomController,
-                  decoration: const InputDecoration(
-                    labelText: 'Nom *',
-                    border: OutlineInputBorder(),
+                  decoration: InputDecoration(
+                    labelText: AppLocalizations.of(context).rentabiliteFormNom,
+                    border: const OutlineInputBorder(),
                   ),
                 ),
                 const SizedBox(height: 12),
                 DropdownButtonFormField<String>(
-                  initialValue:  type,
-                  decoration: const InputDecoration(
-                    labelText: 'Type',
-                    border: OutlineInputBorder(),
+                  initialValue: type,
+                  decoration: InputDecoration(
+                    labelText: AppLocalizations.of(context).rentabiliteFormType,
+                    border: const OutlineInputBorder(),
                   ),
                   items: const [
                     DropdownMenuItem(
@@ -76,19 +77,28 @@ class MedicamentDialogs {
                     const SizedBox(width: 8),
                     Expanded(
                       child: DropdownButtonFormField<String>(
-                        initialValue:  unite,
+                        initialValue: unite,
                         decoration: const InputDecoration(
                           labelText: 'Unité',
                           border: OutlineInputBorder(),
                         ),
-                        items: const [
-                          DropdownMenuItem(value: 'ml', child: Text('ml')),
-                          DropdownMenuItem(value: 'g', child: Text('g')),
+                        items: [
                           DropdownMenuItem(
-                            value: 'comprime',
-                            child: Text('cp'),
+                            value: 'ml',
+                            child: Text(AppLocalizations.of(context).uniteMl),
                           ),
-                          DropdownMenuItem(value: 'dose', child: Text('dose')),
+                          DropdownMenuItem(
+                            value: 'g',
+                            child: Text(AppLocalizations.of(context).uniteG),
+                          ),
+                          DropdownMenuItem(
+                            value: 'cp',
+                            child: Text(AppLocalizations.of(context).uniteCp),
+                          ),
+                          DropdownMenuItem(
+                            value: 'dose',
+                            child: Text(AppLocalizations.of(context).uniteDose),
+                          ),
                         ],
                         onChanged: (value) => setState(() => unite = value!),
                       ),
@@ -99,10 +109,10 @@ class MedicamentDialogs {
                 TextField(
                   controller: seuilController,
                   keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     labelText: "Seuil d'alerte",
-                    border: OutlineInputBorder(),
-                    helperText: 'Alerté si stock < seuil',
+                    border: const OutlineInputBorder(),
+                    helperText: AppLocalizations.of(context).helperAlerteStock,
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -141,10 +151,12 @@ class MedicamentDialogs {
                 const SizedBox(height: 12),
                 TextField(
                   controller: posologieController,
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     labelText: 'Posologie',
-                    border: OutlineInputBorder(),
-                    helperText: 'Ex: 0.5 ml/kg toutes les 12h',
+                    border: const OutlineInputBorder(),
+                    helperText: AppLocalizations.of(
+                      context,
+                    ).helperExemplePosologie,
                   ),
                   maxLines: 2,
                 ),
@@ -163,14 +175,18 @@ class MedicamentDialogs {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Annuler'),
+              child: Text(AppLocalizations.of(context).commonCancel),
             ),
             ElevatedButton(
               onPressed: () {
                 if (nomController.text.isEmpty ||
                     quantiteController.text.isEmpty) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Nom et quantité requis')),
+                    SnackBar(
+                      content: Text(
+                        AppLocalizations.of(context).msgNomQuantiteRequis,
+                      ),
+                    ),
                   );
                   return;
                 }
@@ -198,7 +214,7 @@ class MedicamentDialogs {
                 );
                 Navigator.pop(context);
               },
-              child: const Text('Ajouter'),
+              child: Text(AppLocalizations.of(context).commonAdd),
             ),
           ],
         ),
@@ -232,24 +248,24 @@ class MedicamentDialogs {
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setState) => AlertDialog(
-          title: const Text('Modifier le médicament'),
+          title: Text(AppLocalizations.of(context).commonEdit),
           content: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 TextField(
                   controller: nomController,
-                  decoration: const InputDecoration(
-                    labelText: 'Nom *',
-                    border: OutlineInputBorder(),
+                  decoration: InputDecoration(
+                    labelText: AppLocalizations.of(context).rentabiliteFormNom,
+                    border: const OutlineInputBorder(),
                   ),
                 ),
                 const SizedBox(height: 12),
                 DropdownButtonFormField<String>(
-                  initialValue:  type,
-                  decoration: const InputDecoration(
-                    labelText: 'Type',
-                    border: OutlineInputBorder(),
+                  initialValue: type,
+                  decoration: InputDecoration(
+                    labelText: AppLocalizations.of(context).rentabiliteFormType,
+                    border: const OutlineInputBorder(),
                   ),
                   items: const [
                     DropdownMenuItem(
@@ -286,19 +302,28 @@ class MedicamentDialogs {
                     const SizedBox(width: 8),
                     Expanded(
                       child: DropdownButtonFormField<String>(
-                        initialValue:  unite,
+                        initialValue: unite,
                         decoration: const InputDecoration(
                           labelText: 'Unité',
                           border: OutlineInputBorder(),
                         ),
-                        items: const [
-                          DropdownMenuItem(value: 'ml', child: Text('ml')),
-                          DropdownMenuItem(value: 'g', child: Text('g')),
+                        items: [
                           DropdownMenuItem(
-                            value: 'comprime',
-                            child: Text('cp'),
+                            value: 'ml',
+                            child: Text(AppLocalizations.of(context).uniteMl),
                           ),
-                          DropdownMenuItem(value: 'dose', child: Text('dose')),
+                          DropdownMenuItem(
+                            value: 'g',
+                            child: Text(AppLocalizations.of(context).uniteG),
+                          ),
+                          DropdownMenuItem(
+                            value: 'cp',
+                            child: Text(AppLocalizations.of(context).uniteCp),
+                          ),
+                          DropdownMenuItem(
+                            value: 'dose',
+                            child: Text(AppLocalizations.of(context).uniteDose),
+                          ),
                         ],
                         onChanged: (value) => setState(() => unite = value!),
                       ),
@@ -369,7 +394,7 @@ class MedicamentDialogs {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: Text('Annuler'),
+              child: Text(AppLocalizations.of(context).commonCancel),
             ),
             ElevatedButton(
               onPressed: () {
@@ -397,7 +422,7 @@ class MedicamentDialogs {
                 );
                 Navigator.pop(context);
               },
-              child: const Text('Modifier'),
+              child: Text(AppLocalizations.of(context).commonEdit),
             ),
           ],
         ),
@@ -414,7 +439,7 @@ class MedicamentDialogs {
     await showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Utiliser ${medicament.nom}'),
+        title: Text(AppLocalizations.of(context).titleUtiliser(medicament.nom)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -436,7 +461,7 @@ class MedicamentDialogs {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Annuler'),
+            child: Text(AppLocalizations.of(context).commonCancel),
           ),
           ElevatedButton(
             onPressed: () {
@@ -444,7 +469,11 @@ class MedicamentDialogs {
               final quantite = double.parse(quantiteController.text);
               if (quantite > medicament.quantiteStock) {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Quantité supérieure au stock')),
+                  SnackBar(
+                    content: Text(
+                      AppLocalizations.of(context).msgQuantiteSupStock,
+                    ),
+                  ),
                 );
                 return;
               }
@@ -454,7 +483,7 @@ class MedicamentDialogs {
               );
               Navigator.pop(context);
             },
-            child: const Text('Confirmer'),
+            child: Text(AppLocalizations.of(context).confirmer),
           ),
         ],
       ),
@@ -470,7 +499,9 @@ class MedicamentDialogs {
     await showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Réapprovisionner ${medicament.nom}'),
+        title: Text(
+          AppLocalizations.of(context).titleReapprovisionner(medicament.nom),
+        ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -492,7 +523,7 @@ class MedicamentDialogs {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Annuler'),
+            child: Text(AppLocalizations.of(context).commonCancel),
           ),
           ElevatedButton(
             onPressed: () {
@@ -504,7 +535,7 @@ class MedicamentDialogs {
               );
               Navigator.pop(context);
             },
-            child: const Text('Confirmer'),
+            child: Text(AppLocalizations.of(context).confirmer),
           ),
         ],
       ),

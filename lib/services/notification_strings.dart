@@ -1,0 +1,102 @@
+import 'package:shared_preferences/shared_preferences.dart';
+
+/// Helper pour accéder aux chaînes de notification traduites sans contexte
+/// Utilisé par NotificationService qui ne peut pas accéder à AppLocalizations
+class NotificationStrings {
+  static String _currentLocale = 'fr';
+
+  /// Initialiser la locale depuis les préférences
+  static Future<void> initialize() async {
+    final prefs = await SharedPreferences.getInstance();
+    _currentLocale = prefs.getString('app_locale') ?? 'fr';
+  }
+
+  /// Mettre à jour la locale
+  static Future<void> setLocale(String locale) async {
+    _currentLocale = locale;
+  }
+
+  // ===== TITRES DE NOTIFICATIONS =====
+
+  static String get notifMiseBasTitre => _currentLocale == 'en'
+      ? '🐰 Birth due in 3 days'
+      : '🐰 Mise bas prévue dans 3 jours';
+
+  static String get notifSoinTitre =>
+      _currentLocale == 'en' ? '💉 Care reminder' : '💉 Rappel de soin';
+
+  static String get notifPalpationTitre => _currentLocale == 'en'
+      ? '🔍 Palpation reminder'
+      : '🔍 Rappel de palpation';
+
+  static String get notifNidTitre =>
+      _currentLocale == 'en' ? '🏠 Nest preparation' : '🏠 Préparation du nid';
+
+  static String get notifPeseeTitre =>
+      _currentLocale == 'en' ? '⚖️ Weighing reminder' : '⚖️ Rappel de pesée';
+
+  // ===== CORPS DE NOTIFICATIONS =====
+
+  static String notifMiseBasCorps(String nomFemelle, String date) {
+    return _currentLocale == 'en'
+        ? 'The doe $nomFemelle should give birth on $date'
+        : 'La femelle $nomFemelle devrait mettre bas le $date';
+  }
+
+  static String notifSoinCorps(String nomLapin, String typeSoin, String date) {
+    return _currentLocale == 'en'
+        ? '$nomLapin - $typeSoin on $date'
+        : '$nomLapin - $typeSoin le $date';
+  }
+
+  static String notifPalpationCorps(String nomFemelle, String date) {
+    return _currentLocale == 'en'
+        ? 'Palpation scheduled for $nomFemelle on $date'
+        : 'Palpation prévue pour $nomFemelle le $date';
+  }
+
+  static String notifNidCorps(String nomFemelle, String date) {
+    return _currentLocale == 'en'
+        ? 'Prepare nest for $nomFemelle on $date'
+        : 'Préparer le nid pour $nomFemelle le $date';
+  }
+
+  static String notifPeseeCorps(String nomLapin, String date) {
+    return _currentLocale == 'en'
+        ? 'Weekly weighing for $nomLapin on $date'
+        : 'Pesée hebdomadaire pour $nomLapin le $date';
+  }
+
+  // ===== ACTIONS DE NOTIFICATIONS =====
+
+  static String get notifActionMiseBasOK =>
+      _currentLocale == 'en' ? '✅ Birth OK' : '✅ Mise bas OK';
+
+  static String get notifActionEchec =>
+      _currentLocale == 'en' ? '❌ Failed' : '❌ Échec';
+
+  static String get notifActionReporter24h => '⏰ +24h';
+
+  static String get notifActionGestante =>
+      _currentLocale == 'en' ? '✅ Pregnant' : '✅ Gestante';
+
+  static String get notifActionNonGestante =>
+      _currentLocale == 'en' ? '❌ No' : '❌ Non';
+
+  static String get notifActionRefaire =>
+      _currentLocale == 'en' ? '❓ Redo' : '❓ Refaire';
+
+  static String get notifActionFait =>
+      _currentLocale == 'en' ? '✅ Done' : '✅ Fait';
+
+  static String get notifActionSevre =>
+      _currentLocale == 'en' ? '✅ Weaned' : '✅ Sevré';
+
+  static String get notifActionReporter2j =>
+      _currentLocale == 'en' ? '⏰ +2d' : '⏰ +2j';
+
+  static String get notifActionOK => '✅ OK';
+
+  static String get notifActionProbleme =>
+      _currentLocale == 'en' ? '⚠️ Prob' : '⚠️ Pb';
+}

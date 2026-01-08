@@ -1,10 +1,12 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:rabbit_farm_app/l10n/app_localizations.dart';
 import '../../models/lapin.dart';
 import '../../providers/lapin_provider.dart';
 import '../../utils/snackbar_helper.dart';
 import '../../widgets/parent_selector.dart';
+import '../../widgets/uniform_app_bar.dart';
 import '../../services/database_helper.dart';
 import '../../services/photo_service.dart';
 import '../../theme/app_theme.dart';
@@ -83,6 +85,7 @@ class _EditLapinScreenState extends State<EditLapinScreen> {
 
   final List<String> _origines = [
     'Naissance sur place',
+    'Naissance élevage', // Alias pour compatibilité
     'Achat',
     'Don',
     'Échange',
@@ -179,7 +182,7 @@ class _EditLapinScreenState extends State<EditLapinScreen> {
             children: [
               ListTile(
                 leading: const Icon(Icons.photo_camera),
-                title: const Text('Prendre une photo'),
+                title: Text(AppLocalizations.of(context).cheptelPrendrePhoto),
                 onTap: () async {
                   Navigator.pop(context);
                   final photoPath = await _photoService.prendrePhoto();
@@ -192,7 +195,7 @@ class _EditLapinScreenState extends State<EditLapinScreen> {
               ),
               ListTile(
                 leading: const Icon(Icons.photo_library),
-                title: const Text('Choisir depuis la galerie'),
+                title: Text(AppLocalizations.of(context).cheptelChoisirGalerie),
                 onTap: () async {
                   Navigator.pop(context);
                   final photoPath = await _photoService.selectionnerPhoto();
@@ -285,20 +288,15 @@ class _EditLapinScreenState extends State<EditLapinScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
-      appBar: AppBar(
-        title: Text(
-          'Modifier ${widget.lapin.nom}',
-          style: TextStyle(
-            color: Theme.of(context).colorScheme.onSurface,
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        backgroundColor: Theme.of(context).colorScheme.surface,
-        elevation: 0,
-        iconTheme: IconThemeData(color: Theme.of(context).colorScheme.primary),
+      appBar: UniformAppBar(
+        title: AppLocalizations.of(
+          context,
+        ).cheptelModifierLapin(widget.lapin.nom),
+        icon: Icons.edit_rounded,
+        iconColor: AppTheme.primaryGreen,
       ),
       body: Form(
         key: _formKey,
@@ -342,7 +340,7 @@ class _EditLapinScreenState extends State<EditLapinScreen> {
                                 ),
                                 const SizedBox(height: 8),
                                 Text(
-                                  'Modifier la photo',
+                                  l10n.photoModifier,
                                   style: AppTheme.bodyMedium.copyWith(
                                     color: AppTheme.textSecondary,
                                   ),
@@ -360,7 +358,7 @@ class _EditLapinScreenState extends State<EditLapinScreen> {
                       },
                       icon: Icon(Icons.delete, color: AppTheme.error),
                       label: Text(
-                        'Supprimer la photo',
+                        l10n.photoSupprimer,
                         style: AppTheme.bodyMedium.copyWith(
                           color: AppTheme.error,
                         ),
@@ -374,16 +372,15 @@ class _EditLapinScreenState extends State<EditLapinScreen> {
             // Nom
             TextFormField(
               controller: _nomController,
-              decoration: const InputDecoration(
-                labelText: 'Nom *',
-                hintText: 'Ex: Flocon',
-                prefixIcon: Icon(Icons.pets),
-                border: OutlineInputBorder(),
+              decoration: AppTheme.inputDecoration(
+                label: '${AppLocalizations.of(context).labelNom} *',
+                hint: AppLocalizations.of(context).hintNomLapin,
+                prefixIcon: Icons.pets,
               ),
               textCapitalization: TextCapitalization.words,
               validator: (value) {
                 if (value == null || value.trim().isEmpty) {
-                  return 'Veuillez entrer un nom';
+                  return AppLocalizations.of(context).erreurNomRequis;
                 }
                 return null;
               },
@@ -393,10 +390,9 @@ class _EditLapinScreenState extends State<EditLapinScreen> {
             // Race
             DropdownButtonFormField<String>(
               initialValue: _raceSelectionnee,
-              decoration: const InputDecoration(
-                labelText: 'Race *',
-                prefixIcon: Icon(Icons.category),
-                border: OutlineInputBorder(),
+              decoration: AppTheme.inputDecoration(
+                label: '${AppLocalizations.of(context).labelRace} *',
+                prefixIcon: Icons.category,
               ),
               items: _races.map((race) {
                 return DropdownMenuItem(value: race, child: Text(race));
@@ -412,15 +408,14 @@ class _EditLapinScreenState extends State<EditLapinScreen> {
             // Couleur
             DropdownButtonFormField<String>(
               initialValue: _couleurSelectionnee,
-              decoration: const InputDecoration(
-                labelText: 'Couleur',
-                prefixIcon: Icon(Icons.palette),
-                border: OutlineInputBorder(),
+              decoration: AppTheme.inputDecoration(
+                label: AppLocalizations.of(context).labelCouleur,
+                prefixIcon: Icons.palette,
               ),
               items: [
-                const DropdownMenuItem(
+                DropdownMenuItem(
                   value: null,
-                  child: Text('Non spécifiée'),
+                  child: Text(AppLocalizations.of(context).labelNonSpecifiee),
                 ),
                 ..._couleurs.map((couleur) {
                   return DropdownMenuItem(value: couleur, child: Text(couleur));
@@ -446,16 +441,20 @@ class _EditLapinScreenState extends State<EditLapinScreen> {
                       style: Theme.of(context).textTheme.titleSmall,
                     ),
                     SegmentedButton<String>(
-                      segments: const [
+                      segments: [
                         ButtonSegment(
                           value: 'Mâle',
-                          label: Text('Mâle'),
-                          icon: Icon(Icons.male),
+                          label: Text(
+                            AppLocalizations.of(context).labelSexeMale,
+                          ),
+                          icon: const Icon(Icons.male),
                         ),
                         ButtonSegment(
                           value: 'Femelle',
-                          label: Text('Femelle'),
-                          icon: Icon(Icons.female),
+                          label: Text(
+                            AppLocalizations.of(context).labelSexeFemelle,
+                          ),
+                          icon: const Icon(Icons.female),
                         ),
                       ],
                       selected: {_sexeSelectionne},
@@ -474,7 +473,7 @@ class _EditLapinScreenState extends State<EditLapinScreen> {
             // Date de naissance
             ListTile(
               leading: const Icon(Icons.cake),
-              title: const Text('Date de naissance'),
+              title: Text(AppLocalizations.of(context).labelDateNaissance),
               subtitle: Text(
                 '${_dateNaissance.day}/${_dateNaissance.month}/${_dateNaissance.year}',
               ),
@@ -490,11 +489,10 @@ class _EditLapinScreenState extends State<EditLapinScreen> {
             // Poids
             TextFormField(
               controller: _poidsController,
-              decoration: const InputDecoration(
-                labelText: 'Poids (kg)',
-                hintText: 'Ex: 2.5',
-                prefixIcon: Icon(Icons.monitor_weight),
-                border: OutlineInputBorder(),
+              decoration: AppTheme.inputDecoration(
+                label: AppLocalizations.of(context).labelPoidsKg,
+                hint: AppLocalizations.of(context).hintExemple25,
+                prefixIcon: Icons.monitor_weight,
                 suffixText: 'kg',
               ),
               keyboardType: const TextInputType.numberWithOptions(
@@ -515,13 +513,15 @@ class _EditLapinScreenState extends State<EditLapinScreen> {
             // Statut
             DropdownButtonFormField<String>(
               initialValue: _statutSelectionne,
-              decoration: const InputDecoration(
-                labelText: 'Statut',
-                prefixIcon: Icon(Icons.info),
-                border: OutlineInputBorder(),
+              decoration: AppTheme.inputDecoration(
+                label: AppLocalizations.of(context).labelStatut,
+                prefixIcon: Icons.info_outline,
               ),
               items: [
-                const DropdownMenuItem(value: null, child: Text('Aucun')),
+                DropdownMenuItem(
+                  value: null,
+                  child: Text(AppLocalizations.of(context).labelAucun),
+                ),
                 ..._statuts.map((statut) {
                   return DropdownMenuItem(value: statut, child: Text(statut));
                 }),
@@ -537,11 +537,10 @@ class _EditLapinScreenState extends State<EditLapinScreen> {
             // Localisation
             TextFormField(
               controller: _localisationController,
-              decoration: const InputDecoration(
-                labelText: 'Localisation',
-                hintText: 'Ex: Cage A1',
-                prefixIcon: Icon(Icons.location_on),
-                border: OutlineInputBorder(),
+              decoration: AppTheme.inputDecoration(
+                label: AppLocalizations.of(context).labelLocalisation,
+                hint: AppLocalizations.of(context).hintLocalisation,
+                prefixIcon: Icons.location_on,
               ),
               textCapitalization: TextCapitalization.characters,
             ),
@@ -550,15 +549,14 @@ class _EditLapinScreenState extends State<EditLapinScreen> {
             // Origine
             DropdownButtonFormField<String>(
               initialValue: _origineSelectionnee,
-              decoration: const InputDecoration(
-                labelText: 'Origine',
-                prefixIcon: Icon(Icons.source),
-                border: OutlineInputBorder(),
+              decoration: AppTheme.inputDecoration(
+                label: AppLocalizations.of(context).labelOrigine,
+                prefixIcon: Icons.flag,
               ),
               items: [
-                const DropdownMenuItem(
+                DropdownMenuItem(
                   value: null,
-                  child: Text('Non spécifiée'),
+                  child: Text(AppLocalizations.of(context).labelNonSpecifiee),
                 ),
                 ..._origines.map((origine) {
                   return DropdownMenuItem(value: origine, child: Text(origine));
@@ -575,11 +573,10 @@ class _EditLapinScreenState extends State<EditLapinScreen> {
             // Numéro d'identification
             TextFormField(
               controller: _numeroIdController,
-              decoration: const InputDecoration(
-                labelText: 'Numéro d\'identification',
-                hintText: 'Ex: 123456',
-                prefixIcon: Icon(Icons.qr_code),
-                border: OutlineInputBorder(),
+              decoration: AppTheme.inputDecoration(
+                label: AppLocalizations.of(context).labelNumeroIdentification,
+                hint: AppLocalizations.of(context).hintNumeroId,
+                prefixIcon: Icons.qr_code,
               ),
               textCapitalization: TextCapitalization.characters,
             ),
@@ -588,11 +585,10 @@ class _EditLapinScreenState extends State<EditLapinScreen> {
             // Prix d'achat
             TextFormField(
               controller: _prixAchatController,
-              decoration: const InputDecoration(
-                labelText: 'Prix d\'achat',
-                hintText: 'Ex: 50',
-                prefixIcon: Icon(Icons.euro),
-                border: OutlineInputBorder(),
+              decoration: AppTheme.inputDecoration(
+                label: AppLocalizations.of(context).labelPrixAchat,
+                hint: AppLocalizations.of(context).hintPrixAchat,
+                prefixIcon: Icons.euro,
                 suffixText: '€',
               ),
               keyboardType: const TextInputType.numberWithOptions(
@@ -602,7 +598,7 @@ class _EditLapinScreenState extends State<EditLapinScreen> {
                 if (value != null && value.isNotEmpty) {
                   final prix = double.tryParse(value);
                   if (prix == null || prix < 0) {
-                    return 'Veuillez entrer un prix valide';
+                    return AppLocalizations.of(context).erreurPrixInvalide;
                   }
                 }
                 return null;
@@ -613,11 +609,10 @@ class _EditLapinScreenState extends State<EditLapinScreen> {
             // Caractéristiques
             TextFormField(
               controller: _caracteristiquesController,
-              decoration: const InputDecoration(
-                labelText: 'Caractéristiques',
-                hintText: 'Ex: Poils longs, oreilles tombantes...',
-                prefixIcon: Icon(Icons.description),
-                border: OutlineInputBorder(),
+              decoration: AppTheme.inputDecoration(
+                label: AppLocalizations.of(context).labelCaracteristiques,
+                hint: AppLocalizations.of(context).hintCaracteristiques,
+                prefixIcon: Icons.description,
               ),
               maxLines: 2,
             ),
@@ -626,11 +621,10 @@ class _EditLapinScreenState extends State<EditLapinScreen> {
             // Notes
             TextFormField(
               controller: _notesController,
-              decoration: const InputDecoration(
-                labelText: 'Notes',
-                hintText: 'Notes supplémentaires...',
-                prefixIcon: Icon(Icons.note),
-                border: OutlineInputBorder(),
+              decoration: AppTheme.inputDecoration(
+                label: AppLocalizations.of(context).labelNotes,
+                hint: AppLocalizations.of(context).hintNotes,
+                prefixIcon: Icons.note,
               ),
               maxLines: 3,
             ),
@@ -656,7 +650,7 @@ class _EditLapinScreenState extends State<EditLapinScreen> {
                     ) // Exclure le lapin lui-même
                     .toList();
                 return ParentSelector(
-                  label: 'Père',
+                  label: AppLocalizations.of(context).labelPere,
                   icon: Icons.male,
                   parentSelectionne: _pereSelectionne,
                   lapinsDisponibles: males,
@@ -681,7 +675,7 @@ class _EditLapinScreenState extends State<EditLapinScreen> {
                     ) // Exclure le lapin lui-même
                     .toList();
                 return ParentSelector(
-                  label: 'Mère',
+                  label: AppLocalizations.of(context).labelMere,
                   icon: Icons.female,
                   parentSelectionne: _mereSelectionnee,
                   lapinsDisponibles: femelles,
@@ -702,7 +696,7 @@ class _EditLapinScreenState extends State<EditLapinScreen> {
                   child: OutlinedButton.icon(
                     onPressed: () => Navigator.pop(context),
                     icon: const Icon(Icons.close),
-                    label: const Text('Annuler'),
+                    label: Text(AppLocalizations.of(context).commonCancel),
                     style: OutlinedButton.styleFrom(
                       padding: const EdgeInsets.all(16),
                     ),
@@ -714,7 +708,7 @@ class _EditLapinScreenState extends State<EditLapinScreen> {
                   child: FilledButton.icon(
                     onPressed: _modifierLapin,
                     icon: const Icon(Icons.save),
-                    label: const Text('Enregistrer'),
+                    label: Text(AppLocalizations.of(context).commonSave),
                     style: FilledButton.styleFrom(
                       padding: const EdgeInsets.all(16),
                     ),

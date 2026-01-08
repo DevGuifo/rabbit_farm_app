@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:animate_do/animate_do.dart';
+import '../../l10n/app_localizations.dart';
 import '../../theme/app_theme.dart';
+import '../../widgets/uniform_app_bar.dart';
 import 'widgets/rapports/registre_elevage_rapport.dart';
 import 'widgets/rapports/bilan_mensuel_rapport.dart';
 import 'widgets/rapports/performances_rapport.dart';
@@ -25,49 +27,49 @@ class _RapportsScreenState extends State<RapportsScreen> {
       'title': 'Registre d\'élevage',
       'icon': Icons.book_rounded,
       'description': 'Registre officiel conforme',
-      'color': const Color(0xFF2196F3),
+      'color': AppTheme.accentBlue500,
     },
     {
       'title': 'Bilan mensuel',
       'icon': Icons.calendar_month_rounded,
       'description': 'Synthèse du mois',
-      'color': const Color(0xFF4CAF50),
+      'color': AppTheme.primary,
     },
     {
       'title': 'Performances',
       'icon': Icons.trending_up_rounded,
       'description': 'Analyse reproducteurs',
-      'color': const Color(0xFFFF9800),
+      'color': AppTheme.accentOrangeMaterial,
     },
     {
       'title': 'Suivi sanitaire',
       'icon': Icons.medical_services_rounded,
       'description': 'Rapport santé',
-      'color': const Color(0xFFE91E63),
+      'color': AppTheme.accentPinkMaterial,
     },
     {
       'title': 'Rapport financier',
       'icon': Icons.attach_money_rounded,
       'description': 'Comptabilité',
-      'color': const Color(0xFF4CAF50),
+      'color': AppTheme.primary,
     },
     {
       'title': 'Certificat vente',
       'icon': Icons.receipt_long_rounded,
       'description': 'Avec traçabilité',
-      'color': const Color(0xFF9C27B0),
+      'color': AppTheme.accentPurpleMaterial,
     },
     {
       'title': 'Bilan sanitaire',
       'icon': Icons.health_and_safety_rounded,
       'description': 'État sanitaire complet',
-      'color': const Color(0xFFE91E63),
+      'color': AppTheme.accentPinkMaterial,
     },
     {
       'title': 'Analyse génétique',
       'icon': Icons.psychology_rounded,
       'description': 'Consanguinité',
-      'color': const Color(0xFF00BCD4),
+      'color': AppTheme.accentCyan500,
     },
   ];
 
@@ -75,7 +77,11 @@ class _RapportsScreenState extends State<RapportsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
-      appBar: AppBar(title: const Text('Rapports PDF')),
+      appBar: UniformAppBar(
+        title: AppLocalizations.of(context).screenRapportsPDF,
+        icon: Icons.picture_as_pdf_rounded,
+        iconColor: AppTheme.error,
+      ),
       body: Column(
         children: [
           // Sélecteur horizontal de rapports
@@ -149,7 +155,9 @@ class _RapportsScreenState extends State<RapportsScreen> {
               rapport['icon'],
               color: isSelected
                   ? rapport['color']
-                  : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+                  : Theme.of(
+                      context,
+                    ).colorScheme.onSurface.withValues(alpha: 0.6),
               size: 32,
             ),
             const SizedBox(height: 8),
@@ -190,7 +198,9 @@ class _RapportsScreenState extends State<RapportsScreen> {
       case 7:
         return const AnalyseGenetiqueRapport();
       default:
-        return const Center(child: Text('Rapport non disponible'));
+        return Center(
+          child: Text(AppLocalizations.of(context).msgRapportNonDisponible),
+        );
     }
   }
 }

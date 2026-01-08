@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:rabbit_farm_app/l10n/app_localizations.dart';
 import 'dashboard/dashboard_screen.dart';
 import 'cheptel/cheptel_screen.dart';
 import 'reproduction/reproduction_screen.dart';
@@ -38,6 +39,8 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       body: AnimatedSwitcher(
         duration: const Duration(milliseconds: 300),
+        switchInCurve: Curves.easeOutCubic,
+        switchOutCurve: Curves.easeInCubic,
         transitionBuilder: (child, animation) {
           return FadeTransition(
             opacity: animation,
@@ -56,9 +59,12 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           );
         },
-        child: KeyedSubtree(
-          key: ValueKey<int>(_currentIndex),
-          child: screens[_currentIndex],
+        child: HeroControllerScope(
+          controller: HeroController(),
+          child: KeyedSubtree(
+            key: ValueKey<int>(_currentIndex),
+            child: screens[_currentIndex],
+          ),
         ),
       ),
       bottomNavigationBar: _buildModernNavBar(context),
@@ -67,6 +73,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildModernNavBar(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final l10n = AppLocalizations.of(context);
 
     return Container(
       decoration: BoxDecoration(
@@ -95,31 +102,31 @@ class _HomeScreenState extends State<HomeScreen> {
             children: [
               _buildNavItem(
                 icon: Icons.dashboard_rounded,
-                label: 'Dashboard',
+                label: l10n.navDashboard,
                 index: 0,
                 isDark: isDark,
               ),
               _buildNavItem(
                 icon: Icons.format_list_bulleted_rounded,
-                label: 'Cheptel',
+                label: l10n.navCheptel,
                 index: 1,
                 isDark: isDark,
               ),
               _buildNavItem(
                 icon: Icons.family_restroom,
-                label: 'Reproduction',
+                label: l10n.navReproduction,
                 index: 2,
                 isDark: isDark,
               ),
               _buildNavItem(
                 icon: Icons.medical_services,
-                label: 'Santé',
+                label: l10n.navSante,
                 index: 3,
                 isDark: isDark,
               ),
               _buildNavItem(
                 icon: Icons.handyman,
-                label: 'Utilitaires',
+                label: l10n.navUtilitaires,
                 index: 4,
                 isDark: isDark,
               ),
