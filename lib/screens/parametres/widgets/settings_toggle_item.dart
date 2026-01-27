@@ -49,7 +49,7 @@ class SettingsToggleItem extends StatelessWidget {
                 fontWeight: FontWeight.w500,
                 color: isDark
                     ? AppTheme.textOnPrimary
-                    : AppTheme.stitchTextDark,
+                    : AppTheme.textPrimary,
               ),
             ),
           ),

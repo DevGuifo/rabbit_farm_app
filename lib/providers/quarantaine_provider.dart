@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:sqflite/sqflite.dart';
 import '../models/quarantaine.dart';
+import '../models/enums/quarantaine_enums.dart';
 import '../services/database_helper.dart';
 import '../utils/logger.dart';
 
@@ -87,7 +88,7 @@ class QuarantaineProvider with ChangeNotifier {
       );
       final quarantaineTerminee = quarantaine.copyWith(
         dateFin: dateFin,
-        statut: 'termine',
+        statut: StatutQuarantaine.termine,
       );
 
       await modifierQuarantaine(quarantaineTerminee);

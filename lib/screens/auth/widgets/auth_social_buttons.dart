@@ -27,8 +27,8 @@ class AuthSocialButtons extends StatelessWidget {
               child: Container(
                 height: 1,
                 color: isDark
-                    ? AppTheme.stitchSurfaceDarkElevated
-                    : AppTheme.stitchSurfaceLightCard,
+                    ? AppTheme.surfaceDarkElevated
+                    : AppTheme.surfaceWhite,
               ),
             ),
             Padding(
@@ -47,8 +47,8 @@ class AuthSocialButtons extends StatelessWidget {
               child: Container(
                 height: 1,
                 color: isDark
-                    ? AppTheme.stitchSurfaceDarkElevated
-                    : AppTheme.stitchSurfaceLightCard,
+                    ? AppTheme.surfaceDarkElevated
+                    : AppTheme.surfaceWhite,
               ),
             ),
           ],
@@ -101,7 +101,7 @@ class AuthSocialButtons extends StatelessWidget {
           color: isDark ? AppTheme.surfaceDarkForest : AppTheme.textOnPrimary,
           borderRadius: BorderRadius.circular(8),
           border: Border.all(
-            color: isDark ? AppTheme.stitchSurfaceDarkElevated : AppTheme.stitchSurfaceLightCard,
+            color: isDark ? AppTheme.surfaceDarkElevated : AppTheme.surfaceWhite,
           ),
         ),
         child: Row(
@@ -116,7 +116,7 @@ class AuthSocialButtons extends StatelessWidget {
                 fontWeight: FontWeight.w600,
                 color: isDark
                     ? AppTheme.textOnPrimary
-                    : AppTheme.stitchTextDark,
+                    : AppTheme.textPrimary,
               ),
             ),
           ],

@@ -9,8 +9,9 @@ import '../../services/permission_service.dart';
 import '../../services/photo_service.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/snackbar_helper.dart';
-import '../../services/supabase_auth_service.dart';
+import '../../services/secure_storage_service.dart';
 import '../../widgets/uniform_app_bar.dart';
+import '../../services/error_service.dart';
 
 /// Écran d'édition du profil utilisateur actuel
 class EditerProfilScreen extends StatefulWidget {
@@ -45,8 +46,8 @@ class _EditerProfilScreenState extends State<EditerProfilScreen> {
 
     // Initialiser l'utilisateur actuel si nécessaire
     if (userProvider.currentUser == null) {
-      final supabaseAuthService = SupabaseAuthService();
-      final email = supabaseAuthService.currentUserEmail;
+      final secureStorage = SecureStorageService();
+      final email = await secureStorage.getUserEmail();
       final userId = authProvider.currentUserId;
 
       await userProvider.initializeCurrentUser(userId, email);
@@ -128,10 +129,7 @@ class _EditerProfilScreenState extends State<EditerProfilScreen> {
                     }
                   } catch (e) {
                     if (mounted) {
-                      SnackbarHelper.showError(
-                        context,
-                        'Erreur lors de la prise de photo: ${e.toString()}',
-                      );
+                      ErrorService.showError(context, e);
                     }
                   }
                 },
@@ -150,10 +148,7 @@ class _EditerProfilScreenState extends State<EditerProfilScreen> {
                     }
                   } catch (e) {
                     if (mounted) {
-                      SnackbarHelper.showError(
-                        context,
-                        'Erreur lors de la sélection de photo: ${e.toString()}',
-                      );
+                      ErrorService.showError(context, e);
                     }
                   }
                 },
@@ -175,11 +170,7 @@ class _EditerProfilScreenState extends State<EditerProfilScreen> {
         backgroundColor: isDark
             ? AppTheme.backgroundDarkMode
             : AppTheme.backgroundLight,
-        appBar: UniformAppBar(
-          title: 'Mon profil',
-          icon: Icons.person_rounded,
-          iconColor: AppTheme.info,
-        ),
+        appBar: SimpleAppBar(title: 'Mon profil'),
         body: const Center(child: CircularProgressIndicator()),
       );
     }
@@ -189,11 +180,7 @@ class _EditerProfilScreenState extends State<EditerProfilScreen> {
         backgroundColor: isDark
             ? AppTheme.backgroundDarkMode
             : AppTheme.backgroundLight,
-        appBar: UniformAppBar(
-          title: 'Mon profil',
-          icon: Icons.person_rounded,
-          iconColor: AppTheme.error,
-        ),
+        appBar: SimpleAppBar(title: 'Mon profil'),
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -223,10 +210,8 @@ class _EditerProfilScreenState extends State<EditerProfilScreen> {
       backgroundColor: isDark
           ? AppTheme.backgroundDarkMode
           : AppTheme.backgroundLight,
-      appBar: UniformAppBar(
+      appBar: SimpleAppBar(
         title: 'Mon profil',
-        icon: Icons.person_rounded,
-        iconColor: AppTheme.info,
         actions: [
           IconButton(
             icon: const Icon(Icons.save_rounded),

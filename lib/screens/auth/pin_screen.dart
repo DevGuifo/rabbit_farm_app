@@ -4,8 +4,8 @@ import '../../l10n/app_localizations.dart';
 import '../../theme/app_theme.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/connectivity_provider.dart';
-import '../home_screen.dart';
 import 'auth_screen.dart';
+import '../../utils/onboarding_navigation_helper.dart';
 
 /// Écran de déverrouillage PIN (offline)
 ///
@@ -119,18 +119,8 @@ class _PinScreenState extends State<PinScreen> {
     });
 
     if (success) {
-      // PIN valide, navigation vers HomeScreen
-      Navigator.pushReplacement(
-        context,
-        PageRouteBuilder(
-          pageBuilder: (context, animation, secondaryAnimation) =>
-              const HomeScreen(),
-          transitionsBuilder: (context, animation, secondaryAnimation, child) {
-            return FadeTransition(opacity: animation, child: child);
-          },
-          transitionDuration: const Duration(milliseconds: 300),
-        ),
-      );
+      // PIN valide, navigation basée sur le statut d'onboarding
+      OnboardingNavigationHelper.navigateBasedOnOnboardingStatus(context);
     } else {
       // PIN invalide
       _attempts++;
@@ -219,8 +209,8 @@ class _PinScreenState extends State<PinScreen> {
 
     return Scaffold(
       backgroundColor: isDark
-          ? AppTheme.stitchBackgroundDark
-          : AppTheme.stitchBackgroundLight,
+          ? AppTheme.backgroundDark
+          : AppTheme.backgroundLight,
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24),

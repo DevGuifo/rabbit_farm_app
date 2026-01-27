@@ -1,256 +1,294 @@
-import 'package:flutter/foundation.dart';
-import '../models/tache.dart';
+﻿import 'package:flutter/foundation.dart';
+import '../models/tache_quotidienne.dart';
 import '../services/database_helper.dart';
 import '../utils/logger.dart';
 
-/// Provider pour gérer l'état des tâches
+/// Provider pour gérer les tâches quotidiennes (ancien "rituels")
 class TacheProvider with ChangeNotifier {
   final DatabaseHelper _db = DatabaseHelper.instance;
 
-  List<Tache> _taches = [];
+  TacheQuotidienne? _tacheMatin;
+  TacheQuotidienne? _tacheSoir;
   bool _isLoading = false;
-  String _filtreStatut = 'tous'; // 'tous', 'a_faire', 'en_cours', 'terminee', 'annulee'
-  String _filtreCategorie = 'tous'; // 'tous', 'reproduction', 'sante', etc.
-  String _filtrePriorite = 'tous'; // 'tous', 'haute', 'normale', 'basse'
-  String _vue = 'liste'; // 'liste', 'aujourdhui', 'semaine', 'mois', 'calendrier'
-  String _recherche = '';
 
-  List<Tache> get taches => _taches;
+  TacheQuotidienne? get tacheMatin => _tacheMatin;
+  TacheQuotidienne? get tacheSoir => _tacheSoir;
   bool get isLoading => _isLoading;
-  String get filtreStatut => _filtreStatut;
-  String get filtreCategorie => _filtreCategorie;
-  String get filtrePriorite => _filtrePriorite;
-  String get vue => _vue;
-  String get recherche => _recherche;
 
-  /// Tâches filtrées selon les critères actuels
-  List<Tache> get tachesFiltrees {
-    var resultat = List<Tache>.from(_taches);
-
-    // Filtre par statut
-    if (_filtreStatut != 'tous') {
-      resultat = resultat.where((t) => t.statut == _filtreStatut).toList();
-    }
-
-    // Filtre par catégorie
-    if (_filtreCategorie != 'tous') {
-      resultat = resultat.where((t) => t.categorie == _filtreCategorie).toList();
-    }
-
-    // Filtre par priorité
-    if (_filtrePriorite != 'tous') {
-      resultat = resultat.where((t) => t.priorite == _filtrePriorite).toList();
-    }
-
-    // Filtre par recherche textuelle
-    if (_recherche.isNotEmpty) {
-      final rechercheLower = _recherche.toLowerCase();
-      resultat = resultat.where((t) {
-        return t.titre.toLowerCase().contains(rechercheLower) ||
-            (t.description?.toLowerCase().contains(rechercheLower) ?? false) ||
-            (t.notes?.toLowerCase().contains(rechercheLower) ?? false);
-      }).toList();
-    }
-
-    // Filtre par vue
-    switch (_vue) {
-      case 'aujourdhui':
-        resultat = resultat.where((t) => t.estAujourdhui).toList();
-        break;
-      case 'semaine':
-        resultat = resultat.where((t) => t.estCetteSemaine).toList();
-        break;
-      case 'mois':
-        final now = DateTime.now();
-        final debutMois = DateTime(now.year, now.month, 1);
-        final finMois = DateTime(now.year, now.month + 1, 0, 23, 59, 59);
-        resultat = resultat.where((t) {
-          return t.datePlanification.isAfter(debutMois.subtract(const Duration(days: 1))) &&
-              t.datePlanification.isBefore(finMois.add(const Duration(days: 1)));
-        }).toList();
-        break;
-    }
-
-    // Tri par date et priorité
-    resultat.sort((a, b) {
-      // D'abord par date
-      final dateCompare = a.datePlanification.compareTo(b.datePlanification);
-      if (dateCompare != 0) return dateCompare;
-
-      // Ensuite par priorité (haute > normale > basse)
-      final prioriteOrder = {'haute': 3, 'normale': 2, 'basse': 1};
-      final prioriteA = prioriteOrder[a.priorite] ?? 0;
-      final prioriteB = prioriteOrder[b.priorite] ?? 0;
-      return prioriteB.compareTo(prioriteA);
+  // Getters utilitaires
+  bool get matinTermine => _tacheMatin?.estComplet ?? false;
+  bool get soirTermine => _tacheSoir?.estComplet ?? false;
+  int get anomaliesJour {
+    int count = 0;
+    _tacheMatin?.actions.forEach((action) {
+      if (action.resultat == ResultatAction.anomalie) count++;
     });
-
-    return resultat;
+    _tacheSoir?.actions.forEach((action) {
+      if (action.resultat == ResultatAction.anomalie) count++;
+    });
+    return count;
   }
 
-  /// Tâches à faire (non terminées)
-  List<Tache> get tachesAFaire {
-    return _taches
-        .where((t) => t.statut != 'terminee' && t.statut != 'annulee')
-        .toList()
-      ..sort((a, b) => a.datePlanification.compareTo(b.datePlanification));
+  /// Obtenir la tâche du jour par type
+  TacheQuotidienne? getTacheDuJour(TypeTacheQuotidienne type) {
+    return type == TypeTacheQuotidienne.matin ? _tacheMatin : _tacheSoir;
   }
 
-  /// Tâches en retard
-  List<Tache> get tachesEnRetard {
-    return _taches.where((t) => t.estEnRetard).toList()
-      ..sort((a, b) => a.datePlanification.compareTo(b.datePlanification));
-  }
-
-  /// Tâches pour aujourd'hui
-  List<Tache> get tachesAujourdhui {
-    return _taches.where((t) => t.estAujourdhui && t.statut != 'terminee' && t.statut != 'annulee').toList();
-  }
-
-  /// Nombre de tâches en attente
-  int get nombreTachesEnAttente {
-    return _taches.where((t) => t.statut == 'a_faire' || t.statut == 'en_cours').length;
-  }
-
-  /// Charger toutes les tâches depuis la base de données
+  /// Charger les tâches du jour
   Future<void> chargerTaches() async {
+    // Éviter les appels concurrents
+    if (_isLoading) return;
+
     _isLoading = true;
     notifyListeners();
 
     try {
-      _taches = await _db.getAllTaches();
+      final today = DateTime.now();
+      final dateOnly = DateTime(today.year, today.month, today.day);
+
+      _tacheMatin = await _db.getTacheByDateAndType(
+        dateOnly,
+        TypeTacheQuotidienne.matin.name,
+      );
+
+      _tacheSoir = await _db.getTacheByDateAndType(
+        dateOnly,
+        TypeTacheQuotidienne.soir.name,
+      );
+
+      // Si aucune tâche n'existe pour aujourd'hui, en créer
+      _tacheMatin ??= await _creerTacheParDefaut(TypeTacheQuotidienne.matin);
+      _tacheSoir ??= await _creerTacheParDefaut(TypeTacheQuotidienne.soir);
     } catch (e) {
-      logger.error('Erreur lors du chargement des tâches', e);
+      logger.error('Erreur lors du chargement des tâches quotidiennes', e);
     } finally {
       _isLoading = false;
       notifyListeners();
     }
   }
 
-  /// Ajouter une tâche
-  Future<Tache> ajouterTache(Tache tache) async {
-    try {
-      final nouvelleTache = await _db.insertTache(tache);
-      _taches.insert(0, nouvelleTache);
-      notifyListeners();
-      return nouvelleTache;
-    } catch (e) {
-      logger.error('Erreur lors de l\'ajout de la tâche', e);
-      rethrow;
-    }
-  }
+  /// Créer une tâche quotidienne par défaut
+  /// Gère les erreurs UNIQUE constraint en récupérant la tâche existante
+  Future<TacheQuotidienne> _creerTacheParDefaut(
+    TypeTacheQuotidienne type,
+  ) async {
+    final today = DateTime.now();
+    final dateOnly = DateTime(today.year, today.month, today.day);
+    final actions = _getActionsParDefaut(type);
+    final tache = TacheQuotidienne(
+      date: dateOnly,
+      type: type,
+      actions: actions,
+      dateCreation: DateTime.now(),
+    );
 
-  /// Modifier une tâche
-  Future<void> modifierTache(Tache tache) async {
     try {
-      await _db.updateTache(tache);
-      final index = _taches.indexWhere((t) => t.id == tache.id);
-      if (index != -1) {
-        _taches[index] = tache;
-        notifyListeners();
+      return await _db.insertTacheQuotidienne(tache);
+    } catch (e) {
+      // En cas d'erreur UNIQUE constraint, récupérer la tâche existante
+      final existante = await _db.getTacheByDateAndType(dateOnly, type.name);
+      if (existante != null) {
+        return existante;
       }
-    } catch (e) {
-      logger.error('Erreur lors de la modification de la tâche', e);
+      // Si vraiment aucune tâche, relancer l'erreur
       rethrow;
     }
   }
 
-  /// Supprimer une tâche
-  Future<void> supprimerTache(int id) async {
+  /// Actions par défaut pour chaque type de tâche
+  List<ActionTache> _getActionsParDefaut(TypeTacheQuotidienne type) {
+    if (type == TypeTacheQuotidienne.matin) {
+      return [
+        ActionTache(
+          id: 'eau_matin',
+          titre: 'Eau propre',
+          icone: '💧',
+          description: 'Vérifier que tous les abreuvoirs sont remplis',
+        ),
+        ActionTache(
+          id: 'nourriture_matin',
+          titre: 'Alimentation',
+          icone: '🥕',
+          description: 'Distribuer la nourriture du matin',
+        ),
+        ActionTache(
+          id: 'sante_matin',
+          titre: 'État général',
+          icone: '🏥',
+          description: 'Observer comportement et santé',
+        ),
+        ActionTache(
+          id: 'proprete_matin',
+          titre: 'Propreté',
+          icone: '🧹',
+          description: 'Contrôler propreté des cages',
+        ),
+      ];
+    } else {
+      return [
+        ActionTache(
+          id: 'eau_soir',
+          titre: 'Eau propre',
+          icone: '💧',
+          description: 'Vérifier que tous les abreuvoirs sont remplis',
+        ),
+        ActionTache(
+          id: 'nourriture_soir',
+          titre: 'Alimentation',
+          icone: '🥕',
+          description: 'Distribuer la nourriture du soir',
+        ),
+        ActionTache(
+          id: 'sante_soir',
+          titre: 'État général',
+          icone: '🏥',
+          description: 'Observer comportement et santé',
+        ),
+        ActionTache(
+          id: 'securite_soir',
+          titre: 'Sécurité',
+          icone: '🔒',
+          description: 'Fermer et sécuriser le local',
+        ),
+      ];
+    }
+  }
+
+  /// Valider une action comme normale
+  Future<void> validerNormal(TypeTacheQuotidienne type, String actionId) async {
+    final tache = getTacheDuJour(type);
+    if (tache == null) return;
+
+    final actionIndex = tache.actions.indexWhere((a) => a.id == actionId);
+    if (actionIndex == -1) return;
+
+    final actionMaj = tache.actions[actionIndex].copyWith(
+      resultat: ResultatAction.normal,
+      heureValidation: DateTime.now(),
+    );
+
+    final actionsMaj = List<ActionTache>.from(tache.actions);
+    actionsMaj[actionIndex] = actionMaj;
+
+    final tacheMaj = tache.copyWith(actions: actionsMaj);
+    await _db.updateTacheQuotidienne(tacheMaj);
+
+    if (type == TypeTacheQuotidienne.matin) {
+      _tacheMatin = tacheMaj;
+    } else {
+      _tacheSoir = tacheMaj;
+    }
+    notifyListeners();
+  }
+
+  /// Reporter une action à plus tard
+  Future<void> validerPlusTard(
+    TypeTacheQuotidienne type,
+    String actionId,
+  ) async {
+    final tache = getTacheDuJour(type);
+    if (tache == null) return;
+
+    final actionIndex = tache.actions.indexWhere((a) => a.id == actionId);
+    if (actionIndex == -1) return;
+
+    final actionMaj = tache.actions[actionIndex].copyWith(
+      resultat: ResultatAction.plusTard,
+      heureValidation: DateTime.now(),
+    );
+
+    final actionsMaj = List<ActionTache>.from(tache.actions);
+    actionsMaj[actionIndex] = actionMaj;
+
+    final tacheMaj = tache.copyWith(actions: actionsMaj);
+    await _db.updateTacheQuotidienne(tacheMaj);
+
+    if (type == TypeTacheQuotidienne.matin) {
+      _tacheMatin = tacheMaj;
+    } else {
+      _tacheSoir = tacheMaj;
+    }
+    notifyListeners();
+  }
+
+  /// Valider une action avec anomalie
+  Future<void> validerAnomalie(
+    TypeTacheQuotidienne type,
+    String actionId, {
+    String? note,
+  }) async {
+    final tache = getTacheDuJour(type);
+    if (tache == null) return;
+
+    final actionIndex = tache.actions.indexWhere((a) => a.id == actionId);
+    if (actionIndex == -1) return;
+
+    final actionMaj = tache.actions[actionIndex].copyWith(
+      resultat: ResultatAction.anomalie,
+      heureValidation: DateTime.now(),
+      noteAnomalie: note,
+    );
+
+    final actionsMaj = List<ActionTache>.from(tache.actions);
+    actionsMaj[actionIndex] = actionMaj;
+
+    final tacheMaj = tache.copyWith(actions: actionsMaj);
+    await _db.updateTacheQuotidienne(tacheMaj);
+
+    if (type == TypeTacheQuotidienne.matin) {
+      _tacheMatin = tacheMaj;
+    } else {
+      _tacheSoir = tacheMaj;
+    }
+    notifyListeners();
+  }
+
+  /// Obtenir les statistiques des tâches quotidiennes
+  Future<Map<String, dynamic>> getStatistiquesRituels({int jours = 14}) async {
     try {
-      await _db.deleteTache(id);
-      _taches.removeWhere((t) => t.id == id);
-      notifyListeners();
+      final historique = await _db.getHistoriqueTaches(limite: jours);
+
+      final total = historique.length;
+      final completes = historique.where((t) => t.estComplet).length;
+      final taux = total > 0 ? (completes / total * 100).round() : 0;
+
+      return {
+        'total': total,
+        'completes': completes,
+        'taux': taux,
+        'serie': _calculerSerie(historique),
+      };
     } catch (e) {
-      logger.error('Erreur lors de la suppression de la tâche', e);
-      rethrow;
+      logger.error('Erreur lors du calcul des statistiques', e);
+      return {'total': 0, 'completes': 0, 'taux': 0, 'serie': 0};
     }
   }
 
-  /// Marquer une tâche comme terminée
-  Future<void> marquerTerminee(int id) async {
-    try {
-      await _db.marquerTacheTerminee(id);
-      final index = _taches.indexWhere((t) => t.id == id);
-      if (index != -1) {
-        final tache = _taches[index];
-        _taches[index] = tache.copyWith(
-          statut: 'terminee',
-          dateCompletion: DateTime.now(),
-          dateModification: DateTime.now(),
-        );
-        notifyListeners();
-      }
-    } catch (e) {
-      logger.error('Erreur lors du marquage de la tâche comme terminée', e);
-      rethrow;
+  /// Calculer la série de jours consécutifs
+  int _calculerSerie(List<TacheQuotidienne> historique) {
+    int serie = 0;
+    final today = DateTime.now();
+
+    for (var i = 0; i < historique.length; i++) {
+      final jourAttendu = today.subtract(Duration(days: i));
+      final tache = historique.firstWhere(
+        (t) =>
+            t.date.year == jourAttendu.year &&
+            t.date.month == jourAttendu.month &&
+            t.date.day == jourAttendu.day &&
+            t.estComplet,
+        orElse: () => TacheQuotidienne(
+          date: DateTime(1900),
+          type: TypeTacheQuotidienne.matin,
+          actions: [],
+          dateCreation: DateTime.now(),
+        ),
+      );
+
+      if (tache.date.year == 1900) break;
+      serie++;
     }
-  }
 
-  /// Changer le statut d'une tâche
-  Future<void> changerStatut(int id, String nouveauStatut) async {
-    try {
-      final index = _taches.indexWhere((t) => t.id == id);
-      if (index != -1) {
-        final tache = _taches[index];
-        final tacheModifiee = tache.copyWith(
-          statut: nouveauStatut,
-          dateModification: DateTime.now(),
-          dateCompletion: nouveauStatut == 'terminee' ? DateTime.now() : tache.dateCompletion,
-        );
-        await _db.updateTache(tacheModifiee);
-        _taches[index] = tacheModifiee;
-        notifyListeners();
-      }
-    } catch (e) {
-      logger.error('Erreur lors du changement de statut', e);
-      rethrow;
-    }
-  }
-
-  /// Définir le filtre de statut
-  void setFiltreStatut(String statut) {
-    _filtreStatut = statut;
-    notifyListeners();
-  }
-
-  /// Définir le filtre de catégorie
-  void setFiltreCategorie(String categorie) {
-    _filtreCategorie = categorie;
-    notifyListeners();
-  }
-
-  /// Définir le filtre de priorité
-  void setFiltrePriorite(String priorite) {
-    _filtrePriorite = priorite;
-    notifyListeners();
-  }
-
-  /// Définir la vue
-  void setVue(String vue) {
-    _vue = vue;
-    notifyListeners();
-  }
-
-  /// Définir la recherche
-  void setRecherche(String recherche) {
-    _recherche = recherche;
-    notifyListeners();
-  }
-
-  /// Réinitialiser tous les filtres
-  void reinitialiserFiltres() {
-    _filtreStatut = 'tous';
-    _filtreCategorie = 'tous';
-    _filtrePriorite = 'tous';
-    _vue = 'liste';
-    _recherche = '';
-    notifyListeners();
-  }
-
-  /// Obtenir les tâches d'un lapin
-  List<Tache> getTachesParLapin(int lapinId) {
-    return _taches.where((t) => t.lapinId == lapinId).toList()
-      ..sort((a, b) => a.datePlanification.compareTo(b.datePlanification));
+    return serie;
   }
 }
-

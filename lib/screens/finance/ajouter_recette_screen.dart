@@ -3,12 +3,13 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../../l10n/app_localizations.dart';
+import '../../models/enums/finance_enums.dart';
 import '../../models/recette.dart';
 import '../../models/lapin.dart';
 import '../../providers/finance_provider.dart';
 import '../../providers/lapin_provider.dart';
 import '../../theme/app_theme.dart';
-import '../../widgets/uniform_app_bar.dart';
+import '../../widgets/common/common_widgets.dart';
 
 class AjouterRecetteScreen extends StatefulWidget {
   const AjouterRecetteScreen({super.key});
@@ -25,7 +26,7 @@ class _AjouterRecetteScreenState extends State<AjouterRecetteScreen> {
   final DateFormat _formatDate = DateFormat('dd/MM/yyyy');
 
   DateTime _dateSelectionnee = DateTime.now();
-  String _categorieSelectionnee = 'vente_lapin';
+  CategorieRecette _categorieSelectionnee = CategorieRecette.venteLapin;
   Lapin? _lapinSelectionne;
 
   @override
@@ -40,10 +41,8 @@ class _AjouterRecetteScreenState extends State<AjouterRecetteScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
-      appBar: UniformAppBar(
+      appBar: SimpleAppBar(
         title: AppLocalizations.of(context).financeAjouterRecette,
-        icon: Icons.add_circle_rounded,
-        iconColor: AppTheme.success,
       ),
       body: Form(
         key: _formKey,
@@ -62,38 +61,24 @@ class _AjouterRecetteScreenState extends State<AjouterRecetteScreen> {
             const SizedBox(height: 16),
 
             // Catégorie
-            DropdownButtonFormField<String>(
+            DropdownButtonFormField<CategorieRecette>(
               initialValue: _categorieSelectionnee,
               decoration: InputDecoration(
                 labelText: AppLocalizations.of(context).financeCategorie,
                 prefixIcon: const Icon(Icons.category),
                 border: const OutlineInputBorder(),
               ),
-              items: [
-                DropdownMenuItem(
-                  value: 'vente_lapin',
-                  child: Text(
-                    AppLocalizations.of(context).financeCategorieVenteLapin,
-                  ),
-                ),
-                DropdownMenuItem(
-                  value: 'vente_portee',
-                  child: Text(
-                    AppLocalizations.of(context).financeCategorieVentePortee,
-                  ),
-                ),
-                DropdownMenuItem(
-                  value: 'autre',
-                  child: Text(
-                    AppLocalizations.of(context).financesCategorieAutre,
-                  ),
-                ),
-              ],
+              items: CategorieRecette.values
+                  .map((cat) => DropdownMenuItem(
+                        value: cat,
+                        child: Text(cat.label),
+                      ))
+                  .toList(),
               onChanged: (value) {
                 setState(() {
                   _categorieSelectionnee = value!;
                   // Réinitialiser la sélection du lapin si la catégorie change
-                  if (value != 'vente_lapin') {
+                  if (value != CategorieRecette.venteLapin) {
                     _lapinSelectionne = null;
                   }
                 });
@@ -102,7 +87,7 @@ class _AjouterRecetteScreenState extends State<AjouterRecetteScreen> {
             const SizedBox(height: 16),
 
             // Sélection du lapin (uniquement pour vente_lapin)
-            if (_categorieSelectionnee == 'vente_lapin') ...[
+            if (_categorieSelectionnee == CategorieRecette.venteLapin) ...[
               Consumer<LapinProvider>(
                 builder: (context, lapinProvider, child) {
                   return DropdownButtonFormField<Lapin>(
@@ -190,17 +175,15 @@ class _AjouterRecetteScreenState extends State<AjouterRecetteScreen> {
               ),
               maxLines: 3,
             ),
-            const SizedBox(height: 24),
-
-            // Bouton d'ajout
-            ElevatedButton.icon(
-              onPressed: _enregistrer,
-              icon: const Icon(Icons.check),
-              label: Text(AppLocalizations.of(context).commonSave),
-              style: AppTheme.primaryButtonStyle,
-            ),
+            // Espace pour FormActionBar
+            const SizedBox(height: 80),
           ],
         ),
+      ),
+      bottomNavigationBar: FormActionBar(
+        onCancel: () => Navigator.pop(context),
+        onSave: _enregistrer,
+        saveText: AppLocalizations.of(context).commonSave,
       ),
     );
   }

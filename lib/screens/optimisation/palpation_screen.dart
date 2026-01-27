@@ -7,8 +7,9 @@ import '../../providers/reproduction_provider.dart';
 import '../../providers/lapin_provider.dart';
 import '../../utils/dialog_helper.dart';
 import '../../models/palpation.dart';
+import '../../models/enums/statut_accouplement.dart';
 import '../../theme/app_theme.dart';
-import '../../widgets/uniform_app_bar.dart';
+import '../../widgets/common/common_widgets.dart';
 
 class PalpationScreen extends StatefulWidget {
   const PalpationScreen({super.key});
@@ -32,10 +33,8 @@ class _PalpationScreenState extends State<PalpationScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: UniformAppBar(
+      appBar: SimpleAppBar(
         title: AppLocalizations.of(context).screenPalpation,
-        icon: Icons.touch_app_rounded,
-        iconColor: AppTheme.warning,
         actions: [
           PopupMenuButton<String>(
             icon: const Icon(Icons.filter_list),
@@ -185,11 +184,9 @@ class _PalpationScreenState extends State<PalpationScreen> {
               );
             },
       ),
-      floatingActionButton: FloatingActionButton(
-        heroTag: 'fab_palpation',
+      floatingActionButton: UnifiedFAB(
         onPressed: () => _showAjouterPalpationDialog(context),
-        backgroundColor: AppTheme.warning,
-        child: const Icon(Icons.add),
+        tooltip: '${AppLocalizations.of(context).commonAjouter} palpation',
       ),
     );
   }
@@ -408,7 +405,7 @@ class _PalpationScreenState extends State<PalpationScreen> {
   void _showAjouterPalpationDialog(BuildContext context) {
     final reproProvider = context.read<ReproductionProvider>();
     final accouplements = reproProvider.accouplements
-        .where((a) => a.statut == 'confirme' || a.statut == 'en_attente')
+        .where((a) => a.statut == StatutAccouplement.confirme || a.statut == StatutAccouplement.enAttente)
         .toList();
 
     if (accouplements.isEmpty) {
@@ -766,7 +763,7 @@ class _PalpationScreenState extends State<PalpationScreen> {
           children: [
             Icon(Icons.help, color: AppTheme.warning),
             AppTheme.horizontalSpace8,
-            const Text('Aide - Palpation'),
+            Text(AppLocalizations.of(context).aidePalpation),
           ],
         ),
         content: SingleChildScrollView(
@@ -819,7 +816,7 @@ class _PalpationScreenState extends State<PalpationScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Fermer'),
+            child: Text(AppLocalizations.of(context).fermer),
           ),
         ],
       ),

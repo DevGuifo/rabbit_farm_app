@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:rabbit_farm_app/theme/app_theme.dart';
 import '../../../../models/lapin.dart';
-import '../../../../services/database_helper.dart';
-import '../../../../services/localisation_service.dart';
+import '../../../../repositories/localisation_repository.dart';
 import '../../../../l10n/app_localizations.dart';
 
 class SevragePetitCard extends StatefulWidget {
@@ -30,7 +29,6 @@ class SevragePetitCard extends StatefulWidget {
 }
 
 class _SevragePetitCardState extends State<SevragePetitCard> {
-  final _dbHelper = DatabaseHelper.instance;
   String? _cageNumero;
   bool _loadingCage = false;
 
@@ -59,7 +57,9 @@ class _SevragePetitCardState extends State<SevragePetitCard> {
 
     setState(() => _loadingCage = true);
     try {
-      final cage = await _dbHelper.getCageById(widget.cageId!);
+      final cage = await LocalisationRepository.instance.getCageById(
+        widget.cageId!,
+      );
       if (mounted) {
         setState(() {
           _cageNumero = cage?.numero;
@@ -100,7 +100,7 @@ class _SevragePetitCardState extends State<SevragePetitCard> {
         border: Border.all(
           color: widget.cageId != null
               ? AppTheme.primaryGreen
-              : (isDark ? AppTheme.stitchBorderDark : AppTheme.border),
+              : (isDark ? AppTheme.borderDark : AppTheme.border),
           width: 2,
         ),
         boxShadow: AppTheme.shadowSmall,
@@ -176,7 +176,7 @@ class _SevragePetitCardState extends State<SevragePetitCard> {
                 child: OutlinedButton.icon(
                   onPressed: () => widget.onSexeChanged('Mâle'),
                   icon: const Icon(Icons.male, size: 18),
-                  label: const Text('Mâle'),
+                  label: Text(AppLocalizations.of(context).labelSexeMale),
                   style: OutlinedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 12),
                     backgroundColor:
@@ -197,9 +197,7 @@ class _SevragePetitCardState extends State<SevragePetitCard> {
                               widget.sexe.toLowerCase() == 'm' ||
                               widget.sexe.toLowerCase() == 'mâle')
                           ? AppTheme.accentCyan
-                          : (isDark
-                                ? AppTheme.stitchBorderDark
-                                : AppTheme.border),
+                          : (isDark ? AppTheme.borderDark : AppTheme.border),
                       width:
                           (widget.sexe.toLowerCase() == 'male' ||
                               widget.sexe.toLowerCase() == 'm' ||
@@ -215,7 +213,7 @@ class _SevragePetitCardState extends State<SevragePetitCard> {
                 child: OutlinedButton.icon(
                   onPressed: () => widget.onSexeChanged('Femelle'),
                   icon: const Icon(Icons.female, size: 18),
-                  label: const Text('Femelle'),
+                  label: Text(AppLocalizations.of(context).labelSexeFemelle),
                   style: OutlinedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 12),
                     backgroundColor:
@@ -233,9 +231,7 @@ class _SevragePetitCardState extends State<SevragePetitCard> {
                           (widget.sexe.toLowerCase() == 'femelle' ||
                               widget.sexe.toLowerCase() == 'f')
                           ? AppTheme.accentPink
-                          : (isDark
-                                ? AppTheme.stitchBorderDark
-                                : AppTheme.border),
+                          : (isDark ? AppTheme.borderDark : AppTheme.border),
                       width:
                           (widget.sexe.toLowerCase() == 'femelle' ||
                               widget.sexe.toLowerCase() == 'f')
@@ -270,9 +266,7 @@ class _SevragePetitCardState extends State<SevragePetitCard> {
                       ),
                     ),
                     filled: true,
-                    fillColor: isDark
-                        ? AppTheme.stitchSurfaceDark
-                        : AppTheme.bgLight,
+                    fillColor: isDark ? AppTheme.surfaceDark : AppTheme.bgLight,
                   ),
                   style: AppTheme.bodyMedium.copyWith(
                     color: isDark ? AppTheme.textLight : AppTheme.textPrimary,

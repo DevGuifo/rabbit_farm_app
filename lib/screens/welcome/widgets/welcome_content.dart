@@ -25,7 +25,7 @@ class WelcomeContent extends StatelessWidget {
               height: 1.2,
               color: isDark
                   ? AppTheme.stitchTextMainDark
-                  : AppTheme.stitchTextMainLight,
+                  : AppTheme.textPrimary,
             ),
             children: [
               TextSpan(text: '${l10n.welcomeTitle}\n'),
@@ -49,7 +49,7 @@ class WelcomeContent extends StatelessWidget {
               height: 1.5,
               color: isDark
                   ? AppTheme.stitchTextSecDark
-                  : AppTheme.stitchTextSecLight,
+                  : AppTheme.textSecondary,
             ),
           ),
         ),

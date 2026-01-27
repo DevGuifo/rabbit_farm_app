@@ -19,7 +19,7 @@ class MedicationField extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final textSecondary = isDark
-        ? AppTheme.stitchGreenLight
+        ? AppTheme.success100
         : AppTheme.textSecondary;
 
     return Column(
@@ -57,11 +57,11 @@ class DosageField extends StatelessWidget {
     final surfaceColor = isDark ? AppTheme.backgroundDark : AppTheme.cardLight;
     final textPrimary = isDark ? AppTheme.cardLight : AppTheme.textPrimary;
     final textSecondary = isDark
-        ? AppTheme.stitchGreenLight
+        ? AppTheme.success100
         : AppTheme.textSecondary;
     final borderColor = isDark
-        ? AppTheme.stitchSurfaceDarkCard
-        : AppTheme.stitchSurfaceLightAlt;
+        ? AppTheme.surfaceDarkElevated
+        : AppTheme.surfaceLight;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

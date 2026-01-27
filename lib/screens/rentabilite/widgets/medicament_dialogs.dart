@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../../../providers/medicament_provider.dart';
 import '../../../models/medicament.dart';
+import '../../../models/enums/medicament_enums.dart';
 import '../../../utils/dialog_helper.dart';
 import '../../../theme/app_theme.dart';
 import '../../../l10n/app_localizations.dart';
@@ -15,7 +16,7 @@ class MedicamentDialogs {
     final prixController = TextEditingController();
     final posologieController = TextEditingController();
     final notesController = TextEditingController();
-    String type = 'antibiotique';
+    TypeMedicament type = TypeMedicament.antibiotique;
     String unite = 'ml';
     DateTime? dateExpiration;
 
@@ -36,28 +37,18 @@ class MedicamentDialogs {
                   ),
                 ),
                 const SizedBox(height: 12),
-                DropdownButtonFormField<String>(
+                DropdownButtonFormField<TypeMedicament>(
                   initialValue: type,
                   decoration: InputDecoration(
                     labelText: AppLocalizations.of(context).rentabiliteFormType,
                     border: const OutlineInputBorder(),
                   ),
-                  items: const [
-                    DropdownMenuItem(
-                      value: 'antibiotique',
-                      child: Text('Antibiotique'),
-                    ),
-                    DropdownMenuItem(
-                      value: 'antiparasitaire',
-                      child: Text('Antiparasitaire'),
-                    ),
-                    DropdownMenuItem(value: 'vaccin', child: Text('Vaccin')),
-                    DropdownMenuItem(
-                      value: 'vitamine',
-                      child: Text('Vitamine'),
-                    ),
-                    DropdownMenuItem(value: 'autre', child: Text('Autre')),
-                  ],
+                  items: TypeMedicament.values.map((t) {
+                    return DropdownMenuItem(
+                      value: t,
+                      child: Text(t.label),
+                    );
+                  }).toList(),
                   onChanged: (value) => setState(() => type = value!),
                 ),
                 const SizedBox(height: 12),
@@ -240,7 +231,7 @@ class MedicamentDialogs {
       text: medicament.posologie ?? '',
     );
     final notesController = TextEditingController(text: medicament.notes ?? '');
-    String type = medicament.type;
+    TypeMedicament type = medicament.type;
     String unite = medicament.unite;
     DateTime? dateExpiration = medicament.dateExpiration;
 
@@ -261,28 +252,18 @@ class MedicamentDialogs {
                   ),
                 ),
                 const SizedBox(height: 12),
-                DropdownButtonFormField<String>(
+                DropdownButtonFormField<TypeMedicament>(
                   initialValue: type,
                   decoration: InputDecoration(
                     labelText: AppLocalizations.of(context).rentabiliteFormType,
                     border: const OutlineInputBorder(),
                   ),
-                  items: const [
-                    DropdownMenuItem(
-                      value: 'antibiotique',
-                      child: Text('Antibiotique'),
-                    ),
-                    DropdownMenuItem(
-                      value: 'antiparasitaire',
-                      child: Text('Antiparasitaire'),
-                    ),
-                    DropdownMenuItem(value: 'vaccin', child: Text('Vaccin')),
-                    DropdownMenuItem(
-                      value: 'vitamine',
-                      child: Text('Vitamine'),
-                    ),
-                    DropdownMenuItem(value: 'autre', child: Text('Autre')),
-                  ],
+                  items: TypeMedicament.values.map((t) {
+                    return DropdownMenuItem(
+                      value: t,
+                      child: Text(t.label),
+                    );
+                  }).toList(),
                   onChanged: (value) => setState(() => type = value!),
                 ),
                 const SizedBox(height: 12),

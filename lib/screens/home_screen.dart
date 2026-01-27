@@ -4,11 +4,11 @@ import 'dashboard/dashboard_screen.dart';
 import 'cheptel/cheptel_screen.dart';
 import 'reproduction/reproduction_screen.dart';
 import 'sante/sante_screen.dart';
-import 'utilitaire/utilitaire_screen.dart';
+import 'plus/plus_screen.dart';
 import '../theme/app_theme.dart';
 
 /// Écran principal avec navigation par onglets
-/// Navigation réorganisée : Dashboard en premier, Paramètres retiré (accessible via icône ⚙️)
+/// Navigation Phase 2 : Dashboard, Cheptel, Reproduction, Santé, Plus
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -33,7 +33,7 @@ class _HomeScreenState extends State<HomeScreen> {
       const CheptelScreen(),
       const ReproductionScreen(),
       const SanteScreen(),
-      const UtilitaireScreen(),
+      const PlusScreen(),
     ];
 
     return Scaffold(
@@ -107,7 +107,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 isDark: isDark,
               ),
               _buildNavItem(
-                icon: Icons.format_list_bulleted_rounded,
+                icon: Icons.pets_rounded,
                 label: l10n.navCheptel,
                 index: 1,
                 isDark: isDark,
@@ -119,14 +119,14 @@ class _HomeScreenState extends State<HomeScreen> {
                 isDark: isDark,
               ),
               _buildNavItem(
-                icon: Icons.medical_services,
+                icon: Icons.monitor_heart_rounded,
                 label: l10n.navSante,
                 index: 3,
                 isDark: isDark,
               ),
               _buildNavItem(
-                icon: Icons.handyman,
-                label: l10n.navUtilitaires,
+                icon: Icons.apps_rounded,
+                label: l10n.navPlus,
                 index: 4,
                 isDark: isDark,
               ),
@@ -161,7 +161,7 @@ class _HomeScreenState extends State<HomeScreen> {
               width: 64,
               decoration: BoxDecoration(
                 color: isSelected
-                    ? AppTheme.primaryYellow.withValues(alpha: 0.2)
+                    ? AppTheme.accentGreen.withValues(alpha: 0.2)
                     : Colors.transparent,
                 borderRadius: BorderRadius.circular(999),
               ),

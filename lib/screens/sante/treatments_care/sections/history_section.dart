@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../../models/lapin.dart';
 import '../../../../models/soin.dart';
+import '../../../../models/enums/sexe.dart';
+import '../../../../models/enums/type_soin.dart';
 import '../../../../providers/sante_provider.dart';
 import '../../../../providers/lapin_provider.dart';
 import '../../../../theme/app_theme.dart';
@@ -117,7 +119,7 @@ class HistorySection extends StatelessWidget {
           (lapin.numeroIdentification?.toLowerCase().contains(searchLower) ??
               false) ||
           soin.description.toLowerCase().contains(searchLower) ||
-          soin.type.toLowerCase().contains(searchLower);
+          soin.type.label.toLowerCase().contains(searchLower);
     }).toList();
   }
 
@@ -125,13 +127,12 @@ class HistorySection extends StatelessWidget {
     if (selectedFilter == 'all') return soins;
 
     return soins.where((s) {
-      final typeLower = s.type.toLowerCase();
       if (selectedFilter == 'treatments') {
-        return typeLower == 'traitement';
+        return s.type == TypeSoin.traitement;
       } else if (selectedFilter == 'care') {
-        return typeLower == 'vermifuge' || typeLower == 'autre';
+        return s.type == TypeSoin.vermifuge || s.type == TypeSoin.autre;
       } else if (selectedFilter == 'vaccines') {
-        return typeLower == 'vaccination';
+        return s.type == TypeSoin.vaccination;
       }
       return true;
     }).toList();
@@ -144,7 +145,7 @@ class HistorySection extends StatelessWidget {
         nom: 'Unknown',
         numeroIdentification: 'N/A',
         dateNaissance: DateTime.now(),
-        sexe: 'Inconnu',
+        sexe: Sexe.male,
         race: 'N/A',
       ),
     );

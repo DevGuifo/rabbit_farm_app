@@ -118,11 +118,7 @@ class _GenealogieScreenState extends State<GenealogieScreen> {
       backgroundColor: isDark
           ? AppTheme.backgroundDark
           : AppTheme.backgroundLight,
-      appBar: UniformAppBar(
-        title: AppLocalizations.of(context).labelGenealogue,
-        icon: Icons.account_tree_rounded,
-        iconColor: AppTheme.info,
-      ),
+      appBar: SimpleAppBar(title: AppLocalizations.of(context).labelGenealogue),
       body: _isLoading
           ? const Center(
               child: CircularProgressIndicator(color: AppTheme.primaryGreen),

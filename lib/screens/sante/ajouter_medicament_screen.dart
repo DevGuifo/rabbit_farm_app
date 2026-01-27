@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/medicament.dart';
+import '../../models/enums/medicament_enums.dart';
 import '../../providers/medicament_provider.dart';
 import 'package:rabbit_farm_app/theme/app_theme.dart';
 import '../../widgets/uniform_app_bar.dart';
+import '../../services/error_service.dart';
 
 /// Écran d'ajout/édition de médicament
 class AjouterMedicamentScreen extends StatefulWidget {
@@ -36,7 +38,7 @@ class _AjouterMedicamentScreenState extends State<AjouterMedicamentScreen> {
     super.initState();
     if (widget.medicament != null) {
       _nomController.text = widget.medicament!.nom;
-      _typeController.text = widget.medicament!.type;
+      _typeController.text = widget.medicament!.type.label;
       _posologieController.text = widget.medicament!.posologie ?? '';
       _quantiteStockController.text = widget.medicament!.quantiteStock
           .toString();
@@ -83,7 +85,7 @@ class _AjouterMedicamentScreenState extends State<AjouterMedicamentScreen> {
       final medicament = Medicament(
         id: widget.medicament?.id,
         nom: _nomController.text.trim(),
-        type: _typeController.text.trim(),
+        type: TypeMedicament.fromString(_typeController.text.trim()),
         quantiteStock:
             double.tryParse(_quantiteStockController.text.trim()) ?? 0.0,
         unite: _uniteController.text.trim(),
@@ -129,14 +131,7 @@ class _AjouterMedicamentScreenState extends State<AjouterMedicamentScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              AppLocalizations.of(context).msgErreurGenerique(e.toString()),
-            ),
-            backgroundColor: AppTheme.error,
-          ),
-        );
+        ErrorService.showError(context, e);
       }
     } finally {
       if (mounted) {
@@ -156,12 +151,10 @@ class _AjouterMedicamentScreenState extends State<AjouterMedicamentScreen> {
 
     return Scaffold(
       backgroundColor: backgroundColor,
-      appBar: UniformAppBar(
+      appBar: SimpleAppBar(
         title: widget.medicament == null
             ? AppLocalizations.of(context).santeAjouterSoin
             : AppLocalizations.of(context).santeModifierSoin,
-        icon: Icons.medication_rounded,
-        iconColor: AppTheme.error,
       ),
       body: Form(
         key: _formKey,

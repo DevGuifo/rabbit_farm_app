@@ -1,6 +1,7 @@
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import '../models/pesee.dart';
 import '../models/soin.dart';
+import '../models/enums/statut_accouplement.dart';
 import '../utils/logger.dart';
 import 'coach_notification_service.dart';
 import 'database_helper.dart';
@@ -140,7 +141,7 @@ class NotificationActionHandler {
         case 'fait':
           // Marquer comme terminé avec succès
           // L'utilisateur devra ensuite enregistrer les détails de la portée
-          final accouplementMaj = accouplement.copyWith(statut: 'termine');
+          final accouplementMaj = accouplement.copyWith(statut: StatutAccouplement.termine);
           await _db.updateAccouplement(accouplementMaj);
 
           // Annuler les notifications de mise bas restantes
@@ -157,7 +158,7 @@ class NotificationActionHandler {
 
         case 'echec':
           // Marquer comme échoué (pas de portée)
-          final accouplementMaj = accouplement.copyWith(statut: 'echoue');
+          final accouplementMaj = accouplement.copyWith(statut: StatutAccouplement.echec);
           await _db.updateAccouplement(accouplementMaj);
 
           // Annuler toutes les notifications liées
@@ -212,7 +213,7 @@ class NotificationActionHandler {
       switch (action) {
         case 'gestante':
           // Confirmer la gestation
-          final accouplementMaj = accouplement.copyWith(statut: 'confirme');
+          final accouplementMaj = accouplement.copyWith(statut: StatutAccouplement.confirme);
           await _db.updateAccouplement(accouplementMaj);
 
           // Annuler notification de palpation
@@ -226,7 +227,7 @@ class NotificationActionHandler {
 
         case 'non_gestante':
           // Marquer comme non gestante (échec)
-          final accouplementMaj = accouplement.copyWith(statut: 'echoue');
+          final accouplementMaj = accouplement.copyWith(statut: StatutAccouplement.echec);
           await _db.updateAccouplement(accouplementMaj);
 
           // Annuler toutes les notifications de cet accouplement
@@ -490,7 +491,6 @@ class NotificationActionHandler {
             date: DateTime.now(),
             type: soin.type,
             description: '${soin.description} (rappel effectué)',
-            medicament: soin.medicament,
             medicamentId: soin.medicamentId,
             dosage: soin.dosage,
             // Pas de nouveau rappel automatique
@@ -512,11 +512,11 @@ class NotificationActionHandler {
               soinId: soinId,
               dateRappel: DateTime.now().add(const Duration(days: 1)),
               nomLapin: lapin.nom,
-              typeSoin: soin.type,
+              typeSoin: soin.type.label,
             );
           }
 
-          logger.info('⏰ Soin reporté de 24h: ${soin.type}');
+          logger.info('⏰ Soin reporté de 24h: ${soin.type.label}');
           return true;
 
         default:

@@ -21,7 +21,7 @@ class RabbitInfoCard extends StatelessWidget {
     final surfaceColor = isDark ? AppTheme.backgroundDark : AppTheme.cardLight;
     final textPrimary = isDark ? AppTheme.cardLight : AppTheme.textPrimary;
     final textSecondary = isDark
-        ? AppTheme.stitchGreenLight
+        ? AppTheme.success100
         : AppTheme.textSecondary;
 
     return Container(

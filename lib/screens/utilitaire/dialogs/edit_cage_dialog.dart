@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../models/cage.dart';
+import '../../../models/enums/localisation_enums.dart';
 import '../../../services/database_helper.dart';
 import '../../../utils/logger.dart';
 import 'package:rabbit_farm_app/theme/app_theme.dart';
@@ -12,7 +13,7 @@ class EditCageDialog {
     final capaciteController = TextEditingController(
       text: cage.capacite.toString(),
     );
-    String typeSelectionne = cage.type;
+    TypeCage typeSelectionne = cage.type;
     final l10n = AppLocalizations.of(context);
 
     final result = await showDialog<Map<String, dynamic>>(
@@ -35,16 +36,16 @@ class EditCageDialog {
                   ),
                 ),
                 const SizedBox(height: 16),
-                DropdownButtonFormField<String>(
+                DropdownButtonFormField<TypeCage>(
                   initialValue: typeSelectionne,
                   decoration: const InputDecoration(
                     labelText: 'Type de cage',
                     border: OutlineInputBorder(),
                   ),
-                  items: ['individuelle', 'collective', 'maternité']
+                  items: TypeCage.values
                       .map(
                         (type) =>
-                            DropdownMenuItem(value: type, child: Text(type)),
+                            DropdownMenuItem(value: type, child: Text(type.label)),
                       )
                       .toList(),
                   onChanged: (value) {
@@ -91,7 +92,7 @@ class EditCageDialog {
       id: cage.id,
       clapierId: cage.clapierId,
       numero: result['numero'] as String,
-      type: result['type'] as String,
+      type: result['type'] as TypeCage,
       capacite: result['capacite'] as int,
     );
 

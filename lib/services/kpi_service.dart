@@ -1,5 +1,8 @@
 import '../models/lapin.dart';
+import '../models/enums/sexe.dart';
+import '../models/enums/type_soin.dart';
 import '../models/accouplement.dart';
+import '../models/enums/statut_accouplement.dart';
 import '../models/portee.dart';
 import '../models/soin.dart';
 import '../models/pesee.dart';
@@ -49,6 +52,8 @@ class KpiData {
   final double beneficeMensuel;
   final double depensesMensuelles; // ✅ NOUVEAU
   final int alimentsEnAlerte; // ✅ NOUVEAU
+  final double roi; // ✅ PHASE 3: Return On Investment (%)
+  final double investissementTotal; // ✅ PHASE 3: Total dépenses cumulées
 
   KpiData({
     required this.totalLapins,
@@ -79,6 +84,8 @@ class KpiData {
     required this.beneficeMensuel,
     required this.depensesMensuelles,
     required this.alimentsEnAlerte,
+    required this.roi,
+    required this.investissementTotal,
   });
 }
 
@@ -165,6 +172,8 @@ class KpiService {
         coutAlimentationMensuel: financeKpis['coutAlimentation']!,
         recettesMensuelles: financeKpis['recettes']!,
         beneficeMensuel: financeKpis['benefice']!,
+        roi: financeKpis['roi']!,
+        investissementTotal: financeKpis['investissementTotal']!,
         depensesMensuelles: financeKpis['depensesMensuelles']!,
         alimentsEnAlerte: financeKpis['alimentsEnAlerte']!.toInt(),
       );
@@ -198,6 +207,8 @@ class KpiService {
         coutAlimentationMensuel: 0.0,
         recettesMensuelles: 0.0,
         beneficeMensuel: 0.0,
+        roi: 0.0,
+        investissementTotal: 0.0,
         depensesMensuelles: 0.0,
         alimentsEnAlerte: 0,
       );
@@ -214,14 +225,11 @@ class KpiService {
         .toList();
 
     final males = actifs
-        .where(
-          (l) =>
-              l.sexe.toLowerCase() == 'mâle' || l.sexe.toLowerCase() == 'male',
-        )
+        .where((l) => l.sexe == Sexe.male)
         .length;
 
     final femelles = actifs
-        .where((l) => l.sexe.toLowerCase() == 'femelle')
+        .where((l) => l.sexe == Sexe.femelle)
         .length;
 
     // Calculer l'âge pour déterminer les lapereaux (< 8 semaines = 56 jours)
@@ -241,16 +249,14 @@ class KpiService {
 
     // ✅ NOUVEAU : Femelles reproductrices (statut reproductrice)
     final femellesReproductrices = actifs.where((l) {
-      final sexe = l.sexe.toLowerCase();
-      final estFemelle = sexe == 'femelle' || sexe == 'f';
+      final estFemelle = l.sexe == Sexe.femelle;
       final statut = l.statut?.toLowerCase();
       return estFemelle && statut == 'reproductrice';
     }).length;
 
     // ✅ NOUVEAU : Mâles reproducteurs (statut reproducteur)
     final malesReproducteurs = actifs.where((l) {
-      final sexe = l.sexe.toLowerCase();
-      final estMale = sexe == 'mâle' || sexe == 'male' || sexe == 'm';
+      final estMale = l.sexe == Sexe.male;
       final statut = l.statut?.toLowerCase();
       return estMale && statut == 'reproducteur';
     }).length;
@@ -279,7 +285,7 @@ class KpiService {
 
     // Accouplements actifs (en attente ou confirmés)
     final actifs = accouplements
-        .where((acc) => acc.statut == 'en_attente' || acc.statut == 'confirme')
+        .where((acc) => acc.statut == StatutAccouplement.enAttente || acc.statut == StatutAccouplement.confirme)
         .length;
 
     // Portées actives (avec lapereaux non sevrés)
@@ -291,7 +297,7 @@ class KpiService {
     // Taux de reproduction (accouplements réussis / total)
     final totalAccouplements = accouplements.length;
     final reussis = accouplements
-        .where((acc) => acc.statut == 'confirme' || acc.statut == 'termine')
+        .where((acc) => acc.statut == StatutAccouplement.confirme || acc.statut == StatutAccouplement.termine)
         .length;
     final tauxReproduction = totalAccouplements > 0
         ? (reussis / totalAccouplements) * 100
@@ -299,14 +305,14 @@ class KpiService {
 
     // Prochaines mises bas (dans les 7 prochains jours)
     final prochainesMisesBas = accouplements.where((acc) {
-      return (acc.statut == 'en_attente' || acc.statut == 'confirme') &&
+      return (acc.statut == StatutAccouplement.enAttente || acc.statut == StatutAccouplement.confirme) &&
           acc.dateMiseBasPrevue.isAfter(maintenant) &&
           acc.dateMiseBasPrevue.isBefore(dans7Jours);
     }).length;
 
     // ✅ NOUVEAU : Prochaines mises bas (dans les 14 jours)
     final prochainesMisesBas14Jours = accouplements.where((acc) {
-      return (acc.statut == 'en_attente' || acc.statut == 'confirme') &&
+      return (acc.statut == StatutAccouplement.enAttente || acc.statut == StatutAccouplement.confirme) &&
           acc.dateMiseBasPrevue.isAfter(maintenant) &&
           acc.dateMiseBasPrevue.isBefore(dans14Jours);
     }).length;
@@ -322,7 +328,7 @@ class KpiService {
     // ✅ NOUVEAU : Femelles gestantes (ayant un accouplement actif)
     final femellesGestantesIds = <int>{};
     for (final acc in accouplements) {
-      if (acc.statut == 'en_attente' || acc.statut == 'confirme') {
+      if (acc.statut == StatutAccouplement.enAttente || acc.statut == StatutAccouplement.confirme) {
         if (acc.dateMiseBasPrevue.isAfter(maintenant)) {
           femellesGestantesIds.add(acc.femelleId);
         }
@@ -363,8 +369,7 @@ class KpiService {
 
     // Vaccinations en retard
     final vaccinationsEnRetard = soins.where((soin) {
-      if (soin.type.toLowerCase().contains('vaccin') &&
-          soin.dateRappel != null) {
+      if (soin.type == TypeSoin.vaccination && soin.dateRappel != null) {
         return soin.dateRappel!.isBefore(maintenant);
       }
       return false;
@@ -555,12 +560,35 @@ class KpiService {
       final benefice =
           recettesMensuelles - (coutAlimentation + depensesMensuelles);
 
+      // ✅ PHASE 3: Calcul ROI (Return On Investment)
+      // ROI = (Recettes totales - Dépenses totales) / Dépenses totales * 100
+      final recettesTotales = await _db.getAllRecettes();
+      final depensesTotales = await _db.getAllDepenses();
+
+      final recettesTotalesSum = recettesTotales.fold<double>(
+        0.0,
+        (sum, r) => sum + r.montant,
+      );
+
+      final depensesTotalesSum = depensesTotales.fold<double>(
+        0.0,
+        (sum, d) => sum + d.montant,
+      );
+
+      final investissementTotal = depensesTotalesSum;
+      final roi = investissementTotal > 0
+          ? ((recettesTotalesSum - investissementTotal) / investissementTotal) *
+                100
+          : 0.0;
+
       return {
         'coutAlimentation': coutAlimentation,
         'recettes': recettesMensuelles,
         'benefice': benefice,
         'depensesMensuelles': depensesMensuelles,
         'alimentsEnAlerte': alimentsEnAlerte.toDouble(),
+        'roi': roi,
+        'investissementTotal': investissementTotal,
       };
     } catch (e) {
       logger.error('Erreur calcul KPIs finances: $e');
@@ -570,6 +598,8 @@ class KpiService {
         'benefice': 0.0,
         'depensesMensuelles': 0.0,
         'alimentsEnAlerte': 0.0,
+        'roi': 0.0,
+        'investissementTotal': 0.0,
       };
     }
   }

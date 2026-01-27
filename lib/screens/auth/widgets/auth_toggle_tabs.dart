@@ -34,7 +34,7 @@ class AuthToggleTabs extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: !isSignUp
                       ? (isDark
-                            ? AppTheme.stitchSurfaceDarkElevated
+                            ? AppTheme.surfaceDarkElevated
                             : AppTheme.textOnPrimary)
                       : Colors.transparent,
                   borderRadius: BorderRadius.circular(4),
@@ -75,7 +75,7 @@ class AuthToggleTabs extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: isSignUp
                       ? (isDark
-                            ? AppTheme.stitchSurfaceDarkElevated
+                            ? AppTheme.surfaceDarkElevated
                             : AppTheme.textOnPrimary)
                       : Colors.transparent,
                   borderRadius: BorderRadius.circular(4),

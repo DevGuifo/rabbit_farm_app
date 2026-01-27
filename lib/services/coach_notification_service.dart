@@ -26,10 +26,10 @@ class CoachNotificationService {
   // Constantes
   static const int _maxNotificationsParJour = 3;
   static const String _keyNotifCount = 'coach_notif_count_';
-  static const String _keyRituelMatinDone = 'coach_rituel_matin_done_';
+  static const String _keyVerifMatinDone = 'coach_verif_matin_done_';
 
   // IDs de notifications coach
-  static const int idRituelMatin = 9000;
+  static const int idVerifMatin = 9000;
   static const int idRappelMidi = 9001;
   static const int idBilanSoir = 9002;
 
@@ -56,28 +56,28 @@ class CoachNotificationService {
     return count < _maxNotificationsParJour;
   }
 
-  /// Vérifier si le rituel du matin a déjà été fait
-  Future<bool> rituelMatinFait() async {
+  /// Vérifier si la vérification du matin a déjà été faite
+  Future<bool> verificationMatinFaite() async {
     final prefs = await SharedPreferences.getInstance();
     final today = DateTime.now().toIso8601String().substring(0, 10);
-    return prefs.getBool('$_keyRituelMatinDone$today') ?? false;
+    return prefs.getBool('$_keyVerifMatinDone$today') ?? false;
   }
 
-  /// Marquer le rituel du matin comme fait
-  Future<void> _marquerRituelMatinFait() async {
+  /// Marquer la vérification du matin comme faite
+  Future<void> _marquerVerificationMatinFaite() async {
     final prefs = await SharedPreferences.getInstance();
     final today = DateTime.now().toIso8601String().substring(0, 10);
-    await prefs.setBool('$_keyRituelMatinDone$today', true);
+    await prefs.setBool('$_keyVerifMatinDone$today', true);
   }
 
-  // ============= NOTIFICATION RITUEL MATIN =============
+  // ============= NOTIFICATION VERIFICATION MATIN =============
 
-  /// Planifier la notification "Rituel du matin" pour 7h
-  Future<void> planifierRituelMatin() async {
+  /// Planifier la notification "Vérification du matin" pour 7h
+  Future<void> planifierVerificationMatin() async {
     // Vérifier si déjà fait aujourd'hui
-    if (await rituelMatinFait()) {
+    if (await verificationMatinFaite()) {
       logger.info(
-        '📵 Rituel matin déjà fait aujourd\'hui, pas de notification',
+        '📵 Vérification matin déjà faite aujourd\'hui, pas de notification',
       );
       return;
     }
@@ -101,8 +101,8 @@ class CoachNotificationService {
     final tzScheduledTime = tz.TZDateTime.from(scheduledTime, tz.local);
 
     await _notificationService.flutterNotifications.zonedSchedule(
-      idRituelMatin,
-      '🌅 Rituel du matin',
+      idVerifMatin,
+      '🌅 Vérification du matin',
       'As-tu observé ton élevage ce matin ?',
       tzScheduledTime,
       NotificationDetails(
@@ -118,38 +118,36 @@ class CoachNotificationService {
           ),
           actions: const [
             AndroidNotificationAction(
-              'rituel_ok',
+              'verif_ok',
               '✅ Oui, tout normal',
               showsUserInterface: true,
             ),
             AndroidNotificationAction(
-              'rituel_probleme',
+              'verif_probleme',
               '⚠️ J\'ai vu un problème',
               showsUserInterface: true,
             ),
-            AndroidNotificationAction('rituel_later', '⏰ Plus tard'),
+            AndroidNotificationAction('verif_later', '⏰ Plus tard'),
           ],
         ),
         iOS: const DarwinNotificationDetails(
-          categoryIdentifier: 'rituel_matin',
+          categoryIdentifier: 'verif_quotidienne',
         ),
       ),
       androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-      uiLocalNotificationDateInterpretation:
-          UILocalNotificationDateInterpretation.absoluteTime,
       matchDateTimeComponents: DateTimeComponents.time, // Répéter chaque jour
-      payload: 'coach:$idRituelMatin', // Payload pour le handler
+      payload: 'coach:$idVerifMatin', // Payload pour le handler
     );
 
     logger.info(
-      '🌅 Notification rituel matin planifiée pour ${scheduledTime.hour}h',
+      '🌅 Notification vérification matin planifiée pour ${scheduledTime.hour}h',
     );
   }
 
   /// Envoyer immédiatement la notification rituel matin (pour test)
-  Future<void> envoyerRituelMatinMaintenant() async {
+  Future<void> envoyerVerificationMatinMaintenant() async {
     // Vérifier si déjà fait
-    if (await rituelMatinFait()) {
+    if (await verificationMatinFaite()) {
       logger.info('📵 Rituel matin déjà fait aujourd\'hui');
       return;
     }
@@ -161,8 +159,8 @@ class CoachNotificationService {
     }
 
     await _notificationService.flutterNotifications.show(
-      idRituelMatin,
-      '🌅 Rituel du matin',
+      idVerifMatin,
+      '🌅 Vérification du matin',
       'As-tu observé ton élevage ce matin ?',
       NotificationDetails(
         android: AndroidNotificationDetails(
@@ -177,20 +175,20 @@ class CoachNotificationService {
           ),
           actions: const [
             AndroidNotificationAction(
-              'rituel_ok',
+              'verif_ok',
               '✅ Oui, tout normal',
               showsUserInterface: true,
             ),
             AndroidNotificationAction(
-              'rituel_probleme',
+              'verif_probleme',
               '⚠️ J\'ai vu un problème',
               showsUserInterface: true,
             ),
-            AndroidNotificationAction('rituel_later', '⏰ Plus tard'),
+            AndroidNotificationAction('verif_later', '⏰ Plus tard'),
           ],
         ),
       ),
-      payload: 'coach:$idRituelMatin',
+      payload: 'coach:$idVerifMatin',
     );
 
     await _incrementNotifCount();
@@ -206,14 +204,14 @@ class CoachNotificationService {
     );
 
     switch (actionId) {
-      case 'rituel_ok':
-        await _handleRituelOk();
+      case 'verif_ok':
+        await _handleVerifOk();
         break;
-      case 'rituel_probleme':
-        await _handleRituelProbleme();
+      case 'verif_probleme':
+        await _handleVerifProbleme();
         break;
-      case 'rituel_later':
-        await _handleRituelLater();
+      case 'verif_later':
+        await _handleVerifLater();
         break;
       case 'suivi_resolu':
         await _handleSuiviResolu();
@@ -230,13 +228,13 @@ class CoachNotificationService {
   }
 
   /// Réponse: "Oui, tout est normal"
-  Future<void> _handleRituelOk() async {
+  Future<void> _handleVerifOk() async {
     // Marquer comme fait
-    await _marquerRituelMatinFait();
+    await _marquerVerificationMatinFaite();
 
     // Enregistrer dans le journal
     await _journal.enregistrer(
-      typeEntite: TypeEntite.rituel,
+      typeEntite: TypeEntite.verification,
       typeAction: TypeAction.validation,
       entiteNom: 'Observation matinale',
       resumeAuto: 'Observation matinale validée - Tout normal',
@@ -248,19 +246,19 @@ class CoachNotificationService {
     );
 
     // Mettre à jour le rituel du jour si existe
-    await _updateRituelJour(true);
+    await _updateVerificationJour(true);
 
     logger.info('✅ Rituel matin: Tout normal enregistré');
   }
 
   /// Réponse: "J'ai vu un problème"
-  Future<void> _handleRituelProbleme() async {
+  Future<void> _handleVerifProbleme() async {
     // Marquer comme fait (même si problème, l'observation est faite)
-    await _marquerRituelMatinFait();
+    await _marquerVerificationMatinFaite();
 
     // Enregistrer dans le journal avec statut anomalie
     await _journal.enregistrer(
-      typeEntite: TypeEntite.rituel,
+      typeEntite: TypeEntite.verification,
       typeAction: TypeAction.observation,
       entiteNom: 'Observation matinale',
       resumeAuto: 'Observation matinale - Problème signalé',
@@ -273,7 +271,7 @@ class CoachNotificationService {
     );
 
     // Mettre à jour le rituel avec anomalie
-    await _updateRituelJour(false);
+    await _updateVerificationJour(false);
 
     // Planifier un rappel de suivi dans 2h
     await _planifierRappelSuivi();
@@ -282,12 +280,12 @@ class CoachNotificationService {
   }
 
   /// Réponse: "Plus tard"
-  Future<void> _handleRituelLater() async {
+  Future<void> _handleVerifLater() async {
     // Ne PAS marquer comme fait
 
     // Enregistrer dans le journal
     await _journal.enregistrer(
-      typeEntite: TypeEntite.rituel,
+      typeEntite: TypeEntite.verification,
       typeAction: TypeAction.rappel,
       entiteNom: 'Observation matinale',
       resumeAuto: 'Observation reportée',
@@ -309,7 +307,7 @@ class CoachNotificationService {
   /// Réponse suivi: "Résolu"
   Future<void> _handleSuiviResolu() async {
     await _journal.enregistrer(
-      typeEntite: TypeEntite.rituel,
+      typeEntite: TypeEntite.verification,
       typeAction: TypeAction.validation,
       entiteNom: 'Suivi problème',
       resumeAuto: 'Problème résolu par l\'éleveur',
@@ -325,7 +323,7 @@ class CoachNotificationService {
   /// Réponse suivi: "En cours"
   Future<void> _handleSuiviEncours() async {
     await _journal.enregistrer(
-      typeEntite: TypeEntite.rituel,
+      typeEntite: TypeEntite.verification,
       typeAction: TypeAction.observation,
       entiteNom: 'Suivi problème',
       resumeAuto: 'Problème en cours de résolution',
@@ -341,7 +339,7 @@ class CoachNotificationService {
   /// Réponse suivi: "Besoin d'aide"
   Future<void> _handleSuiviAide() async {
     await _journal.enregistrer(
-      typeEntite: TypeEntite.rituel,
+      typeEntite: TypeEntite.verification,
       typeAction: TypeAction.alerte,
       entiteNom: 'Suivi problème',
       resumeAuto: 'L\'éleveur demande de l\'aide',
@@ -374,17 +372,15 @@ class CoachNotificationService {
           priority: Priority.defaultPriority,
           actions: const [
             AndroidNotificationAction(
-              'rituel_ok',
+              'verif_ok',
               '✅ C\'est fait',
               showsUserInterface: true,
             ),
-            AndroidNotificationAction('rituel_later', '⏰ Plus tard'),
+            AndroidNotificationAction('verif_later', '⏰ Plus tard'),
           ],
         ),
       ),
       androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-      uiLocalNotificationDateInterpretation:
-          UILocalNotificationDateInterpretation.absoluteTime,
       payload: 'coach:$idRappelMidi',
     );
 
@@ -427,8 +423,6 @@ class CoachNotificationService {
         ),
       ),
       androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-      uiLocalNotificationDateInterpretation:
-          UILocalNotificationDateInterpretation.absoluteTime,
       payload: 'coach:$idBilanSoir',
     );
 
@@ -439,7 +433,7 @@ class CoachNotificationService {
   // ============= MISE À JOUR RITUELS =============
 
   /// Mettre à jour le rituel du jour
-  Future<void> _updateRituelJour(bool toutNormal) async {
+  Future<void> _updateVerificationJour(bool toutNormal) async {
     try {
       final today = DateTime.now();
       final dateStr = DateTime(
@@ -458,17 +452,17 @@ class CoachNotificationService {
       );
 
       if (rituels.isNotEmpty) {
-        final rituelId = rituels.first['id'] as int;
+        final tacheId = rituels.first['id'] as int;
 
         // Mettre à jour comme complété
         await db.update(
           'rituels',
           {'date_completion': DateTime.now().toIso8601String()},
           where: 'id = ?',
-          whereArgs: [rituelId],
+          whereArgs: [tacheId],
         );
 
-        logger.info('📋 Rituel matin mis à jour (ID: $rituelId)');
+        logger.info('📋 Rituel matin mis à jour (ID: $tacheId)');
       }
     } catch (e) {
       logger.error('❌ Erreur mise à jour rituel: $e');
@@ -485,7 +479,7 @@ class CoachNotificationService {
   /// - Il n'y a rien de nouveau à signaler
   Future<bool> notificationNecessaire() async {
     // Rituel déjà fait ?
-    if (await rituelMatinFait()) {
+    if (await verificationMatinFaite()) {
       return false;
     }
 
@@ -499,7 +493,7 @@ class CoachNotificationService {
 
   /// Annuler toutes les notifications coach en attente
   Future<void> annulerToutesNotificationsCoach() async {
-    await _notificationService.flutterNotifications.cancel(idRituelMatin);
+    await _notificationService.flutterNotifications.cancel(idVerifMatin);
     await _notificationService.flutterNotifications.cancel(idRappelMidi);
     await _notificationService.flutterNotifications.cancel(idBilanSoir);
     logger.info('🚫 Toutes les notifications coach annulées');
@@ -513,7 +507,7 @@ class CoachNotificationService {
     return {
       'notificationsAujourdhui': prefs.getInt('$_keyNotifCount$today') ?? 0,
       'maxParJour': _maxNotificationsParJour,
-      'rituelMatinFait': await rituelMatinFait(),
+      'verificationMatinFaite': await verificationMatinFaite(),
       'peutEnvoyerNotif': await peutEnvoyerNotification(),
     };
   }

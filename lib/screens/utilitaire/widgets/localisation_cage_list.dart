@@ -87,8 +87,8 @@ class _LocalisationCageListState extends State<LocalisationCageList> {
             'All Cages',
             style: AppTheme.titleMedium.copyWith(
               color: isDark
-                  ? AppTheme.stitchTextLight
-                  : AppTheme.stitchTextMainLight,
+                  ? AppTheme.textOnPrimary
+                  : AppTheme.textPrimary,
             ),
           ),
         ),
@@ -120,7 +120,7 @@ class _LocalisationCageListState extends State<LocalisationCageList> {
         height: 48,
         decoration: BoxDecoration(
           color: isDark
-              ? AppTheme.stitchSurfaceDarkAlt
+              ? AppTheme.surfaceDark
               : AppTheme.textOnPrimary,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
@@ -141,8 +141,8 @@ class _LocalisationCageListState extends State<LocalisationCageList> {
               Icons.search_rounded,
               size: 20,
               color: isDark
-                  ? AppTheme.stitchGreen
-                  : AppTheme.stitchTextSecLight,
+                  ? AppTheme.accentGreen
+                  : AppTheme.textSecondary,
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -151,15 +151,15 @@ class _LocalisationCageListState extends State<LocalisationCageList> {
                 style: TextStyle(
                   fontSize: 15,
                   color: isDark
-                      ? AppTheme.stitchTextLight
-                      : AppTheme.stitchTextMainLight,
+                      ? AppTheme.textOnPrimary
+                      : AppTheme.textPrimary,
                 ),
                 decoration: InputDecoration(
                   hintText: AppLocalizations.of(context).hintSearchCageLocation,
                   hintStyle: TextStyle(
                     color: isDark
-                        ? AppTheme.stitchGreen
-                        : AppTheme.stitchTextSecLight,
+                        ? AppTheme.accentGreen
+                        : AppTheme.textSecondary,
                   ),
                   border: InputBorder.none,
                 ),
@@ -200,7 +200,7 @@ class _LocalisationCageListState extends State<LocalisationCageList> {
                   color: isSelected
                       ? AppTheme.primaryNeonGreen
                       : (isDark
-                            ? AppTheme.stitchSurfaceDarkAlt
+                            ? AppTheme.surfaceDark
                             : AppTheme.textOnPrimary),
                   borderRadius: BorderRadius.circular(18),
                   border: Border.all(
@@ -220,8 +220,8 @@ class _LocalisationCageListState extends State<LocalisationCageList> {
                           : (filter['id'] == 'Cleaning'
                                 ? AppTheme.accentOrangeVivid
                                 : (isDark
-                                      ? AppTheme.stitchGreen
-                                      : AppTheme.stitchTextSecLight)),
+                                      ? AppTheme.accentGreen
+                                      : AppTheme.textSecondary)),
                     ),
                     const SizedBox(width: 8),
                     Text(
@@ -233,8 +233,8 @@ class _LocalisationCageListState extends State<LocalisationCageList> {
                         color: isSelected
                             ? AppTheme.textPrimary
                             : (isDark
-                                  ? AppTheme.stitchTextLight
-                                  : AppTheme.stitchTextMainLight),
+                                  ? AppTheme.textOnPrimary
+                                  : AppTheme.textPrimary),
                       ),
                     ),
                   ],
@@ -268,7 +268,7 @@ class _LocalisationCageListState extends State<LocalisationCageList> {
         margin: const EdgeInsets.only(bottom: 12),
         decoration: BoxDecoration(
           color: isDark
-              ? AppTheme.stitchSurfaceDarkAlt
+              ? AppTheme.surfaceDark
               : AppTheme.textOnPrimary,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
@@ -348,8 +348,8 @@ class _LocalisationCageListState extends State<LocalisationCageList> {
                                 'Cage ${cage.numero}',
                                 style: AppTheme.titleMedium.copyWith(
                                   color: isDark
-                                      ? AppTheme.stitchTextLight
-                                      : AppTheme.stitchTextMainLight,
+                                      ? AppTheme.textOnPrimary
+                                      : AppTheme.textPrimary,
                                 ),
                               ),
                             ),
@@ -372,7 +372,7 @@ class _LocalisationCageListState extends State<LocalisationCageList> {
                                   'Needs Cleaning',
                                   style: AppTheme.caption.copyWith(
                                     fontWeight: FontWeight.w600,
-                                    color: Color(0xFFC2410C),
+                                    color: AppTheme.accentOrange,
                                   ),
                                 ),
                               )
@@ -398,7 +398,7 @@ class _LocalisationCageListState extends State<LocalisationCageList> {
                                   style: AppTheme.caption.copyWith(
                                     fontWeight: FontWeight.w600,
                                     color: isDark
-                                        ? AppTheme.stitchGreen
+                                        ? AppTheme.accentGreen
                                         : AppTheme.greyMuted,
                                   ),
                                 ),
@@ -411,8 +411,8 @@ class _LocalisationCageListState extends State<LocalisationCageList> {
                           style: AppTheme.bodyMedium.copyWith(
                             fontWeight: FontWeight.w600,
                             color: isDark
-                                ? AppTheme.stitchGreen
-                                : AppTheme.stitchTextSecLight,
+                                ? AppTheme.accentGreen
+                                : AppTheme.textSecondary,
                           ),
                         ),
                         const SizedBox(height: 2),
@@ -438,7 +438,7 @@ class _LocalisationCageListState extends State<LocalisationCageList> {
                                   ? const Color(
                                       0xFFE0E6E0,
                                     ).withValues(alpha: 0.8)
-                                  : AppTheme.stitchTextMainLight.withValues(
+                                  : AppTheme.textPrimary.withValues(
                                       alpha: 0.8,
                                     ),
                             ),
@@ -478,8 +478,8 @@ class _LocalisationCageListState extends State<LocalisationCageList> {
                       Icons.more_vert_rounded,
                       size: 24,
                       color: isDark
-                          ? AppTheme.stitchGreen
-                          : AppTheme.stitchTextSecLight,
+                          ? AppTheme.accentGreen
+                          : AppTheme.textSecondary,
                     ),
                     padding: EdgeInsets.zero,
                     constraints: const BoxConstraints(),
@@ -510,8 +510,8 @@ class _LocalisationCageListState extends State<LocalisationCageList> {
               fontSize: 18,
               fontWeight: FontWeight.w600,
               color: isDark
-                  ? AppTheme.stitchGreen
-                  : AppTheme.stitchTextSecLight,
+                  ? AppTheme.accentGreen
+                  : AppTheme.textSecondary,
             ),
           ),
           const SizedBox(height: 8),
@@ -519,8 +519,8 @@ class _LocalisationCageListState extends State<LocalisationCageList> {
             'Try adjusting your filters',
             style: AppTheme.bodyMedium.copyWith(
               color: isDark
-                  ? AppTheme.stitchGreen
-                  : AppTheme.stitchTextSecLight,
+                  ? AppTheme.accentGreen
+                  : AppTheme.textSecondary,
             ),
           ),
         ],

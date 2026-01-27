@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:io';
 import '../../../models/lapin.dart';
 import '../../../models/pesee.dart';
+import '../../../models/enums/sexe.dart';
 import 'package:rabbit_farm_app/theme/app_theme.dart';
 
 class FicheSanteRabbitCard extends StatelessWidget {
@@ -98,7 +99,7 @@ class FicheSanteRabbitCard extends StatelessWidget {
                   ],
                 ),
                 Text(
-                  '${lapin.race} • ${lapin.sexe == 'Mâle' ? 'Mâle reproducteur' : 'Femelle reproductrice'}',
+                  '${lapin.race} • ${lapin.sexe == Sexe.male ? 'Mâle reproducteur' : 'Femelle reproductrice'}',
                   style: TextStyle(
                     color: textSub,
                     fontSize: 14,

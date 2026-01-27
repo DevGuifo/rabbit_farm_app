@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../models/lapin.dart';
+import '../models/enums/sexe.dart';
 
 /// Widget avec boutons d'actions rapides pour un lapin
 ///
@@ -29,10 +30,8 @@ class QuickActionButtons extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final isFemelle = lapin.sexe.toLowerCase() == 'femelle';
-    final isMale =
-        lapin.sexe.toLowerCase() == 'mâle' ||
-        lapin.sexe.toLowerCase() == 'male';
+    final isFemelle = lapin.sexe == Sexe.femelle;
+    final isMale = lapin.sexe == Sexe.male;
     final isLapereau = lapin.ageEnMois < 5;
 
     // Ne rien afficher si vendu ou décédé

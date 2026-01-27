@@ -1,6 +1,8 @@
 import 'validation_result.dart';
 import '../models/lapin.dart';
 import '../models/accouplement.dart';
+import '../models/enums/sexe.dart';
+import '../models/enums/statut_accouplement.dart';
 
 /// ❌ RÈGLES BLOQUANTES pour les accouplements
 class AccouplementValidator {
@@ -20,20 +22,18 @@ class AccouplementValidator {
     }
 
     // R1 : Mâle doit être mâle
-    final sexeMale = male.sexe.toLowerCase();
-    if (sexeMale != 'mâle' && sexeMale != 'male' && sexeMale != 'm') {
+    if (male.sexe != Sexe.male) {
       return ValidationResult.error(
         '❌ Le lapin "${male.nom}" n\'est pas un mâle.\n'
-        'Sexe actuel : "${male.sexe}". Veuillez sélectionner un mâle.',
+        'Sexe actuel : "${male.sexe.label}". Veuillez sélectionner un mâle.',
       );
     }
 
     // R1 : Femelle doit être femelle
-    final sexeFemelle = femelle.sexe.toLowerCase();
-    if (sexeFemelle != 'femelle' && sexeFemelle != 'f') {
+    if (femelle.sexe != Sexe.femelle) {
       return ValidationResult.error(
         '❌ Le lapin "${femelle.nom}" n\'est pas une femelle.\n'
-        'Sexe actuel : "${femelle.sexe}". Veuillez sélectionner une femelle.',
+        'Sexe actuel : "${femelle.sexe.label}". Veuillez sélectionner une femelle.',
       );
     }
 
@@ -172,7 +172,7 @@ class AccouplementValidator {
     final accouplementsCetteAnnee = accouplements.where((a) {
       return a.femelleId == femelle.id &&
           a.dateAccouplement.isAfter(debutAnnee) &&
-          a.statut != 'echec';
+          a.statut != StatutAccouplement.echec;
     }).length;
 
     if (accouplementsCetteAnnee >= limiteParAn) {

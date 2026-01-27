@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import '../../../../models/lapin.dart';
+import '../../../../models/enums/sexe.dart';
 import 'package:rabbit_farm_app/theme/app_theme.dart';
 import '../../../../l10n/app_localizations.dart';
 
@@ -90,22 +91,15 @@ class RabbitGenealogyCard extends StatelessWidget {
                       width: 32,
                       height: 32,
                       decoration: BoxDecoration(
-                        color:
-                            lapin!.sexe.toLowerCase().contains('mâle') ||
-                                lapin!.sexe.toLowerCase().contains('male')
+                        color: lapin!.sexe == Sexe.male
                             ? AppTheme.info.withValues(alpha: 0.2)
                             : AppTheme.accentPink.withValues(alpha: 0.2),
                         shape: BoxShape.circle,
                       ),
                       child: Icon(
-                        lapin!.sexe.toLowerCase().contains('mâle') ||
-                                lapin!.sexe.toLowerCase().contains('male')
-                            ? Icons.male
-                            : Icons.female,
+                        lapin!.sexe == Sexe.male ? Icons.male : Icons.female,
                         size: 20,
-                        color:
-                            lapin!.sexe.toLowerCase().contains('mâle') ||
-                                lapin!.sexe.toLowerCase().contains('male')
+                        color: lapin!.sexe == Sexe.male
                             ? AppTheme.info
                             : AppTheme.accentPink,
                       ),
@@ -200,9 +194,7 @@ class RabbitGenealogyCard extends StatelessWidget {
                   child: Container(
                     padding: const EdgeInsets.all(2),
                     decoration: BoxDecoration(
-                      color:
-                          lapin!.sexe.toLowerCase().contains('mâle') ||
-                              lapin!.sexe.toLowerCase().contains('male')
+                      color: lapin!.sexe == Sexe.male
                           ? AppTheme.info.withValues(alpha: 0.2)
                           : AppTheme.accentPink.withValues(alpha: 0.2),
                       shape: BoxShape.circle,
@@ -214,14 +206,9 @@ class RabbitGenealogyCard extends StatelessWidget {
                       ),
                     ),
                     child: Icon(
-                      lapin!.sexe.toLowerCase().contains('mâle') ||
-                              lapin!.sexe.toLowerCase().contains('male')
-                          ? Icons.male
-                          : Icons.female,
+                      lapin!.sexe == Sexe.male ? Icons.male : Icons.female,
                       size: 14,
-                      color:
-                          lapin!.sexe.toLowerCase().contains('mâle') ||
-                              lapin!.sexe.toLowerCase().contains('male')
+                      color: lapin!.sexe == Sexe.male
                           ? AppTheme.info
                           : AppTheme.accentPink,
                     ),

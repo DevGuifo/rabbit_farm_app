@@ -3,10 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:rabbit_farm_app/l10n/app_localizations.dart';
 import '../../models/lapin.dart';
+import '../../models/enums/sexe.dart';
 import '../../providers/lapin_provider.dart';
 import '../../utils/snackbar_helper.dart';
+import '../../services/error_service.dart';
 import '../../widgets/parent_selector.dart';
-import '../../widgets/uniform_app_bar.dart';
+import '../../widgets/common/common_widgets.dart';
 import '../../services/database_helper.dart';
 import '../../services/photo_service.dart';
 import '../../theme/app_theme.dart';
@@ -116,7 +118,7 @@ class _EditLapinScreenState extends State<EditLapinScreen> {
     );
 
     _raceSelectionnee = widget.lapin.race;
-    _sexeSelectionne = widget.lapin.sexe;
+    _sexeSelectionne = widget.lapin.sexe.label;
     _statutSelectionne = widget.lapin.statut;
     _couleurSelectionnee = widget.lapin.couleur;
     _origineSelectionnee = widget.lapin.origine;
@@ -219,7 +221,7 @@ class _EditLapinScreenState extends State<EditLapinScreen> {
       final lapinModifie = widget.lapin.copyWith(
         nom: _nomController.text.trim(),
         race: _raceSelectionnee,
-        sexe: _sexeSelectionne,
+        sexe: Sexe.fromString(_sexeSelectionne),
         dateNaissance: _dateNaissance,
         poids: _poidsController.text.isNotEmpty
             ? double.tryParse(_poidsController.text)
@@ -280,7 +282,7 @@ class _EditLapinScreenState extends State<EditLapinScreen> {
       } catch (e) {
         // Afficher un message d'erreur
         if (mounted) {
-          SnackbarHelper.showError(context, 'Erreur: ${e.toString()}');
+          ErrorService.showError(context, e);
         }
       }
     }
@@ -288,436 +290,470 @@ class _EditLapinScreenState extends State<EditLapinScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = AppLocalizations.of(context);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.surface,
-      appBar: UniformAppBar(
-        title: AppLocalizations.of(
-          context,
-        ).cheptelModifierLapin(widget.lapin.nom),
-        icon: Icons.edit_rounded,
-        iconColor: AppTheme.primaryGreen,
-      ),
-      body: Form(
-        key: _formKey,
-        child: ListView(
-          padding: const EdgeInsets.all(16.0),
-          children: [
-            // Photo
-            Center(
-              child: Column(
+      backgroundColor: isDark
+          ? AppTheme.backgroundDark
+          : AppTheme.backgroundLight,
+      body: Column(
+        children: [
+          StandardHeader(
+            title: AppLocalizations.of(
+              context,
+            ).cheptelModifierLapin(widget.lapin.nom),
+            isDark: isDark,
+            showBackButton: true,
+          ),
+          Expanded(
+            child: Form(
+              key: _formKey,
+              child: ListView(
+                padding: const EdgeInsets.all(16.0),
                 children: [
-                  GestureDetector(
-                    onTap: _afficherDialoguePhoto,
-                    child: Container(
-                      width: 150,
-                      height: 150,
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).brightness == Brightness.dark
-                            ? AppTheme.darkGreyLight
-                            : AppTheme.textTertiary.withValues(alpha: 0.2),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: Theme.of(context).dividerColor,
-                          width: 2,
-                        ),
-                      ),
-                      child: _photoPath != null
-                          ? ClipRRect(
-                              borderRadius: BorderRadius.circular(10),
-                              child: Image.file(
-                                File(_photoPath!),
-                                fit: BoxFit.cover,
+                  // Photo
+                  Center(
+                    child: Column(
+                      children: [
+                        GestureDetector(
+                          onTap: _afficherDialoguePhoto,
+                          child: Container(
+                            width: 150,
+                            height: 150,
+                            decoration: BoxDecoration(
+                              color:
+                                  Theme.of(context).brightness ==
+                                      Brightness.dark
+                                  ? AppTheme.darkGreyLight
+                                  : AppTheme.textTertiary.withValues(
+                                      alpha: 0.2,
+                                    ),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: Theme.of(context).dividerColor,
+                                width: 2,
                               ),
-                            )
-                          : Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  Icons.camera_alt,
-                                  size: 48,
-                                  color: AppTheme.textSecondary,
-                                ),
-                                const SizedBox(height: 8),
-                                Text(
-                                  l10n.photoModifier,
-                                  style: AppTheme.bodyMedium.copyWith(
-                                    color: AppTheme.textSecondary,
-                                  ),
-                                ),
-                              ],
                             ),
+                            child: _photoPath != null
+                                ? ClipRRect(
+                                    borderRadius: BorderRadius.circular(10),
+                                    child: Image.file(
+                                      File(_photoPath!),
+                                      fit: BoxFit.cover,
+                                    ),
+                                  )
+                                : Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(
+                                        Icons.camera_alt,
+                                        size: 48,
+                                        color: AppTheme.textSecondary,
+                                      ),
+                                      const SizedBox(height: 8),
+                                      Text(
+                                        l10n.photoModifier,
+                                        style: AppTheme.bodyMedium.copyWith(
+                                          color: AppTheme.textSecondary,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                          ),
+                        ),
+                        if (_photoPath != null)
+                          TextButton.icon(
+                            onPressed: () {
+                              setState(() {
+                                _photoPath = null;
+                              });
+                            },
+                            icon: Icon(Icons.delete, color: AppTheme.error),
+                            label: Text(
+                              l10n.photoSupprimer,
+                              style: AppTheme.bodyMedium.copyWith(
+                                color: AppTheme.error,
+                              ),
+                            ),
+                          ),
+                      ],
                     ),
                   ),
-                  if (_photoPath != null)
-                    TextButton.icon(
-                      onPressed: () {
-                        setState(() {
-                          _photoPath = null;
-                        });
-                      },
-                      icon: Icon(Icons.delete, color: AppTheme.error),
-                      label: Text(
-                        l10n.photoSupprimer,
-                        style: AppTheme.bodyMedium.copyWith(
-                          color: AppTheme.error,
+                  const SizedBox(height: 24),
+
+                  // Nom
+                  TextFormField(
+                    controller: _nomController,
+                    decoration: AppTheme.inputDecoration(
+                      label: '${AppLocalizations.of(context).labelNom} *',
+                      hint: AppLocalizations.of(context).hintNomLapin,
+                      prefixIcon: Icons.pets,
+                    ),
+                    textCapitalization: TextCapitalization.words,
+                    validator: (value) {
+                      if (value == null || value.trim().isEmpty) {
+                        return AppLocalizations.of(context).erreurNomRequis;
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Race
+                  DropdownButtonFormField<String>(
+                    initialValue: _raceSelectionnee,
+                    decoration: AppTheme.inputDecoration(
+                      label: '${AppLocalizations.of(context).labelRace} *',
+                      prefixIcon: Icons.category,
+                    ),
+                    items: _races.map((race) {
+                      return DropdownMenuItem(value: race, child: Text(race));
+                    }).toList(),
+                    onChanged: (value) {
+                      setState(() {
+                        _raceSelectionnee = value!;
+                      });
+                    },
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Couleur
+                  DropdownButtonFormField<String>(
+                    initialValue: _couleurSelectionnee,
+                    decoration: AppTheme.inputDecoration(
+                      label: AppLocalizations.of(context).labelCouleur,
+                      prefixIcon: Icons.palette,
+                    ),
+                    items: [
+                      DropdownMenuItem(
+                        value: null,
+                        child: Text(
+                          AppLocalizations.of(context).labelNonSpecifiee,
                         ),
                       ),
+                      ..._couleurs.map((couleur) {
+                        return DropdownMenuItem(
+                          value: couleur,
+                          child: Text(couleur),
+                        );
+                      }),
+                    ],
+                    onChanged: (value) {
+                      setState(() {
+                        _couleurSelectionnee = value;
+                      });
+                    },
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Sexe
+                  Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Sexe *',
+                            style: Theme.of(context).textTheme.titleSmall,
+                          ),
+                          SegmentedButton<String>(
+                            segments: [
+                              ButtonSegment(
+                                value: 'Mâle',
+                                label: Text(
+                                  AppLocalizations.of(context).labelSexeMale,
+                                ),
+                                icon: const Icon(Icons.male),
+                              ),
+                              ButtonSegment(
+                                value: 'Femelle',
+                                label: Text(
+                                  AppLocalizations.of(context).labelSexeFemelle,
+                                ),
+                                icon: const Icon(Icons.female),
+                              ),
+                            ],
+                            selected: {_sexeSelectionne},
+                            onSelectionChanged: (values) {
+                              setState(() {
+                                _sexeSelectionne = values.first;
+                              });
+                            },
+                          ),
+                        ],
+                      ),
                     ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Date de naissance
+                  ListTile(
+                    leading: const Icon(Icons.cake),
+                    title: Text(
+                      AppLocalizations.of(context).labelDateNaissance,
+                    ),
+                    subtitle: Text(
+                      '${_dateNaissance.day}/${_dateNaissance.month}/${_dateNaissance.year}',
+                    ),
+                    trailing: const Icon(Icons.calendar_today),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      side: BorderSide(color: Theme.of(context).dividerColor),
+                    ),
+                    onTap: () => _selectDate(context),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Poids
+                  TextFormField(
+                    controller: _poidsController,
+                    decoration: AppTheme.inputDecoration(
+                      label: AppLocalizations.of(context).labelPoidsKg,
+                      hint: AppLocalizations.of(context).hintExemple25,
+                      prefixIcon: Icons.monitor_weight,
+                      suffixText: 'kg',
+                    ),
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
+                    validator: (value) {
+                      if (value != null && value.isNotEmpty) {
+                        final poids = double.tryParse(value);
+                        if (poids == null || poids <= 0) {
+                          return 'Veuillez entrer un poids valide';
+                        }
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Statut
+                  DropdownButtonFormField<String>(
+                    initialValue: _statutSelectionne,
+                    decoration: AppTheme.inputDecoration(
+                      label: AppLocalizations.of(context).labelStatut,
+                      prefixIcon: Icons.info_outline,
+                    ),
+                    items: [
+                      DropdownMenuItem(
+                        value: null,
+                        child: Text(AppLocalizations.of(context).labelAucun),
+                      ),
+                      ..._statuts.map((statut) {
+                        return DropdownMenuItem(
+                          value: statut,
+                          child: Text(statut),
+                        );
+                      }),
+                    ],
+                    onChanged: (value) {
+                      setState(() {
+                        _statutSelectionne = value;
+                      });
+                    },
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Localisation
+                  TextFormField(
+                    controller: _localisationController,
+                    decoration: AppTheme.inputDecoration(
+                      label: AppLocalizations.of(context).labelLocalisation,
+                      hint: AppLocalizations.of(context).hintLocalisation,
+                      prefixIcon: Icons.location_on,
+                    ),
+                    textCapitalization: TextCapitalization.characters,
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Origine
+                  DropdownButtonFormField<String>(
+                    initialValue: _origineSelectionnee,
+                    decoration: AppTheme.inputDecoration(
+                      label: AppLocalizations.of(context).labelOrigine,
+                      prefixIcon: Icons.flag,
+                    ),
+                    items: [
+                      DropdownMenuItem(
+                        value: null,
+                        child: Text(
+                          AppLocalizations.of(context).labelNonSpecifiee,
+                        ),
+                      ),
+                      ..._origines.map((origine) {
+                        return DropdownMenuItem(
+                          value: origine,
+                          child: Text(origine),
+                        );
+                      }),
+                    ],
+                    onChanged: (value) {
+                      setState(() {
+                        _origineSelectionnee = value;
+                      });
+                    },
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Numéro d'identification
+                  TextFormField(
+                    controller: _numeroIdController,
+                    decoration: AppTheme.inputDecoration(
+                      label: AppLocalizations.of(
+                        context,
+                      ).labelNumeroIdentification,
+                      hint: AppLocalizations.of(context).hintNumeroId,
+                      prefixIcon: Icons.qr_code,
+                    ),
+                    textCapitalization: TextCapitalization.characters,
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Prix d'achat
+                  TextFormField(
+                    controller: _prixAchatController,
+                    decoration: AppTheme.inputDecoration(
+                      label: AppLocalizations.of(context).labelPrixAchat,
+                      hint: AppLocalizations.of(context).hintPrixAchat,
+                      prefixIcon: Icons.euro,
+                      suffixText: '€',
+                    ),
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
+                    validator: (value) {
+                      if (value != null && value.isNotEmpty) {
+                        final prix = double.tryParse(value);
+                        if (prix == null || prix < 0) {
+                          return AppLocalizations.of(
+                            context,
+                          ).erreurPrixInvalide;
+                        }
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Caractéristiques
+                  TextFormField(
+                    controller: _caracteristiquesController,
+                    decoration: AppTheme.inputDecoration(
+                      label: AppLocalizations.of(context).labelCaracteristiques,
+                      hint: AppLocalizations.of(context).hintCaracteristiques,
+                      prefixIcon: Icons.description,
+                    ),
+                    maxLines: 2,
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Notes
+                  TextFormField(
+                    controller: _notesController,
+                    decoration: AppTheme.inputDecoration(
+                      label: AppLocalizations.of(context).labelNotes,
+                      hint: AppLocalizations.of(context).hintNotes,
+                      prefixIcon: Icons.note,
+                    ),
+                    maxLines: 3,
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Section Généalogie
+                  Text(
+                    'Généalogie (optionnel)',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+
+                  // Sélection du père
+                  Consumer<LapinProvider>(
+                    builder: (context, provider, child) {
+                      final males = provider.lapins
+                          .where(
+                            (l) =>
+                                l.sexe == Sexe.male && l.id != widget.lapin.id,
+                          ) // Exclure le lapin lui-même
+                          .toList();
+                      return ParentSelector(
+                        label: AppLocalizations.of(context).labelPere,
+                        icon: Icons.male,
+                        parentSelectionne: _pereSelectionne,
+                        lapinsDisponibles: males,
+                        onChanged: (lapin) {
+                          setState(() {
+                            _pereSelectionne = lapin;
+                          });
+                        },
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 12),
+
+                  // Sélection de la mère
+                  Consumer<LapinProvider>(
+                    builder: (context, provider, child) {
+                      final femelles = provider.lapins
+                          .where(
+                            (l) =>
+                                l.sexe == Sexe.femelle &&
+                                l.id != widget.lapin.id,
+                          ) // Exclure le lapin lui-même
+                          .toList();
+                      return ParentSelector(
+                        label: AppLocalizations.of(context).labelMere,
+                        icon: Icons.female,
+                        parentSelectionne: _mereSelectionnee,
+                        lapinsDisponibles: femelles,
+                        onChanged: (lapin) {
+                          setState(() {
+                            _mereSelectionnee = lapin;
+                          });
+                        },
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Boutons d'action
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: () => Navigator.pop(context),
+                          icon: const Icon(Icons.close),
+                          label: Text(
+                            AppLocalizations.of(context).commonCancel,
+                          ),
+                          style: OutlinedButton.styleFrom(
+                            padding: const EdgeInsets.all(16),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        flex: 2,
+                        child: FilledButton.icon(
+                          onPressed: _modifierLapin,
+                          icon: const Icon(Icons.save),
+                          label: Text(AppLocalizations.of(context).commonSave),
+                          style: FilledButton.styleFrom(
+                            padding: const EdgeInsets.all(16),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ],
               ),
             ),
-            const SizedBox(height: 24),
-
-            // Nom
-            TextFormField(
-              controller: _nomController,
-              decoration: AppTheme.inputDecoration(
-                label: '${AppLocalizations.of(context).labelNom} *',
-                hint: AppLocalizations.of(context).hintNomLapin,
-                prefixIcon: Icons.pets,
-              ),
-              textCapitalization: TextCapitalization.words,
-              validator: (value) {
-                if (value == null || value.trim().isEmpty) {
-                  return AppLocalizations.of(context).erreurNomRequis;
-                }
-                return null;
-              },
-            ),
-            const SizedBox(height: 16),
-
-            // Race
-            DropdownButtonFormField<String>(
-              initialValue: _raceSelectionnee,
-              decoration: AppTheme.inputDecoration(
-                label: '${AppLocalizations.of(context).labelRace} *',
-                prefixIcon: Icons.category,
-              ),
-              items: _races.map((race) {
-                return DropdownMenuItem(value: race, child: Text(race));
-              }).toList(),
-              onChanged: (value) {
-                setState(() {
-                  _raceSelectionnee = value!;
-                });
-              },
-            ),
-            const SizedBox(height: 16),
-
-            // Couleur
-            DropdownButtonFormField<String>(
-              initialValue: _couleurSelectionnee,
-              decoration: AppTheme.inputDecoration(
-                label: AppLocalizations.of(context).labelCouleur,
-                prefixIcon: Icons.palette,
-              ),
-              items: [
-                DropdownMenuItem(
-                  value: null,
-                  child: Text(AppLocalizations.of(context).labelNonSpecifiee),
-                ),
-                ..._couleurs.map((couleur) {
-                  return DropdownMenuItem(value: couleur, child: Text(couleur));
-                }),
-              ],
-              onChanged: (value) {
-                setState(() {
-                  _couleurSelectionnee = value;
-                });
-              },
-            ),
-            const SizedBox(height: 16),
-
-            // Sexe
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Sexe *',
-                      style: Theme.of(context).textTheme.titleSmall,
-                    ),
-                    SegmentedButton<String>(
-                      segments: [
-                        ButtonSegment(
-                          value: 'Mâle',
-                          label: Text(
-                            AppLocalizations.of(context).labelSexeMale,
-                          ),
-                          icon: const Icon(Icons.male),
-                        ),
-                        ButtonSegment(
-                          value: 'Femelle',
-                          label: Text(
-                            AppLocalizations.of(context).labelSexeFemelle,
-                          ),
-                          icon: const Icon(Icons.female),
-                        ),
-                      ],
-                      selected: {_sexeSelectionne},
-                      onSelectionChanged: (values) {
-                        setState(() {
-                          _sexeSelectionne = values.first;
-                        });
-                      },
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-
-            // Date de naissance
-            ListTile(
-              leading: const Icon(Icons.cake),
-              title: Text(AppLocalizations.of(context).labelDateNaissance),
-              subtitle: Text(
-                '${_dateNaissance.day}/${_dateNaissance.month}/${_dateNaissance.year}',
-              ),
-              trailing: const Icon(Icons.calendar_today),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-                side: BorderSide(color: Theme.of(context).dividerColor),
-              ),
-              onTap: () => _selectDate(context),
-            ),
-            const SizedBox(height: 16),
-
-            // Poids
-            TextFormField(
-              controller: _poidsController,
-              decoration: AppTheme.inputDecoration(
-                label: AppLocalizations.of(context).labelPoidsKg,
-                hint: AppLocalizations.of(context).hintExemple25,
-                prefixIcon: Icons.monitor_weight,
-                suffixText: 'kg',
-              ),
-              keyboardType: const TextInputType.numberWithOptions(
-                decimal: true,
-              ),
-              validator: (value) {
-                if (value != null && value.isNotEmpty) {
-                  final poids = double.tryParse(value);
-                  if (poids == null || poids <= 0) {
-                    return 'Veuillez entrer un poids valide';
-                  }
-                }
-                return null;
-              },
-            ),
-            const SizedBox(height: 16),
-
-            // Statut
-            DropdownButtonFormField<String>(
-              initialValue: _statutSelectionne,
-              decoration: AppTheme.inputDecoration(
-                label: AppLocalizations.of(context).labelStatut,
-                prefixIcon: Icons.info_outline,
-              ),
-              items: [
-                DropdownMenuItem(
-                  value: null,
-                  child: Text(AppLocalizations.of(context).labelAucun),
-                ),
-                ..._statuts.map((statut) {
-                  return DropdownMenuItem(value: statut, child: Text(statut));
-                }),
-              ],
-              onChanged: (value) {
-                setState(() {
-                  _statutSelectionne = value;
-                });
-              },
-            ),
-            const SizedBox(height: 16),
-
-            // Localisation
-            TextFormField(
-              controller: _localisationController,
-              decoration: AppTheme.inputDecoration(
-                label: AppLocalizations.of(context).labelLocalisation,
-                hint: AppLocalizations.of(context).hintLocalisation,
-                prefixIcon: Icons.location_on,
-              ),
-              textCapitalization: TextCapitalization.characters,
-            ),
-            const SizedBox(height: 16),
-
-            // Origine
-            DropdownButtonFormField<String>(
-              initialValue: _origineSelectionnee,
-              decoration: AppTheme.inputDecoration(
-                label: AppLocalizations.of(context).labelOrigine,
-                prefixIcon: Icons.flag,
-              ),
-              items: [
-                DropdownMenuItem(
-                  value: null,
-                  child: Text(AppLocalizations.of(context).labelNonSpecifiee),
-                ),
-                ..._origines.map((origine) {
-                  return DropdownMenuItem(value: origine, child: Text(origine));
-                }),
-              ],
-              onChanged: (value) {
-                setState(() {
-                  _origineSelectionnee = value;
-                });
-              },
-            ),
-            const SizedBox(height: 16),
-
-            // Numéro d'identification
-            TextFormField(
-              controller: _numeroIdController,
-              decoration: AppTheme.inputDecoration(
-                label: AppLocalizations.of(context).labelNumeroIdentification,
-                hint: AppLocalizations.of(context).hintNumeroId,
-                prefixIcon: Icons.qr_code,
-              ),
-              textCapitalization: TextCapitalization.characters,
-            ),
-            const SizedBox(height: 16),
-
-            // Prix d'achat
-            TextFormField(
-              controller: _prixAchatController,
-              decoration: AppTheme.inputDecoration(
-                label: AppLocalizations.of(context).labelPrixAchat,
-                hint: AppLocalizations.of(context).hintPrixAchat,
-                prefixIcon: Icons.euro,
-                suffixText: '€',
-              ),
-              keyboardType: const TextInputType.numberWithOptions(
-                decimal: true,
-              ),
-              validator: (value) {
-                if (value != null && value.isNotEmpty) {
-                  final prix = double.tryParse(value);
-                  if (prix == null || prix < 0) {
-                    return AppLocalizations.of(context).erreurPrixInvalide;
-                  }
-                }
-                return null;
-              },
-            ),
-            const SizedBox(height: 16),
-
-            // Caractéristiques
-            TextFormField(
-              controller: _caracteristiquesController,
-              decoration: AppTheme.inputDecoration(
-                label: AppLocalizations.of(context).labelCaracteristiques,
-                hint: AppLocalizations.of(context).hintCaracteristiques,
-                prefixIcon: Icons.description,
-              ),
-              maxLines: 2,
-            ),
-            const SizedBox(height: 16),
-
-            // Notes
-            TextFormField(
-              controller: _notesController,
-              decoration: AppTheme.inputDecoration(
-                label: AppLocalizations.of(context).labelNotes,
-                hint: AppLocalizations.of(context).hintNotes,
-                prefixIcon: Icons.note,
-              ),
-              maxLines: 3,
-            ),
-            const SizedBox(height: 24),
-
-            // Section Généalogie
-            Text(
-              'Généalogie (optionnel)',
-              style: Theme.of(
-                context,
-              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 12),
-
-            // Sélection du père
-            Consumer<LapinProvider>(
-              builder: (context, provider, child) {
-                final males = provider.lapins
-                    .where(
-                      (l) =>
-                          l.sexe.toLowerCase() == 'mâle' &&
-                          l.id != widget.lapin.id,
-                    ) // Exclure le lapin lui-même
-                    .toList();
-                return ParentSelector(
-                  label: AppLocalizations.of(context).labelPere,
-                  icon: Icons.male,
-                  parentSelectionne: _pereSelectionne,
-                  lapinsDisponibles: males,
-                  onChanged: (lapin) {
-                    setState(() {
-                      _pereSelectionne = lapin;
-                    });
-                  },
-                );
-              },
-            ),
-            const SizedBox(height: 12),
-
-            // Sélection de la mère
-            Consumer<LapinProvider>(
-              builder: (context, provider, child) {
-                final femelles = provider.lapins
-                    .where(
-                      (l) =>
-                          l.sexe.toLowerCase() == 'femelle' &&
-                          l.id != widget.lapin.id,
-                    ) // Exclure le lapin lui-même
-                    .toList();
-                return ParentSelector(
-                  label: AppLocalizations.of(context).labelMere,
-                  icon: Icons.female,
-                  parentSelectionne: _mereSelectionnee,
-                  lapinsDisponibles: femelles,
-                  onChanged: (lapin) {
-                    setState(() {
-                      _mereSelectionnee = lapin;
-                    });
-                  },
-                );
-              },
-            ),
-            const SizedBox(height: 24),
-
-            // Boutons d'action
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: () => Navigator.pop(context),
-                    icon: const Icon(Icons.close),
-                    label: Text(AppLocalizations.of(context).commonCancel),
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.all(16),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  flex: 2,
-                  child: FilledButton.icon(
-                    onPressed: _modifierLapin,
-                    icon: const Icon(Icons.save),
-                    label: Text(AppLocalizations.of(context).commonSave),
-                    style: FilledButton.styleFrom(
-                      padding: const EdgeInsets.all(16),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

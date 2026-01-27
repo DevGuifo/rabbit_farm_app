@@ -4,8 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../l10n/app_localizations.dart';
 import '../../services/notification_service.dart';
-import '../../services/supabase_auth_service.dart';
-import '../../services/navigation_service.dart';
+import '../../core/services/navigation_service.dart';
 import '../../utils/demo_data_loader.dart';
 import '../../providers/theme_provider.dart';
 import '../../providers/locale_provider.dart';
@@ -75,8 +74,8 @@ class _ParametresScreenState extends State<ParametresScreen> {
 
     return Scaffold(
       backgroundColor: isDark
-          ? AppTheme.stitchBackgroundDark
-          : AppTheme.stitchBackgroundLight,
+          ? AppTheme.backgroundDark
+          : AppTheme.backgroundLight,
       body: Column(
         children: [
           // Header sticky - Utilise StandardHeader unifié
@@ -128,29 +127,19 @@ class _ParametresScreenState extends State<ParametresScreen> {
                         displayEmail = userProvider.currentUser!.email;
                         avatarUrl = userProvider.currentUser!.photoPath;
                       } else {
-                        // Fallback sur AuthProvider
-                        final supabaseAuthService = SupabaseAuthService();
-                        final userEmail = supabaseAuthService.currentUserEmail;
+                        // Fallback sur AuthProvider (mode offline-first)
                         final userId = authProvider.currentUserId;
 
-                        displayName = userEmail != null
-                            ? userEmail.split('@').first
-                            : (userId != null
-                                  ? AppLocalizations.of(
-                                      context,
-                                    ).parametresUtilisateur
-                                  : AppLocalizations.of(
-                                      context,
-                                    ).parametresNonConnecte);
-                        displayEmail =
-                            userEmail ??
-                            (userId != null
-                                ? AppLocalizations.of(
-                                    context,
-                                  ).parametresCompteLocal
-                                : AppLocalizations.of(
-                                    context,
-                                  ).parametresNonConnecte);
+                        displayName = userId != null
+                            ? AppLocalizations.of(context).parametresUtilisateur
+                            : AppLocalizations.of(
+                                context,
+                              ).parametresNonConnecte;
+                        displayEmail = userId != null
+                            ? AppLocalizations.of(context).parametresCompteLocal
+                            : AppLocalizations.of(
+                                context,
+                              ).parametresNonConnecte;
                       }
 
                       return SettingsProfileSection(
@@ -424,8 +413,8 @@ class _ParametresScreenState extends State<ParametresScreen> {
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
                       color: isDark
-                          ? AppTheme.stitchSurfaceDark
-                          : AppTheme.stitchSurfaceLight,
+                          ? AppTheme.surfaceDark
+                          : AppTheme.surfaceWhite,
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(color: Colors.transparent),
                       boxShadow: [

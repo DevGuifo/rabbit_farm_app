@@ -5,7 +5,7 @@ import '../../providers/protocole_soin_provider.dart';
 import '../../utils/dialog_helper.dart';
 import '../../utils/snackbar_helper.dart';
 import '../../theme/app_theme.dart';
-import '../../widgets/uniform_app_bar.dart';
+import '../../widgets/common/common_widgets.dart';
 import '../../l10n/app_localizations.dart';
 
 /// Écran de gestion des protocoles de soin
@@ -30,10 +30,8 @@ class _ProtocolesScreenState extends State<ProtocolesScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: UniformAppBar(
+      appBar: SimpleAppBar(
         title: AppLocalizations.of(context).screenProtocolesSoin,
-        icon: Icons.assignment_rounded,
-        iconColor: AppTheme.info,
         actions: [
           PopupMenuButton<String>(
             icon: const Icon(Icons.filter_list),
@@ -99,10 +97,11 @@ class _ProtocolesScreenState extends State<ProtocolesScreen> {
           );
         },
       ),
-      floatingActionButton: FloatingActionButton.extended(
+      floatingActionButton: UnifiedFAB.extended(
         onPressed: () => _ajouterProtocole(context),
-        icon: const Icon(Icons.add),
-        label: Text(AppLocalizations.of(context).labelNouveauProtocole),
+        label: AppLocalizations.of(context).labelNouveauProtocole,
+        icon: Icons.add,
+        tooltip: AppLocalizations.of(context).labelNouveauProtocole,
       ),
     );
   }
@@ -318,7 +317,9 @@ class _ProtocolesScreenState extends State<ProtocolesScreen> {
       builder: (context) => StatefulBuilder(
         builder: (context, setState) => AlertDialog(
           title: Text(
-            protocole == null ? 'Nouveau protocole' : 'Modifier protocole',
+            protocole == null
+                ? AppLocalizations.of(context).labelNouveauProtocole
+                : AppLocalizations.of(context).btnModifier,
           ),
           content: SingleChildScrollView(
             child: Form(

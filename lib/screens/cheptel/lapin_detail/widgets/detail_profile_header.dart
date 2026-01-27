@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../models/lapin.dart';
+import '../../../../models/enums/sexe.dart';
 import '../../../../theme/app_theme.dart';
 
 /// Header de profil avec photo, nom, race, et statuts (Stitch Design)
@@ -32,7 +33,7 @@ class DetailProfileHeader extends StatelessWidget {
           const SizedBox(height: 6),
           // Race + Sex
           Text(
-            '${lapin.race} • ${lapin.sexe == 'Mâle' || lapin.sexe == 'male' ? 'Male' : 'Female'}',
+            '${lapin.race} • ${lapin.sexe == Sexe.male ? 'Male' : 'Female'}',
             style: AppTheme.bodyLarge.copyWith(
               fontWeight: FontWeight.w500,
               color: isDark ? AppTheme.neutral400 : AppTheme.neutral500,
@@ -57,7 +58,7 @@ class DetailProfileHeader extends StatelessWidget {
             shape: BoxShape.circle,
             color: isDark ? AppTheme.neutral800 : AppTheme.neutral200,
             border: Border.all(
-              color: isDark ? AppTheme.stitchSurfaceDark : AppTheme.cardLight,
+              color: isDark ? AppTheme.surfaceDark : AppTheme.cardLight,
               width: 6,
             ),
             boxShadow: [
@@ -88,7 +89,7 @@ class DetailProfileHeader extends StatelessWidget {
           child: Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: AppTheme.primaryYellow,
+              color: AppTheme.accentGreen,
               shape: BoxShape.circle,
               border: Border.all(
                 color: isDark
@@ -131,7 +132,7 @@ class DetailProfileHeader extends StatelessWidget {
         Container(
           padding: const EdgeInsets.only(left: 8, right: 12, top: 6, bottom: 6),
           decoration: BoxDecoration(
-            color: isDark ? AppTheme.textLight : AppTheme.stitchTextMainLight,
+            color: isDark ? AppTheme.textLight : AppTheme.textPrimary,
             borderRadius: BorderRadius.circular(AppTheme.radiusFull),
             boxShadow: [
               BoxShadow(
@@ -148,7 +149,7 @@ class DetailProfileHeader extends StatelessWidget {
                 width: 8,
                 height: 8,
                 decoration: const BoxDecoration(
-                  color: AppTheme.primaryYellow,
+                  color: AppTheme.accentGreen,
                   shape: BoxShape.circle,
                 ),
               ),

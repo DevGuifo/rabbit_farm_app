@@ -1,9 +1,10 @@
+import 'enums/finance_enums.dart';
+
 /// Modèle de données pour une dépense
 class Depense {
   final int? id;
   final DateTime date;
-  final String
-  categorie; // 'alimentation', 'veterinaire', 'equipement', 'autre'
+  final CategorieDepense categorie;
   final double montant;
   final String description;
   final String? notes;
@@ -21,7 +22,7 @@ class Depense {
   Depense copyWith({
     int? id,
     DateTime? date,
-    String? categorie,
+    CategorieDepense? categorie,
     double? montant,
     String? description,
     String? notes,
@@ -41,7 +42,7 @@ class Depense {
     return {
       'id': id,
       'date': date.toIso8601String(),
-      'categorie': categorie,
+      'categorie': categorie.toDatabase(),
       'montant': montant,
       'description': description,
       'notes': notes,
@@ -53,7 +54,7 @@ class Depense {
     return Depense(
       id: map['id'] as int?,
       date: DateTime.parse(map['date'] as String),
-      categorie: map['categorie'] as String,
+      categorie: CategorieDepense.fromString(map['categorie'] as String),
       montant: (map['montant'] as num).toDouble(),
       description: map['description'] as String,
       notes: map['notes'] as String?,

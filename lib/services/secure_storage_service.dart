@@ -2,21 +2,20 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../utils/logger.dart';
 
 /// Service de stockage sécurisé pour données sensibles
-/// 
+///
 /// Utilise flutter_secure_storage qui s'appuie sur :
 /// - Android : Keystore (AES-256)
 /// - iOS : Keychain (AES-256)
 /// - Linux : LibSecret
 /// - Windows : Win32 API
 class SecureStorageService {
-  static final SecureStorageService _instance = SecureStorageService._internal();
+  static final SecureStorageService _instance =
+      SecureStorageService._internal();
   factory SecureStorageService() => _instance;
   SecureStorageService._internal();
 
   final FlutterSecureStorage _storage = const FlutterSecureStorage(
-    aOptions: AndroidOptions(
-      encryptedSharedPreferences: true,
-    ),
+    aOptions: AndroidOptions(),
     iOptions: IOSOptions(
       accessibility: KeychainAccessibility.first_unlock_this_device,
     ),
@@ -24,9 +23,10 @@ class SecureStorageService {
 
   // ============= CLÉS DE STOCKAGE =============
 
-  static const String _keyUserId = 'supabase_user_id';
-  static const String _keyAccessToken = 'supabase_access_token';
-  static const String _keyRefreshToken = 'supabase_refresh_token';
+  static const String _keyUserId = 'user_id';
+  static const String _keyUserEmail = 'user_email';
+  static const String _keyAccessToken = 'access_token';
+  static const String _keyRefreshToken = 'refresh_token';
   static const String _keyPinHash = 'local_pin_hash';
   static const String _keyPinSalt = 'local_pin_salt';
   static const String _keyIsPinSet = 'is_pin_set';
@@ -199,5 +199,32 @@ class SecureStorageService {
   Future<void> clearLastSyncTimestamp() async {
     await delete(_keyLastSyncTimestamp);
   }
-}
 
+  // ============= MÉTHODES SPÉCIFIQUES - EMAIL =============
+
+  /// Stocker l'email utilisateur
+  Future<void> setUserEmail(String email) async {
+    await write(_keyUserEmail, email);
+    logger.info('✅ Email utilisateur stocké');
+  }
+
+  /// Récupérer l'email utilisateur
+  Future<String?> getUserEmail() async {
+    return await read(_keyUserEmail);
+  }
+
+  // ============= MÉTHODES DE NETTOYAGE =============
+
+  /// Supprimer uniquement les tokens de session (pas les données utilisateur)
+  Future<void> clearSessionTokens() async {
+    await delete(_keyAccessToken);
+    await delete(_keyRefreshToken);
+    logger.info('✅ Tokens de session supprimés');
+  }
+
+  /// Supprimer toutes les données (déconnexion complète)
+  Future<void> clearAll() async {
+    await deleteAll();
+    logger.info('✅ Toutes les données supprimées');
+  }
+}

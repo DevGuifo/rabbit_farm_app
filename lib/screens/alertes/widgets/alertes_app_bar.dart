@@ -127,7 +127,7 @@ class AlertesAppBar extends StatelessWidget implements PreferredSizeWidget {
   }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final surfaceColor = isDark
-        ? AppTheme.stitchSurfaceDarkAlt
+        ? AppTheme.surfaceDark
         : AppTheme.white;
 
     return Material(

@@ -84,7 +84,7 @@ class DetailAppBar extends StatelessWidget {
         onPressed: onPressed,
         icon: Icon(
           icon,
-          color: isDark ? AppTheme.textLight : AppTheme.stitchTextMainLight,
+          color: isDark ? AppTheme.textLight : AppTheme.textPrimary,
           size: icon == Icons.arrow_back ? 20 : 22,
         ),
         padding: EdgeInsets.zero,

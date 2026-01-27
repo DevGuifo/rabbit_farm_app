@@ -92,14 +92,14 @@ class _MedicamentsScreenState extends State<MedicamentsScreen> {
               var medicamentsFiltres = _filtreType == 'tous'
                   ? provider.medicaments
                   : provider.medicaments
-                        .where((m) => m.type == _filtreType)
+                        .where((m) => m.type.value == _filtreType)
                         .toList();
 
               // Filtrer par recherche
               if (_searchQuery.isNotEmpty) {
                 medicamentsFiltres = medicamentsFiltres.where((m) {
                   return m.nom.toLowerCase().contains(_searchQuery) ||
-                      m.type.toLowerCase().contains(_searchQuery);
+                      m.type.label.toLowerCase().contains(_searchQuery);
                 }).toList();
               }
 
@@ -168,11 +168,9 @@ class _MedicamentsScreenState extends State<MedicamentsScreen> {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
-        heroTag: 'fab_medicament',
+      floatingActionButton: UnifiedFAB(
         onPressed: () => MedicamentDialogs.showAjouterMedicamentDialog(context),
-        backgroundColor: AppTheme.primaryGreen,
-        child: const Icon(Icons.add),
+        tooltip: AppLocalizations.of(context).widgetAjouterMedicament,
       ),
     );
   }

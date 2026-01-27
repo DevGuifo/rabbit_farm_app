@@ -1,15 +1,17 @@
+import 'enums/tache_enums.dart';
+
 /// Modèle de données pour une tâche
 class Tache {
   final int? id;
   final String titre;
   final String? description;
   final DateTime datePlanification;
-  final String priorite; // 'haute', 'normale', 'basse'
-  final String categorie; // 'reproduction', 'sante', 'alimentation', 'entretien', 'administratif', 'autre'
-  final String statut; // 'a_faire', 'en_cours', 'terminee', 'annulee', 'reportee'
+  final PrioriteTache priorite;
+  final CategorieTache categorie;
+  final StatutTache statut;
   final int? lapinId; // Optionnel - association à un lapin
   final bool estRecurrente;
-  final String? frequenceRecurrence; // 'quotidienne', 'hebdomadaire', 'mensuelle', null
+  final FrequenceRecurrence? frequenceRecurrence;
   final DateTime dateCreation;
   final DateTime? dateModification;
   final DateTime? dateCompletion;
@@ -21,9 +23,9 @@ class Tache {
     required this.titre,
     this.description,
     required this.datePlanification,
-    this.priorite = 'normale',
-    this.categorie = 'autre',
-    this.statut = 'a_faire',
+    this.priorite = PrioriteTache.normale,
+    this.categorie = CategorieTache.autre,
+    this.statut = StatutTache.aFaire,
     this.lapinId,
     this.estRecurrente = false,
     this.frequenceRecurrence,
@@ -36,7 +38,9 @@ class Tache {
 
   /// Vérifier si la tâche est en retard
   bool get estEnRetard {
-    if (statut == 'terminee' || statut == 'annulee') return false;
+    if (statut == StatutTache.terminee || statut == StatutTache.annulee) {
+      return false;
+    }
     return DateTime.now().isAfter(datePlanification);
   }
 
@@ -59,7 +63,9 @@ class Tache {
     final now = DateTime.now();
     final debutSemaine = now.subtract(Duration(days: now.weekday - 1));
     final finSemaine = debutSemaine.add(const Duration(days: 6));
-    return datePlanification.isAfter(debutSemaine.subtract(const Duration(days: 1))) &&
+    return datePlanification.isAfter(
+          debutSemaine.subtract(const Duration(days: 1)),
+        ) &&
         datePlanification.isBefore(finSemaine.add(const Duration(days: 1)));
   }
 
@@ -69,12 +75,12 @@ class Tache {
     String? titre,
     String? description,
     DateTime? datePlanification,
-    String? priorite,
-    String? categorie,
-    String? statut,
+    PrioriteTache? priorite,
+    CategorieTache? categorie,
+    StatutTache? statut,
     int? lapinId,
     bool? estRecurrente,
-    String? frequenceRecurrence,
+    FrequenceRecurrence? frequenceRecurrence,
     DateTime? dateCreation,
     DateTime? dateModification,
     DateTime? dateCompletion,
@@ -107,12 +113,12 @@ class Tache {
       'titre': titre,
       'description': description,
       'date_planification': datePlanification.toIso8601String(),
-      'priorite': priorite,
-      'categorie': categorie,
-      'statut': statut,
+      'priorite': priorite.toDatabase(),
+      'categorie': categorie.toDatabase(),
+      'statut': statut.toDatabase(),
       'lapin_id': lapinId,
       'est_recurrente': estRecurrente ? 1 : 0,
-      'frequence_recurrence': frequenceRecurrence,
+      'frequence_recurrence': frequenceRecurrence?.toDatabase(),
       'date_creation': dateCreation.toIso8601String(),
       'date_modification': dateModification?.toIso8601String(),
       'date_completion': dateCompletion?.toIso8601String(),
@@ -128,12 +134,20 @@ class Tache {
       titre: map['titre'] as String,
       description: map['description'] as String?,
       datePlanification: DateTime.parse(map['date_planification'] as String),
-      priorite: map['priorite'] as String? ?? 'normale',
-      categorie: map['categorie'] as String? ?? 'autre',
-      statut: map['statut'] as String? ?? 'a_faire',
+      priorite: PrioriteTache.fromString(
+        map['priorite'] as String? ?? 'normale',
+      ),
+      categorie: CategorieTache.fromString(
+        map['categorie'] as String? ?? 'autre',
+      ),
+      statut: StatutTache.fromString(map['statut'] as String? ?? 'a_faire'),
       lapinId: map['lapin_id'] as int?,
       estRecurrente: (map['est_recurrente'] as int? ?? 0) == 1,
-      frequenceRecurrence: map['frequence_recurrence'] as String?,
+      frequenceRecurrence: map['frequence_recurrence'] != null
+          ? FrequenceRecurrence.fromString(
+              map['frequence_recurrence'] as String,
+            )
+          : null,
       dateCreation: DateTime.parse(map['date_creation'] as String),
       dateModification: map['date_modification'] != null
           ? DateTime.parse(map['date_modification'] as String)
@@ -151,4 +165,3 @@ class Tache {
     return 'Tache(id: $id, titre: $titre, statut: $statut, datePlanification: $datePlanification)';
   }
 }
-

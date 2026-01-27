@@ -4,9 +4,10 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/depense.dart';
+import '../../models/enums/finance_enums.dart';
 import '../../providers/finance_provider.dart';
 import '../../theme/app_theme.dart';
-import '../../widgets/uniform_app_bar.dart';
+import '../../widgets/common/common_widgets.dart';
 
 class AjouterDepenseScreen extends StatefulWidget {
   const AjouterDepenseScreen({super.key});
@@ -23,7 +24,7 @@ class _AjouterDepenseScreenState extends State<AjouterDepenseScreen> {
   final DateFormat _formatDate = DateFormat('dd/MM/yyyy');
 
   DateTime _dateSelectionnee = DateTime.now();
-  String _categorieSelectionnee = 'alimentation';
+  CategorieDepense _categorieSelectionnee = CategorieDepense.alimentation;
 
   @override
   void dispose() {
@@ -37,10 +38,8 @@ class _AjouterDepenseScreenState extends State<AjouterDepenseScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
-      appBar: UniformAppBar(
+      appBar: SimpleAppBar(
         title: AppLocalizations.of(context).financeAjouterDepense,
-        icon: Icons.remove_circle_rounded,
-        iconColor: AppTheme.error,
       ),
       body: Form(
         key: _formKey,
@@ -59,7 +58,7 @@ class _AjouterDepenseScreenState extends State<AjouterDepenseScreen> {
             const SizedBox(height: 16),
 
             // Catégorie
-            DropdownButtonFormField<String>(
+            DropdownButtonFormField<CategorieDepense>(
               initialValue: _categorieSelectionnee,
               decoration: InputDecoration(
                 labelText: AppLocalizations.of(context).financeCategorie,
@@ -68,25 +67,25 @@ class _AjouterDepenseScreenState extends State<AjouterDepenseScreen> {
               ),
               items: [
                 DropdownMenuItem(
-                  value: 'alimentation',
+                  value: CategorieDepense.alimentation,
                   child: Text(
                     AppLocalizations.of(context).financeCategorieAlimentation,
                   ),
                 ),
                 DropdownMenuItem(
-                  value: 'veterinaire',
+                  value: CategorieDepense.veterinaire,
                   child: Text(
                     AppLocalizations.of(context).financeCategorieSante,
                   ),
                 ),
                 DropdownMenuItem(
-                  value: 'equipement',
+                  value: CategorieDepense.equipement,
                   child: Text(
                     AppLocalizations.of(context).financeCategorieEquipement,
                   ),
                 ),
                 DropdownMenuItem(
-                  value: 'autre',
+                  value: CategorieDepense.autre,
                   child: Text(
                     AppLocalizations.of(context).financesCategorieAutre,
                   ),
@@ -155,17 +154,15 @@ class _AjouterDepenseScreenState extends State<AjouterDepenseScreen> {
               ),
               maxLines: 3,
             ),
-            const SizedBox(height: 24),
-
-            // Bouton d'ajout
-            ElevatedButton.icon(
-              onPressed: _enregistrer,
-              icon: const Icon(Icons.check),
-              label: Text(AppLocalizations.of(context).commonSave),
-              style: AppTheme.dangerButtonStyle,
-            ),
+            // Espace pour FormActionBar
+            const SizedBox(height: 80),
           ],
         ),
+      ),
+      bottomNavigationBar: FormActionBar(
+        onCancel: () => Navigator.pop(context),
+        onSave: _enregistrer,
+        saveText: AppLocalizations.of(context).commonSave,
       ),
     );
   }

@@ -1,0 +1,5 @@
+[Environment]::SetEnvironmentVariable(
+  "Path",
+  $env:Path + ";C:\Users\GUIFO\flutter\bin",
+  "Machine"
+)

@@ -2,16 +2,35 @@ import 'package:flutter/foundation.dart';
 import '../models/pesee.dart';
 import '../models/soin.dart';
 import '../models/journal_entry.dart';
-import '../services/database_helper.dart';
+import '../repositories/sante_repository.dart';
+import '../repositories/lapin_repository.dart';
 import '../services/notification_service.dart';
 import '../services/journal_service.dart';
+import '../models/enums/type_soin.dart';
 import '../utils/logger.dart';
 
-/// Provider pour gérer l'état des pesées et soins
 class SanteProvider with ChangeNotifier {
-  final DatabaseHelper _db = DatabaseHelper.instance;
-  final NotificationService _notificationService = NotificationService();
-  final JournalService _journal = JournalService();
+  final SanteRepository _repository;
+  final LapinRepository _lapinRepository;
+  final NotificationService _notificationService;
+  final JournalService _journal;
+
+  SanteProvider()
+    : _repository = SanteRepository.instance,
+      _lapinRepository = LapinRepository.instance,
+      _notificationService = NotificationService(),
+      _journal = JournalService();
+
+  @visibleForTesting
+  SanteProvider.withRepository(
+    SanteRepository repository,
+    LapinRepository lapinRepository, {
+    NotificationService? notificationService,
+    JournalService? journalService,
+  }) : _repository = repository,
+       _lapinRepository = lapinRepository,
+       _notificationService = notificationService ?? NotificationService(),
+       _journal = journalService ?? JournalService();
 
   List<Pesee> _pesees = [];
   List<Soin> _soins = [];
@@ -31,7 +50,7 @@ class SanteProvider with ChangeNotifier {
     notifyListeners();
 
     try {
-      _pesees = await _db.getAllPesees();
+      _pesees = await _repository.getAllPesees();
     } catch (e) {
       logger.error('Erreur lors du chargement des pesées', e);
     } finally {
@@ -46,7 +65,7 @@ class SanteProvider with ChangeNotifier {
     notifyListeners();
 
     try {
-      _soins = await _db.getAllSoins();
+      _soins = await _repository.getAllSoins();
     } catch (e) {
       logger.error('Erreur lors du chargement des soins', e);
     } finally {
@@ -63,11 +82,11 @@ class SanteProvider with ChangeNotifier {
   /// Ajouter une pesée
   Future<Pesee> ajouterPesee(Pesee pesee) async {
     try {
-      final nouvellePesee = await _db.insertPesee(pesee);
+      final nouvellePesee = await _repository.insertPesee(pesee);
       _pesees.insert(0, nouvellePesee);
 
       // Planifier un rappel de pesée hebdomadaire pour ce lapin
-      final lapin = await _db.getLapinById(pesee.lapinId);
+      final lapin = await _lapinRepository.getById(pesee.lapinId);
       if (lapin != null) {
         // Annuler l'ancien rappel s'il existe
         await _notificationService.annulerRappelPesee(pesee.lapinId);
@@ -98,7 +117,7 @@ class SanteProvider with ChangeNotifier {
   /// Modifier une pesée
   Future<void> modifierPesee(Pesee pesee) async {
     try {
-      await _db.updatePesee(pesee);
+      await _repository.updatePesee(pesee);
       final index = _pesees.indexWhere((p) => p.id == pesee.id);
       if (index != -1) {
         _pesees[index] = pesee;
@@ -113,7 +132,7 @@ class SanteProvider with ChangeNotifier {
   /// Supprimer une pesée
   Future<void> supprimerPesee(int id) async {
     try {
-      await _db.deletePesee(id);
+      await _repository.deletePesee(id);
       _pesees.removeWhere((p) => p.id == id);
       notifyListeners();
     } catch (e) {
@@ -131,18 +150,18 @@ class SanteProvider with ChangeNotifier {
   /// Ajouter un soin
   Future<Soin> ajouterSoin(Soin soin) async {
     try {
-      final nouveauSoin = await _db.insertSoin(soin);
+      final nouveauSoin = await _repository.insertSoin(soin);
       _soins.insert(0, nouveauSoin);
 
       // Planifier une notification si le soin a une date de rappel
       if (nouveauSoin.dateRappel != null && nouveauSoin.id != null) {
-        final lapin = await _db.getLapinById(nouveauSoin.lapinId);
+        final lapin = await _lapinRepository.getById(nouveauSoin.lapinId);
         if (lapin != null) {
           await _notificationService.planifierRappelSoin(
             soinId: nouveauSoin.id!,
             dateRappel: nouveauSoin.dateRappel!,
             nomLapin: lapin.nom,
-            typeSoin: nouveauSoin.type,
+            typeSoin: nouveauSoin.type.label,
           );
         }
       }
@@ -151,12 +170,14 @@ class SanteProvider with ChangeNotifier {
       notifyListeners();
 
       // 📝 Journal automatique
-      final lapinPourJournal = await _db.getLapinById(nouveauSoin.lapinId);
+      final lapinPourJournal = await _lapinRepository.getById(
+        nouveauSoin.lapinId,
+      );
       await _journal.soin(
         action: TypeAction.creation,
         soinId: nouveauSoin.id!,
         lapinNom: lapinPourJournal?.nom ?? 'Lapin #${nouveauSoin.lapinId}',
-        typeSoin: nouveauSoin.type,
+        typeSoin: nouveauSoin.type.label,
         contexte: {
           'date': nouveauSoin.date.toIso8601String(),
           if (nouveauSoin.notes != null) 'notes': nouveauSoin.notes,
@@ -173,7 +194,7 @@ class SanteProvider with ChangeNotifier {
   /// Modifier un soin
   Future<void> modifierSoin(Soin soin) async {
     try {
-      await _db.updateSoin(soin);
+      await _repository.updateSoin(soin);
       final index = _soins.indexWhere((s) => s.id == soin.id);
       if (index != -1) {
         _soins[index] = soin;
@@ -185,13 +206,13 @@ class SanteProvider with ChangeNotifier {
 
           // Replanifier si le soin a une date de rappel
           if (soin.dateRappel != null) {
-            final lapin = await _db.getLapinById(soin.lapinId);
+            final lapin = await _lapinRepository.getById(soin.lapinId);
             if (lapin != null) {
               await _notificationService.planifierRappelSoin(
                 soinId: soin.id!,
                 dateRappel: soin.dateRappel!,
                 nomLapin: lapin.nom,
-                typeSoin: soin.type,
+                typeSoin: soin.type.label,
               );
             }
           }
@@ -212,7 +233,7 @@ class SanteProvider with ChangeNotifier {
       // Annuler la notification associée
       await _notificationService.annulerRappelSoin(id);
 
-      await _db.deleteSoin(id);
+      await _repository.deleteSoin(id);
       _soins.removeWhere((s) => s.id == id);
       notifyListeners();
     } catch (e) {
@@ -224,7 +245,7 @@ class SanteProvider with ChangeNotifier {
   /// Récupérer les pesées d'un lapin
   Future<List<Pesee>> getPeseesByLapin(int lapinId) async {
     try {
-      return await _db.getPeseesByLapin(lapinId);
+      return await _repository.getPeseesByLapin(lapinId);
     } catch (e) {
       logger.error('Erreur lors de la récupération des pesées', e);
       return [];
@@ -234,7 +255,7 @@ class SanteProvider with ChangeNotifier {
   /// Récupérer les soins d'un lapin
   Future<List<Soin>> getSoinsByLapin(int lapinId) async {
     try {
-      return await _db.getSoinsByLapin(lapinId);
+      return await _repository.getSoinsByLapin(lapinId);
     } catch (e) {
       logger.error('Erreur lors de la récupération des soins', e);
       return [];
@@ -244,7 +265,7 @@ class SanteProvider with ChangeNotifier {
   /// Récupérer les soins avec rappel nécessaire
   Future<List<Soin>> getSoinsAvecRappel() async {
     try {
-      return await _db.getSoinsAvecRappel();
+      return await _repository.getSoinsAvecRappel();
     } catch (e) {
       logger.error('Erreur lors de la récupération des rappels', e);
       return [];
@@ -266,7 +287,7 @@ class SanteProvider with ChangeNotifier {
   List<Soin> getVaccinationsEnRetard() {
     final maintenant = DateTime.now();
     return _soins.where((soin) {
-      if (soin.type != 'Vaccination') return false;
+      if (soin.type != TypeSoin.vaccination) return false;
       if (soin.dateRappel == null) return false;
       return soin.dateRappel!.isBefore(maintenant);
     }).toList()..sort((a, b) => a.dateRappel!.compareTo(b.dateRappel!));
@@ -333,19 +354,19 @@ class SanteProvider with ChangeNotifier {
   Future<bool> estLapinMalade(int lapinId) async {
     try {
       // Vérifier le statut dans la base de données
-      final lapin = await _db.getLapinById(lapinId);
+      final lapin = await _lapinRepository.getById(lapinId);
       if (lapin?.statut == 'Malade') {
         return true;
       }
 
       // Vérifier les soins récents (traitements ou consultations dans les 30 derniers jours)
-      final soins = await _db.getSoinsByLapin(lapinId);
+      final soins = await _repository.getSoinsByLapin(lapinId);
       final maintenant = DateTime.now();
       final ilYATrenteJours = maintenant.subtract(const Duration(days: 30));
 
       final soinsRecents = soins.where((soin) {
         final estTraitementOuConsultation =
-            soin.type == 'Traitement' || soin.type == 'Consultation';
+            soin.type == TypeSoin.traitement || soin.type == TypeSoin.autre;
         final estRecent = soin.date.isAfter(ilYATrenteJours);
         return estTraitementOuConsultation && estRecent;
       }).toList();
@@ -361,7 +382,7 @@ class SanteProvider with ChangeNotifier {
   /// Obtenir la liste des IDs des lapins malades
   Future<List<int>> getLapinsMalades() async {
     try {
-      final lapins = await _db.getAllLapins();
+      final lapins = await _lapinRepository.getAll();
       final lapinsMalades = <int>[];
 
       for (final lapin in lapins) {

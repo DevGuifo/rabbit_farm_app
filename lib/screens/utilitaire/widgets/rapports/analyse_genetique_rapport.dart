@@ -3,6 +3,7 @@ import '../../../../l10n/app_localizations.dart';
 import '../../../../services/pdf_service.dart';
 import '../../../../utils/snackbar_helper.dart';
 import '../../../../theme/app_theme.dart';
+import '../../../../services/error_service.dart';
 
 /// Widget pour générer le rapport d'analyse génétique
 class AnalyseGenetiqueRapport extends StatelessWidget {
@@ -64,10 +65,7 @@ class AnalyseGenetiqueRapport extends StatelessWidget {
                     }
                   } catch (e) {
                     if (context.mounted) {
-                      SnackbarHelper.showError(
-                        context,
-                        '❌ Erreur: ${e.toString()}',
-                      );
+                      ErrorService.showError(context, e);
                     }
                   }
                 },

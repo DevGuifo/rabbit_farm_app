@@ -50,9 +50,9 @@ class MedicamentListItem extends StatelessWidget {
       ),
       child: ExpansionTile(
         leading: CircleAvatar(
-          backgroundColor: _getTypeColor(medicament.type),
+          backgroundColor: _getTypeColor(medicament.type.value),
           child: Icon(
-            _getTypeIcon(medicament.type),
+            _getTypeIcon(medicament.type.value),
             color: AppTheme.textOnPrimary,
           ),
         ),
@@ -151,7 +151,7 @@ class MedicamentListItem extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _InfoRow('Type', _getTypeLabel(medicament.type)),
+                _InfoRow('Type', medicament.type.label),
                 if (medicament.dateExpiration != null)
                   _InfoRow(
                     'Expiration',
@@ -207,21 +207,6 @@ class MedicamentListItem extends StatelessWidget {
         return Icons.energy_savings_leaf_rounded;
       default:
         return Icons.medication_rounded;
-    }
-  }
-
-  String _getTypeLabel(String type) {
-    switch (type) {
-      case 'antibiotique':
-        return 'Antibiotique';
-      case 'antiparasitaire':
-        return 'Antiparasitaire';
-      case 'vaccin':
-        return 'Vaccin';
-      case 'vitamine':
-        return 'Vitamine';
-      default:
-        return 'Autre';
     }
   }
 }

@@ -1,5 +1,6 @@
 import '../models/soin.dart';
 import '../models/lapin.dart';
+import '../models/enums/type_soin.dart';
 import '../services/database_helper.dart';
 import '../utils/logger.dart';
 
@@ -41,7 +42,7 @@ class SanteCalculService {
   List<Soin> _getVaccinationsEnRetard(List<Soin> soins) {
     final maintenant = DateTime.now();
     return soins.where((soin) {
-      if (soin.type != 'Vaccination') return false;
+      if (soin.type != TypeSoin.vaccination) return false;
       if (soin.dateRappel == null) return false;
       return soin.dateRappel!.isBefore(maintenant);
     }).toList();

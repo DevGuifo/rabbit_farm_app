@@ -2,14 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:rabbit_farm_app/l10n/app_localizations.dart';
 import '../../models/accouplement.dart';
+import '../../models/enums/statut_accouplement.dart';
 import '../../providers/reproduction_provider.dart';
 import '../../providers/lapin_provider.dart';
 import '../../providers/sync_provider.dart';
 import '../../utils/snackbar_helper.dart';
 import '../../utils/dialog_helper.dart';
 import '../../theme/app_theme.dart';
+import '../../repositories/reproduction_repository.dart';
 import '../../widgets/common/common_widgets.dart';
 import '../parametres/parametres_screen.dart';
+import '../alertes/alertes_screen.dart';
 import '../optimisation/sevrage_screen.dart';
 import '../optimisation/preparation_nid_screen.dart';
 import 'planifier_accouplement_screen.dart';
@@ -65,16 +68,16 @@ class _ReproductionScreenState extends State<ReproductionScreen> {
 
     if (_selectedFilter == '' || _selectedFilter == filters[0]) {
       // Tous
-      filtres = filtres.where((a) => a.statut != 'termine').toList();
+      filtres = filtres.where((a) => a.statut != StatutAccouplement.termine).toList();
     } else if (_selectedFilter == filters[1]) {
       // Gestantes
       filtres = filtres
-          .where((a) => a.statut == 'en_attente' || a.statut == 'confirme')
+          .where((a) => a.statut == StatutAccouplement.enAttente || a.statut == StatutAccouplement.confirme)
           .toList();
     } else if (_selectedFilter == filters[4]) {
       // Prêtes à sevrer
       filtres = filtres.where((a) {
-        if (a.statut != 'termine') return false;
+        if (a.statut != StatutAccouplement.termine) return false;
         final provider = context.read<ReproductionProvider>();
         try {
           final portee = provider.portees.firstWhere(
@@ -103,45 +106,54 @@ class _ReproductionScreenState extends State<ReproductionScreen> {
           : AppTheme.backgroundLight,
       body: Column(
         children: [
+          // Fixed header (like cheptel_screen)
           _buildHeader(isDark),
+          // Indicateur mode hors-ligne fixe
+          const OfflineBanner(),
+          // Scrollable content
           Expanded(
             child: RefreshIndicator(
               onRefresh: _chargerDonnees,
               color: AppTheme.primaryGreen,
-              child: Consumer<ReproductionProvider>(
-                builder: (context, reproProvider, _) {
-                  final displayedAccouplements = _appliquerFiltres(
-                    reproProvider.accouplements,
-                  );
-                  final toDisplay = _showAllPairings
-                      ? displayedAccouplements
-                      : displayedAccouplements.take(3).toList();
+              child: CustomScrollView(
+                slivers: [
+                  // Contenu scrollable
+                  SliverToBoxAdapter(
+                    child: Consumer<ReproductionProvider>(
+                      builder: (context, reproProvider, _) {
+                        final displayedAccouplements = _appliquerFiltres(
+                          reproProvider.accouplements,
+                        );
+                        final toDisplay = _showAllPairings
+                            ? displayedAccouplements
+                            : displayedAccouplements.take(3).toList();
 
-                  return SingleChildScrollView(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const SizedBox(height: 16),
-                        ReproductionStats(isDark: isDark),
-                        const SizedBox(height: 16),
-                        ReproductionPalpationAlert(isDark: isDark),
-                        const SizedBox(height: 8),
-                        _buildFilterPills(isDark),
-                        const SizedBox(height: 16),
-                        _buildSectionHeader(isDark),
-                        const SizedBox(height: 12),
-                        ReproductionPairingsList(
-                          isDark: isDark,
-                          accouplements: toDisplay,
-                          showAll: _showAllPairings,
-                          onEditTap: _editAccouplement,
-                          onDeleteTap: _deleteAccouplement,
-                        ),
-                        const SizedBox(height: 150),
-                      ],
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const SizedBox(height: 16),
+                            ReproductionStats(isDark: isDark),
+                            const SizedBox(height: 16),
+                            ReproductionPalpationAlert(isDark: isDark),
+                            const SizedBox(height: 8),
+                            _buildFilterPills(isDark),
+                            const SizedBox(height: 16),
+                            _buildSectionHeader(isDark),
+                            const SizedBox(height: 12),
+                            ReproductionPairingsList(
+                              isDark: isDark,
+                              accouplements: toDisplay,
+                              showAll: _showAllPairings,
+                              onEditTap: _editAccouplement,
+                              onDeleteTap: _deleteAccouplement,
+                            ),
+                            const SizedBox(height: 150),
+                          ],
+                        );
+                      },
                     ),
-                  );
-                },
+                  ),
+                ],
               ),
             ),
           ),
@@ -162,7 +174,12 @@ class _ReproductionScreenState extends State<ReproductionScreen> {
         await syncProvider.syncNow();
         _chargerDonnees();
       },
-      onNotifications: null, // Masquer car pas de fonctionnalité spécifique
+      onNotifications: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const AlertesScreen()),
+        );
+      },
       onSettings: () {
         Navigator.push(
           context,
@@ -218,44 +235,37 @@ class _ReproductionScreenState extends State<ReproductionScreen> {
     );
   }
 
+  /// FAB SpeedDial avec actions multiples
   Widget _buildFAB() {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        FloatingActionButton(
-          heroTag: 'fab_sevrage',
-          mini: true,
-          backgroundColor: AppTheme.warning,
+    return UnifiedFABSpeedDial(
+      actions: [
+        UnifiedFABAction(
+          icon: Icons.pets,
+          label: AppLocalizations.of(context).reproSevrage,
+          tooltip: AppLocalizations.of(context).reproSevrage,
           onPressed: () {
             Navigator.push(
               context,
               MaterialPageRoute(builder: (_) => const SevrageScreen()),
             );
           },
-          tooltip: AppLocalizations.of(context).reproSevrage,
-          child: const Icon(Icons.pets),
         ),
-        const SizedBox(height: 8),
-        FloatingActionButton(
-          heroTag: 'fab_nid',
-          mini: true,
-          backgroundColor: AppTheme.info,
+        UnifiedFABAction(
+          icon: Icons.home_work,
+          label: AppLocalizations.of(context).reproPreparationNid,
+          tooltip: AppLocalizations.of(context).reproPreparationNid,
           onPressed: () {
             Navigator.push(
               context,
               MaterialPageRoute(builder: (_) => const PreparationNidScreen()),
             );
           },
-          tooltip: AppLocalizations.of(context).reproPreparationNid,
-          child: const Icon(Icons.home_work),
         ),
-        const SizedBox(height: 8),
-        FloatingActionButton(
-          heroTag: 'fab_accouplement',
-          backgroundColor: AppTheme.primaryGreen,
-          onPressed: _planifierAccouplement,
+        UnifiedFABAction(
+          icon: Icons.favorite_rounded,
+          label: AppLocalizations.of(context).reproPlanifierSaillie,
           tooltip: AppLocalizations.of(context).reproPlanifierSaillie,
-          child: const Icon(Icons.add),
+          onPressed: _planifierAccouplement,
         ),
       ],
     );
@@ -270,18 +280,37 @@ class _ReproductionScreenState extends State<ReproductionScreen> {
     );
   }
 
-  void _deleteAccouplement(int accouplementId) {
+  void _deleteAccouplement(int accouplementId) async {
+    // Récupérer l'élément avant suppression pour permettre "Annuler"
+    final accouplement = await ReproductionRepository.instance
+        .getAccouplementById(accouplementId);
+
+    if (!mounted) return;
     DialogHelper.showConfirmDialog(
       context,
-      AppLocalizations.of(context).reproductionDeletePairing,
-      'Are you sure you want to delete this pairing?',
+      AppLocalizations.of(context).confirmDeleteGeneric,
+      AppLocalizations.of(context).commonDeleteQuestion,
       () async {
         try {
           await context.read<ReproductionProvider>().supprimerAccouplement(
             accouplementId,
           );
           if (!mounted) return;
-          SnackbarHelper.show(context, 'Accouplement supprimé');
+          SnackbarHelper.showSuccess(
+            context,
+            AppLocalizations.of(context).msgSuccessDeleted,
+            action: SnackBarAction(
+              label: AppLocalizations.of(context).annuler,
+              onPressed: () async {
+                if (accouplement != null && context.mounted) {
+                  // Réinsérer l'élément (nouvel ID sera attribué)
+                  await context
+                      .read<ReproductionProvider>()
+                      .ajouterAccouplement(accouplement.copyWith(id: null));
+                }
+              },
+            ),
+          );
         } catch (e) {
           if (!mounted) return;
           SnackbarHelper.showError(
@@ -290,6 +319,9 @@ class _ReproductionScreenState extends State<ReproductionScreen> {
           );
         }
       },
+      confirmLabel: AppLocalizations.of(context).btnSupprimer,
+      cancelLabel: AppLocalizations.of(context).annuler,
+      isDangerous: true,
     );
   }
 
@@ -314,7 +346,7 @@ class ReproductionPalpationAlert extends StatelessWidget {
       builder: (context, provider, _) {
         final now = DateTime.now();
         final accouplementsAPalper = provider.accouplements.where((a) {
-          if (a.statut != 'en_attente') return false;
+          if (a.statut != StatutAccouplement.enAttente) return false;
           final joursDepuis = now.difference(a.dateAccouplement).inDays;
           return joursDepuis >= 10 && joursDepuis <= 14;
         }).toList();

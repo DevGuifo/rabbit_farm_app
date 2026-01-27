@@ -18,7 +18,7 @@ class FormActionButtons extends StatelessWidget {
     final primaryColor = AppTheme.primaryNeonGreen;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final textSecondary = isDark
-        ? AppTheme.stitchGreenLight
+        ? AppTheme.success100
         : AppTheme.textSecondary;
 
     return Column(

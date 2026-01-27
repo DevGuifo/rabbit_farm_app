@@ -2,10 +2,11 @@ import 'package:flutter/material.dart';
 import '../../../models/batiment.dart';
 import '../../../models/clapier.dart';
 import '../../../models/cage.dart';
-import '../../../services/database_helper.dart';
-import '../../../services/localisation_service.dart'; // Extension methods
+import '../../../models/enums/localisation_enums.dart';
+import '../../../repositories/localisation_repository.dart';
 import 'package:rabbit_farm_app/theme/app_theme.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../../services/error_service.dart';
 
 /// Dialog Stitch pour ajout d'une nouvelle cage
 /// Design: Google Stitch - palette neon green #13EC25
@@ -34,13 +35,13 @@ class AddCageDialog extends StatefulWidget {
 
 class _AddCageDialogState extends State<AddCageDialog> {
   final _formKey = GlobalKey<FormState>();
-  final _dbHelper = DatabaseHelper.instance;
+  final _repository = LocalisationRepository.instance;
 
   final _cageIdController = TextEditingController();
   final _descriptionController = TextEditingController();
 
   int? _selectedBatimentId;
-  String _selectedType = 'individuelle';
+  TypeCage _selectedType = TypeCage.individuelle;
   int _capacite = 1;
 
   @override
@@ -61,25 +62,26 @@ class _AddCageDialogState extends State<AddCageDialog> {
 
     try {
       // Récupérer ou créer clapier
-      final clapiers = await _dbHelper.getClapiersByBatiment(
+      final clapiers = await _repository.getClapiersByBatiment(
         _selectedBatimentId!,
       );
       int clapierId;
 
       if (clapiers.isEmpty) {
-        clapierId = await _dbHelper.ajouterClapier(
+        final nouveauClapier = await _repository.insertClapier(
           Clapier(
             batimentId: _selectedBatimentId!,
             nom: 'Section A',
-            type: 'interieur',
+            type: TypeClapier.interieur,
           ),
         );
+        clapierId = nouveauClapier.id!;
       } else {
         clapierId = clapiers.first.id!;
       }
 
       // Créer la cage
-      await _dbHelper.ajouterCage(
+      await _repository.insertCage(
         Cage(
           clapierId: clapierId,
           numero: _cageIdController.text.trim(),
@@ -108,12 +110,7 @@ class _AddCageDialogState extends State<AddCageDialog> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(AppLocalizations.of(context).msgErreur(e.toString())),
-            backgroundColor: AppTheme.error,
-          ),
-        );
+        ErrorService.showError(context, e);
       }
     }
   }
@@ -128,9 +125,7 @@ class _AddCageDialogState extends State<AddCageDialog> {
       child: Container(
         constraints: const BoxConstraints(maxHeight: 720),
         decoration: BoxDecoration(
-          color: isDark
-              ? AppTheme.stitchBackgroundDark
-              : AppTheme.stitchBackgroundLight,
+          color: isDark ? AppTheme.backgroundDark : AppTheme.backgroundLight,
           borderRadius: BorderRadius.circular(20),
         ),
         child: Column(
@@ -315,7 +310,7 @@ class _AddCageDialogState extends State<AddCageDialog> {
           ),
         ),
         const SizedBox(height: 8),
-        DropdownButtonFormField<String>(
+        DropdownButtonFormField<TypeCage>(
           initialValue: _selectedType,
           decoration: InputDecoration(
             filled: true,
@@ -335,15 +330,15 @@ class _AddCageDialogState extends State<AddCageDialog> {
           ),
           items: [
             DropdownMenuItem(
-              value: 'individuelle',
+              value: TypeCage.individuelle,
               child: Text(AppLocalizations.of(context).cageTypeIndividuelle),
             ),
             DropdownMenuItem(
-              value: 'collective',
+              value: TypeCage.collective,
               child: Text(AppLocalizations.of(context).cageTypeCollective),
             ),
             DropdownMenuItem(
-              value: 'nid',
+              value: TypeCage.nid,
               child: Text(AppLocalizations.of(context).cageTypeNid),
             ),
           ],

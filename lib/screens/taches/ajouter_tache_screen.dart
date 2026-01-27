@@ -1,10 +1,11 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:rabbit_farm_app/l10n/app_localizations.dart';
 import 'package:intl/intl.dart';
 import '../../models/tache.dart';
+import '../../models/enums/tache_enums.dart';
 import '../../models/lapin.dart';
-import '../../providers/tache_provider.dart';
+import '../../providers/tache_generique_provider.dart';
 import '../../providers/lapin_provider.dart';
 import '../../utils/snackbar_helper.dart';
 import '../../theme/app_theme.dart';
@@ -28,12 +29,12 @@ class _AjouterTacheScreenState extends State<AjouterTacheScreen> {
 
   DateTime _datePlanification = DateTime.now();
   TimeOfDay _heurePlanification = TimeOfDay.now();
-  String _priorite = 'normale';
-  String _categorie = 'autre';
-  String _statut = 'a_faire';
+  PrioriteTache _priorite = PrioriteTache.normale;
+  CategorieTache _categorie = CategorieTache.autre;
+  StatutTache _statut = StatutTache.aFaire;
   Lapin? _lapinSelectionne;
   bool _estRecurrente = false;
-  String? _frequenceRecurrence;
+  FrequenceRecurrence? _frequenceRecurrence;
 
   @override
   void initState() {
@@ -114,7 +115,7 @@ class _AjouterTacheScreenState extends State<AjouterTacheScreen> {
     );
 
     try {
-      final tacheProvider = Provider.of<TacheProvider>(context, listen: false);
+      final tacheProvider = Provider.of<TacheGeneriqueProvider>(context, listen: false);
       if (widget.tache == null) {
         await tacheProvider.ajouterTache(tache);
         if (mounted) {
@@ -132,7 +133,10 @@ class _AjouterTacheScreenState extends State<AjouterTacheScreen> {
       }
     } catch (e) {
       if (mounted) {
-        SnackbarHelper.showError(context, 'Erreur : $e');
+        SnackbarHelper.showError(
+          context,
+          AppLocalizations.of(context).msgErreurOperationEchouee,
+        );
       }
     }
   }
@@ -145,12 +149,10 @@ class _AjouterTacheScreenState extends State<AjouterTacheScreen> {
       backgroundColor: isDark
           ? AppTheme.backgroundDark
           : AppTheme.backgroundLight,
-      appBar: UniformAppBar(
+      appBar: SimpleAppBar(
         title: widget.tache == null
             ? AppLocalizations.of(context).tachesNouvelleTache
             : AppLocalizations.of(context).tachesModifierTache,
-        icon: Icons.task_alt_rounded,
-        iconColor: AppTheme.accentAmber,
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -272,7 +274,7 @@ class _AjouterTacheScreenState extends State<AjouterTacheScreen> {
   }
 
   Widget _buildPrioriteSelector(bool isDark) {
-    return DropdownButtonFormField<String>(
+    return DropdownButtonFormField<PrioriteTache>(
       key: ValueKey(_priorite),
       initialValue: _priorite,
       decoration: InputDecoration(
@@ -280,26 +282,18 @@ class _AjouterTacheScreenState extends State<AjouterTacheScreen> {
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
         prefixIcon: const Icon(Icons.priority_high_rounded),
       ),
-      items: [
-        DropdownMenuItem(
-          value: 'haute',
-          child: Text(AppLocalizations.of(context).tachesPrioriteHaute),
-        ),
-        DropdownMenuItem(
-          value: 'normale',
-          child: Text(AppLocalizations.of(context).tachesPrioriteNormale),
-        ),
-        DropdownMenuItem(
-          value: 'basse',
-          child: Text(AppLocalizations.of(context).tachesPrioriteBasse),
-        ),
-      ],
+      items: PrioriteTache.values.map((priorite) {
+        return DropdownMenuItem(
+          value: priorite,
+          child: Text(priorite.label),
+        );
+      }).toList(),
       onChanged: (value) => setState(() => _priorite = value!),
     );
   }
 
   Widget _buildCategorieSelector(bool isDark) {
-    return DropdownButtonFormField<String>(
+    return DropdownButtonFormField<CategorieTache>(
       key: ValueKey(_categorie),
       initialValue: _categorie,
       decoration: InputDecoration(
@@ -307,32 +301,12 @@ class _AjouterTacheScreenState extends State<AjouterTacheScreen> {
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
         prefixIcon: const Icon(Icons.category_rounded),
       ),
-      items: [
-        DropdownMenuItem(
-          value: 'reproduction',
-          child: Text(AppLocalizations.of(context).catReproduction),
-        ),
-        DropdownMenuItem(
-          value: 'sante',
-          child: Text(AppLocalizations.of(context).catSante),
-        ),
-        DropdownMenuItem(
-          value: 'alimentation',
-          child: Text(AppLocalizations.of(context).catAlimentation),
-        ),
-        DropdownMenuItem(
-          value: 'entretien',
-          child: Text(AppLocalizations.of(context).catEntretien),
-        ),
-        DropdownMenuItem(
-          value: 'administratif',
-          child: Text(AppLocalizations.of(context).catAdministratif),
-        ),
-        DropdownMenuItem(
-          value: 'autre',
-          child: Text(AppLocalizations.of(context).typeAutre),
-        ),
-      ],
+      items: CategorieTache.values.map((categorie) {
+        return DropdownMenuItem(
+          value: categorie,
+          child: Text(categorie.label),
+        );
+      }).toList(),
       onChanged: (value) => setState(() => _categorie = value!),
     );
   }
@@ -381,7 +355,7 @@ class _AjouterTacheScreenState extends State<AjouterTacheScreen> {
         ),
         if (_estRecurrente) ...[
           const SizedBox(height: 8),
-          DropdownButtonFormField<String>(
+          DropdownButtonFormField<FrequenceRecurrence>(
             key: ValueKey(_frequenceRecurrence ?? 'none'),
             initialValue: _frequenceRecurrence,
             decoration: InputDecoration(
@@ -391,26 +365,12 @@ class _AjouterTacheScreenState extends State<AjouterTacheScreen> {
               ),
               prefixIcon: const Icon(Icons.repeat_rounded),
             ),
-            items: [
-              DropdownMenuItem(
-                value: 'quotidienne',
-                child: Text(
-                  AppLocalizations.of(context).tachesFrequenceQuotidienne,
-                ),
-              ),
-              DropdownMenuItem(
-                value: 'hebdomadaire',
-                child: Text(
-                  AppLocalizations.of(context).tachesFrequenceHebdomadaire,
-                ),
-              ),
-              DropdownMenuItem(
-                value: 'mensuelle',
-                child: Text(
-                  AppLocalizations.of(context).tachesFrequenceMensuelle,
-                ),
-              ),
-            ],
+            items: FrequenceRecurrence.values.map((frequence) {
+              return DropdownMenuItem(
+                value: frequence,
+                child: Text(frequence.label),
+              );
+            }).toList(),
             onChanged: (value) => setState(() => _frequenceRecurrence = value),
           ),
         ],
@@ -459,3 +419,4 @@ class _AjouterTacheScreenState extends State<AjouterTacheScreen> {
     );
   }
 }
+

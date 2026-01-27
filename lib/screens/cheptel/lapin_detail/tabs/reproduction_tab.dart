@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../../l10n/app_localizations.dart';
 import 'package:intl/intl.dart';
 import '../../../../models/accouplement.dart';
+import '../../../../models/enums/statut_accouplement.dart';
 import '../../../../models/portee.dart';
 import '../../../../theme/app_theme.dart';
 
@@ -53,7 +54,7 @@ class ReproductionTab extends StatelessWidget {
           Text(
             AppLocalizations.of(context).cheptelHistoriqueAccouplements,
             style: AppTheme.titleMedium.copyWith(
-              color: isDark ? AppTheme.textLight : AppTheme.stitchTextMainLight,
+              color: isDark ? AppTheme.textLight : AppTheme.textPrimary,
             ),
           ),
           const SizedBox(height: 12),
@@ -105,7 +106,7 @@ class ReproductionTab extends StatelessWidget {
               isDark,
               AppLocalizations.of(context).cheptelConfirmes,
               accouplements
-                  .where((a) => a.statut == 'confirme')
+                  .where((a) => a.statut == StatutAccouplement.confirme)
                   .length
                   .toString(),
               AppTheme.success,
@@ -166,16 +167,16 @@ class ReproductionTab extends StatelessWidget {
 
     Color statutColor;
     switch (accouplement.statut) {
-      case 'confirme':
+      case StatutAccouplement.confirme:
         statutColor = AppTheme.success;
         break;
-      case 'echec':
+      case StatutAccouplement.echec:
         statutColor = AppTheme.error;
         break;
-      case 'termine':
+      case StatutAccouplement.termine:
         statutColor = AppTheme.primaryGreen;
         break;
-      default:
+      case StatutAccouplement.enAttente:
         statutColor = AppTheme.warning;
     }
 
@@ -203,7 +204,7 @@ class ReproductionTab extends StatelessWidget {
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
-                  accouplement.statut.toUpperCase(),
+                  accouplement.statut.label.toUpperCase(),
                   style: TextStyle(
                     color: statutColor,
                     fontSize: 12,

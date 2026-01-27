@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../l10n/app_localizations.dart';
+import '../../models/enums/sexe.dart';
 import '../../providers/lapin_provider.dart';
 import '../../providers/sante_provider.dart';
 import '../../providers/sync_provider.dart';
 import '../../theme/app_theme.dart';
+import '../../theme/theme_variations.dart';
 import '../../widgets/common/common_widgets.dart';
 import 'fiche_sante_screen.dart';
 import '../optimisation/protocoles_screen.dart';
@@ -45,20 +47,31 @@ class _SanteScreenState extends State<SanteScreen> {
           : AppTheme.backgroundLight,
       body: Column(
         children: [
+          // Fixed header (like cheptel_screen)
           _buildHeader(isDark),
+          // Indicateur mode hors-ligne fixe
+          const OfflineBanner(),
+          // Scrollable content
           Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.only(bottom: 100),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildHeroSection(isDark),
-                  AppTheme.verticalSpace24,
-                  _buildActionGrid(isDark),
-                  AppTheme.verticalSpace24,
-                  _buildUpcomingTasks(isDark),
-                ],
-              ),
+            child: CustomScrollView(
+              slivers: [
+                // Contenu scrollable
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.only(bottom: 100),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildHeroSection(isDark),
+                        AppTheme.verticalSpace24,
+                        _buildActionGrid(isDark),
+                        AppTheme.verticalSpace24,
+                        _buildUpcomingTasks(isDark),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ],
@@ -111,7 +124,7 @@ class _SanteScreenState extends State<SanteScreen> {
             icon: Icons.monitor_heart,
             title: AppLocalizations.of(context).santeSuiviSante,
             subtitle: AppLocalizations.of(context).santeParametresVitaux,
-            color: AppTheme.primaryGreen,
+            color: ThemeVariations.sante.accentColor,
             onTap: () => _showRabbitSelector(context),
           ),
           _buildActionCard(
@@ -119,7 +132,7 @@ class _SanteScreenState extends State<SanteScreen> {
             icon: Icons.healing,
             title: AppLocalizations.of(context).santeSoinsTraitements,
             subtitle: AppLocalizations.of(context).santeActifsHistorique,
-            color: AppTheme.success,
+            color: ThemeVariations.sante.accentColor,
             onTap: () {
               Navigator.push(
                 context,
@@ -233,7 +246,7 @@ class _SanteScreenState extends State<SanteScreen> {
                           vertical: 4,
                         ),
                         decoration: BoxDecoration(
-                          color: AppTheme.primaryYellow.withValues(alpha: 0.2),
+                          color: AppTheme.accentGreen.withValues(alpha: 0.2),
                           borderRadius: BorderRadius.circular(999),
                         ),
                         child: Text(
@@ -241,7 +254,7 @@ class _SanteScreenState extends State<SanteScreen> {
                           style: AppTheme.caption.copyWith(
                             fontWeight: FontWeight.bold,
                             color: isDark
-                                ? AppTheme.primaryYellow
+                                ? AppTheme.accentGreen
                                 : AppTheme.backgroundDark,
                           ),
                         ),
@@ -280,7 +293,7 @@ class _SanteScreenState extends State<SanteScreen> {
                           color: AppTheme.accentTeal,
                           badge: 'RAPPEL',
                           title: soin.description,
-                          subtitle: soin.type,
+                          subtitle: soin.type.label,
                           onTap: () {
                             // Naviguer vers la fiche santé du lapin concerné
                             final lapinProvider = Provider.of<LapinProvider>(
@@ -395,28 +408,9 @@ class _SanteScreenState extends State<SanteScreen> {
   }
 
   Widget _buildFAB() {
-    return Container(
-      width: 64,
-      height: 64,
-      decoration: BoxDecoration(
-        color: AppTheme.primaryYellow,
-        shape: BoxShape.circle,
-        border: Border.all(color: AppTheme.cardLight, width: 4),
-        boxShadow: [
-          BoxShadow(
-            color: AppTheme.primaryYellow.withValues(alpha: 0.3),
-            blurRadius: 30,
-            offset: const Offset(0, 8),
-          ),
-        ],
-      ),
-      child: IconButton(
-        icon: const Icon(Icons.add, size: 32, color: AppTheme.backgroundDark),
-        onPressed: () {
-          // Menu contextuel : Ajouter pesée, soin, protocole
-          _showAddMenu();
-        },
-      ),
+    return UnifiedFAB(
+      onPressed: _showAddMenu,
+      tooltip: AppLocalizations.of(context).santeAjouterSoin,
     );
   }
 
@@ -498,12 +492,12 @@ class _SanteScreenState extends State<SanteScreen> {
               ...lapinProvider.lapins.take(5).map((lapin) {
                 return ListTile(
                   leading: CircleAvatar(
-                    backgroundColor: lapin.sexe == 'Mâle'
+                    backgroundColor: lapin.sexe == Sexe.male
                         ? AppTheme.accentCyan.withValues(alpha: 0.2)
                         : AppTheme.accentPink.withValues(alpha: 0.2),
                     child: Icon(
-                      lapin.sexe == 'Mâle' ? Icons.male : Icons.female,
-                      color: lapin.sexe == 'Mâle'
+                      lapin.sexe == Sexe.male ? Icons.male : Icons.female,
+                      color: lapin.sexe == Sexe.male
                           ? AppTheme.accentCyan
                           : AppTheme.accentPink,
                     ),
@@ -681,7 +675,7 @@ class _SanteScreenState extends State<SanteScreen> {
                     color: AppTheme.neonGreen,
                   ),
                   title: Text(soin.description),
-                  subtitle: Text(soin.type),
+                  subtitle: Text(soin.type.label),
                   trailing: const Icon(Icons.arrow_forward),
                 ),
               ),

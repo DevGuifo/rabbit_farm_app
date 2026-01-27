@@ -64,7 +64,7 @@ class LocalisationStatsCards extends StatelessWidget {
       height: 84,
       padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 6),
       decoration: BoxDecoration(
-        color: isDark ? AppTheme.stitchSurfaceDarkAlt : AppTheme.textOnPrimary,
+        color: isDark ? AppTheme.surfaceDark : AppTheme.textOnPrimary,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
           color: isDark ? AppTheme.greyDarkest : AppTheme.greyE5,
@@ -86,8 +86,8 @@ class LocalisationStatsCards extends StatelessWidget {
               fontSize: 28,
               fontWeight: FontWeight.bold,
               color: isDark
-                  ? AppTheme.stitchTextLight
-                  : AppTheme.stitchTextMainLight,
+                  ? AppTheme.textOnPrimary
+                  : AppTheme.textPrimary,
               letterSpacing: -0.5,
               height: 1,
             ),
@@ -99,8 +99,8 @@ class LocalisationStatsCards extends StatelessWidget {
               fontWeight: FontWeight.w600,
               letterSpacing: 0.5,
               color: isDark
-                  ? AppTheme.stitchGreen
-                  : AppTheme.stitchTextSecLight,
+                  ? AppTheme.accentGreen
+                  : AppTheme.textSecondary,
             ),
             textAlign: TextAlign.center,
           ),
@@ -118,7 +118,7 @@ class LocalisationStatsCards extends StatelessWidget {
       height: 84,
       padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 6),
       decoration: BoxDecoration(
-        color: isDark ? AppTheme.stitchSurfaceDarkAlt : AppTheme.textOnPrimary,
+        color: isDark ? AppTheme.surfaceDark : AppTheme.textOnPrimary,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
           color: isDark ? AppTheme.greyDarkest : AppTheme.greyE5,
@@ -149,8 +149,8 @@ class LocalisationStatsCards extends StatelessWidget {
                 fontSize: 28,
                 fontWeight: FontWeight.bold,
                 color: isDark
-                    ? AppTheme.stitchTextLight
-                    : AppTheme.stitchTextMainLight,
+                    ? AppTheme.textOnPrimary
+                    : AppTheme.textPrimary,
                 letterSpacing: -0.5,
                 height: 1,
               ),
@@ -162,8 +162,8 @@ class LocalisationStatsCards extends StatelessWidget {
                 fontWeight: FontWeight.w600,
                 letterSpacing: 0.5,
                 color: isDark
-                    ? AppTheme.stitchGreen
-                    : AppTheme.stitchTextSecLight,
+                    ? AppTheme.accentGreen
+                    : AppTheme.textSecondary,
                 height: 1.1,
               ),
               textAlign: TextAlign.center,

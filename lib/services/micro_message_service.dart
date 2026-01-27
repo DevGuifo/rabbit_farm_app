@@ -193,7 +193,7 @@ class MicroMessageService {
     required int joursConsecutifs,
     required int joursSansActivite,
     required int anomaliesOuvertes,
-    required int pourcentageRituels,
+    required int pourcentageTaches,
   }) {
     // Priorité 1: Alerte inactivité prolongée
     if (joursSansActivite >= 3) {
@@ -220,7 +220,7 @@ class MicroMessageService {
     }
 
     // Priorité 5: Rituels faibles
-    if (pourcentageRituels < 50) {
+    if (pourcentageTaches < 50) {
       return (
         '📊',
         'Cette semaine peut s\'améliorer',
@@ -235,9 +235,9 @@ class MicroMessageService {
   /// Obtenir un message de félicitations après rituel complété
   String getMessageRituelComplete(int rituelsCompletesAujourdhui) {
     if (rituelsCompletesAujourdhui >= 2) {
-      return '🏆 Les deux rituels du jour sont faits !';
+      return '🏆 Les deux vérifications du jour sont faites !';
     } else if (rituelsCompletesAujourdhui == 1) {
-      return '✅ Premier rituel du jour validé !';
+      return '✅ Première vérification validée !';
     }
     return '';
   }

@@ -1,5 +1,6 @@
 import 'validation_result.dart';
 import '../models/lapin.dart';
+import '../models/enums/sexe.dart';
 
 /// ❌ RÈGLES BLOQUANTES pour les lapins
 ///
@@ -71,22 +72,20 @@ class LapinValidator {
   }) {
     // L4 : Père doit être mâle
     if (pere != null) {
-      final sexePere = pere.sexe.toLowerCase();
-      if (sexePere != 'mâle' && sexePere != 'male' && sexePere != 'm') {
+      if (pere.sexe != Sexe.male) {
         return ValidationResult.error(
           '❌ Le père doit être un mâle.\n'
-          'Le lapin "${pere.nom}" est de sexe "${pere.sexe}".',
+          'Le lapin "${pere.nom}" est de sexe "${pere.sexe.label}".',
         );
       }
     }
 
     // L5 : Mère doit être femelle
     if (mere != null) {
-      final sexeMere = mere.sexe.toLowerCase();
-      if (sexeMere != 'femelle' && sexeMere != 'f') {
+      if (mere.sexe != Sexe.femelle) {
         return ValidationResult.error(
           '❌ La mère doit être une femelle.\n'
-          'Le lapin "${mere.nom}" est de sexe "${mere.sexe}".',
+          'Le lapin "${mere.nom}" est de sexe "${mere.sexe.label}".',
         );
       }
     }

@@ -37,7 +37,7 @@ class SevrageOptions extends StatelessWidget {
           const Text(
             'Options de sevrage',
             style: TextStyle(
-              color: Color(0xFF212121),
+              color: AppTheme.neutral900,
               fontSize: 16,
               fontWeight: FontWeight.bold,
             ),
@@ -65,7 +65,7 @@ class SevrageOptions extends StatelessWidget {
             ),
             subtitle: const Text(
               'Grouper plusieurs lapereaux du même sexe',
-              style: TextStyle(color: Color(0xFF757575), fontSize: 12),
+              style: TextStyle(color: AppTheme.neutral600, fontSize: 12),
             ),
             activeThumbColor: AppTheme.primary,
           ),

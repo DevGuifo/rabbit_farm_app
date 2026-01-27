@@ -37,7 +37,7 @@ class WelcomeBrandHeader extends StatelessWidget {
             letterSpacing: 1.2,
             color: isDark
                 ? AppTheme.stitchTextSecDark
-                : AppTheme.stitchTextSecLight,
+                : AppTheme.textSecondary,
           ),
         ),
       ],

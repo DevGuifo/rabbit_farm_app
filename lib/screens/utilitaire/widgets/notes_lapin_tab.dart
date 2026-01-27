@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../models/lapin.dart';
+import '../../../models/enums/sexe.dart';
 import '../../../theme/app_theme.dart';
 
 class NotesLapinTab extends StatelessWidget {
@@ -42,12 +43,12 @@ class NotesLapinTab extends StatelessWidget {
           margin: const EdgeInsets.only(bottom: 16),
           child: ExpansionTile(
             leading: CircleAvatar(
-              backgroundColor: lapin.sexe == 'male'
+              backgroundColor: lapin.sexe == Sexe.male
                   ? AppTheme.info.withValues(alpha: 0.1)
                   : AppTheme.accentPink50,
               child: Icon(
                 Icons.pets,
-                color: lapin.sexe == 'male'
+                color: lapin.sexe == Sexe.male
                     ? AppTheme.info
                     : AppTheme.accentPink,
               ),

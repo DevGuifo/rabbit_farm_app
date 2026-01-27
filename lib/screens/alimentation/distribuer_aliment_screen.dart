@@ -121,10 +121,8 @@ class _DistribuerAlimentScreenState extends State<DistribuerAlimentScreen> {
     final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: UniformAppBar(
+      appBar: SimpleAppBar(
         title: AppLocalizations.of(context).screenDistribuerAliment,
-        icon: Icons.grass_rounded,
-        iconColor: AppTheme.primaryGreen,
       ),
       backgroundColor: theme.colorScheme.surface,
       body: SingleChildScrollView(
@@ -271,8 +269,8 @@ class _DistribuerAlimentScreenState extends State<DistribuerAlimentScreen> {
                             ),
                           ),
                         )
-                      : const Text(
-                          'Enregistrer la distribution',
+                      : Text(
+                          AppLocalizations.of(context).btnEnregistrer,
                           style: AppTheme.titleSmall,
                         ),
                 ),

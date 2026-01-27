@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import '../../l10n/app_localizations.dart';
 import '../../providers/lapin_provider.dart';
 import '../../models/lapin.dart';
+import '../../models/enums/sexe.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/uniform_app_bar.dart';
 import 'widgets/notes_search_bar.dart';
@@ -133,12 +134,12 @@ class _NotesScreenState extends State<NotesScreen>
                           margin: const EdgeInsets.only(bottom: 16),
                           child: ExpansionTile(
                             leading: CircleAvatar(
-                              backgroundColor: lapin.sexe == 'M'
+                              backgroundColor: lapin.sexe == Sexe.male
                                   ? AppTheme.info.withValues(alpha: 0.2)
                                   : AppTheme.accentPink.withValues(alpha: 0.2),
                               child: Icon(
                                 Icons.pets,
-                                color: lapin.sexe == 'M'
+                                color: lapin.sexe == Sexe.male
                                     ? AppTheme.info
                                     : AppTheme.accentPink,
                               ),

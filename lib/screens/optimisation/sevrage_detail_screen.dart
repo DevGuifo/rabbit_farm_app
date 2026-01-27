@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import '../../models/portee.dart';
 import '../../models/lapin.dart';
+import '../../models/enums/sexe.dart';
 import '../../models/sevrage.dart';
 import '../../services/database_helper.dart';
-import '../../services/localisation_service.dart';
+import '../../repositories/localisation_repository.dart';
 import '../../utils/snackbar_helper.dart';
 import '../../widgets/cage_selector.dart';
 import '../../theme/app_theme.dart';
@@ -33,13 +34,14 @@ class SevrageDetailScreen extends StatefulWidget {
 
 class _SevrageDetailScreenState extends State<SevrageDetailScreen> {
   final _dbHelper = DatabaseHelper.instance;
+  final _localisationRepo = LocalisationRepository.instance;
   final _observationsController = TextEditingController();
   final _alimentationController = TextEditingController();
 
   List<Lapin> _petits = [];
   final Map<int, int?> _cagesSelectionnees = {}; // lapinId -> cage.id
   final Map<int, double?> _poids = {};
-  final Map<int, String> _sexes = {}; // lapinId -> sexe
+  final Map<int, Sexe> _sexes = {}; // lapinId -> sexe
   bool _separerParSexe = true;
   bool _utiliserCagesCollectives = false;
   bool _loading = true;
@@ -99,19 +101,17 @@ class _SevrageDetailScreenState extends State<SevrageDetailScreen> {
   /// Proposer des cages automatiquement selon le sexe et les disponibilités
   Future<void> _proposerCagesAutomatiques() async {
     try {
-      final cagesDisponibles = await _dbHelper.getCagesDisponibles();
+      final cagesDisponibles = await _localisationRepo.getCagesDisponibles();
 
       if (_separerParSexe) {
         // Séparer mâles et femelles
         final males = _petits.where((p) {
           final sexe = _sexes[p.id!] ?? p.sexe;
-          return sexe.toLowerCase() == 'male' ||
-              sexe.toLowerCase() == 'm' ||
-              sexe.toLowerCase() == 'mâle';
+          return sexe == Sexe.male;
         }).toList();
         final femelles = _petits.where((p) {
           final sexe = _sexes[p.id!] ?? p.sexe;
-          return sexe.toLowerCase() == 'femelle' || sexe.toLowerCase() == 'f';
+          return sexe == Sexe.femelle;
         }).toList();
 
         // Trouver une cage collective pour les mâles
@@ -212,7 +212,7 @@ class _SevrageDetailScreenState extends State<SevrageDetailScreen> {
       }
 
       // Vérifier la capacité
-      final occupantsActuels = await _dbHelper.getOccupantsCage(cageId);
+      final occupantsActuels = await _localisationRepo.getOccupantsCage(cageId);
       final capaciteRestante = cage.capacite - occupantsActuels;
 
       if (nbPetits > capaciteRestante) {
@@ -236,13 +236,11 @@ class _SevrageDetailScreenState extends State<SevrageDetailScreen> {
     // Confirmer avec l'utilisateur
     final males = _petits.where((p) {
       final sexe = _sexes[p.id!] ?? p.sexe;
-      return sexe.toLowerCase() == 'male' ||
-          sexe.toLowerCase() == 'm' ||
-          sexe.toLowerCase() == 'mâle';
+      return sexe == Sexe.male;
     }).length;
     final femelles = _petits.where((p) {
       final sexe = _sexes[p.id!] ?? p.sexe;
-      return sexe.toLowerCase() == 'femelle' || sexe.toLowerCase() == 'f';
+      return sexe == Sexe.femelle;
     }).length;
     if (!mounted) return;
     final confirm = await SevrageConfirmationDialog.show(
@@ -266,7 +264,7 @@ class _SevrageDetailScreenState extends State<SevrageDetailScreen> {
         // Récupérer le numéro de cage pour la localisation (legacy)
         String? cageNumero;
         if (cageId != null) {
-          final cage = await _dbHelper.getCageById(cageId);
+          final cage = await _localisationRepo.getCageById(cageId);
           cageNumero = cage?.numero;
         }
 
@@ -277,7 +275,7 @@ class _SevrageDetailScreenState extends State<SevrageDetailScreen> {
             'cage_id': cageId,
             'localisation': cageNumero, // Legacy field, keep for compatibility
             'poids': poids,
-            'sexe': sexe,
+            'sexe': sexe.toDatabase(),
           },
           where: 'id = ?',
           whereArgs: [petit.id],
@@ -294,7 +292,7 @@ class _SevrageDetailScreenState extends State<SevrageDetailScreen> {
 
       // 3. Créer l'enregistrement de sevrage
       final poidsMoyen = _calculerPoidsMoyen();
-      
+
       // Convertir les IDs de cages en numéros pour l'affichage
       final cageIds = _cagesSelectionnees.values.toSet().whereType<int>();
       final List<String> cageNumeros = [];
@@ -304,7 +302,7 @@ class _SevrageDetailScreenState extends State<SevrageDetailScreen> {
           cageNumeros.add(cage.numero);
         }
       }
-      
+
       final sevrage = Sevrage(
         porteeId: widget.portee.id!,
         dateSevrage: DateTime.now(),
@@ -394,14 +392,11 @@ class _SevrageDetailScreenState extends State<SevrageDetailScreen> {
                         totalPetits: _petits.length,
                         nbMales: _petits.where((p) {
                           final sexe = _sexes[p.id!] ?? p.sexe;
-                          return sexe.toLowerCase() == 'male' ||
-                              sexe.toLowerCase() == 'm' ||
-                              sexe.toLowerCase() == 'mâle';
+                          return sexe == Sexe.male;
                         }).length,
                         nbFemelles: _petits.where((p) {
                           final sexe = _sexes[p.id!] ?? p.sexe;
-                          return sexe.toLowerCase() == 'femelle' ||
-                              sexe.toLowerCase() == 'f';
+                          return sexe == Sexe.femelle;
                         }).length,
                         nbCagesUtilisees: _cagesSelectionnees.values
                             .toSet()
@@ -439,7 +434,7 @@ class _SevrageDetailScreenState extends State<SevrageDetailScreen> {
           color: isDark ? AppTheme.cardDark : AppTheme.cardLight,
           borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
           border: Border.all(
-            color: isDark ? AppTheme.stitchBorderDark : AppTheme.border,
+            color: isDark ? AppTheme.borderDark : AppTheme.border,
           ),
         ),
         child: Center(
@@ -486,10 +481,10 @@ class _SevrageDetailScreenState extends State<SevrageDetailScreen> {
               petit: petit,
               cageId: _cagesSelectionnees[petit.id],
               poids: _poids[petit.id],
-              sexe: _sexes[petit.id] ?? petit.sexe,
+              sexe: (_sexes[petit.id] ?? petit.sexe).label,
               onPoidsChanged: (p) => setState(() => _poids[petit.id!] = p),
               onSexeChanged: (s) => setState(() {
-                _sexes[petit.id!] = s;
+                _sexes[petit.id!] = Sexe.fromString(s);
                 // Re-proposer les cages si séparation par sexe activée
                 if (_separerParSexe) {
                   _proposerCagesAutomatiques();

@@ -270,7 +270,7 @@ class _CertificatVenteRapportState extends State<CertificatVenteRapport> {
                           'Sexe:',
                           style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
                         ),
-                        pw.Text(lapin.sexe),
+                        pw.Text(lapin.sexe.label),
                       ],
                     ),
                     pw.SizedBox(height: 8),

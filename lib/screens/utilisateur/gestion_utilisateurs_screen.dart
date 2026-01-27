@@ -4,7 +4,7 @@ import '../../l10n/app_localizations.dart';
 import '../../providers/user_provider.dart';
 import '../../models/user.dart';
 import '../../theme/app_theme.dart';
-import '../../widgets/uniform_app_bar.dart';
+import '../../widgets/common/common_widgets.dart';
 import 'ajouter_utilisateur_screen.dart';
 import 'historique_actions_screen.dart';
 import 'widgets/user_card.dart';
@@ -43,10 +43,8 @@ class _GestionUtilisateursScreenState extends State<GestionUtilisateursScreen> {
         backgroundColor: isDark
             ? AppTheme.backgroundDarkMode
             : AppTheme.backgroundLight,
-        appBar: UniformAppBar(
+        appBar: SimpleAppBar(
           title: AppLocalizations.of(context).utilisateursGestionTitre,
-          icon: Icons.group_rounded,
-          iconColor: AppTheme.error,
         ),
         body: Center(
           child: Column(
@@ -113,24 +111,19 @@ class _GestionUtilisateursScreenState extends State<GestionUtilisateursScreen> {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton.extended(
+      floatingActionButton: UnifiedFAB.extended(
         onPressed: () => _ajouterUtilisateur(context),
-        backgroundColor: AppTheme.primaryNeonGreen,
-        icon: const Icon(Icons.add_rounded, color: AppTheme.textOnPrimary),
-        label: Text(
-          AppLocalizations.of(context).utilisateursAjouter,
-          style: AppTheme.labelLarge.copyWith(color: AppTheme.textOnPrimary),
-        ),
+        label: AppLocalizations.of(context).utilisateursAjouter,
+        icon: Icons.add_rounded,
+        tooltip: AppLocalizations.of(context).utilisateursAjouter,
       ),
     );
   }
 
   Widget _buildHeader(bool isDark, UserProvider userProvider) {
-    return AppBar(
-      title: Text(AppLocalizations.of(context).utilisateursGestionTitre),
-      backgroundColor: isDark
-          ? AppTheme.backgroundDarkMode
-          : AppTheme.backgroundLight,
+    return SimpleAppBar(
+      title: AppLocalizations.of(context).utilisateursGestionTitre,
+      showBackButton: false,
       actions: [
         IconButton(
           icon: const Icon(Icons.refresh_rounded),
@@ -224,7 +217,7 @@ class _GestionUtilisateursScreenState extends State<GestionUtilisateursScreen> {
           TextButton(
             onPressed: () => Navigator.pop(context, true),
             style: TextButton.styleFrom(foregroundColor: AppTheme.error),
-            child: const Text('Désactiver'),
+            child: Text(AppLocalizations.of(context).btnDesactiver),
           ),
         ],
       ),

@@ -32,6 +32,10 @@ class StandardHeader extends StatelessWidget {
   final IconData? settingsIcon; // Permet de personnaliser l'icône settings
   final bool showNotificationBadge;
   final int notificationCount;
+  final bool showBackButton;
+  final VoidCallback? onBackPressed;
+  final List<Widget>? actions;
+  final PreferredSizeWidget? bottom;
 
   const StandardHeader({
     super.key,
@@ -43,6 +47,10 @@ class StandardHeader extends StatelessWidget {
     this.settingsIcon,
     this.showNotificationBadge = false,
     this.notificationCount = 0,
+    this.showBackButton = false,
+    this.onBackPressed,
+    this.actions,
+    this.bottom,
   });
 
   @override
@@ -51,56 +59,81 @@ class StandardHeader extends StatelessWidget {
       decoration: AppTheme.headerDecoration(isDark: isDark),
       child: SafeArea(
         bottom: false,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppTheme.spacing16,
-            vertical: AppTheme.spacing12,
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              // Titre
-              Text(
-                title,
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: isDark ? AppTheme.textLight : AppTheme.textPrimary,
-                  letterSpacing: -0.5,
-                ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppTheme.spacing16,
+                vertical: AppTheme.spacing12,
               ),
-              // Actions
-              Row(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  // Bouton de synchronisation avec état visuel
-                  if (onSync != null)
-                    Consumer2<SyncProvider, ConnectivityProvider>(
-                      builder: (context, syncProvider, connectivityProvider, _) {
-                        return _buildSyncButton(
-                          context,
-                          syncProvider,
-                          connectivityProvider,
-                        );
-                      },
+                  // Titre et bouton retour facultatif
+                  Expanded(
+                    child: Row(
+                      children: [
+                        if (showBackButton)
+                          IconButton(
+                            icon: Icon(
+                              Icons.arrow_back_ios_new_rounded,
+                              color: isDark ? AppTheme.textLight : AppTheme.textPrimary,
+                              size: 20,
+                            ),
+                            onPressed: onBackPressed ?? () => Navigator.pop(context),
+                          ),
+                        Text(
+                          title,
+                          style: TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                            color: isDark ? AppTheme.textLight : AppTheme.textPrimary,
+                            letterSpacing: -0.5,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
                     ),
-                  // Bouton de notifications
-                  if (onNotifications != null)
-                    _buildNotificationButton(context),
-                  // Bouton de paramètres
-                  if (onSettings != null)
-                    IconButton(
-                      icon: Icon(
-                        settingsIcon ?? Icons.settings,
-                        color: isDark
-                            ? AppTheme.textLight
-                            : AppTheme.textPrimary,
-                      ),
-                      onPressed: onSettings,
-                    ),
+                  ),
+                  // Actions
+                  Row(
+                    children: [
+                      // Actions personnalisées transmises
+                      if (actions != null) ...actions!,
+                      
+                      // Bouton de synchronisation avec état visuel
+                      if (onSync != null)
+                        Consumer2<SyncProvider, ConnectivityProvider>(
+                          builder: (context, syncProvider, connectivityProvider, _) {
+                            return _buildSyncButton(
+                              context,
+                              syncProvider,
+                              connectivityProvider,
+                            );
+                          },
+                        ),
+                      // Bouton de notifications
+                      if (onNotifications != null)
+                        _buildNotificationButton(context),
+                      // Bouton de paramètres
+                      if (onSettings != null)
+                        IconButton(
+                          icon: Icon(
+                            settingsIcon ?? Icons.settings,
+                            color: isDark
+                                ? AppTheme.textLight
+                                : AppTheme.textPrimary,
+                          ),
+                          onPressed: onSettings,
+                        ),
+                    ],
+                  ),
                 ],
               ),
-            ],
-          ),
+            ),
+            if (bottom != null) bottom!,
+          ],
         ),
       ),
     );

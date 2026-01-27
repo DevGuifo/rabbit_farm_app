@@ -1,9 +1,7 @@
 import 'dart:async';
-import 'dart:io';
 import 'package:flutter/foundation.dart';
-import '../services/supabase_sync_service.dart';
-import '../services/supabase_auth_service.dart';
-import '../services/database_helper.dart';
+import '../services/sync_service.dart';
+import '../config/supabase_config.dart';
 import '../providers/connectivity_provider.dart';
 import '../utils/logger.dart';
 
@@ -20,188 +18,271 @@ enum SyncState {
 
   /// Erreur de synchronisation
   error,
+
+  /// Synchronisation non disponible (onboarding non terminé ou Supabase non configuré)
+  unavailable,
+
+  /// En attente de connexion réseau
+  waitingForNetwork,
 }
 
-/// Provider pour gérer la synchronisation
-/// 
+/// Provider pour gérer la synchronisation (offline-first avec Supabase)
+///
 /// Gère :
 /// - L'état de synchronisation
-/// - La synchronisation automatique
-/// - La synchronisation manuelle
-/// - Les erreurs de synchronisation
+/// - Le comptage des éléments en attente
+/// - La synchronisation automatique après onboarding
+/// - L'intégration avec Supabase
+///
+/// IMPORTANT: La sync ne démarre QUE si :
+/// 1. L'onboarding est terminé (synchronisationAutorisee = true)
+/// 2. Supabase est configuré
+/// 3. Une connexion réseau est disponible
 class SyncProvider extends ChangeNotifier {
   static final SyncProvider _instance = SyncProvider._internal();
   factory SyncProvider() => _instance;
   SyncProvider._internal();
 
-  final SupabaseSyncService _syncService = SupabaseSyncService();
-  final SupabaseAuthService _authService = SupabaseAuthService();
+  final SyncService _syncService = SyncService();
+  StreamSubscription<int>? _pendingCountSubscription;
 
-  SyncState _state = SyncState.idle;
+  SyncState _state = SyncState.unavailable;
   String? _errorMessage;
   DateTime? _lastSyncTime;
   int _pendingChanges = 0;
-  ConnectivityProvider? _connectivityProvider;
   bool _isAutoSyncActive = false;
+  bool _onboardingCompleted = false;
+  bool _syncAuthorized = false;
 
   // ============= GETTERS =============
 
   SyncState get state => _state;
   String? get errorMessage => _errorMessage;
-  DateTime? get lastSyncTime => _lastSyncTime;
+  DateTime? get lastSyncTime => _lastSyncTime ?? _syncService.lastSyncTime;
   int get pendingChanges => _pendingChanges;
   bool get isSyncing => _state == SyncState.syncing;
   bool get hasError => _state == SyncState.error;
+  bool get isAutoSyncActive => _isAutoSyncActive;
+
+  /// Indique si la sync est possible (toutes conditions remplies)
+  bool get canSync =>
+      _onboardingCompleted && _syncAuthorized && supabaseConfig.isInitialized;
+
+  /// Message explicatif de l'état actuel
+  String get statusMessage {
+    switch (_state) {
+      case SyncState.idle:
+        return _pendingChanges > 0
+            ? '$_pendingChanges modification(s) en attente'
+            : 'Tout est synchronisé';
+      case SyncState.syncing:
+        return 'Synchronisation en cours...';
+      case SyncState.success:
+        return 'Synchronisation réussie';
+      case SyncState.error:
+        return _errorMessage ?? 'Erreur de synchronisation';
+      case SyncState.unavailable:
+        if (!_onboardingCompleted) {
+          return 'Terminez l\'onboarding pour activer la sync';
+        }
+        if (!supabaseConfig.isInitialized) {
+          return 'Mode hors ligne (Supabase non configuré)';
+        }
+        return 'Synchronisation non disponible';
+      case SyncState.waitingForNetwork:
+        return 'En attente de connexion...';
+    }
+  }
 
   // ============= INITIALISATION =============
 
   /// Initialiser le provider
   Future<void> initialize() async {
     try {
-      // Charger le timestamp de dernière sync
-      final syncService = SupabaseSyncService();
-      _lastSyncTime = syncService.lastSyncTime;
+      await _syncService.initialize();
 
-      // Compter les changements en attente
-      await _countPendingChanges();
+      // Écouter les changements de pending count
+      _pendingCountSubscription = _syncService.pendingCountStream.listen((
+        count,
+      ) {
+        _pendingChanges = count;
+        notifyListeners();
+      });
 
-      logger.info('✅ SyncProvider initialisé');
+      // Charger le nombre de changements en attente
+      await _refreshPendingCount();
+
+      // Déterminer l'état initial
+      _updateState();
+
+      logger.info('✅ SyncProvider initialisé (pending: $_pendingChanges)');
     } catch (e) {
       logger.error('❌ Erreur lors de l\'initialisation SyncProvider: $e');
+      _setState(SyncState.error);
+      _errorMessage = e.toString();
     }
   }
 
-  // ============= SYNCHRONISATION MANUELLE =============
+  /// Mettre à jour l'état du provider après onboarding
+  ///
+  /// Appelé par OnboardingProvider quand l'onboarding est terminé
+  void onOnboardingCompleted({bool syncAuthorized = true}) {
+    _onboardingCompleted = true;
+    _syncAuthorized = syncAuthorized;
+    _updateState();
 
-  /// Synchroniser manuellement toutes les données
-  /// 
-  /// Retourne true si la synchronisation réussit
+    if (canSync) {
+      logger.info('🎉 Onboarding terminé, synchronisation activée');
+      // Démarrer auto-sync si autorisé
+      if (_syncAuthorized && !_isAutoSyncActive) {
+        _syncService.startAutoSync();
+        _isAutoSyncActive = true;
+      }
+    } else {
+      logger.info('ℹ️ Onboarding terminé, sync désactivée par l\'utilisateur');
+    }
+
+    notifyListeners();
+  }
+
+  /// Charger l'état d'onboarding existant (au démarrage de l'app)
+  void setOnboardingState({
+    required bool completed,
+    required bool syncAuthorized,
+  }) {
+    _onboardingCompleted = completed;
+    _syncAuthorized = syncAuthorized;
+    _updateState();
+    notifyListeners();
+  }
+
+  /// Met à jour l'état en fonction des conditions
+  void _updateState() {
+    if (!_onboardingCompleted || !_syncAuthorized) {
+      _setState(SyncState.unavailable);
+    } else if (!supabaseConfig.isInitialized) {
+      _setState(SyncState.unavailable);
+    } else if (_state != SyncState.syncing) {
+      _setState(SyncState.idle);
+    }
+  }
+
+  // ============= COMPTAGE DES CHANGEMENTS =============
+
+  /// Rafraîchir le compteur d'éléments en attente
+  Future<void> _refreshPendingCount() async {
+    _pendingChanges = await _syncService.refreshPendingCount();
+    notifyListeners();
+  }
+
+  /// Obtenir le nombre de changements en attente (méthode publique)
+  Future<int> getPendingCount() async {
+    await _refreshPendingCount();
+    return _pendingChanges;
+  }
+
+  // ============= SYNCHRONISATION =============
+
+  /// Synchroniser maintenant
+  ///
+  /// Retourne true si la sync a réussi, false sinon.
+  /// Ne fait rien si l'onboarding n'est pas terminé ou si Supabase n'est pas configuré.
   Future<bool> syncNow() async {
+    // Vérifications préalables
+    if (!canSync) {
+      logger.info(
+        'ℹ️ Sync non disponible: onboarding=$_onboardingCompleted, '
+        'authorized=$_syncAuthorized, supabase=${supabaseConfig.isInitialized}',
+      );
+      _setState(SyncState.unavailable);
+      return false;
+    }
+
     if (_state == SyncState.syncing) {
       logger.warning('⚠️ Synchronisation déjà en cours');
       return false;
     }
 
-    // Vérifier que Supabase est disponible
-    if (!_authService.isAvailable) {
-      _setError('Le service de synchronisation n\'est pas disponible');
-      return false;
-    }
-
-    if (!_authService.isAuthenticated) {
-      _setError('Utilisateur non authentifié');
-      return false;
-    }
-
     _setState(SyncState.syncing);
     _clearError();
+    notifyListeners();
 
     try {
-      logger.info('🔄 Synchronisation manuelle démarrée');
+      final result = await _syncService.syncNow();
 
-      final success = await _syncService.syncAll();
-
-      if (success) {
-        _lastSyncTime = _syncService.lastSyncTime;
-        await _countPendingChanges();
+      if (result.success) {
+        _lastSyncTime = DateTime.now();
         _setState(SyncState.success);
-        logger.info('✅ Synchronisation manuelle réussie');
+        logger.info('✅ Sync réussie: ${result.syncedCount} éléments');
+
+        // Revenir à idle après un délai
+        Future.delayed(const Duration(seconds: 3), () {
+          if (_state == SyncState.success) {
+            _setState(SyncState.idle);
+          }
+        });
+
         return true;
       } else {
-        _setError('Échec de la synchronisation');
+        _setError(
+          result.errors.isNotEmpty
+              ? result.errors.first
+              : 'Échec de la synchronisation',
+        );
         return false;
       }
-    } on SocketException catch (e) {
-      logger.error('❌ Erreur réseau lors de la synchronisation: ${e.message}');
-      _setError('Erreur de connexion réseau. Vérifiez votre connexion Internet.');
-      return false;
-    } on TimeoutException catch (e) {
-      logger.error('❌ Timeout lors de la synchronisation: ${e.message}');
-      _setError('La synchronisation a pris trop de temps. Réessayez plus tard.');
-      return false;
     } catch (e) {
-      logger.error('❌ Erreur lors de la synchronisation: $e');
-      _setError('Erreur lors de la synchronisation: ${e.toString()}');
+      logger.error('❌ Erreur sync: $e');
+      _setError(e.toString());
       return false;
-    }
-  }
-
-  // ============= SYNCHRONISATION AUTOMATIQUE =============
-
-  /// Synchroniser automatiquement si les conditions sont remplies
-  /// 
-  /// Conditions :
-  /// - Utilisateur authentifié
-  /// - Connectivité réseau disponible
-  /// - Pas de synchronisation en cours
-  Future<bool> autoSync({
-    required ConnectivityProvider connectivityProvider,
-  }) async {
-    // Vérifier les conditions
-    if (!_authService.isAuthenticated) {
-      logger.debug('⏭️ Auto-sync ignorée : utilisateur non authentifié');
-      return false;
-    }
-
-    if (!connectivityProvider.isOnline) {
-      logger.debug('⏭️ Auto-sync ignorée : pas de connexion');
-      return false;
-    }
-
-    if (_state == SyncState.syncing) {
-      logger.debug('⏭️ Auto-sync ignorée : synchronisation déjà en cours');
-      return false;
-    }
-
-    // Vérifier s'il y a des changements en attente
-    await _countPendingChanges();
-    if (_pendingChanges == 0) {
-      logger.debug('⏭️ Auto-sync ignorée : aucun changement en attente');
-      return false;
-    }
-
-    // Lancer la synchronisation
-    logger.info('🔄 Auto-sync démarrée ($_pendingChanges changements en attente)');
-    return await syncNow();
-  }
-
-  // ============= COMPTAGE DES CHANGEMENTS =============
-
-  /// Compter les enregistrements avec is_dirty = 1
-  Future<void> _countPendingChanges() async {
-    try {
-      final db = await DatabaseHelper.instance.database;
-
-      final tables = [
-        'lapins',
-        'accouplements',
-        'portees',
-        'pesees',
-        'soins',
-        'recettes',
-        'depenses',
-        'deces',
-      ];
-
-      int total = 0;
-
-      for (final table in tables) {
-        try {
-          final result = await db.rawQuery(
-            'SELECT COUNT(*) as count FROM $table WHERE is_dirty = 1',
-          );
-          total += result.first['count'] as int? ?? 0;
-        } catch (e) {
-          // Table peut ne pas avoir les champs de sync encore
-          logger.debug('⚠️ Impossible de compter les changements pour $table: $e');
-        }
-      }
-
-      _pendingChanges = total;
+    } finally {
+      await _refreshPendingCount();
       notifyListeners();
-    } catch (e) {
-      logger.error('❌ Erreur lors du comptage des changements: $e');
     }
+  }
+
+  // ============= AUTO-SYNC =============
+
+  /// Démarrer la synchronisation automatique
+  void startAutoSync(ConnectivityProvider connectivityProvider) {
+    if (_isAutoSyncActive) {
+      logger.warning('⚠️ Auto-sync déjà active');
+      return;
+    }
+
+    if (!canSync) {
+      logger.info('ℹ️ Auto-sync non démarrée: conditions non remplies');
+      return;
+    }
+
+    _syncService.startAutoSync();
+    _isAutoSyncActive = true;
+    logger.info('📡 Auto-sync activée');
+    notifyListeners();
+  }
+
+  /// Arrêter la synchronisation automatique
+  void stopAutoSync() {
+    if (!_isAutoSyncActive) return;
+
+    _syncService.stopAutoSync();
+    _isAutoSyncActive = false;
+    logger.info('🛑 Auto-sync désactivée');
+    notifyListeners();
+  }
+
+  /// Activer/désactiver la sync (depuis les paramètres)
+  void setSyncEnabled(bool enabled) {
+    _syncAuthorized = enabled;
+
+    if (enabled && _onboardingCompleted && !_isAutoSyncActive) {
+      startAutoSync(ConnectivityProvider());
+    } else if (!enabled && _isAutoSyncActive) {
+      stopAutoSync();
+    }
+
+    _updateState();
+    notifyListeners();
   }
 
   // ============= GESTION D'ÉTAT =============
@@ -216,85 +297,29 @@ class SyncProvider extends ChangeNotifier {
   void _setError(String message) {
     _errorMessage = message;
     _setState(SyncState.error);
+    notifyListeners();
   }
 
   void _clearError() {
     _errorMessage = null;
-    if (_state == SyncState.error) {
-      _setState(SyncState.idle);
-    }
   }
 
-  /// Réinitialiser l'état d'erreur
-  void clearError() {
+  /// Réinitialiser l'état
+  void reset() {
     _clearError();
+    _onboardingCompleted = false;
+    _syncAuthorized = false;
+    _pendingChanges = 0;
+    _lastSyncTime = null;
+    stopAutoSync();
+    _setState(SyncState.unavailable);
     notifyListeners();
   }
 
-  /// Réinitialiser l'état après un succès
-  void resetState() {
-    if (_state == SyncState.success) {
-      _setState(SyncState.idle);
-    }
-  }
-
-  // ============= SYNCHRONISATION AUTOMATIQUE EN ARRIÈRE-PLAN =============
-
-  /// Démarrer la synchronisation automatique
-  /// 
-  /// Écoute les changements de connectivité et synchronise automatiquement
-  /// quand l'utilisateur est authentifié et en ligne
-  void startAutoSync(ConnectivityProvider connectivityProvider) {
-    if (_isAutoSyncActive) {
-      logger.debug('⚠️ Auto-sync déjà active');
-      return;
-    }
-
-    _connectivityProvider = connectivityProvider;
-    _isAutoSyncActive = true;
-
-    // Écouter les changements de connectivité
-    connectivityProvider.addListener(_handleConnectivityChange);
-
-    // Tenter une synchronisation immédiate si les conditions sont remplies
-    _tryAutoSync();
-
-    logger.info('✅ Auto-sync démarrée');
-  }
-
-  /// Arrêter la synchronisation automatique
-  void stopAutoSync() {
-    if (!_isAutoSyncActive) return;
-
-    if (_connectivityProvider != null) {
-      _connectivityProvider!.removeListener(_handleConnectivityChange);
-      _connectivityProvider = null;
-    }
-
-    _isAutoSyncActive = false;
-    logger.info('⏸️ Auto-sync arrêtée');
-  }
-
-  /// Gérer les changements de connectivité
-  void _handleConnectivityChange() {
-    if (!_isAutoSyncActive || _connectivityProvider == null) return;
-
-    // Si la connexion est rétablie, tenter une synchronisation
-    if (_connectivityProvider!.isOnline) {
-      _tryAutoSync();
-    }
-  }
-
-  /// Tenter une synchronisation automatique
-  Future<void> _tryAutoSync() async {
-    if (_connectivityProvider == null) return;
-
-    // Attendre un court délai pour éviter les synchronisations trop fréquentes
-    await Future.delayed(const Duration(seconds: 2));
-
-    if (!_isAutoSyncActive || _connectivityProvider == null) return;
-
-    await autoSync(connectivityProvider: _connectivityProvider!);
+  @override
+  void dispose() {
+    _pendingCountSubscription?.cancel();
+    stopAutoSync();
+    super.dispose();
   }
 }
-

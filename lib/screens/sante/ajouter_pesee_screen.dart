@@ -4,11 +4,12 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/lapin.dart';
+import '../../models/enums/sexe.dart';
 import '../../models/pesee.dart';
 import '../../providers/sante_provider.dart';
 import '../../utils/snackbar_helper.dart';
 import '../../theme/app_theme.dart';
-import '../../widgets/uniform_app_bar.dart';
+import '../../widgets/common/common_widgets.dart';
 
 /// Écran pour ajouter une pesée
 class AjouterPeseeScreen extends StatefulWidget {
@@ -77,7 +78,10 @@ class _AjouterPeseeScreenState extends State<AjouterPeseeScreen> {
       }
     } catch (e) {
       if (mounted) {
-        SnackbarHelper.showError(context, 'Erreur : $e');
+        SnackbarHelper.showError(
+          context,
+          AppLocalizations.of(context).msgErreurOperationEchouee,
+        );
       }
     }
   }
@@ -88,10 +92,8 @@ class _AjouterPeseeScreenState extends State<AjouterPeseeScreen> {
 
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
-      appBar: UniformAppBar(
+      appBar: SimpleAppBar(
         title: AppLocalizations.of(context).santePeseeDe(widget.lapin.nom),
-        icon: Icons.monitor_weight_rounded,
-        iconColor: AppTheme.info,
       ),
       body: Form(
         key: _formKey,
@@ -107,12 +109,12 @@ class _AjouterPeseeScreenState extends State<AjouterPeseeScreen> {
                   children: [
                     CircleAvatar(
                       radius: 30,
-                      backgroundColor: widget.lapin.sexe == 'Mâle'
+                      backgroundColor: widget.lapin.sexe == Sexe.male
                           ? AppTheme.accentCyan.withValues(alpha: 0.2)
                           : AppTheme.accentPink.withValues(alpha: 0.2),
                       child: Icon(
-                        widget.lapin.sexe == 'Mâle' ? Icons.male : Icons.female,
-                        color: widget.lapin.sexe == 'Mâle'
+                        widget.lapin.sexe == Sexe.male ? Icons.male : Icons.female,
+                        color: widget.lapin.sexe == Sexe.male
                             ? AppTheme.accentCyan
                             : AppTheme.accentPink,
                         size: 32,
@@ -189,17 +191,15 @@ class _AjouterPeseeScreenState extends State<AjouterPeseeScreen> {
               ),
               maxLines: 3,
             ),
-            AppTheme.verticalSpace24,
-
-            // Bouton enregistrer
-            FilledButton.icon(
-              onPressed: _enregistrerPesee,
-              icon: const Icon(Icons.save),
-              label: Text(AppLocalizations.of(context).santeEnregistrerPesee),
-              style: FilledButton.styleFrom(padding: AppTheme.paddingAllMedium),
-            ),
+            // Espace pour éviter que le FormActionBar ne cache le contenu
+            const SizedBox(height: 80),
           ],
         ),
+      ),
+      bottomNavigationBar: FormActionBar(
+        onCancel: () => Navigator.pop(context),
+        onSave: _enregistrerPesee,
+        saveText: AppLocalizations.of(context).santeEnregistrerPesee,
       ),
     );
   }

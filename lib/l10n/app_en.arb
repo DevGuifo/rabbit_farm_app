@@ -3,22 +3,21 @@
   "@@last_modified": "2026-01-04",
   "@@author": "BunnyManager Team",
   "@@context": "Professional rabbit farming application - Educational and neutral vocabulary",
-
   "appTitle": "BunnyManager",
   "appDescription": "Professional rabbit farm management",
-
+  "splashLoading": "LOADING",
   "navDashboard": "Dashboard",
   "navCheptel": "Herd",
   "navSante": "Health",
   "navReproduction": "Breeding",
   "navFinances": "Finances",
+  "navPlus": "More",
   "navParametres": "Settings",
   "navUtilitaires": "Tools",
   "navAlimentation": "Feeding",
   "navAlertes": "Alerts",
   "navStocks": "Inventory",
   "navRapports": "Reports",
-
   "monElevage": "My Farm",
   "centreSante": "Health Center",
   "soinTraitements": "Care & Treatments",
@@ -33,7 +32,6 @@
   "accedezFonctionnalites": "Access the different features",
   "rapportsPdf": "PDF Reports",
   "rapportNonDisponible": "Report not available",
-
   "tous": "All",
   "femelles": "Does",
   "males": "Bucks",
@@ -52,10 +50,21 @@
   "rechercherParIdNomRace": "Search by ID, name or breed...",
   "rechercherAliment": "Search for feed...",
   "rechercher": "Search...",
-
   "cheptelAucunLapinTrouve": "No rabbit found",
   "cheptelVoirFiche": "View profile",
   "cheptelMettreQuarantaine": "Quarantine",
+  "cheptelActionPesee": "Add weighing",
+  "@cheptelActionPesee": {
+    "description": "Quick action - Add weighing"
+  },
+  "cheptelActionSoin": "Record care",
+  "@cheptelActionSoin": {
+    "description": "Quick action - Add care record"
+  },
+  "cheptelActionFicheSante": "Health sheet",
+  "@cheptelActionFicheSante": {
+    "description": "Quick action - Health sheet"
+  },
   "cheptelAjouterLapin": "Add a rabbit",
   "cheptelPrendrePhoto": "Take a photo",
   "cheptelChoisirGalerie": "Choose from gallery",
@@ -68,11 +77,12 @@
   "reproAccouplerAvec": "Mate {nom}",
   "@reproAccouplerAvec": {
     "placeholders": {
-      "nom": {"type": "String"}
+      "nom": {
+        "type": "String"
+      }
     }
   },
   "reproPlanifierSaillie": "Plan mating",
-
   "santeSubtitle": "Manage health and farm monitoring",
   "santeSuiviSante": "Health\nTracking",
   "santeParametresVitaux": "Vital parameters",
@@ -121,31 +131,41 @@
   "erreurNomMedicamentRequis": "Please enter the medicine name",
   "erreurQuantiteInvalide": "Please enter a valid quantity",
   "erreurSeuilInvalide": "Please enter a valid threshold",
-
   "santePeseeDe": "Weight record for {nom}",
   "@santePeseeDe": {
     "placeholders": {
-      "nom": {"type": "String"}
+      "nom": {
+        "type": "String"
+      }
     }
   },
   "santeDatePesee": "Weight date",
   "santePoids": "Weight (kg)",
   "santeEnregistrerPesee": "Save weight record",
   "santeModifierPesee": "Edit weight record",
-
   "filtreTous": "All",
-  "@filtreTous": {"description": "Filter - All items"},
+  "@filtreTous": {
+    "description": "Filter - All items"
+  },
   "filtreTraitements": "Treatments",
-  "@filtreTraitements": {"description": "Filter - Treatments"},
+  "@filtreTraitements": {
+    "description": "Filter - Treatments"
+  },
   "filtreRoutineSoins": "Care routine",
-  "@filtreRoutineSoins": {"description": "Filter - Care routine"},
+  "@filtreRoutineSoins": {
+    "description": "Filter - Care routine"
+  },
   "filtreVaccins": "Vaccines",
-  "@filtreVaccins": {"description": "Filter - Vaccines"},
+  "@filtreVaccins": {
+    "description": "Filter - Vaccines"
+  },
   "filtreStockBas": "Low stock",
-  "@filtreStockBas": {"description": "Filter - Low stock"},
-
+  "@filtreStockBas": {
+    "description": "Filter - Low stock"
+  },
   "financeAjouterDepense": "Add expense",
   "financeModifierDepense": "Edit expense",
+  "financeEvolution": "Financial Evolution",
   "financeAjouterRecette": "Add income",
   "financeModifierRecette": "Edit income",
   "financeDate": "Date",
@@ -169,7 +189,6 @@
   "financeAucuneRecetteDetail": "Add income to get started",
   "financeAucuneDepense": "No expenses",
   "financeAucuneDepenseDetail": "Add an expense to track your costs",
-
   "paramGeneral": "GENERAL",
   "paramUnitesMesure": "Units of measurement",
   "paramLangue": "Language",
@@ -187,7 +206,11 @@
   "paramEtatSynchronisation": "Synchronization status",
   "paramEtatSynchronisationDetail": "Last sync: {time}",
   "@paramEtatSynchronisationDetail": {
-    "placeholders": {"time": {"type": "String"}}
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
   },
   "paramExporterDonnees": "Export data",
   "paramGestion": "MANAGEMENT",
@@ -206,10 +229,17 @@
   "paramDeveloppe": "Developed by",
   "paramDeveloppeNom": "GUIFO KAMTO ROSTAND Jr",
   "paramLogOut": "Log Out",
-
   "utilTitre": "Utilities",
   "utilOutilsGestion": "Management tools",
   "utilOutilsGestionDetail": "Access various features",
+  "plusTitre": "More",
+  "plusSousTitre": "Additional Features",
+  "plusDescription": "Access tools and secondary sections",
+  "plusReproductionDetail": "Breeding and litter management",
+  "plusGestion": "Management",
+  "plusOptimisation": "Optimization",
+  "plusRentabilite": "Profitability",
+  "plusOutils": "Tools",
   "utilFinances": "Finances",
   "utilFinancesDetail": "Manage your income and expenses",
   "utilAlimentation": "Feed",
@@ -224,6 +254,8 @@
   "utilReformeDetail": "Culling management",
   "utilGestionnaireTaches": "Task manager",
   "utilGestionnaireTachesDetail": "Organize your daily tasks",
+  "utilTaches": "Tasks",
+  "utilTachesDetail": "Manage your tasks and reminders",
   "utilCalculatrice": "Calculator",
   "utilCalculatriceDetail": "Calculations and estimates",
   "utilRapports": "Reports",
@@ -236,7 +268,8 @@
   "utilExportImportDetail": "Backup your data",
   "utilLocalisation": "Location",
   "utilLocalisationDetail": "Manage your locations",
-
+  "utilLots": "Batches",
+  "utilLotsDetail": "Manage by groups",
   "utilNotesObservations": "Notes & Observations",
   "utilNoteLapin": "Rabbit Note",
   "utilNoteGenerale": "General Note",
@@ -245,14 +278,17 @@
   "utilAucunBatimentDetail": "Add your first building",
   "utilAucuneCage": "No cage found",
   "utilAucuneCageDetail": "Add a cage to get started",
-  "utilDonneesSynchronisees": "✓ Data synchronized",
-  "utilBatimentSupprime": "✓ Building deleted",
-  "utilCageSupprimee": "✓ Cage deleted",
+  "utilDonneesSynchronisees": "âœ“ Data synchronized",
+  "utilBatimentSupprime": "âœ“ Building deleted",
+  "utilCageSupprimee": "âœ“ Cage deleted",
   "utilErreur": "Error: {message}",
   "@utilErreur": {
-    "placeholders": {"message": {"type": "String"}}
+    "placeholders": {
+      "message": {
+        "type": "String"
+      }
+    }
   },
-
   "utilSante": "Health",
   "utilDosagesAvances": "Advanced Dosages",
   "utilPerformance": "Performance",
@@ -274,27 +310,33 @@
   "utilDosageGroupe": "Group dosage",
   "utilConcentrationProduit": "Mother product concentration (mg/ml)",
   "utilRemplirChamps": "Please fill in all fields",
-
   "utilCalendrierPlanning": "Calendar & Planning",
   "utilSelectionnezDate": "Select a date",
   "utilLapinIntrouvable": "Rabbit not found",
-  "utilTache": "🔨 Task",
-  "utilRappel": "⏰ Reminder",
-  "utilRendezVous": "📅 Appointment",
-  "utilMaintenance": "🔧 Maintenance",
-  "utilControle": "✅ Control",
-  "utilAutre": "📝 Other",
+  "utilTache": "ðŸ”¨ Task",
+  "utilRappel": "â° Reminder",
+  "utilRendezVous": "ðŸ“… Appointment",
+  "utilMaintenance": "ðŸ”§ Maintenance",
+  "utilControle": "âœ… Control",
+  "utilAutre": "ðŸ“ Other",
   "utilTitreRequis": "Title is required",
-  "utilAjouteCalendrier": "✅ \"{titre}\" added to calendar",
+  "utilAjouteCalendrier": "âœ… \"{titre}\" added to calendar",
   "@utilAjouteCalendrier": {
-    "placeholders": {"titre": {"type": "String"}}
+    "placeholders": {
+      "titre": {
+        "type": "String"
+      }
+    }
   },
-
   "widgetModifier": "Edit",
   "widgetEnregistrer": "Save",
   "widgetCageStatut": "This cage is {statut}",
   "@widgetCageStatut": {
-    "placeholders": {"statut": {"type": "String"}}
+    "placeholders": {
+      "statut": {
+        "type": "String"
+      }
+    }
   },
   "widgetErreur": "Error",
   "widgetReessayer": "Retry",
@@ -302,7 +344,11 @@
   "widgetAucunLapinDisponible": "No rabbit available",
   "widgetSelectionner": "Select {label}",
   "@widgetSelectionner": {
-    "placeholders": {"label": {"type": "String"}}
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
   },
   "widgetAjouterMedicament": "Add a medication",
   "widgetNomMedicament": "Medication name *",
@@ -316,12 +362,15 @@
   "widgetNomObligatoire": "Name is required",
   "widgetMedicamentAjoute": "Medication \"{nom}\" added",
   "@widgetMedicamentAjoute": {
-    "placeholders": {"nom": {"type": "String"}}
+    "placeholders": {
+      "nom": {
+        "type": "String"
+      }
+    }
   },
   "widgetSelectionnerMedicament": "Select a medication...",
   "widgetAvertissement": "Warning",
   "widgetContinuerQuandMeme": "Continue anyway",
-
   "authVeuillezRemplirChamps": "Please fill in all fields",
   "authMotsPasseNonCorrespondent": "Passwords do not match",
   "authMotPasseMinCaracteres": "Password must contain at least 6 characters",
@@ -330,7 +379,6 @@
   "authFermer": "Close",
   "authConditionsUtilisation": "Terms of Use",
   "authPolitiqueConfidentialite": "Privacy Policy",
-
   "authConnexionRequise": "An Internet connection is required to reset the PIN",
   "authReinitialisationPINMessage": "To reset your PIN, you will need to reconnect with your email and password. Do you wish to continue?",
   "authModeHorsLigne": "Offline mode - PIN unlock",
@@ -354,7 +402,6 @@
     }
   },
   "authNoteSecurite": "The PIN is stored securely on your device. You can unlock the app even without Internet.",
-
   "authRemplirChamps": "Please fill all fields",
   "authErreurInscription": "Error during registration",
   "authErreurConnexion": "Error during login",
@@ -370,20 +417,19 @@
   "authConditionsContact": "For complete terms, contact support.",
   "authPrivacyIntro": "Your privacy is important to us.",
   "authPrivacyDonneesCollecteesTitre": "Data collected:",
-  "authPrivacyDonneesElevage": "• Farm data (rabbits, breeding, health)",
-  "authPrivacyDonneesFinancieres": "• Financial data (income, expenses)",
-  "authPrivacyPhotos": "• Animal photos",
+  "authPrivacyDonneesElevage": "â€¢ Farm data (rabbits, breeding, health)",
+  "authPrivacyDonneesFinancieres": "â€¢ Financial data (income, expenses)",
+  "authPrivacyPhotos": "â€¢ Animal photos",
   "authPrivacyStockageTitre": "Storage:",
-  "authPrivacyStockageLocal": "• Data stored locally on your device",
-  "authPrivacySyncSupabase": "• Optional synchronization with Supabase (encrypted)",
+  "authPrivacyStockageLocal": "â€¢ Data stored locally on your device",
+  "authPrivacySyncSupabase": "â€¢ Optional synchronization with Supabase (encrypted)",
   "authPrivacySecuriteTitre": "Security:",
-  "authPrivacyAuthSecurisee": "• Secure authentication (Supabase)",
-  "authPrivacyPINLocal": "• Local PIN for offline access",
-  "authPrivacyChiffrement": "• Encryption of sensitive data",
+  "authPrivacyAuthSecurisee": "â€¢ Secure authentication (Supabase)",
+  "authPrivacyPINLocal": "â€¢ Local PIN for offline access",
+  "authPrivacyChiffrement": "â€¢ Encryption of sensitive data",
   "authReinitialisationMotDePasse": "Reset password",
   "authReinitialisationEmailInstructions": "Enter your email address to receive a reset link.",
   "authEmail": "Email",
-
   "authConfigurationPIN": "PIN setup",
   "authConfigurezPIN": "Set up your PIN",
   "authCreezPINInstructions": "Create a 4-6 digit PIN to unlock the app without Internet",
@@ -393,7 +439,6 @@
   "authValidationPINDifferent": "PINs do not match",
   "authErreurConfigurationPIN": "Error during PIN setup",
   "authNotePINSecurite": "The PIN is stored securely on your device. It will allow you to unlock the app even without Internet.",
-
   "dashIndicateursPerformance": "Performance Indicators",
   "dashTauxReproductionLabel": "Breeding Rate",
   "dashTauxSevrageLabel": "Weaning Rate",
@@ -401,7 +446,6 @@
   "dashGMQMoyenLabel": "Avg ADG",
   "dashPorteesActivesLabel": "Active Litters",
   "dashBeneficeMensuelLabel": "Monthly Profit",
-
   "dashFarmOverview": "Farm Overview",
   "dashBonjour": "Good morning",
   "dashBonApresMidi": "Good afternoon",
@@ -445,28 +489,26 @@
       }
     }
   },
-
-  "rituelDuMatin": "Morning check",
-  "rituelDuSoir": "Evening check",
-  "rituelChargement": "Loading checks...",
-  "rituelLabel": "Check {type}",
-  "@rituelLabel": {
+  "tacheDuMatin": "Morning check",
+  "tacheDuSoir": "Evening check",
+  "tacheChargement": "Loading checks...",
+  "tacheLabel": "Check {type}",
+  "@tacheLabel": {
     "placeholders": {
       "type": {
         "type": "String"
       }
     }
   },
-  "rituelNormal": "Normal",
-  "rituelAnomalie": "Issue",
-  "rituelPlusTard": "Later",
-  "rituelSnackActionValidee": "Action saved",
-  "rituelSnackActionReportee": "Marked for later",
-  "rituelSnackProblemeEnregistre": "Problem saved",
-  "rituelTermine": "Check complete!",
-  "rituelBravo": "Well done, your rabbits are well cared for.",
-  "rituelBoutonTermine": "Done",
-
+  "tacheNormal": "Normal",
+  "tacheAnomalie": "Issue",
+  "tachePlusTard": "Later",
+  "tacheSnackActionValidee": "Action saved",
+  "tacheSnackActionReportee": "Marked for later",
+  "tacheSnackProblemeEnregistre": "Problem saved",
+  "tacheTermine": "Check complete!",
+  "tacheBravo": "Well done, your rabbits are well cared for.",
+  "tacheBoutonTermine": "Done",
   "tachesNouvelleTache": "New task",
   "tachesGestionnaire": "Task Manager",
   "tachesAucuneTache": "No tasks",
@@ -481,7 +523,6 @@
     }
   },
   "tachesSupprimer": "Delete",
-
   "alimentationTitre": "Feed",
   "alimentationRechercher": "Search feed...",
   "alimentationTous": "All",
@@ -492,7 +533,6 @@
   "alimentationEnStock": "In stock",
   "alimentationValeur": "Value",
   "alimentationStock": "Stock",
-
   "utilisateursGestionTitre": "User Management",
   "utilisateursAccesRefuse": "Access denied",
   "utilisateursPermissionsInsuffisantes": "You do not have the necessary permissions to manage users.",
@@ -510,7 +550,6 @@
       }
     }
   },
-
   "journalNonLus": "Unread",
   "journalMarquerToutLu": "Mark all as read",
   "journalReessayer": "Retry",
@@ -532,7 +571,6 @@
   "journalModifierNote": "Edit note",
   "journalAjouterNote": "Add a personal note...",
   "journalEnregistrerNote": "Save note",
-
   "cheptelTous": "All",
   "cheptelFemelles": "Females",
   "cheptelMales": "Males",
@@ -546,9 +584,7 @@
   "cheptelMalade": "Sick",
   "cheptelReproductrice": "Breeding doe",
   "cheptelReproducteur": "Breeding buck",
-
   "cheptelGestante": "Pregnant",
-
   "commonSuivant": "Next",
   "commonEnregistrer": "Save",
   "commonModifier": "Edit",
@@ -568,14 +604,16 @@
   "commonAttention": "Warning",
   "commonOui": "Yes",
   "commonNon": "No",
-
+  "commonConfirmer": "Confirm",
+  "commonActionEffectuee": "Action completed",
+  "commonModeHorsLigne": "You are offline",
+  "commonHorsLigne": "Offline",
+  "commonEnLigne": "Online",
   "validationChampObligatoire": "This field is required",
   "validationNumeroObligatoire": "ID number is required",
   "validationEmailInvalide": "Invalid email",
   "validationMotDePasseTropCourt": "Password too short",
-
   "stockTitre": "Stocks",
-
   "quarantaineMiseEnQuarantaine": "Quarantine",
   "quarantaineDateDebut": "Start date",
   "quarantaineMotifQuarantaine": "Quarantine reason",
@@ -595,17 +633,24 @@
   "quarantaineAnnuler": "Cancel",
   "quarantaineConfirmer": "Confirm",
   "quarantaineEnCours": "In progress...",
-  "quarantaineSucces": "🏥 {nom} successfully quarantined",
+  "quarantaineSucces": "ðŸ¥ {nom} successfully quarantined",
   "@quarantaineSucces": {
-    "placeholders": {"nom": {"type": "String"}}
+    "placeholders": {
+      "nom": {
+        "type": "String"
+      }
+    }
   },
   "quarantaineErreur": "Error during quarantine: {erreur}",
   "@quarantaineErreur": {
-    "placeholders": {"erreur": {"type": "String"}}
+    "placeholders": {
+      "erreur": {
+        "type": "String"
+      }
+    }
   },
   "quarantaineMettreEnQuarantaine": "Quarantine",
   "quarantaineBoutonQuarantaine": "Quarantine",
-
   "decesEnregistrerDeces": "Record death",
   "decesRace": "Breed",
   "decesSexe": "Sex",
@@ -623,38 +668,60 @@
   "decesBoutonEnregistrer": "Record death",
   "decesSucces": "Death of {nom} recorded",
   "@decesSucces": {
-    "placeholders": {"nom": {"type": "String"}}
+    "placeholders": {
+      "nom": {
+        "type": "String"
+      }
+    }
   },
   "decesErreur": "Error: {erreur}",
   "@decesErreur": {
-    "placeholders": {"erreur": {"type": "String"}}
+    "placeholders": {
+      "erreur": {
+        "type": "String"
+      }
+    }
   },
-
   "dashPerformanceGlobale": "Overall Performance",
   "dashLapinsActifs": "Active rabbits",
-  "dashFemellesRepro": "{count} ♀ breeding",
+  "dashFemellesRepro": "{count} â™€ breeding",
   "@dashFemellesRepro": {
-    "placeholders": {"count": {"type": "int"}}
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   },
   "dashGMQMoyen": "Avg. ADG",
   "dashPeseesMois": "{count} weights/month",
   "@dashPeseesMois": {
-    "placeholders": {"count": {"type": "int"}}
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   },
   "dashTauxReproduction": "Breeding rate",
   "dashAccouplementsActifs": "{count} matings",
   "@dashAccouplementsActifs": {
-    "placeholders": {"count": {"type": "int"}}
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   },
   "dashBeneficeMensuel": "Monthly profit",
   "dashRecettes": "{montant} revenue",
   "@dashRecettes": {
-    "placeholders": {"montant": {"type": "String"}}
+    "placeholders": {
+      "montant": {
+        "type": "String"
+      }
+    }
   },
   "dashDepenses": "Expenses",
   "dashAlimentation": "Feed",
-
-  "dashToutVaBien": "✨ All good!",
+  "dashToutVaBien": "âœ¨ All good!",
   "dashAucuneActionUrgente": "No urgent action required.",
   "dashPointsAttention": "Points of attention",
   "dashFemellesGestantes": "Pregnant females",
@@ -665,22 +732,45 @@
   "dashDans3Jours": "In 3 days",
   "dashVaccinsRetard": "Overdue vaccines",
   "dashActionRequise": "Action required",
+  "dashActionNouveauLapin": "New rabbit",
+  "@dashActionNouveauLapin": {
+    "description": "Quick action - New rabbit"
+  },
+  "dashActionAccouplement": "Mating",
+  "@dashActionAccouplement": {
+    "description": "Quick action - Mating"
+  },
+  "dashActionAjouterPesee": "Add weighing",
+  "@dashActionAjouterPesee": {
+    "description": "Quick action - Add weighing"
+  },
+  "dashActionNoterAnomalie": "Note anomaly",
+  "@dashActionNoterAnomalie": {
+    "description": "Quick action - Note anomaly"
+  },
   "dashMedicamentsCritiques": "Critical medications",
   "dashReapproUrgent": "Urgent restock",
   "dashAlimentsSurveiller": "Feed to monitor",
   "dashStockExpiration": "Stock/expiration",
   "dashLapinsSousPoids": "Underweight rabbits",
   "dashPoids80Attendu": "< 80% expected",
+  "dashRoiPerformance": "ROI & Performance",
+  "@dashRoiPerformance": {
+    "description": "Section title for ROI and performance graphs"
+  },
   "dashLapinsMalades": "Sick rabbits",
   "dashQuarantaineMalades": "Quarantine/sick",
   "dashTauxMortaliteEleve": "High mortality rate",
   "dashCeMois": "This month",
-
   "dashDiscipline": "My consistency",
   "dashSerie": "Streak",
   "dashJours": "{count} d",
   "@dashJours": {
-    "placeholders": {"count": {"type": "int"}}
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   },
   "dashCetteSemaine": "This week",
   "dashAnomalies": "Issues",
@@ -693,23 +783,35 @@
   "dashJamais": "Never",
   "dashIlYaMinutes": "{count} min ago",
   "@dashIlYaMinutes": {
-    "placeholders": {"count": {"type": "int"}}
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   },
   "dashIlYaHeures": "{count}h ago",
   "@dashIlYaHeures": {
-    "placeholders": {"count": {"type": "int"}}
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   },
   "dashHier": "Yesterday",
   "dashIlYaJours": "{count} d ago",
   "@dashIlYaJours": {
-    "placeholders": {"count": {"type": "int"}}
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   },
   "dashProblemeInapercu": "An issue may go unnoticed. Take a quick look.",
   "dashPlusieursPoints": "Several points need your attention",
   "dashTraiterUnParUn": "Handle them one by one, start with the most urgent.",
   "dashLapinsAttendent": "Your rabbits are waiting",
   "dashBravo7Jours": "Great! 7 days in a row",
-  "dashObserver2Fois": "High-performing farms observe 2× per day.",
+  "dashObserver2Fois": "High-performing farms observe 2Ã— per day.",
   "dashRegulariteDifference": "Keep going, consistency makes the difference.",
   "dashSemaineAmeliorer": "This week can be improved",
   "dashTourRapide": "Even a quick check counts. What matters is observing.",
@@ -720,14 +822,11 @@
   "dashToutEnOrdre": "Everything in order",
   "dashContinuerObserver": "Keep observing regularly.",
   "authPolitiqueConfidentialite": "Privacy Policy",
-
   "stockTitre": "Stock",
-
   "hintMontant": "Ex: 50.00",
   "hintDescriptionDepense": "Ex: Hay purchase",
   "hintDescriptionRecette": "Ex: Rabbit sale",
   "erreurMontantInvalide": "Please enter a valid amount",
-
   "reproSelectionnerMale": "Select a male",
   "reproSelectionnerFemelle": "Select a female",
   "reproAppuyezSelectionner": "Tap to select",
@@ -755,11 +854,9 @@
   "erreurNomRequis": "Please enter a name",
   "erreurPoidsInvalide": "Please enter a valid weight",
   "erreurPrixInvalide": "Please enter a valid price",
-
   "identite": "Identity",
   "statistiques": "Statistics",
   "reproduction": "Breeding",
-
   "accouplements": "Matings",
   "accouplementsActifs": "Active matings",
   "aucunAccouplement": "No mating",
@@ -787,10 +884,11 @@
   "verifierFemelleGestation": "Check {count} doe(s) for pregnancy",
   "@verifierFemelleGestation": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
-
   "parametresVitaux": "Vital signs",
   "soinsTraitements": "Care & Treatments",
   "actifsHistorique": "Active & History",
@@ -808,7 +906,6 @@
   "voirTout": "View all",
   "enAttente": "pending",
   "termineSucces": "Completed successfully",
-
   "nouvellePesee": "New weighing",
   "nouveauSoin": "New care",
   "nouvelleTache": "New task",
@@ -823,7 +920,6 @@
   "veuillezsaisirTitre": "Please enter a title",
   "veuillezsaisirObservation": "Please enter an observation",
   "noteEnregistree": "Note saved",
-
   "ajouter": "Add",
   "ajouterAliment": "Add feed",
   "ajouterBatiment": "Add building",
@@ -846,14 +942,12 @@
   "genererRapport": "Generate report",
   "genererCertificat": "Generate certificate",
   "partagerSauvegarde": "Share backup",
-
   "medicamentUtiliser": "Use",
   "medicamentReapprovisionner": "Restock",
   "ajouterObservation": "Add observation",
   "filterTous": "All",
   "filterEnCours": "In progress",
   "filterTermines": "Completed",
-
   "alimentAjouteSucces": "Feed added successfully",
   "distributionEnregistree": "Distribution recorded",
   "distribuerAliment": "Distribute feed",
@@ -864,7 +958,6 @@
   "valeur": "Value",
   "exSac25kg": "Ex: 25kg bag, bulk",
   "exCages": "Ex: A1, A2, B3",
-
   "peseeEnregistree": "Weighing saved",
   "soinEnregistre": "Care saved",
   "lapinModifie": "Rabbit updated successfully",
@@ -874,41 +967,36 @@
   "alerteSupprimee": "Alert deleted",
   "bilanGenere": "Summary generated",
   "registreGenereSucces": "Register generated successfully",
-  "certificatVenteGenere": "Sales certificate generated ✓",
-  "rapportSanitaireGenere": "Health report generated ✓",
-  "rapportFinancierGenere": "Financial report generated ✓",
-  "rapportPerformancesGenere": "Performance report generated ✓",
+  "certificatVenteGenere": "Sales certificate generated âœ“",
+  "rapportSanitaireGenere": "Health report generated âœ“",
+  "rapportFinancierGenere": "Financial report generated âœ“",
+  "rapportPerformancesGenere": "Performance report generated âœ“",
   "erreurSuppression": "Error during deletion",
   "misAJourIl2Jours": "Updated 2 days ago",
-
   "erreurChargement": "Error loading data",
   "erreurEnregistrement": "Error saving data",
   "aucuneFemelleDisponible": "No doe available",
   "aucunMaleDisponible": "No buck available",
   "ajoutezFemelles": "Add does in the Herd section before planning a mating.",
   "ajoutezMales": "Add bucks in the Herd section before planning a mating.",
-
   "aucunLapin": "No rabbit",
   "aucunSoin": "No care",
   "aucunePesee": "No weighing",
   "aucunePortee": "No litter",
   "aucuneTache": "No task",
   "aucuneAlerte": "No alert",
-
   "aujourdhui": "Today",
   "demain": "Tomorrow",
   "hier": "Yesterday",
   "cetteSemaineLabel": "This week",
   "ceMois": "This month",
-
   "kg": "kg",
   "grammes": "g",
-  "euro": "€",
+  "euro": "â‚¬",
   "dose": "dose",
   "ml": "ml",
   "parJour": "/day",
   "gParJour": "g/day",
-
   "exportDonnees": "Data Export",
   "importRestauration": "Import / Restore",
   "sauvegardeComplete": "Full backup",
@@ -922,16 +1010,16 @@
   "fichierJson": "JSON File",
   "tableurExcelGoogleSheets": "Excel, Google Sheets spreadsheet...",
   "exportAutresApps": "Export from other apps",
-
   "gerezRecettesDepenses": "Manage your income and expenses",
   "lapinVendre": "Rabbit for sale",
   "nomAcheteur": "Buyer name",
-  "montantEuro": "Amount (€)",
-
+  "montantEuro": "Amount (â‚¬)",
   "totalLapins": "Total rabbits: {count}",
   "@totalLapins": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "nombreTotalLapins": "Total number of rabbits",
@@ -941,16 +1029,13 @@
   "soinsEffectuesTotal": "Total care provided",
   "peseesEnregistrees": "Recorded weighings",
   "lapinsActifs": "Active rabbits",
-
   "tauxReproduction": "Breeding Rate",
   "tauxSevrage": "Weaning Rate",
   "tauxMortalite": "Mortality Rate",
   "gmqMoyen": "Average ADG",
   "beneficeMensuel": "Monthly Profit",
   "indicateursPerformance": "Performance Indicators",
-
   "searchCageIdLocation": "Search cage ID or location...",
-
   "general": "GENERAL",
   "unitesMesure": "Units of measurement",
   "langue": "Language",
@@ -969,7 +1054,9 @@
   "derniereSyncIlYA": "Last sync: {time}",
   "@derniereSyncIlYA": {
     "placeholders": {
-      "time": {"type": "String"}
+      "time": {
+        "type": "String"
+      }
     }
   },
   "exporterDonnees": "Export data",
@@ -988,12 +1075,12 @@
   "version": "Version {version}",
   "@version": {
     "placeholders": {
-      "version": {"type": "String"}
+      "version": {
+        "type": "String"
+      }
     }
   },
-
   "gmqCroissance": "ADG - Growth",
-
   "glossaireSaillie": "Mating",
   "@glossaireSaillie": {
     "description": "Controlled breeding between a buck and a doe"
@@ -1042,16 +1129,16 @@
   "@glossaireConsanguinite": {
     "description": "Genetic relatedness between two breeders"
   },
-
   "noBuildingsYet": "No Buildings Yet",
   "startByAddingBuilding": "Start by adding your first building",
-  "batimentAjoute": "Building \"{name}\" added ✓",
+  "batimentAjoute": "Building \"{name}\" added âœ“",
   "@batimentAjoute": {
     "placeholders": {
-      "name": {"type": "String"}
+      "name": {
+        "type": "String"
+      }
     }
   },
-
   "reproTous": "All",
   "reproAllaitantes": "Nursing",
   "reproGestantes": "Pregnant",
@@ -1064,13 +1151,17 @@
   "reproErreurSuppression": "Error deleting: {error}",
   "@reproErreurSuppression": {
     "placeholders": {
-      "error": {"type": "String"}
+      "error": {
+        "type": "String"
+      }
     }
   },
   "reproPalperCount": "Check {count} doe(s) for pregnancy",
   "@reproPalperCount": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "reproAccouplementPlanifie": "Mating planned successfully",
@@ -1132,7 +1223,6 @@
   "reproInconnu": "Unknown",
   "reproInconnue": "Unknown",
   "reproJeune": "Young",
-
   "santePeseeEnregistree": "Weight recorded successfully",
   "santePeseeModifiee": "Weight updated successfully",
   "santeObservationsPlaceholder": "Observations, general condition...",
@@ -1141,7 +1231,6 @@
   "santeMedicamentModifie": "Medication updated successfully",
   "santePosologiePlaceholder": "Dosage (e.g. 0.5ml/kg, twice daily)",
   "santeSelectionnerDate": "Select a date",
-
   "financeDepenseAjoutee": "Expense added successfully",
   "financeDepenseModifiee": "Expense updated successfully",
   "financeDepenseSupprimee": "Expense deleted",
@@ -1164,7 +1253,6 @@
   "financeVeuillezSaisirDescription": "Please enter a description",
   "financeVeuillezSaisirMontant": "Please enter an amount",
   "financeMontantInvalide": "Please enter a valid amount",
-
   "alertesTous": "All",
   "alertesImportant": "Important",
   "alertesNormal": "Normal",
@@ -1181,19 +1269,22 @@
   "alertesAucune": "All Caught Up",
   "alertesAucuneDescription": "No new notifications at this time.",
   "alertesALInstant": "Just now",
-
   "parametresCompteLocal": "Local account",
   "parametresDerniereSyncLabel": "Last sync: {date}",
   "@parametresDerniereSyncLabel": {
     "placeholders": {
-      "date": {"type": "String"}
+      "date": {
+        "type": "String"
+      }
     }
   },
   "parametresAucuneSync": "No synchronization performed",
   "parametresChangementsAttente": "Pending changes: {count}",
   "@parametresChangementsAttente": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "parametresConfirmer": "Confirm",
@@ -1204,7 +1295,9 @@
   "parametresErreurDeconnexion": "Error during logout: {error}",
   "@parametresErreurDeconnexion": {
     "placeholders": {
-      "error": {"type": "String"}
+      "error": {
+        "type": "String"
+      }
     }
   },
   "parametresDonneesCollectees": "Collected data:",
@@ -1216,7 +1309,6 @@
   "santeMedicamentModifie": "Medication updated successfully",
   "santePosologiePlaceholder": "Dosage (e.g. 0.5ml/kg, twice daily)",
   "santeSelectionnerDate": "Select a date",
-
   "santeAjouterSoin": "Add treatment",
   "santeAjouterPesee": "Add weight",
   "santePeserLapin": "Weigh a rabbit",
@@ -1225,7 +1317,9 @@
   "santeRappelsSoins": "Care reminders ({count})",
   "@santeRappelsSoins": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "santeAucunRappel": "No care reminders pending",
@@ -1251,7 +1345,7 @@
   "santeQuantiteStock": "Stock quantity",
   "santeUnite": "Unit (ml, tablets, g...)",
   "santeSeuilAlerte": "Alert threshold",
-  "santePrixUnitaire": "Unit price (€)",
+  "santePrixUnitaire": "Unit price (â‚¬)",
   "santeDateExpiration": "Expiration date",
   "santeSelectionnerDate": "Select a date",
   "santeAjouter": "Add",
@@ -1283,7 +1377,6 @@
   "santeInventaire": "Inventory",
   "santeMedicamentSupprime": "Medicine deleted successfully",
   "santeAucunMedicament": "No medicine",
-
   "santeAddRecord": "Add Record",
   "santeNewTreatment": "New Treatment",
   "santeSelectRabbit": "Select Rabbit",
@@ -1296,7 +1389,9 @@
   "cheptelMisAJourIlYa": "Updated {days} days ago",
   "@cheptelMisAJourIlYa": {
     "placeholders": {
-      "days": {"type": "int"}
+      "days": {
+        "type": "int"
+      }
     }
   },
   "cheptelVoirArbreGenealogique": "View full family tree",
@@ -1304,7 +1399,9 @@
   "cheptelTauxRentabilite": "Profitability rate: {rate}%",
   "@cheptelTauxRentabilite": {
     "placeholders": {
-      "rate": {"type": "String"}
+      "rate": {
+        "type": "String"
+      }
     }
   },
   "cheptelDetailCouts": "Cost breakdown",
@@ -1325,17 +1422,21 @@
   "parametresDerniereSyncIlYa": "{time} ago",
   "@parametresDerniereSyncIlYa": {
     "placeholders": {
-      "time": {"type": "String"}
+      "time": {
+        "type": "String"
+      }
     }
   },
   "parametresChangementsEnAttente": "Pending changes: {count}",
   "@parametresChangementsEnAttente": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "parametresCentreAideQuestion": "For any questions or assistance:",
-  "parametresConsulterDoc": "• Check the in-app documentation",
+  "parametresConsulterDoc": "â€¢ Check the in-app documentation",
   "parametresCentreAideProchainement": "Full help center will be available in a future version.",
   "parametresViePrivee": "Your privacy is important to us.",
   "parametresGenerationDonnees": "Generating data...",
@@ -1345,34 +1446,39 @@
   "parametresCentreAide": "Help Center",
   "parametresPolitiqueConfidentialite": "Privacy Policy",
   "parametresDonneesCollectees": "Data collected:",
-  "parametresDonneesElevage": "• Farm data (rabbits, breeding, health)",
-  "parametresDonneesFinancieres": "• Financial data (income, expenses)",
-  "parametresPhotos": "• Animal photos",
+  "parametresDonneesElevage": "â€¢ Farm data (rabbits, breeding, health)",
+  "parametresDonneesFinancieres": "â€¢ Financial data (income, expenses)",
+  "parametresPhotos": "â€¢ Animal photos",
   "parametresStockage": "Storage:",
-  "parametresStockageLocal": "• Data stored locally on your device",
-  "parametresSyncOptionnelle": "• Optional sync with Supabase (encrypted)",
+  "parametresStockageLocal": "â€¢ Data stored locally on your device",
+  "parametresSyncOptionnelle": "â€¢ Optional sync with Supabase (encrypted)",
   "parametresSecurite": "Security:",
   "parametresContactSupport": "For more information, contact support.",
-  "parametresDemoDescription": "This will generate:\n\n• 16 rabbits (8 breeders + 8 young)\n• 3 buildings, 3 hutches, 13 cages\n• 10 weight records, 5 vet treatments\n• 6 matings, 4 litters, 2 weanings\n• 9 financial transactions\n• 4 medicines, 3 tasks\n\nPerfect for testing!\n\nContinue?",
+  "parametresDemoDescription": "This will generate:\n\nâ€¢ 16 rabbits (8 breeders + 8 young)\nâ€¢ 3 buildings, 3 hutches, 13 cages\nâ€¢ 10 weight records, 5 vet treatments\nâ€¢ 6 matings, 4 litters, 2 weanings\nâ€¢ 9 financial transactions\nâ€¢ 4 medicines, 3 tasks\n\nPerfect for testing!\n\nContinue?",
   "parametresIlYaMin": "{minutes} min",
   "@parametresIlYaMin": {
     "placeholders": {
-      "minutes": {"type": "int"}
+      "minutes": {
+        "type": "int"
+      }
     }
   },
   "parametresIlYaHeures": "{hours} h",
   "@parametresIlYaHeures": {
     "placeholders": {
-      "hours": {"type": "int"}
+      "hours": {
+        "type": "int"
+      }
     }
   },
   "parametresIlYaJours": "{days} days",
   "@parametresIlYaJours": {
     "placeholders": {
-      "days": {"type": "int"}
+      "days": {
+        "type": "int"
+      }
     }
   },
-
   "cheptelLapinModifie": "Rabbit updated successfully",
   "cheptelAccouplementEnregistre": "Mating recorded",
   "cheptelPeseeEnregistree": "Weight recorded",
@@ -1380,7 +1486,6 @@
   "cheptelPdfGenere": "PDF generated successfully",
   "cheptelAccoupler": "Breed",
   "cheptelVoirReproductions": "View breeding",
-
   "cheptelIdentite": "Identity",
   "cheptelStatistiques": "Statistics",
   "cheptelActions": "Actions",
@@ -1400,7 +1505,9 @@
   "cheptelMisAJour": "Updated {time} ago",
   "@cheptelMisAJour": {
     "placeholders": {
-      "time": {"type": "String"}
+      "time": {
+        "type": "String"
+      }
     }
   },
   "cheptelHistoriqueAccouplements": "Mating history",
@@ -1415,13 +1522,17 @@
   "cheptelDernier": "Last: {date}",
   "@cheptelDernier": {
     "placeholders": {
-      "date": {"type": "String"}
+      "date": {
+        "type": "String"
+      }
     }
   },
   "cheptelDerniere": "Last: {date}",
   "@cheptelDerniere": {
     "placeholders": {
-      "date": {"type": "String"}
+      "date": {
+        "type": "String"
+      }
     }
   },
   "cheptelCoutTotal": "Total cost",
@@ -1429,270 +1540,226 @@
   "cheptelAlimentation": "Feeding",
   "cheptelAutres": "Other",
   "cheptelAchat": "Purchase",
-
   "cheptelVoirArbreGeneralogiqueComplet": "View complete family tree",
   "@cheptelVoirArbreGeneralogiqueComplet": {
     "description": "Button to view complete genealogy tree"
   },
-
   "cheptelLineage": "Lineage",
   "@cheptelLineage": {
     "description": "Lineage card title"
   },
-
   "cheptelFather": "FATHER",
   "@cheptelFather": {
     "description": "Father label"
   },
-
   "cheptelMother": "MOTHER",
   "@cheptelMother": {
     "description": "Mother label"
   },
-
   "cheptelGoodTemperament": "Good temperament. Shows high resistance to common infections. Slightly aggressive during feeding time.",
   "@cheptelGoodTemperament": {
     "description": "Default notes text"
   },
-
   "cheptelRevenusTotal": "Total revenue",
   "@cheptelRevenusTotal": {
     "description": "Total revenue label"
   },
-
   "cheptelRabbitDetails": "Rabbit Details",
   "@cheptelRabbitDetails": {
     "description": "Detail app bar title"
   },
-
   "cheptelActiveBreeder": "ACTIVE BREEDER",
   "@cheptelActiveBreeder": {
     "description": "Active breeder chip"
   },
-
   "cheptelBorn": "Born {date}",
   "@cheptelBorn": {
     "description": "Formatted birth date",
     "placeholders": {
-      "date": {"type": "String"}
+      "date": {
+        "type": "String"
+      }
     }
   },
-
   "santeAddRecord": "Add Record",
   "@santeAddRecord": {
     "description": "Add record button"
   },
-
   "santeAjouterPesee": "Add weighing",
   "@santeAjouterPesee": {
     "description": "Add weighing option"
   },
-
   "santeAjouterSoin": "Add care",
   "@santeAjouterSoin": {
     "description": "Add care option"
   },
-
   "santeWeightTracking": "Weight Tracking",
   "@santeWeightTracking": {
     "description": "Weight tracking title"
   },
-
   "santeCurrentWeight": "Current Weight",
   "@santeCurrentWeight": {
     "description": "Current weight"
   },
-
   "santeNewTreatment": "New Treatment",
   "@santeNewTreatment": {
     "description": "New treatment button"
   },
-
   "santeSelectRabbit": "Select Rabbit",
   "@santeSelectRabbit": {
     "description": "Select rabbit"
   },
-
   "reproductionPending": "Pending",
   "@reproductionPending": {
     "description": "Pending status"
   },
-
   "reproductionConfirmed": "Confirmed",
   "@reproductionConfirmed": {
     "description": "Confirmed status"
   },
-
   "reproductionInProgress": "In Progress",
   "@reproductionInProgress": {
     "description": "In progress status"
   },
-
   "reproductionCompleted": "Completed",
   "@reproductionCompleted": {
     "description": "Completed status"
   },
-
   "reproductionUnknown": "Unknown",
   "@reproductionUnknown": {
     "description": "Unknown status"
   },
-
   "commonConfirm": "Confirm",
   "@commonConfirm": {
     "description": "Confirm button"
   },
-
   "commonConfirmDeletion": "Confirm deletion",
   "@commonConfirmDeletion": {
     "description": "Deletion confirmation title"
   },
-
   "commonDeleteQuestion": "Delete this entry?",
   "@commonDeleteQuestion": {
     "description": "Deletion confirmation message"
   },
-
   "sevrageConfirmerLeSevrage": "Confirm weaning",
   "@sevrageConfirmerLeSevrage": {
     "description": "Weaning dialog title"
   },
-
   "sevrageVousAllezSevrer": "You will wean:",
   "@sevrageVousAllezSevrer": {
     "description": "Weaning dialog message"
   },
-
   "sevrageLapereaux": "{total} kits ({males} males, {femelles} females)",
   "@sevrageLapereaux": {
     "description": "Kits detail",
     "placeholders": {
-      "total": {"type": "int"},
-      "males": {"type": "int"},
-      "femelles": {"type": "int"}
+      "total": {
+        "type": "int"
+      },
+      "males": {
+        "type": "int"
+      },
+      "femelles": {
+        "type": "int"
+      }
     }
   },
-
   "commonTotal": "Total",
   "@commonTotal": {
     "description": "Total label"
   },
-
   "commonSave": "Save",
   "@commonSave": {
     "description": "Save button"
   },
-
   "commonCancel": "Cancel",
   "@commonCancel": {
     "description": "Cancel button"
   },
-
   "commonEdit": "Edit",
   "@commonEdit": {
     "description": "Edit button"
   },
-
   "commonDelete": "Delete",
   "@commonDelete": {
     "description": "Delete button"
   },
-
   "commonAdd": "Add",
   "@commonAdd": {
     "description": "Add button"
   },
-
   "commonValidate": "Validate",
   "@commonValidate": {
     "description": "Validate button"
   },
-
   "reproductionRecordLitter": "Record Litter",
   "@reproductionRecordLitter": {
     "description": "Record litter"
   },
-
   "reproductionConfirmer": "Confirm",
   "@reproductionConfirmer": {
     "description": "Confirm pairing button"
   },
-
   "reproductionMatingPair": "MATING PAIR",
   "@reproductionMatingPair": {
     "description": "Mating pair"
   },
-
   "reproductionSelectActiveMating": "Select active mating...",
   "@reproductionSelectActiveMating": {
     "description": "Select active mating"
   },
-
   "reproductionLoading": "Loading...",
   "@reproductionLoading": {
     "description": "Loading"
   },
-
   "reproductionNotes": "Notes",
   "@reproductionNotes": {
     "description": "Notes"
   },
-
   "parametresUnitKgCm": "kg/cm",
   "@parametresUnitKgCm": {
     "description": "Unit kilogram/centimeter"
   },
-
   "parametresUnitLbIn": "lb/in",
   "@parametresUnitLbIn": {
     "description": "Unit pound/inch"
   },
-
   "parametresLanguageEnglish": "English",
   "@parametresLanguageEnglish": {
     "description": "English language"
   },
-
   "parametresLanguageFrancais": "Français",
   "@parametresLanguageFrancais": {
     "description": "French language"
   },
-
   "parametresStatutSynchronisation": "Synchronization status",
   "@parametresStatutSynchronisation": {
     "description": "Synchronization status title"
   },
-
   "parametresSettings": "Settings",
   "@parametresSettings": {
     "description": "Settings title"
   },
-
   "widgetGlossaireCuniculture": "Rabbit Farming Glossary",
   "@widgetGlossaireCuniculture": {
     "description": "Rabbit farming glossary title"
   },
-
   "santeSaveRecord": "Save Record",
   "@santeSaveRecord": {
     "description": "Save care record"
   },
-
   "santeCancel": "Cancel",
   "@santeCancel": {
     "description": "Cancel"
   },
-
   "santeToday": "Today",
   "@santeToday": {
     "description": "Today"
   },
-
   "santeYesterday": "Yesterday",
   "@santeYesterday": {
     "description": "Yesterday"
   },
-
   "santeDaysAgo": "{days} days ago",
   "@santeDaysAgo": {
     "description": "X days ago",
@@ -1702,102 +1769,82 @@
       }
     }
   },
-
   "santeNext": "Next",
   "@santeNext": {
     "description": "Next"
   },
-
   "reproductionDeletePairing": "Delete Pairing",
   "@reproductionDeletePairing": {
     "description": "Delete pairing"
   },
-
   "tachesNouvelleTache": "New Task",
   "@tachesNouvelleTache": {
     "description": "New task title"
   },
-
   "tachesModifierTache": "Edit Task",
   "@tachesModifierTache": {
     "description": "Edit task title"
   },
-
   "tachesPrioriteHaute": "High",
   "@tachesPrioriteHaute": {
     "description": "High priority"
   },
-
   "tachesPrioriteNormale": "Normal",
   "@tachesPrioriteNormale": {
     "description": "Normal priority"
   },
-
   "tachesPrioriteBasse": "Low",
   "@tachesPrioriteBasse": {
     "description": "Low priority"
   },
-
   "tachesTacheRecurrente": "Recurring Task",
   "@tachesTacheRecurrente": {
     "description": "Recurring task"
   },
-
   "tachesFrequenceQuotidienne": "Daily",
   "@tachesFrequenceQuotidienne": {
     "description": "Daily frequency"
   },
-
   "tachesFrequenceHebdomadaire": "Weekly",
   "@tachesFrequenceHebdomadaire": {
     "description": "Weekly frequency"
   },
-
   "tachesFrequenceMensuelle": "Monthly",
   "@tachesFrequenceMensuelle": {
     "description": "Monthly frequency"
   },
-
   "tachesNotes": "Notes",
   "@tachesNotes": {
     "description": "Task notes"
   },
-
   "tachesCreer": "Create",
   "@tachesCreer": {
     "description": "Create task button"
   },
-
   "commonAucun": "None",
   "@commonAucun": {
     "description": "No element"
   },
-
   "commonAucunLapinDisponible": "No rabbit available",
   "@commonAucunLapinDisponible": {
     "description": "No rabbit available message"
   },
-
   "commonAucunRappel": "No pending care reminder",
   "@commonAucunRappel": {
     "description": "No reminder"
   },
-
   "commonUnknown": "Unknown",
   "@commonUnknown": {
     "description": "Unknown"
   },
-
   "commonNonSpecifie": "Not specified",
   "@commonNonSpecifie": {
     "description": "Not specified"
   },
-
   "commonNonDefini": "Not defined",
   "@commonNonDefini": {
     "description": "Not defined"
   },
-
   "tachesCategorie": "Category",
   "tachesDescription": "Description",
   "tachesDateHeure": "Date and time",
@@ -1812,18 +1859,18 @@
   "tachesBasse": "Low",
   "tachesEntretien": "Maintenance",
   "tachesAdministratif": "Administrative",
-
   "utilitaireOutils": "Tools",
   "utilitaireOrganisation": "Organization",
   "utilitaireOptimisation": "Optimization",
   "utilitaireRentabilite": "Profitability",
   "utilitaireReforme": "Culling",
   "utilitaireGestionReformes": "Culling management",
-
-  "cageAjoutee": "Cage \"{name}\" added ✓",
+  "cageAjoutee": "Cage \"{name}\" added âœ“",
   "@cageAjoutee": {
     "placeholders": {
-      "name": {"type": "String"}
+      "name": {
+        "type": "String"
+      }
     }
   },
   "alerteSupprimee": "Alert deleted",
@@ -1842,7 +1889,6 @@
   "recevoirRappel": "Receive reminder",
   "creer": "Create",
   "confirmerSuppression": "Confirm deletion",
-  
   "fermer": "Close",
   "nouvelEvenement": "New event",
   "fichierCsv": "CSV File",
@@ -1870,7 +1916,6 @@
   "confirmation": "Confirmation",
   "deconnexion": "Log out",
   "confirmationDeconnexion": "Are you sure you want to log out?",
-
   "@@comment_phase6": "PHASE 6: Common keys added 2026-01-05",
   "actionModifier": "Edit",
   "actionAnnuler": "Cancel",
@@ -1880,7 +1925,6 @@
   "actionConfirmer": "Confirm",
   "actionFermer": "Close",
   "actionAjouter": "Add",
-  
   "labelType": "Type",
   "labelNom": "Name",
   "labelPoids": "Weight (kg)",
@@ -1911,7 +1955,6 @@
   },
   "labelAucun": "None",
   "labelAutre": "Other",
-  
   "santeNouveauSoin": "New care",
   "santeTypeSoin": "Care type",
   "santeVaccin": "Vaccine",
@@ -1919,31 +1962,25 @@
   "santeSymptomes": "Observed symptoms (optional)",
   "santeDetailsSupplementaires": "Additional details...",
   "santeExempleVaccin": "Ex: VHD + Myxomatosis vaccine",
-  
   "medicamentAjouter": "Add medication",
   "medicamentNom": "Medication name *",
   "medicamentSelectionner": "Select a medication...",
   "medicamentExempleNom": "Ex: Ivermectin",
   "medicamentLabel": "Medication",
   "medicamentNomObligatoire": "Name is required",
-  
   "peseeExemplePoids": "Ex: 3.5",
   "localisationChampsRequis": "All fields are required",
   "alimentationDistributionEnregistree": "Distribution recorded",
   "financesCategorieAutre": "Other",
   "fumierCrottes": "Droppings",
-  
-  "calendrierTache": "🔨 Task",
-  "calendrierRappel": "⏰ Reminder",
-  "calendrierAutre": "📝 Other",
-  
+  "calendrierTache": "ðŸ”¨ Task",
+  "calendrierRappel": "â° Reminder",
+  "calendrierAutre": "ðŸ“ Other",
   "terrainModeTerrain": "Field Mode",
-  
   "dashboardSuiviGestation": "Gestation tracking",
   "dashboardDans14Jours": "In 14 days",
   "dashboardDans3Jours": "In 3 days",
   "dashboardActionRequise": "Action required",
-  
   "errorGeneric": "Error: {message}",
   "@errorGeneric": {
     "description": "Generic error message",
@@ -1954,7 +1991,6 @@
       }
     }
   },
-  
   "dialogSelectionner": "Select {type}",
   "@dialogSelectionner": {
     "description": "Selection dialog title with dynamic type",
@@ -1965,7 +2001,6 @@
       }
     }
   },
-
   "cheptelFormNom": "Name",
   "@cheptelFormNom": {
     "description": "Cheptel form - Rabbit name label"
@@ -2014,7 +2049,6 @@
   "@cheptelFormNotes": {
     "description": "Cheptel form - Notes label"
   },
-
   "tachesFormTitre": "Title *",
   "@tachesFormTitre": {
     "description": "Taches form - Title label"
@@ -2039,7 +2073,6 @@
   "@tachesFormFrequence": {
     "description": "Taches form - Frequency label"
   },
-
   "utilisateurFormEmail": "Email *",
   "@utilisateurFormEmail": {
     "description": "User form - Email label"
@@ -2060,7 +2093,6 @@
   "@utilisateurFormNotes": {
     "description": "User form - Notes label"
   },
-
   "optimisationFormAccouplement": "Mating *",
   "@optimisationFormAccouplement": {
     "description": "Optimisation form - Mating label"
@@ -2141,7 +2173,7 @@
   "@optimisationFormLapinsConcernes": {
     "description": "Optimisation form - Concerned rabbits label"
   },
-  "optimisationFormCoutEstime": "Estimated Cost (€)",
+  "optimisationFormCoutEstime": "Estimated Cost (â‚¬)",
   "@optimisationFormCoutEstime": {
     "description": "Optimisation form - Estimated cost label"
   },
@@ -2149,7 +2181,6 @@
   "@optimisationFormInstructions": {
     "description": "Optimisation form - Instructions label"
   },
-
   "rentabiliteFormLapin": "Rabbit *",
   "@rentabiliteFormLapin": {
     "description": "Rentabilite form - Rabbit label"
@@ -2178,7 +2209,7 @@
   "@rentabiliteFormPoidsVif": {
     "description": "Rentabilite form - Live weight label"
   },
-  "rentabiliteFormPrixVente": "Sale Price (€)",
+  "rentabiliteFormPrixVente": "Sale Price (â‚¬)",
   "@rentabiliteFormPrixVente": {
     "description": "Rentabilite form - Sale price label"
   },
@@ -2198,7 +2229,6 @@
   "@rentabiliteFormNom": {
     "description": "Rentabilite form - Name label for medications"
   },
-
   "filterTous": "All",
   "@filterTous": {
     "description": "Filter option - All"
@@ -2227,7 +2257,6 @@
   "@filterSansBoite": {
     "description": "Filter option - Without nesting box"
   },
-
   "typeVaccination": "Vaccination",
   "@typeVaccination": {
     "description": "Protocol type - Vaccination"
@@ -2264,7 +2293,6 @@
   "@typeAutre": {
     "description": "Type - Other"
   },
-
   "catReproduction": "Reproduction",
   "@catReproduction": {
     "description": "Task category - Reproduction"
@@ -2285,7 +2313,6 @@
   "@catAdministratif": {
     "description": "Task category - Administrative"
   },
-
   "motifNouvelArrivant": "New arrival",
   "@motifNouvelArrivant": {
     "description": "Quarantine reason - New arrival"
@@ -2318,7 +2345,6 @@
   "@motifComportement": {
     "description": "Reform reason - Behavior"
   },
-
   "destinationVente": "Sale",
   "@destinationVente": {
     "description": "Destination - Sale"
@@ -2339,7 +2365,6 @@
   "@destinationUtilisationPersonnelle": {
     "description": "Destination - Personal use"
   },
-
   "fumierTypeCrottes": "Droppings",
   "@fumierTypeCrottes": {
     "description": "Manure type - Droppings"
@@ -2352,7 +2377,6 @@
   "@fumierTypeMixte": {
     "description": "Manure type - Mixed"
   },
-
   "materiauxPaille": "Straw",
   "@materiauxPaille": {
     "description": "Nesting material - Straw"
@@ -2369,7 +2393,6 @@
   "@materiauxMixte": {
     "description": "Nesting material - Mixed"
   },
-
   "uniteMl": "ml",
   "@uniteMl": {
     "description": "Unit - Milliliters"
@@ -2386,7 +2409,6 @@
   "@uniteDose": {
     "description": "Unit - Dose"
   },
-
   "actionAnnuler": "Cancel",
   "@actionAnnuler": {
     "description": "Button action - Cancel"
@@ -2411,7 +2433,6 @@
   "@actionEditer": {
     "description": "Button action - Edit"
   },
-
   "msgRequiredField": "Required field",
   "@msgRequiredField": {
     "description": "Validation message - Required field"
@@ -2465,7 +2486,7 @@
   "@msgNoteSupprimee": {
     "description": "Success message - Note deleted"
   },
-  "msgCageModifiee": "✓ Cage modified",
+  "msgCageModifiee": "âœ“ Cage modified",
   "@msgCageModifiee": {
     "description": "Success message - Cage modified"
   },
@@ -2473,7 +2494,7 @@
   "@msgCageSupprimee": {
     "description": "Success message - Cage deleted"
   },
-  "msgBatimentModifie": "✓ Building modified",
+  "msgBatimentModifie": "âœ“ Building modified",
   "@msgBatimentModifie": {
     "description": "Success message - Building modified"
   },
@@ -2485,7 +2506,7 @@
   "@msgBilanGenere": {
     "description": "Success message - Report generated"
   },
-  "msgRapportGenere": "Report generated ✓",
+  "msgRapportGenere": "Report generated âœ“",
   "@msgRapportGenere": {
     "description": "Success message - Report generated"
   },
@@ -2505,7 +2526,6 @@
   "@msgAucunAccouplementDisponible": {
     "description": "Warning message - No confirmed mating available"
   },
-
   "titleConfirmerSuppression": "Confirm deletion",
   "@titleConfirmerSuppression": {
     "description": "Dialog title - Confirm deletion"
@@ -2546,7 +2566,6 @@
   "@titleAideCourbesCroissance": {
     "description": "Dialog title - Help - Growth curves"
   },
-
   "helperEstimationPossible": "Estimation if possible",
   "@helperEstimationPossible": {
     "description": "Helper text - Estimation if possible"
@@ -2563,7 +2582,6 @@
   "@helperExemplePosologie": {
     "description": "Helper text - Example dosage"
   },
-
   "switchGestante": "Pregnant",
   "@switchGestante": {
     "description": "Switch label - Pregnant"
@@ -2592,7 +2610,6 @@
   "@switchUtilisateurActifSubtitle": {
     "description": "Switch subtitle - Allows user to log in"
   },
-
   "photoTakePicture": "Take a picture",
   "@photoTakePicture": {
     "description": "Photo action - Take picture"
@@ -2609,7 +2626,6 @@
   "@photoSupprimer": {
     "description": "Photo action - Delete photo"
   },
-
   "tooltipActualiser": "Refresh",
   "@tooltipActualiser": {
     "description": "Tooltip - Refresh"
@@ -2630,7 +2646,6 @@
   "@tooltipClapier": {
     "description": "Tooltip - Hutch"
   },
-
   "confirmDeleteQuestion": "Do you really want to delete {item}?",
   "@confirmDeleteQuestion": {
     "description": "Confirmation question - Delete item",
@@ -2644,7 +2659,6 @@
   "@confirmDeleteGeneric": {
     "description": "Confirmation question - Delete generic"
   },
-
   "titleEditer": "Edit",
   "@titleEditer": {
     "description": "Dialog title - Edit"
@@ -2657,21 +2671,24 @@
   "@titleUtiliser": {
     "description": "Dialog title - Use item",
     "placeholders": {
-      "nom": {"type": "String"}
+      "nom": {
+        "type": "String"
+      }
     }
   },
   "titleReapprovisionner": "Restock {nom}",
   "@titleReapprovisionner": {
     "description": "Dialog title - Restock item",
     "placeholders": {
-      "nom": {"type": "String"}
+      "nom": {
+        "type": "String"
+      }
     }
   },
   "titleSupprimerProtocole": "Delete this protocol?",
   "@titleSupprimerProtocole": {
     "description": "Confirmation - Delete protocol"
   },
-
   "labelNouveauProtocole": "New protocol",
   "@labelNouveauProtocole": {
     "description": "Button label - New protocol"
@@ -2716,7 +2733,6 @@
   "@labelSevrer": {
     "description": "Action button label - Wean"
   },
-
   "emptyAucunProtocole": "No protocols",
   "@emptyAucunProtocole": {
     "description": "Empty state - No protocols"
@@ -2725,7 +2741,6 @@
   "@emptyAucunProtocoleDesc": {
     "description": "Empty state description - No protocols"
   },
-
   "hintExFlocon": "E.g.: Snowflake, Caramel...",
   "@hintExFlocon": {
     "description": "Hint text - Example rabbit names"
@@ -2786,7 +2801,7 @@
   "@hintQuantiteKg": {
     "description": "Label text - Quantity in kg"
   },
-  "hintPrixUnitaire": "Unit price (€/kg) *",
+  "hintPrixUnitaire": "Unit price (â‚¬/kg) *",
   "@hintPrixUnitaire": {
     "description": "Label text - Unit price"
   },
@@ -2814,7 +2829,6 @@
   "@hintEx2ml": {
     "description": "Hint text - Example dosage"
   },
-
   "validationNomRequis": "Name required",
   "@validationNomRequis": {
     "description": "Validation message - Name required"
@@ -2831,7 +2845,6 @@
   "@validationMedicamentsRequis": {
     "description": "Validation message - Medications required"
   },
-
   "confirmSupprimerPesee": "Do you really want to delete this weight?",
   "@confirmSupprimerPesee": {
     "description": "Confirmation - Delete weight"
@@ -2840,16 +2853,14 @@
   "@confirmSupprimerSoin": {
     "description": "Confirmation - Delete care"
   },
-
-  "titleJournal": "📖 Journal",
+  "titleJournal": "ðŸ“– Journal",
   "@titleJournal": {
     "description": "Screen title - Journal"
   },
-  "labelActions": "🔔 Actions",
+  "labelActions": "ðŸ”” Actions",
   "@labelActions": {
     "description": "Label - Actions"
   },
-
   "labelDateDistribution": "Distribution date",
   "@labelDateDistribution": {
     "description": "Label - Distribution date"
@@ -2886,7 +2897,7 @@
   "@labelQuantiteKg": {
     "description": "Label - Quantity in kg"
   },
-  "labelPrixUnitaire": "Unit price (€/kg) *",
+  "labelPrixUnitaire": "Unit price (â‚¬/kg) *",
   "@labelPrixUnitaire": {
     "description": "Label - Unit price"
   },
@@ -2898,7 +2909,6 @@
   "@labelDatePeremption": {
     "description": "Label - Expiration date"
   },
-
   "emptyAucunAccouplement": "No mating available for palpation",
   "@emptyAucunAccouplement": {
     "description": "Empty state - No mating available"
@@ -2911,7 +2921,6 @@
   "@emptyPasDeDonnees": {
     "description": "Empty state - No data available"
   },
-
   "btnSuivant": "Next",
   "@btnSuivant": {
     "description": "Button - Next"
@@ -2932,7 +2941,6 @@
   "@btnValider": {
     "description": "Button - Validate"
   },
-
   "snackLapinAjoute": "Rabbit added successfully",
   "@snackLapinAjoute": {
     "description": "Snackbar - Rabbit added"
@@ -2973,16 +2981,14 @@
   "@snackStockInsuffisant": {
     "description": "Snackbar - Insufficient stock"
   },
-
   "unitKg": "kg",
   "@unitKg": {
     "description": "Unit - Kilogram"
   },
-  "unitEuro": "€",
+  "unitEuro": "â‚¬",
   "@unitEuro": {
     "description": "Unit - Euro"
   },
-
   "tooltipEnregistrer": "Save",
   "@tooltipEnregistrer": {
     "description": "Tooltip - Save"
@@ -3015,7 +3021,6 @@
   "@tooltipAfficher": {
     "description": "Tooltip - Show"
   },
-
   "titleSelectionnerLapin": "Select a rabbit",
   "@titleSelectionnerLapin": {
     "description": "Dialog title - Select rabbit"
@@ -3064,7 +3069,6 @@
   "@titleConfirmation": {
     "description": "Dialog title - Confirmation"
   },
-
   "stepIdentite": "Identity",
   "@stepIdentite": {
     "description": "Step - Identity"
@@ -3073,7 +3077,6 @@
   "@stepDetails": {
     "description": "Step - Details"
   },
-
   "statutActif": "Active",
   "@statutActif": {
     "description": "Status - Active"
@@ -3098,7 +3101,6 @@
   "@statutAnnule": {
     "description": "Status - Cancelled"
   },
-
   "placeholderNonDefini": "Not defined",
   "@placeholderNonDefini": {
     "description": "Placeholder - Not defined"
@@ -3119,7 +3121,6 @@
   "@placeholderNonDisponible": {
     "description": "Placeholder - Not available"
   },
-
   "labelNumeroIdentification": "Identification number",
   "@labelNumeroIdentification": {
     "description": "Label - Identification number"
@@ -3180,7 +3181,6 @@
   "@labelDuree": {
     "description": "Label - Duration"
   },
-
   "helperStock": "Stock: {stock} kg",
   "@helperStock": {
     "description": "Helper - Stock amount",
@@ -3190,7 +3190,6 @@
       }
     }
   },
-
   "validationTitreObligatoire": "Title is required",
   "@validationTitreObligatoire": {
     "description": "Validation - Title required"
@@ -3251,7 +3250,6 @@
   "@validationEntrerPrix": {
     "description": "Validation - Please enter price"
   },
-
   "errorRemplirChamps": "Please fill all fields",
   "@errorRemplirChamps": {
     "description": "Error - Please fill all fields"
@@ -3297,7 +3295,6 @@
   "@resultatRemplirChamps": {
     "description": "Result - Please fill all fields"
   },
-
   "promptSelectionnerLapin": "Select a rabbit",
   "@promptSelectionnerLapin": {
     "description": "Prompt - Select rabbit"
@@ -3378,7 +3375,6 @@
   "@promptTraitement": {
     "description": "Prompt - Processing..."
   },
-
   "labelRecherche": "Search",
   "@labelRecherche": {
     "description": "Label - Search"
@@ -3495,7 +3491,6 @@
   "@labelContact": {
     "description": "Label - Contact"
   },
-
   "screenProtocolesSoin": "Care protocols",
   "@screenProtocolesSoin": {
     "description": "Screen title - Care protocols"
@@ -3616,7 +3611,6 @@
   "@screenEnregistrerDeces": {
     "description": "Screen title - Register death"
   },
-
   "btnFermer": "Close",
   "@btnFermer": {
     "description": "Button - Close"
@@ -3677,7 +3671,6 @@
   "@btnAppliquer": {
     "description": "Button - Apply"
   },
-
   "dialogConfirmerSuppression": "Confirm deletion",
   "@dialogConfirmerSuppression": {
     "description": "Dialog - Confirm deletion"
@@ -3738,7 +3731,6 @@
   "@dialogChoix": {
     "description": "Dialog - Choice"
   },
-
   "statusEnCours": "In progress",
   "@statusEnCours": {
     "description": "Status - In progress"
@@ -3779,7 +3771,6 @@
   "@statusReporte": {
     "description": "Status - Postponed"
   },
-
   "emptyAucunePortee": "No litter registered",
   "@emptyAucunePortee": {
     "description": "Empty state - No litter registered"
@@ -3800,7 +3791,6 @@
   "@emptyAucunElementTrouve": {
     "description": "Empty state - No item found"
   },
-
   "actionVaccination": "Vaccination",
   "@actionVaccination": {
     "description": "Action - Vaccination"
@@ -3861,7 +3851,6 @@
   "@actionInstallation": {
     "description": "Action - Installation"
   },
-  
   "timeJour": "day",
   "@timeJour": {
     "description": "Time unit - day (singular)"
@@ -3910,20 +3899,29 @@
   "@formatAgeJours": {
     "description": "Age format - days only",
     "placeholders": {
-      "days": {"type": "int"},
-      "plural": {"type": "String"}
+      "days": {
+        "type": "int"
+      },
+      "plural": {
+        "type": "String"
+      }
     }
   },
   "formatAgeAnsMois": "{years} year{pluralYears} and {months} months",
   "@formatAgeAnsMois": {
     "description": "Age format - years and months",
     "placeholders": {
-      "years": {"type": "int"},
-      "pluralYears": {"type": "String"},
-      "months": {"type": "int"}
+      "years": {
+        "type": "int"
+      },
+      "pluralYears": {
+        "type": "String"
+      },
+      "months": {
+        "type": "int"
+      }
     }
   },
-  
   "screenProtocolesSoin": "Care Protocols",
   "@screenProtocolesSoin": {
     "description": "Screen title - Care protocols"
@@ -4000,7 +3998,6 @@
   "@screenRapportsPDF": {
     "description": "Screen title - PDF Reports"
   },
-  
   "titleConfirmerSuppression": "Confirm Deletion",
   "@titleConfirmerSuppression": {
     "description": "Dialog title - Confirm deletion"
@@ -4013,7 +4010,6 @@
   "@titleAttention": {
     "description": "Dialog title - Warning"
   },
-  
   "subtitleVaccinationVHD": "VHD Vaccination",
   "@subtitleVaccinationVHD": {
     "description": "Subtitle - VHD vaccination"
@@ -4030,7 +4026,6 @@
   "@subtitleGestionReformes": {
     "description": "Subtitle - Reform management"
   },
-  
   "titleExportSauvegardeComplete": "Complete Backup",
   "@titleExportSauvegardeComplete": {
     "description": "Export option - Complete backup"
@@ -4059,7 +4054,6 @@
   "@titleImportJSON": {
     "description": "Import option - Import from JSON"
   },
-  
   "pluralS": "s",
   "@pluralS": {
     "description": "Plural suffix - English 's'"
@@ -4100,28 +4094,36 @@
   "@msgQuantiteMinimum": {
     "description": "Validation - Minimum quantity",
     "placeholders": {
-      "min": {"type": "int"}
+      "min": {
+        "type": "int"
+      }
     }
   },
   "msgQuantiteMaximum": "Maximum quantity: {max}",
   "@msgQuantiteMaximum": {
     "description": "Validation - Maximum quantity",
     "placeholders": {
-      "max": {"type": "int"}
+      "max": {
+        "type": "int"
+      }
     }
   },
   "msgPoidsMinimum": "Minimum weight: {min} kg",
   "@msgPoidsMinimum": {
     "description": "Validation - Minimum weight",
     "placeholders": {
-      "min": {"type": "double"}
+      "min": {
+        "type": "double"
+      }
     }
   },
   "msgPoidsMaximum": "Maximum weight: {max} kg",
   "@msgPoidsMaximum": {
     "description": "Validation - Maximum weight",
     "placeholders": {
-      "max": {"type": "double"}
+      "max": {
+        "type": "double"
+      }
     }
   },
   "msgSelectionnerElement": "Please select an element",
@@ -4136,7 +4138,6 @@
   "@msgErreurOperationEchouee": {
     "description": "Error message - Operation failed"
   },
-  
   "labelPoidsKg": "Weight (kg)",
   "@labelPoidsKg": {
     "description": "Label - Weight in kg"
@@ -4269,7 +4270,7 @@
   "@labelNomAcheteur": {
     "description": "Label - Buyer name"
   },
-  "labelMontantEuro": "Amount (€)",
+  "labelMontantEuro": "Amount (â‚¬)",
   "@labelMontantEuro": {
     "description": "Label - Amount in euros"
   },
@@ -4277,7 +4278,9 @@
   "@labelMoisAge": {
     "description": "Label - Months age",
     "placeholders": {
-      "months": {"type": "int"}
+      "months": {
+        "type": "int"
+      }
     }
   },
   "hintRechercher": "Search...",
@@ -4360,25 +4363,31 @@
   "@hintDetailsLocalisation": {
     "description": "Hint - Location details or notes"
   },
-  "msgCageAjoutee": "✓ Cage \"{cageId}\" added",
+  "msgCageAjoutee": "âœ“ Cage \"{cageId}\" added",
   "@msgCageAjoutee": {
     "description": "Success - Cage added",
     "placeholders": {
-      "cageId": {"type": "String"}
+      "cageId": {
+        "type": "String"
+      }
     }
   },
-  "msgBatimentAjoute": "✓ Building \"{name}\" added",
+  "msgBatimentAjoute": "âœ“ Building \"{name}\" added",
   "@msgBatimentAjoute": {
     "description": "Success - Building added",
     "placeholders": {
-      "name": {"type": "String"}
+      "name": {
+        "type": "String"
+      }
     }
   },
   "msgErreur": "Error: {error}",
   "@msgErreur": {
     "description": "Error message with details",
     "placeholders": {
-      "error": {"type": "String"}
+      "error": {
+        "type": "String"
+      }
     }
   },
   "msgSyncBientot": "Sync feature coming soon",
@@ -4397,10 +4406,11 @@
   "@labelTotalLapins": {
     "description": "Label - Total rabbits count",
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
-  
   "labelBreed": "BREED",
   "@labelBreed": {
     "description": "Label - Breed"
@@ -4513,7 +4523,7 @@
   "@labelBuyerName": {
     "description": "Label - Buyer name"
   },
-  "labelAmountEuro": "Amount (€)",
+  "labelAmountEuro": "Amount (â‚¬)",
   "@labelAmountEuro": {
     "description": "Label - Amount in euros"
   },
@@ -4772,7 +4782,7 @@
   "@labelConfirmer": {
     "description": "Label - Confirm"
   },
-  "notifMiseBasTitre": "🐰 Birth due in 3 days",
+  "notifMiseBasTitre": "ðŸ° Birth due in 3 days",
   "@notifMiseBasTitre": {
     "description": "Notification title - Birth due in 3 days"
   },
@@ -4780,11 +4790,15 @@
   "@notifMiseBasCorps": {
     "description": "Notification body - Birth due date",
     "placeholders": {
-      "nomFemelle": {"type": "String"},
-      "date": {"type": "String"}
+      "nomFemelle": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      }
     }
   },
-  "notifSoinTitre": "💉 Care reminder",
+  "notifSoinTitre": "ðŸ’‰ Care reminder",
   "@notifSoinTitre": {
     "description": "Notification title - Care reminder"
   },
@@ -4792,12 +4806,18 @@
   "@notifSoinCorps": {
     "description": "Notification body - Care details",
     "placeholders": {
-      "nomLapin": {"type": "String"},
-      "typeSoin": {"type": "String"},
-      "date": {"type": "String"}
+      "nomLapin": {
+        "type": "String"
+      },
+      "typeSoin": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      }
     }
   },
-  "notifPalpationTitre": "🔍 Palpation reminder",
+  "notifPalpationTitre": "ðŸ” Palpation reminder",
   "@notifPalpationTitre": {
     "description": "Notification title - Palpation reminder"
   },
@@ -4805,11 +4825,15 @@
   "@notifPalpationCorps": {
     "description": "Notification body - Palpation scheduled",
     "placeholders": {
-      "nomFemelle": {"type": "String"},
-      "date": {"type": "String"}
+      "nomFemelle": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      }
     }
   },
-  "notifNidTitre": "🏠 Nest preparation",
+  "notifNidTitre": "ðŸ  Nest preparation",
   "@notifNidTitre": {
     "description": "Notification title - Nest preparation"
   },
@@ -4817,11 +4841,15 @@
   "@notifNidCorps": {
     "description": "Notification body - Prepare nest",
     "placeholders": {
-      "nomFemelle": {"type": "String"},
-      "date": {"type": "String"}
+      "nomFemelle": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      }
     }
   },
-  "notifPeseeTitre": "⚖️ Weighing reminder",
+  "notifPeseeTitre": "âš–ï¸ Weighing reminder",
   "@notifPeseeTitre": {
     "description": "Notification title - Weight reminder"
   },
@@ -4829,55 +4857,58 @@
   "@notifPeseeCorps": {
     "description": "Notification body - Weekly weighing",
     "placeholders": {
-      "nomLapin": {"type": "String"},
-      "date": {"type": "String"}
+      "nomLapin": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      }
     }
   },
-  "notifActionMiseBasOK": "✅ Birth OK",
+  "notifActionMiseBasOK": "âœ… Birth OK",
   "@notifActionMiseBasOK": {
     "description": "Notification action - Birth OK"
   },
-  "notifActionEchec": "❌ Failed",
+  "notifActionEchec": "âŒ Failed",
   "@notifActionEchec": {
     "description": "Notification action - Failed"
   },
-  "notifActionReporter24h": "⏰ +24h",
+  "notifActionReporter24h": "â° +24h",
   "@notifActionReporter24h": {
     "description": "Notification action - Postpone 24h"
   },
-  "notifActionGestante": "✅ Pregnant",
+  "notifActionGestante": "âœ… Pregnant",
   "@notifActionGestante": {
     "description": "Notification action - Pregnant"
   },
-  "notifActionNonGestante": "❌ No",
+  "notifActionNonGestante": "âŒ No",
   "@notifActionNonGestante": {
     "description": "Notification action - Not pregnant"
   },
-  "notifActionRefaire": "❓ Redo",
+  "notifActionRefaire": "â“ Redo",
   "@notifActionRefaire": {
     "description": "Notification action - Redo"
   },
-  "notifActionFait": "✅ Done",
+  "notifActionFait": "âœ… Done",
   "@notifActionFait": {
     "description": "Notification action - Done"
   },
-  "notifActionSevre": "✅ Weaned",
+  "notifActionSevre": "âœ… Weaned",
   "@notifActionSevre": {
     "description": "Notification action - Weaned"
   },
-  "notifActionReporter2j": "⏰ +2d",
+  "notifActionReporter2j": "â° +2d",
   "@notifActionReporter2j": {
     "description": "Notification action - Postpone 2 days"
   },
-  "notifActionOK": "✅ OK",
+  "notifActionOK": "âœ… OK",
   "@notifActionOK": {
     "description": "Notification action - OK"
   },
-  "notifActionProbleme": "⚠️ Prob",
+  "notifActionProbleme": "âš ï¸ Prob",
   "@notifActionProbleme": {
     "description": "Notification action - Problem"
   },
-
   "welcomeTitle": "Smart Rabbit",
   "@welcomeTitle": {
     "description": "Welcome screen - Title first line"
@@ -4902,7 +4933,6 @@
   "@welcomeLogIn": {
     "description": "Welcome screen - Log in link"
   },
-
   "sevrageDebutLabel": "Start weaning",
   "@sevrageDebutLabel": {
     "description": "Sevrage - Start weaning button"
@@ -4943,370 +4973,686 @@
   "@sevrageCageLabel": {
     "description": "Sevrage - Cage label"
   },
-
   "typeEntiteLapin": "Rabbit",
-  "@typeEntiteLapin": {"description": "Entity type - Rabbit"},
+  "@typeEntiteLapin": {
+    "description": "Entity type - Rabbit"
+  },
   "typeEntitePortee": "Litter",
-  "@typeEntitePortee": {"description": "Entity type - Litter"},
+  "@typeEntitePortee": {
+    "description": "Entity type - Litter"
+  },
   "typeEntiteAccouplement": "Mating",
-  "@typeEntiteAccouplement": {"description": "Entity type - Mating"},
+  "@typeEntiteAccouplement": {
+    "description": "Entity type - Mating"
+  },
   "typeEntiteSoin": "Care",
-  "@typeEntiteSoin": {"description": "Entity type - Care"},
+  "@typeEntiteSoin": {
+    "description": "Entity type - Care"
+  },
   "typeEntitePesee": "Weighing",
-  "@typeEntitePesee": {"description": "Entity type - Weighing"},
+  "@typeEntitePesee": {
+    "description": "Entity type - Weighing"
+  },
   "typeEntiteDepense": "Expense",
-  "@typeEntiteDepense": {"description": "Entity type - Expense"},
+  "@typeEntiteDepense": {
+    "description": "Entity type - Expense"
+  },
   "typeEntiteRecette": "Income",
-  "@typeEntiteRecette": {"description": "Entity type - Income"},
+  "@typeEntiteRecette": {
+    "description": "Entity type - Income"
+  },
   "typeEntiteVente": "Sale",
-  "@typeEntiteVente": {"description": "Entity type - Sale"},
+  "@typeEntiteVente": {
+    "description": "Entity type - Sale"
+  },
   "typeEntiteDeces": "Death",
-  "@typeEntiteDeces": {"description": "Entity type - Death"},
+  "@typeEntiteDeces": {
+    "description": "Entity type - Death"
+  },
   "typeEntiteReforme": "Culling",
-  "@typeEntiteReforme": {"description": "Entity type - Culling"},
+  "@typeEntiteReforme": {
+    "description": "Entity type - Culling"
+  },
   "typeEntiteQuarantaine": "Quarantine",
-  "@typeEntiteQuarantaine": {"description": "Entity type - Quarantine"},
+  "@typeEntiteQuarantaine": {
+    "description": "Entity type - Quarantine"
+  },
   "typeEntiteSevrage": "Weaning",
-  "@typeEntiteSevrage": {"description": "Entity type - Weaning"},
-  "typeEntiteRituel": "Check",
-  "@typeEntiteRituel": {"description": "Entity type - Check"},
+  "@typeEntiteSevrage": {
+    "description": "Entity type - Weaning"
+  },
+  "typeEntiteVerification": "Check",
+  "@typeEntiteVerification": {
+    "description": "Entity type - Check"
+  },
   "typeEntiteAnomalie": "Issue",
-  "@typeEntiteAnomalie": {"description": "Entity type - Issue"},
+  "@typeEntiteAnomalie": {
+    "description": "Entity type - Issue"
+  },
   "typeEntiteAliment": "Feed",
-  "@typeEntiteAliment": {"description": "Entity type - Feed"},
+  "@typeEntiteAliment": {
+    "description": "Entity type - Feed"
+  },
   "typeEntiteMedicament": "Medicine",
-  "@typeEntiteMedicament": {"description": "Entity type - Medicine"},
+  "@typeEntiteMedicament": {
+    "description": "Entity type - Medicine"
+  },
   "typeEntiteCage": "Cage",
-  "@typeEntiteCage": {"description": "Entity type - Cage"},
+  "@typeEntiteCage": {
+    "description": "Entity type - Cage"
+  },
   "typeEntiteClapier": "Hutch",
-  "@typeEntiteClapier": {"description": "Entity type - Hutch"},
+  "@typeEntiteClapier": {
+    "description": "Entity type - Hutch"
+  },
   "typeEntiteBatiment": "Building",
-  "@typeEntiteBatiment": {"description": "Entity type - Building"},
+  "@typeEntiteBatiment": {
+    "description": "Entity type - Building"
+  },
   "typeEntitePalpation": "Palpation",
-  "@typeEntitePalpation": {"description": "Entity type - Palpation"},
+  "@typeEntitePalpation": {
+    "description": "Entity type - Palpation"
+  },
   "typeEntitePreparationNid": "Nest preparation",
-  "@typeEntitePreparationNid": {"description": "Entity type - Nest preparation"},
+  "@typeEntitePreparationNid": {
+    "description": "Entity type - Nest preparation"
+  },
   "typeEntiteAutre": "Other",
-  "@typeEntiteAutre": {"description": "Entity type - Other"},
-
-  "rituelMatin": "Morning",
-  "@rituelMatin": {"description": "Check - Morning"},
-  "rituelSoir": "Evening",
-  "@rituelSoir": {"description": "Check - Evening"},
-  "rituelTermine": "Completed",
-  "@rituelTermine": {"description": "Check status - Completed"},
-  "rituelEnCours": "In progress ({done}/{total})",
-  "@rituelEnCours": {
+  "@typeEntiteAutre": {
+    "description": "Entity type - Other"
+  },
+  "tacheMatin": "Morning",
+  "@tacheMatin": {
+    "description": "Check - Morning"
+  },
+  "tacheSoir": "Evening",
+  "@tacheSoir": {
+    "description": "Check - Evening"
+  },
+  "tacheTermine": "Completed",
+  "@tacheTermine": {
+    "description": "Check status - Completed"
+  },
+  "tacheEnCours": "In progress ({done}/{total})",
+  "@tacheEnCours": {
     "description": "Check status - In progress",
     "placeholders": {
-      "done": {"type": "int"},
-      "total": {"type": "int"}
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
     }
   },
-  "rituelAFaire": "To do",
-  "@rituelAFaire": {"description": "Check status - To do"},
-  "rituelMessageDeuxFaits": "Both checks are done!",
-  "@rituelMessageDeuxFaits": {"description": "Check card - Both rituals done"},
-  "rituelMessagePremierValide": "First check validated",
-  "@rituelMessagePremierValide": {"description": "Check card - First check validated"},
-  "rituelMessageMatinAttend": "The morning check awaits",
-  "@rituelMessageMatinAttend": {"description": "Check card - Morning ritual awaits"},
-  "rituelMessageHeureSoir": "It's time for the evening round",
-  "@rituelMessageHeureSoir": {"description": "Check card - Evening round time"},
-  "rituelsDuJour": "Daily checks",
-  "@rituelsDuJour": {"description": "Check card - Daily checks title"},
-  "rituelAppuyerCommencer": "Tap to start",
-  "@rituelAppuyerCommencer": {"description": "Check card - Tap to start"},
-  "rituelMatinFaitSoirAttente": "🌅 Morning ✓ • 🌙 Evening waiting",
-  "@rituelMatinFaitSoirAttente": {"description": "Check status - Morning done, evening waiting"},
-  "rituelMatinAttenteSoirFait": "🌅 Morning waiting • 🌙 Evening ✓",
-  "@rituelMatinAttenteSoirFait": {"description": "Check status - Morning waiting, evening done"},
-  "rituelMatinEnCours": "🌅 Morning in progress...",
-  "@rituelMatinEnCours": {"description": "Check status - Morning in progress"},
-  "rituelSoirEnCours": "🌙 Evening in progress...",
-  "@rituelSoirEnCours": {"description": "Check status - Evening in progress"},
-  "rituelFait": "✓ Done",
-  "@rituelFait": {"description": "Check status - Done"},
-  "rituelAnomaliesAujourdhui": "{count, plural, =1{{count} issue reported today} other{{count} issues reported today}}",
-  "@rituelAnomaliesAujourdhui": {
-    "description": "Check card - Issues today",
-    "placeholders": {"count": {"type": "int"}}
+  "tacheAFaire": "To do",
+  "@tacheAFaire": {
+    "description": "Check status - To do"
   },
-  "rituelAstuceObservation": "5 minutes is enough for a visual check.",
-  "@rituelAstuceObservation": {"description": "Check card - Tip for observation"},
-  "rituelAstuceObserverNuit": "Check before night.",
-  "@rituelAstuceObserverNuit": {"description": "Check card - Tip observe before night"},
-  "rituelAstuceComplet": "Come back tonight to complete the day.",
-  "@rituelAstuceComplet": {"description": "Check card - Tip complete the day"},
-  "rituelAstucePerformants": "High-performing farms check 2× per day.",
-  "@rituelAstucePerformants": {"description": "Check card - Tip performing farms"},
-  "rituelDuMatinComplet": "Morning check",
-  "@rituelDuMatinComplet": {"description": "Check - Full morning check title"},
-  "rituelDuSoirComplet": "Evening check",
-  "@rituelDuSoirComplet": {"description": "Check - Full evening check title"},
-
+  "tacheMessageDeuxFaits": "Both checks are done!",
+  "@tacheMessageDeuxFaits": {
+    "description": "Check card - Both rituals done"
+  },
+  "tacheMessagePremierValide": "First check validated",
+  "@tacheMessagePremierValide": {
+    "description": "Check card - First check validated"
+  },
+  "tacheMessageMatinAttend": "The morning check awaits",
+  "@tacheMessageMatinAttend": {
+    "description": "Check card - Morning ritual awaits"
+  },
+  "tacheMessageHeureSoir": "It's time for the evening round",
+  "@tacheMessageHeureSoir": {
+    "description": "Check card - Evening round time"
+  },
+  "tachesDuJour": "Daily checks",
+  "@tachesDuJour": {
+    "description": "Check card - Daily checks title"
+  },
+  "tacheAppuyerCommencer": "Tap to start",
+  "@tacheAppuyerCommencer": {
+    "description": "Check card - Tap to start"
+  },
+  "tacheMatinFaitSoirAttente": "\uD83C\uDF05 Morning \u2714 \u2022 \uD83C\uDF19 Evening waiting",
+  "@tacheMatinFaitSoirAttente": {
+    "description": "Check status - Morning done, evening waiting"
+  },
+  "tacheMatinAttenteSoirFait": "\uD83C\uDF05 Morning waiting \u2022 \uD83C\uDF19 Evening \u2714",
+  "@tacheMatinAttenteSoirFait": {
+    "description": "Check status - Morning waiting, evening done"
+  },
+  "tacheMatinEnCours": "\uD83C\uDF05 Morning in progress...",
+  "@tacheMatinEnCours": {
+    "description": "Check status - Morning in progress"
+  },
+  "tacheSoirEnCours": "\uD83C\uDF19 Evening in progress...",
+  "@tacheSoirEnCours": {
+    "description": "Check status - Evening in progress"
+  },
+  "tacheFait": "\u2714 Done",
+  "@tacheFait": {
+    "description": "Check status - Done"
+  },
+  "tacheAnomaliesAujourdhui": "{count, plural, =1{{count} issue reported today} other{{count} issues reported today}}",
+  "@tacheAnomaliesAujourdhui": {
+    "description": "Check card - Issues today",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "tacheAstuceObservation": "5 minutes is enough for a visual check.",
+  "@tacheAstuceObservation": {
+    "description": "Check card - Tip for observation"
+  },
+  "tacheAstuceObserverNuit": "Check before night.",
+  "@tacheAstuceObserverNuit": {
+    "description": "Check card - Tip observe before night"
+  },
+  "tacheAstuceComplet": "Come back tonight to complete the day.",
+  "@tacheAstuceComplet": {
+    "description": "Check card - Tip complete the day"
+  },
+  "tacheAstucePerformants": "High-performing farms check 2Ã— per day.",
+  "@tacheAstucePerformants": {
+    "description": "Check card - Tip performing farms"
+  },
+  "tacheDuMatinComplet": "Morning check",
+  "@tacheDuMatinComplet": {
+    "description": "Check - Full morning check title"
+  },
+  "tacheDuSoirComplet": "Evening check",
+  "@tacheDuSoirComplet": {
+    "description": "Check - Full evening check title"
+  },
   "erreurCagePleine": "The cage is full",
-  "@erreurCagePleine": {"description": "Error - Cage is full"},
+  "@erreurCagePleine": {
+    "description": "Error - Cage is full"
+  },
   "erreurCageOccupee": "Cannot delete an occupied cage",
-  "@erreurCageOccupee": {"description": "Error - Cannot delete occupied cage"},
+  "@erreurCageOccupee": {
+    "description": "Error - Cannot delete occupied cage"
+  },
   "erreurSupabaseNonInit": "Service not available. Check your connection.",
-  "@erreurSupabaseNonInit": {"description": "Error - Service not available"},
+  "@erreurSupabaseNonInit": {
+    "description": "Error - Service not available"
+  },
   "erreurUtilisateurNonAuth": "User not authenticated",
-  "@erreurUtilisateurNonAuth": {"description": "Error - User not authenticated"},
+  "@erreurUtilisateurNonAuth": {
+    "description": "Error - User not authenticated"
+  },
   "erreurInscriptionEchec": "Sign up failed: user not created",
-  "@erreurInscriptionEchec": {"description": "Error - Sign up failed"},
+  "@erreurInscriptionEchec": {
+    "description": "Error - Sign up failed"
+  },
   "erreurConnexionEchec": "Sign in failed: session not created",
-  "@erreurConnexionEchec": {"description": "Error - Sign in failed - session"},
+  "@erreurConnexionEchec": {
+    "description": "Error - Sign in failed - session"
+  },
   "erreurConnexionUtilisateur": "Sign in failed: user not created",
-  "@erreurConnexionUtilisateur": {"description": "Error - Sign in failed - user"},
+  "@erreurConnexionUtilisateur": {
+    "description": "Error - Sign in failed - user"
+  },
   "erreurMedicamentIntrouvable": "Medicine not found",
-  "@erreurMedicamentIntrouvable": {"description": "Error - Medicine not found"},
+  "@erreurMedicamentIntrouvable": {
+    "description": "Error - Medicine not found"
+  },
   "erreurClapierIntrouvable": "Hutch not found",
-  "@erreurClapierIntrouvable": {"description": "Error - Hutch not found"},
+  "@erreurClapierIntrouvable": {
+    "description": "Error - Hutch not found"
+  },
   "erreurBatimentIntrouvable": "Building not found",
-  "@erreurBatimentIntrouvable": {"description": "Error - Building not found"},
-
+  "@erreurBatimentIntrouvable": {
+    "description": "Error - Building not found"
+  },
   "materiauPaille": "Straw",
-  "@materiauPaille": {"description": "Material - Straw"},
+  "@materiauPaille": {
+    "description": "Material - Straw"
+  },
   "materiauFoin": "Hay",
-  "@materiauFoin": {"description": "Material - Hay"},
+  "@materiauFoin": {
+    "description": "Material - Hay"
+  },
   "materiauCopeaux": "Wood shavings",
-  "@materiauCopeaux": {"description": "Material - Wood shavings"},
+  "@materiauCopeaux": {
+    "description": "Material - Wood shavings"
+  },
   "materiauMixte": "Mixed",
-  "@materiauMixte": {"description": "Material - Mixed"},
+  "@materiauMixte": {
+    "description": "Material - Mixed"
+  },
   "materiauTypeLabel": "Material type",
-  "@materiauTypeLabel": {"description": "Material selector - Type label"},
-
+  "@materiauTypeLabel": {
+    "description": "Material selector - Type label"
+  },
   "tooltipAccoupler": "Mate",
-  "@tooltipAccoupler": {"description": "Tooltip - Mate"},
+  "@tooltipAccoupler": {
+    "description": "Tooltip - Mate"
+  },
   "tooltipPalpation": "Palpation",
-  "@tooltipPalpation": {"description": "Tooltip - Palpation"},
+  "@tooltipPalpation": {
+    "description": "Tooltip - Palpation"
+  },
   "tooltipPreparerNid": "Prepare nest",
-  "@tooltipPreparerNid": {"description": "Tooltip - Prepare nest"},
+  "@tooltipPreparerNid": {
+    "description": "Tooltip - Prepare nest"
+  },
   "tooltipVoirReproductions": "View reproductions",
-  "@tooltipVoirReproductions": {"description": "Tooltip - View reproductions"},
+  "@tooltipVoirReproductions": {
+    "description": "Tooltip - View reproductions"
+  },
   "tooltipSevrer": "Wean",
-  "@tooltipSevrer": {"description": "Tooltip - Wean"},
-
+  "@tooltipSevrer": {
+    "description": "Tooltip - Wean"
+  },
   "confirmer": "Confirm",
-  "@confirmer": {"description": "Generic - Confirm"},
+  "@confirmer": {
+    "description": "Generic - Confirm"
+  },
   "modifier": "Edit",
-  "@modifier": {"description": "Generic - Edit"},
+  "@modifier": {
+    "description": "Generic - Edit"
+  },
   "supprimer": "Delete",
-  "@supprimer": {"description": "Generic - Delete"},
+  "@supprimer": {
+    "description": "Generic - Delete"
+  },
   "fermer": "Close",
-  "@fermer": {"description": "Generic - Close"},
+  "@fermer": {
+    "description": "Generic - Close"
+  },
   "ajouter": "Add",
-  "@ajouter": {"description": "Generic - Add"},
+  "@ajouter": {
+    "description": "Generic - Add"
+  },
   "veuillez": "Please",
-  "@veuillez": {"description": "Generic - Please"},
+  "@veuillez": {
+    "description": "Generic - Please"
+  },
   "selectionnerLapin": "Please select a rabbit",
-  "@selectionnerLapin": {"description": "Validation - Please select a rabbit"},
+  "@selectionnerLapin": {
+    "description": "Validation - Please select a rabbit"
+  },
   "selectionnerAccouplement": "Please select a mating",
-  "@selectionnerAccouplement": {"description": "Validation - Please select a mating"},
-
+  "@selectionnerAccouplement": {
+    "description": "Validation - Please select a mating"
+  },
   "categorieVente": "Sale",
-  "@categorieVente": {"description": "Category - Sale"},
+  "@categorieVente": {
+    "description": "Category - Sale"
+  },
   "categorieCompost": "Compost",
-  "@categorieCompost": {"description": "Category - Compost"},
+  "@categorieCompost": {
+    "description": "Category - Compost"
+  },
   "categorieUtilisationPersonnelle": "Personal use",
-  "@categorieUtilisationPersonnelle": {"description": "Category - Personal use"},
+  "@categorieUtilisationPersonnelle": {
+    "description": "Category - Personal use"
+  },
   "categorieVenteLapin": "Sale of a rabbit",
-  "@categorieVenteLapin": {"description": "Category - Sale of a rabbit"},
+  "@categorieVenteLapin": {
+    "description": "Category - Sale of a rabbit"
+  },
   "categorieVentePortee": "Sale of a litter",
-  "@categorieVentePortee": {"description": "Category - Sale of a litter"},
+  "@categorieVentePortee": {
+    "description": "Category - Sale of a litter"
+  },
   "categorieAutre": "Other",
-  "@categorieAutre": {"description": "Category - Other"},
-
+  "@categorieAutre": {
+    "description": "Category - Other"
+  },
   "typeMedicamentAntibiotique": "Antibiotic",
-  "@typeMedicamentAntibiotique": {"description": "Medicine type - Antibiotic"},
+  "@typeMedicamentAntibiotique": {
+    "description": "Medicine type - Antibiotic"
+  },
   "typeMedicamentAntiparasitaire": "Antiparasitic",
-  "@typeMedicamentAntiparasitaire": {"description": "Medicine type - Antiparasitic"},
+  "@typeMedicamentAntiparasitaire": {
+    "description": "Medicine type - Antiparasitic"
+  },
   "typeMedicamentVaccin": "Vaccine",
-  "@typeMedicamentVaccin": {"description": "Medicine type - Vaccine"},
+  "@typeMedicamentVaccin": {
+    "description": "Medicine type - Vaccine"
+  },
   "typeMedicamentVitamine": "Vitamin",
-  "@typeMedicamentVitamine": {"description": "Medicine type - Vitamin"},
+  "@typeMedicamentVitamine": {
+    "description": "Medicine type - Vitamin"
+  },
   "typeMedicamentAutre": "Other",
-  "@typeMedicamentAutre": {"description": "Medicine type - Other"},
-
+  "@typeMedicamentAutre": {
+    "description": "Medicine type - Other"
+  },
   "recetteAjoutee": "Income added successfully",
-  "@recetteAjoutee": {"description": "Success - Income added"},
+  "@recetteAjoutee": {
+    "description": "Success - Income added"
+  },
   "depenseAjoutee": "Expense added successfully",
-  "@depenseAjoutee": {"description": "Success - Expense added"},
+  "@depenseAjoutee": {
+    "description": "Success - Expense added"
+  },
   "collecteEnregistree": "Collection recorded",
-  "@collecteEnregistree": {"description": "Success - Collection recorded"},
-
+  "@collecteEnregistree": {
+    "description": "Success - Collection recorded"
+  },
   "confirmSupprimerCollecte": "Do you really want to delete this collection?",
-  "@confirmSupprimerCollecte": {"description": "Confirm - Delete collection"},
+  "@confirmSupprimerCollecte": {
+    "description": "Confirm - Delete collection"
+  },
   "confirmSupprimerMedicament": "Delete \"{nom}\"?",
   "@confirmSupprimerMedicament": {
     "description": "Confirm - Delete medicine",
-    "placeholders": {"nom": {"type": "String"}}
+    "placeholders": {
+      "nom": {
+        "type": "String"
+      }
+    }
   },
   "confirmLeverQuarantaine": "Confirm that this rabbit can leave quarantine?",
-  "@confirmLeverQuarantaine": {"description": "Confirm - End quarantine"},
+  "@confirmLeverQuarantaine": {
+    "description": "Confirm - End quarantine"
+  },
   "confirmSupprimerQuarantaine": "Delete this quarantine?",
-  "@confirmSupprimerQuarantaine": {"description": "Confirm - Delete quarantine"},
+  "@confirmSupprimerQuarantaine": {
+    "description": "Confirm - Delete quarantine"
+  },
   "confirmSupprimerReforme": "Delete this culling?",
-  "@confirmSupprimerReforme": {"description": "Confirm - Delete culling"},
+  "@confirmSupprimerReforme": {
+    "description": "Confirm - Delete culling"
+  },
   "confirmSupprimerNote": "Do you really want to delete this note?",
-  "@confirmSupprimerNote": {"description": "Confirm - Delete note"},
-
+  "@confirmSupprimerNote": {
+    "description": "Confirm - Delete note"
+  },
   "actionLeverQuarantaine": "End quarantine",
-  "@actionLeverQuarantaine": {"description": "Action - End quarantine"},
+  "@actionLeverQuarantaine": {
+    "description": "Action - End quarantine"
+  },
   "actionAjouterObservation": "Add observation",
-  "@actionAjouterObservation": {"description": "Action - Add observation"},
+  "@actionAjouterObservation": {
+    "description": "Action - Add observation"
+  },
   "actionReformer": "Cull",
-  "@actionReformer": {"description": "Action - Cull"},
+  "@actionReformer": {
+    "description": "Action - Cull"
+  },
   "actionMettreQuarantaine": "Quarantine",
-  "@actionMettreQuarantaine": {"description": "Action - Quarantine"},
-
+  "@actionMettreQuarantaine": {
+    "description": "Action - Quarantine"
+  },
   "monProfil": "My profile",
-  "@monProfil": {"description": "My profile"},
+  "@monProfil": {
+    "description": "My profile"
+  },
   "desactiver": "Deactivate",
-  "@desactiver": {"description": "Deactivate"},
+  "@desactiver": {
+    "description": "Deactivate"
+  },
   "activer": "Activate",
-  "@activer": {"description": "Activate"},
-
+  "@activer": {
+    "description": "Activate"
+  },
   "aidePalpation": "Help - Palpation",
-  "@aidePalpation": {"description": "Help - Palpation"},
+  "@aidePalpation": {
+    "description": "Help - Palpation"
+  },
   "aidePreparationNid": "Help - Nest preparation",
-  "@aidePreparationNid": {"description": "Help - Nest preparation"},
-
+  "@aidePreparationNid": {
+    "description": "Help - Nest preparation"
+  },
   "chargement": "Loading...",
-  "@chargement": {"description": "Loading..."},
+  "@chargement": {
+    "description": "Loading..."
+  },
   "aucun": "- None -",
-  "@aucun": {"description": "- None -"},
+  "@aucun": {
+    "description": "- None -"
+  },
   "optionnel": "Optional",
-  "@optionnel": {"description": "Optional"},
+  "@optionnel": {
+    "description": "Optional"
+  },
   "dateEtHeure": "Date and time",
-  "@dateEtHeure": {"description": "Date and time"},
-
-  "filtres": "✕ Filters",
-  "@filtres": {"description": "✕ Filters"},
-  "anomalies": "⚠️ Anomalies",
-  "@anomalies": {"description": "⚠️ Anomalies"},
-  "lapinsFiltre": "🐰 Rabbits",
-  "@lapinsFiltre": {"description": "🐰 Rabbits (filter)"},
-  "reproductionFiltre": "💕 Breeding",
-  "@reproductionFiltre": {"description": "💕 Breeding (filter)"},
-  "santeFiltre": "💊 Health",
-  "@santeFiltre": {"description": "💊 Health (filter)"},
-  "financesFiltre": "💰 Finances",
-  "@financesFiltre": {"description": "💰 Finances (filter)"},
-
-  "noteEnregistree": "📝 Note saved",
-  "@noteEnregistree": {"description": "📝 Note saved"},
-
-  "donneesChargees": "✅ Data loaded! Restart the app.",
-  "@donneesChargees": {"description": "✅ Data loaded! Restart app."},
-  "consultezDocumentation": "• Check the documentation in the app",
-  "@consultezDocumentation": {"description": "• Check documentation in app"},
-  "contactezSupport": "• Contact support via settings",
-  "@contactezSupport": {"description": "• Contact support via settings"},
-  "donneesSynchronisees": "✓ Data synchronized",
-  "@donneesSynchronisees": {"description": "✓ Data synchronized"},
-  "batimentSupprime": "✓ Building deleted",
-  "@batimentSupprime": {"description": "✓ Building deleted"},
-  "cageSupprimee": "✓ Cage deleted",
-  "@cageSupprimee": {"description": "✓ Cage deleted"},
-
+  "@dateEtHeure": {
+    "description": "Date and time"
+  },
+  "filtres": "âœ• Filters",
+  "@filtres": {
+    "description": "âœ• Filters"
+  },
+  "anomalies": "âš ï¸ Anomalies",
+  "@anomalies": {
+    "description": "âš ï¸ Anomalies"
+  },
+  "lapinsFiltre": "ðŸ° Rabbits",
+  "@lapinsFiltre": {
+    "description": "ðŸ° Rabbits (filter)"
+  },
+  "reproductionFiltre": "ðŸ’• Breeding",
+  "@reproductionFiltre": {
+    "description": "ðŸ’• Breeding (filter)"
+  },
+  "santeFiltre": "ðŸ’Š Health",
+  "@santeFiltre": {
+    "description": "ðŸ’Š Health (filter)"
+  },
+  "financesFiltre": "ðŸ’° Finances",
+  "@financesFiltre": {
+    "description": "ðŸ’° Finances (filter)"
+  },
+  "noteEnregistree": "ðŸ“ Note saved",
+  "@noteEnregistree": {
+    "description": "ðŸ“ Note saved"
+  },
+  "donneesChargees": "âœ… Data loaded! Restart the app.",
+  "@donneesChargees": {
+    "description": "âœ… Data loaded! Restart app."
+  },
+  "consultezDocumentation": "â€¢ Check the documentation in the app",
+  "@consultezDocumentation": {
+    "description": "â€¢ Check documentation in app"
+  },
+  "contactezSupport": "â€¢ Contact support via settings",
+  "@contactezSupport": {
+    "description": "â€¢ Contact support via settings"
+  },
+  "donneesSynchronisees": "âœ“ Data synchronized",
+  "@donneesSynchronisees": {
+    "description": "âœ“ Data synchronized"
+  },
+  "batimentSupprime": "âœ“ Building deleted",
+  "@batimentSupprime": {
+    "description": "âœ“ Building deleted"
+  },
+  "cageSupprimee": "âœ“ Cage deleted",
+  "@cageSupprimee": {
+    "description": "âœ“ Cage deleted"
+  },
   "sevrageResumeLabel": "Weaning Summary",
-  "@sevrageResumeLabel": {"description": "Weaning summary label"},
+  "@sevrageResumeLabel": {
+    "description": "Weaning summary label"
+  },
   "sevrageLapreauxASevrer": "Kits to wean",
-  "@sevrageLapreauxASevrer": {"description": "Kits to wean"},
+  "@sevrageLapreauxASevrer": {
+    "description": "Kits to wean"
+  },
   "sevrageMaleLabel": "Males",
-  "@sevrageMaleLabel": {"description": "Males"},
+  "@sevrageMaleLabel": {
+    "description": "Males"
+  },
   "sevrageFemaleLabel": "Females",
-  "@sevrageFemaleLabel": {"description": "Females"},
+  "@sevrageFemaleLabel": {
+    "description": "Females"
+  },
   "sevrageCagesUtilisees": "Cages used",
-  "@sevrageCagesUtilisees": {"description": "Cages used"},
+  "@sevrageCagesUtilisees": {
+    "description": "Cages used"
+  },
   "sevragePoidsMoyen": "Average weight",
-  "@sevragePoidsMoyen": {"description": "Average weight"},
+  "@sevragePoidsMoyen": {
+    "description": "Average weight"
+  },
   "sevrageSelectionnerCage": "Please select a cage for each kit",
-  "@sevrageSelectionnerCage": {"description": "Please select a cage for each kit"},
-
+  "@sevrageSelectionnerCage": {
+    "description": "Please select a cage for each kit"
+  },
   "typeEntiteLapin": "Rabbit",
-  "@typeEntiteLapin": {"description": "Entity type - Rabbit"},
+  "@typeEntiteLapin": {
+    "description": "Entity type - Rabbit"
+  },
   "typeEntitePortee": "Litter",
-  "@typeEntitePortee": {"description": "Entity type - Litter"},
+  "@typeEntitePortee": {
+    "description": "Entity type - Litter"
+  },
   "typeEntiteAccouplement": "Mating",
-  "@typeEntiteAccouplement": {"description": "Entity type - Mating"},
+  "@typeEntiteAccouplement": {
+    "description": "Entity type - Mating"
+  },
   "typeEntiteSoin": "Care",
-  "@typeEntiteSoin": {"description": "Entity type - Care"},
+  "@typeEntiteSoin": {
+    "description": "Entity type - Care"
+  },
   "typeEntitePesee": "Weighing",
-  "@typeEntitePesee": {"description": "Entity type - Weighing"},
+  "@typeEntitePesee": {
+    "description": "Entity type - Weighing"
+  },
   "typeEntiteDepense": "Expense",
-  "@typeEntiteDepense": {"description": "Entity type - Expense"},
+  "@typeEntiteDepense": {
+    "description": "Entity type - Expense"
+  },
   "typeEntiteRecette": "Income",
-  "@typeEntiteRecette": {"description": "Entity type - Income"},
+  "@typeEntiteRecette": {
+    "description": "Entity type - Income"
+  },
   "typeEntiteVente": "Sale",
-  "@typeEntiteVente": {"description": "Entity type - Sale"},
+  "@typeEntiteVente": {
+    "description": "Entity type - Sale"
+  },
   "typeEntiteDeces": "Death",
-  "@typeEntiteDeces": {"description": "Entity type - Death"},
+  "@typeEntiteDeces": {
+    "description": "Entity type - Death"
+  },
   "typeEntiteReforme": "Culling",
-  "@typeEntiteReforme": {"description": "Entity type - Culling"},
+  "@typeEntiteReforme": {
+    "description": "Entity type - Culling"
+  },
   "typeEntiteQuarantaine": "Quarantine",
-  "@typeEntiteQuarantaine": {"description": "Entity type - Quarantine"},
+  "@typeEntiteQuarantaine": {
+    "description": "Entity type - Quarantine"
+  },
   "typeEntiteSevrage": "Weaning",
-  "@typeEntiteSevrage": {"description": "Entity type - Weaning"},
+  "@typeEntiteSevrage": {
+    "description": "Entity type - Weaning"
+  },
   "typeEntiteRituel": "Check",
-  "@typeEntiteRituel": {"description": "Entity type - Check"},
+  "@typeEntiteRituel": {
+    "description": "Entity type - Check"
+  },
   "typeEntiteAnomalie": "Issue",
-  "@typeEntiteAnomalie": {"description": "Entity type - Issue"},
+  "@typeEntiteAnomalie": {
+    "description": "Entity type - Issue"
+  },
   "typeEntiteAliment": "Feed",
-  "@typeEntiteAliment": {"description": "Entity type - Feed"},
+  "@typeEntiteAliment": {
+    "description": "Entity type - Feed"
+  },
   "typeEntiteMedicament": "Medicine",
-  "@typeEntiteMedicament": {"description": "Entity type - Medicine"},
+  "@typeEntiteMedicament": {
+    "description": "Entity type - Medicine"
+  },
   "typeEntiteCage": "Cage",
-  "@typeEntiteCage": {"description": "Entity type - Cage"},
+  "@typeEntiteCage": {
+    "description": "Entity type - Cage"
+  },
   "typeEntiteClapier": "Hutch",
-  "@typeEntiteClapier": {"description": "Entity type - Hutch"},
+  "@typeEntiteClapier": {
+    "description": "Entity type - Hutch"
+  },
   "typeEntiteBatiment": "Building",
-  "@typeEntiteBatiment": {"description": "Entity type - Building"},
+  "@typeEntiteBatiment": {
+    "description": "Entity type - Building"
+  },
   "typeEntitePalpation": "Palpation",
-  "@typeEntitePalpation": {"description": "Entity type - Palpation"},
+  "@typeEntitePalpation": {
+    "description": "Entity type - Palpation"
+  },
   "typeEntitePreparationNid": "Nest preparation",
-  "@typeEntitePreparationNid": {"description": "Entity type - Nest preparation"},
+  "@typeEntitePreparationNid": {
+    "description": "Entity type - Nest preparation"
+  },
   "typeEntiteAutre": "Other",
-  "@typeEntiteAutre": {"description": "Entity type - Other"},
-
+  "@typeEntiteAutre": {
+    "description": "Entity type - Other"
+  },
   "typeActionCreation": "Creation",
-  "@typeActionCreation": {"description": "Action type - Creation"},
+  "@typeActionCreation": {
+    "description": "Action type - Creation"
+  },
   "typeActionModification": "Modification",
-  "@typeActionModification": {"description": "Action type - Modification"},
+  "@typeActionModification": {
+    "description": "Action type - Modification"
+  },
   "typeActionSuppression": "Deletion",
-  "@typeActionSuppression": {"description": "Action type - Deletion"},
+  "@typeActionSuppression": {
+    "description": "Action type - Deletion"
+  },
   "typeActionValidation": "Validation",
-  "@typeActionValidation": {"description": "Action type - Validation"},
+  "@typeActionValidation": {
+    "description": "Action type - Validation"
+  },
   "typeActionAnnulation": "Cancellation",
-  "@typeActionAnnulation": {"description": "Action type - Cancellation"},
+  "@typeActionAnnulation": {
+    "description": "Action type - Cancellation"
+  },
   "typeActionCompletion": "Completion",
-  "@typeActionCompletion": {"description": "Action type - Completion"},
+  "@typeActionCompletion": {
+    "description": "Action type - Completion"
+  },
   "typeActionObservation": "Observation",
-  "@typeActionObservation": {"description": "Action type - Observation"},
+  "@typeActionObservation": {
+    "description": "Action type - Observation"
+  },
   "typeActionAnomalie": "Issue",
-  "@typeActionAnomalie": {"description": "Action type - Issue"},
+  "@typeActionAnomalie": {
+    "description": "Action type - Issue"
+  },
   "typeActionAlerte": "Alert",
-  "@typeActionAlerte": {"description": "Action type - Alert"},
+  "@typeActionAlerte": {
+    "description": "Action type - Alert"
+  },
   "typeActionRappel": "Reminder",
-  "@typeActionRappel": {"description": "Action type - Reminder"},
-
+  "@typeActionRappel": {
+    "description": "Action type - Reminder"
+  },
   "statutEvenementNormal": "Normal",
-  "@statutEvenementNormal": {"description": "Event status - Normal"},
+  "@statutEvenementNormal": {
+    "description": "Event status - Normal"
+  },
   "statutEvenementAnomalie": "Issue",
-  "@statutEvenementAnomalie": {"description": "Event status - Issue"},
+  "@statutEvenementAnomalie": {
+    "description": "Event status - Issue"
+  },
   "statutEvenementAction": "Action",
-  "@statutEvenementAction": {"description": "Event status - Action"},
+  "@statutEvenementAction": {
+    "description": "Event status - Action"
+  },
   "statutEvenementInfo": "Info",
-  "@statutEvenementInfo": {"description": "Event status - Info"},
+  "@statutEvenementInfo": {
+    "description": "Event status - Info"
+  },
   "statutEvenementSucces": "Success",
-  "@statutEvenementSucces": {"description": "Event status - Success"},
-
-  "rituelQuotidien": "Daily",
-  "@rituelQuotidien": {"description": "Check frequency - Daily"},
-  "rituelHebdomadaire": "Weekly",
-  "@rituelHebdomadaire": {"description": "Check frequency - Weekly"},
-  "rituelMensuel": "Monthly",
-  "@rituelMensuel": {"description": "Check frequency - Monthly"}
+  "@statutEvenementSucces": {
+    "description": "Event status - Success"
+  },
+  "tacheQuotidien": "Daily",
+  "@tacheQuotidien": {
+    "description": "Check frequency - Daily"
+  },
+  "tacheHebdomadaire": "Weekly",
+  "@tacheHebdomadaire": {
+    "description": "Check frequency - Weekly"
+  },
+  "tacheMensuel": "Monthly",
+  "@tacheMensuel": {
+    "description": "Check frequency - Monthly"
+  }
 }

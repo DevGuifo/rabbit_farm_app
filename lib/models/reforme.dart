@@ -1,10 +1,11 @@
+import 'enums/reforme_enums.dart';
+
 class Reforme {
   final int? id;
   final int lapinId;
   final DateTime dateReforme;
-  final String
-  motif; // 'age', 'improductif', 'maladie', 'genetique', 'comportement', 'autre'
-  final String destination; // 'vente', 'abattage', 'don', 'autre'
+  final MotifReforme motif;
+  final DestinationReforme destination;
   final double? prixVente;
   final double? poidsVif;
   final String? notes;
@@ -25,8 +26,8 @@ class Reforme {
       'id': id,
       'lapin_id': lapinId,
       'date_reforme': dateReforme.toIso8601String(),
-      'motif': motif,
-      'destination': destination,
+      'motif': motif.toDatabase(),
+      'destination': destination.toDatabase(),
       'prix_vente': prixVente,
       'poids_vif': poidsVif,
       'notes': notes,
@@ -38,8 +39,8 @@ class Reforme {
       id: map['id'] as int?,
       lapinId: map['lapin_id'] as int,
       dateReforme: DateTime.parse(map['date_reforme'] as String),
-      motif: map['motif'] as String,
-      destination: map['destination'] as String,
+      motif: MotifReforme.fromString(map['motif'] as String),
+      destination: DestinationReforme.fromString(map['destination'] as String),
       prixVente: map['prix_vente'] != null
           ? (map['prix_vente'] as num).toDouble()
           : null,
@@ -54,8 +55,8 @@ class Reforme {
     int? id,
     int? lapinId,
     DateTime? dateReforme,
-    String? motif,
-    String? destination,
+    MotifReforme? motif,
+    DestinationReforme? destination,
     double? prixVente,
     double? poidsVif,
     String? notes,

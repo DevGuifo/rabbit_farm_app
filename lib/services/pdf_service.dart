@@ -8,8 +8,9 @@ import '../models/portee.dart';
 import '../models/recette.dart';
 import '../models/depense.dart';
 import '../models/cage.dart';
+import '../models/enums/sexe.dart';
+import '../models/enums/type_soin.dart';
 import '../services/database_helper.dart';
-import '../services/localisation_service.dart';
 
 class PdfService {
   static final PdfService _instance = PdfService._internal();
@@ -48,7 +49,10 @@ class PdfService {
             _buildSection('Informations générales', [
               _buildInfoRow('Nom', lapin.nom),
               _buildInfoRow('Race', lapin.race),
-              _buildInfoRow('Sexe', lapin.sexe == 'male' ? 'Mâle' : 'Femelle'),
+              _buildInfoRow(
+                'Sexe',
+                lapin.sexe == Sexe.male ? 'Mâle' : 'Femelle',
+              ),
               _buildInfoRow(
                 'Date de naissance',
                 _formatDate.format(lapin.dateNaissance),
@@ -113,7 +117,7 @@ class PdfService {
                       .map(
                         (s) => [
                           _formatDate.format(s.date),
-                          s.type,
+                          s.type.label,
                           s.description,
                         ],
                       )
@@ -209,7 +213,7 @@ class PdfService {
                       .map(
                         (r) => [
                           _formatDate.format(r.date),
-                          _getNomCategorieRecette(r.categorie),
+                          r.categorie.label,
                           r.description,
                           _formatMontant.format(r.montant),
                         ],
@@ -229,7 +233,7 @@ class PdfService {
                       .map(
                         (d) => [
                           _formatDate.format(d.date),
-                          _getNomCategorieDepense(d.categorie),
+                          d.categorie.label,
                           d.description,
                           _formatMontant.format(d.montant),
                         ],
@@ -522,7 +526,7 @@ class PdfService {
             ),
           ),
           pw.Text(
-            lapin.sexe == 'male' ? 'Mâle' : 'Femelle',
+            lapin.sexe == Sexe.male ? 'Mâle' : 'Femelle',
             style: pw.TextStyle(
               fontSize: isMainRabbit ? 10 : 8,
               color: pdf_lib.PdfColors.grey600,
@@ -682,9 +686,13 @@ class PdfService {
         : await _db.getAllDeces();
 
     // Statistiques
-    final nbVaccinations = soins.where((s) => s.type == 'Vaccination').length;
-    final nbTraitements = soins.where((s) => s.type == 'Traitement').length;
-    final nbConsultations = soins.where((s) => s.type == 'Consultation').length;
+    final nbVaccinations = soins
+        .where((s) => s.type == TypeSoin.vaccination)
+        .length;
+    final nbTraitements = soins
+        .where((s) => s.type == TypeSoin.traitement)
+        .length;
+    final nbConsultations = soins.where((s) => s.type == TypeSoin.autre).length;
     final nbDeces = deces.length;
     final tauxMortalite = lapins.isNotEmpty
         ? (nbDeces / lapins.length) * 100
@@ -693,7 +701,8 @@ class PdfService {
     // Répartition par type de soin
     final repartitionSoins = <String, int>{};
     for (final soin in soins) {
-      repartitionSoins[soin.type] = (repartitionSoins[soin.type] ?? 0) + 1;
+      repartitionSoins[soin.type.label] =
+          (repartitionSoins[soin.type.label] ?? 0) + 1;
     }
 
     // Causes de décès
@@ -756,14 +765,14 @@ class PdfService {
                       orElse: () => Lapin(
                         nom: 'Inconnu',
                         race: '',
-                        sexe: '',
+                        sexe: Sexe.inconnu,
                         dateNaissance: DateTime.now(),
                       ),
                     );
                     return [
                       _formatDate.format(s.date),
                       lapin.nom,
-                      s.type,
+                      s.type.label,
                       s.description,
                     ];
                   }).toList(),
@@ -901,34 +910,6 @@ class PdfService {
     return '$mois mois';
   }
 
-  String _getNomCategorieRecette(String categorie) {
-    switch (categorie) {
-      case 'vente_lapin':
-        return 'Vente lapin';
-      case 'vente_portee':
-        return 'Vente portée';
-      case 'autre':
-        return 'Autre';
-      default:
-        return categorie;
-    }
-  }
-
-  String _getNomCategorieDepense(String categorie) {
-    switch (categorie) {
-      case 'alimentation':
-        return 'Alimentation';
-      case 'veterinaire':
-        return 'Vétérinaire';
-      case 'equipement':
-        return 'Équipement';
-      case 'autre':
-        return 'Autre';
-      default:
-        return categorie;
-    }
-  }
-
   /// Générer une carte de cage avec QR code
   Future<void> genererCarteCage(Cage cage) async {
     final pdf = pw.Document();
@@ -1040,7 +1021,7 @@ class PdfService {
                       _buildInfoRowCage('Bâtiment', batiment.nom),
                     if (clapier != null)
                       _buildInfoRowCage('Clapier', clapier.nom),
-                    _buildInfoRowCage('Type', _getTypeCageLabel(cage.type)),
+                    _buildInfoRowCage('Type', cage.type.label),
                     _buildInfoRowCage('Capacité', '${cage.capacite} lapin(s)'),
                     _buildInfoRowCage(
                       'Occupants',
@@ -1089,7 +1070,7 @@ class PdfService {
                         children: [
                           _buildTableCell(lapin.nom),
                           _buildTableCell(lapin.race),
-                          _buildTableCell(lapin.sexe),
+                          _buildTableCell(lapin.sexe.label),
                           _buildTableCell('${age ~/ 30} mois'),
                         ],
                       );
@@ -1163,18 +1144,5 @@ class PdfService {
         ),
       ),
     );
-  }
-
-  String _getTypeCageLabel(String type) {
-    switch (type.toLowerCase()) {
-      case 'individuelle':
-        return 'Individuelle';
-      case 'collective':
-        return 'Collective';
-      case 'nid':
-        return 'Nid';
-      default:
-        return type;
-    }
   }
 }

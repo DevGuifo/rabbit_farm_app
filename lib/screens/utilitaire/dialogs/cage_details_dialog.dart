@@ -80,7 +80,7 @@ class CageDetailsDialog {
                 ],
               ),
               const SizedBox(height: 20),
-              _buildInfoRow('Type', cage.type),
+              _buildInfoRow('Type', cage.type.label),
               _buildInfoRow('Capacité', '${cage.capacite} lapin(s)'),
               _buildInfoRow('Occupants', '$occupants lapin(s)'),
               _buildInfoRow(

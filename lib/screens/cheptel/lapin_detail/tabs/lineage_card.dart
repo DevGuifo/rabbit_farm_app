@@ -202,7 +202,7 @@ class LineageCard extends StatelessWidget {
                       style: AppTheme.titleSmall.copyWith(
                         color: isDark
                             ? AppTheme.textLight
-                            : AppTheme.stitchTextMainLight,
+                            : AppTheme.textPrimary,
                       ),
                     ),
                   ],

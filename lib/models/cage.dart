@@ -1,9 +1,11 @@
+import 'enums/localisation_enums.dart';
+
 /// Modèle représentant une cage dans un clapier
 class Cage {
   final int? id;
   final int clapierId;
   final String numero;
-  final String type; // 'individuelle', 'collective', 'nid'
+  final TypeCage type;
   final int capacite;
   final String? description;
   final DateTime dateCreation;
@@ -54,7 +56,7 @@ class Cage {
       'id': id,
       'clapier_id': clapierId,
       'numero': numero,
-      'type': type,
+      'type': type.toDatabase(),
       'capacite': capacite,
       'description': description,
       'date_creation': dateCreation.toIso8601String(),
@@ -67,7 +69,7 @@ class Cage {
       id: map['id'] as int?,
       clapierId: map['clapier_id'] as int,
       numero: map['numero'] as String,
-      type: map['type'] as String,
+      type: TypeCage.fromString(map['type'] as String),
       capacite: map['capacite'] as int,
       description: map['description'] as String?,
       dateCreation: DateTime.parse(map['date_creation'] as String),
@@ -79,7 +81,7 @@ class Cage {
     int? id,
     int? clapierId,
     String? numero,
-    String? type,
+    TypeCage? type,
     int? capacite,
     String? description,
     DateTime? dateCreation,

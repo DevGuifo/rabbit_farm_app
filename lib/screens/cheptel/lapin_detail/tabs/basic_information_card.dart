@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:rabbit_farm_app/l10n/app_localizations.dart';
 import '../../../../models/lapin.dart';
+import '../../../../models/enums/sexe.dart';
 import '../../../../theme/app_theme.dart';
 
 /// Card "Basic Information" pour l'onglet Identity (Stitch Design)
@@ -46,7 +47,7 @@ class BasicInformationCard extends StatelessWidget {
                   style: AppTheme.titleMedium.copyWith(
                     color: isDark
                         ? AppTheme.textLight
-                        : AppTheme.stitchTextMainLight,
+                        : AppTheme.textPrimary,
                   ),
                 ),
                 Container(
@@ -94,7 +95,7 @@ class BasicInformationCard extends StatelessWidget {
                         context: context,
                         isDark: isDark,
                         label: AppLocalizations.of(context).labelSex,
-                        value: lapin.sexe == 'Mâle' || lapin.sexe == 'male'
+                        value: lapin.sexe == Sexe.male
                             ? 'Buck'
                             : 'Doe',
                       ),

@@ -1,6 +1,13 @@
 import 'accouplement.dart';
+import 'enums/sexe.dart';
+import 'enums/statut_accouplement.dart';
 
-/// Modèle de données représentant un lapin
+/// Modèle de données représentant un lapin (individu)
+///
+/// **Architecture Lot/Individu :**
+/// - Un lapin appartient toujours à un lot (lotId requis)
+/// - Le nom devient optionnel (identifiant principal = lot.identifiant)
+/// - Les individus servent pour : reproducteurs, santé spécifique, suivi exceptionnel
 ///
 /// **Champs de synchronisation (futurs - pour migration Supabase) :**
 /// - `userId` : ID de l'utilisateur propriétaire (UUID Supabase)
@@ -14,9 +21,12 @@ import 'accouplement.dart';
 /// Ces champs seront ajoutés lors de la migration vers Supabase (voir MIGRATION_SUPABASE.md)
 class Lapin {
   final int? id;
+
+  /// Nom optionnel (l'identifiant principal est maintenant numeroIdentification)
+  /// Vide par défaut pour les lapins créés en lot sans surnom individuel
   final String nom;
   final String race;
-  final String sexe;
+  final Sexe sexe;
   final DateTime dateNaissance;
   final double? poids;
   final String? statut;
@@ -32,6 +42,10 @@ class Lapin {
   // Champ FK pour localisation (Phase 2 Refactoring)
   final int? cageId; // FK vers cages.id
 
+  /// FK vers lots.id - Appartenance au lot (obligatoire pour nouveaux lapins)
+  /// NULL pour lapins créés avant migration (seront migrés vers lot par défaut)
+  final int? lotId;
+
   // Champs de synchronisation (réservés pour migration future Supabase)
   // À décommenter lors de la migration vers Supabase
   // final String? userId;
@@ -44,7 +58,7 @@ class Lapin {
 
   Lapin({
     this.id,
-    required this.nom,
+    this.nom = '',
     required this.race,
     required this.sexe,
     required this.dateNaissance,
@@ -59,7 +73,34 @@ class Lapin {
     this.notes,
     this.caracteristiques,
     this.cageId,
+    this.lotId,
   });
+
+  /// Générer un identifiant unique au format LP-YYYY-MM-NNN
+  ///
+  /// [date] : Date de création (année/mois pour le préfixe)
+  /// [sequence] : Numéro séquentiel (1-999)
+  ///
+  /// Exemple: LP-2026-01-001 = Premier lapin créé en janvier 2026
+  static String genererIdentifiant(DateTime date, int sequence) {
+    final annee = date.year.toString();
+    final mois = date.month.toString().padLeft(2, '0');
+    final seq = sequence.toString().padLeft(3, '0');
+    return 'LP-$annee-$mois-$seq';
+  }
+
+  /// Parser un identifiant pour extraire les composants
+  static Map<String, dynamic>? parseIdentifiant(String identifiant) {
+    final regex = RegExp(r'^LP-(\d{4})-(\d{2})-(\d{3})$');
+    final match = regex.firstMatch(identifiant);
+    if (match == null) return null;
+
+    return {
+      'annee': int.parse(match.group(1)!),
+      'mois': int.parse(match.group(2)!),
+      'sequence': int.parse(match.group(3)!),
+    };
+  }
 
   /// Calculer l'âge du lapin en jours
   int get ageEnJours {
@@ -96,7 +137,7 @@ class Lapin {
   /// et que la date de mise bas n'est pas encore passée
   bool estGestante(List<Accouplement> accouplements) {
     // Seulement pour les femelles
-    if (sexe.toLowerCase() != 'femelle' && sexe.toLowerCase() != 'f') {
+    if (sexe != Sexe.femelle) {
       return false;
     }
 
@@ -110,7 +151,7 @@ class Lapin {
       if (acc.femelleId != id) continue;
 
       // Vérifier le statut (en_attente ou confirme)
-      if (acc.statut != 'en_attente' && acc.statut != 'confirme') continue;
+      if (acc.statut != StatutAccouplement.enAttente && acc.statut != StatutAccouplement.confirme) continue;
 
       // Vérifier que la date de mise bas n'est pas passée
       if (maintenant.isBefore(acc.dateMiseBasPrevue)) {
@@ -126,7 +167,7 @@ class Lapin {
     int? id,
     String? nom,
     String? race,
-    String? sexe,
+    Sexe? sexe,
     DateTime? dateNaissance,
     double? poids,
     String? statut,
@@ -139,6 +180,7 @@ class Lapin {
     String? notes,
     String? caracteristiques,
     int? cageId,
+    int? lotId,
   }) {
     return Lapin(
       id: id ?? this.id,
@@ -157,6 +199,7 @@ class Lapin {
       notes: notes ?? this.notes,
       caracteristiques: caracteristiques ?? this.caracteristiques,
       cageId: cageId ?? this.cageId,
+      lotId: lotId ?? this.lotId,
     );
   }
 
@@ -166,7 +209,7 @@ class Lapin {
       'id': id,
       'nom': nom,
       'race': race,
-      'sexe': sexe,
+      'sexe': sexe.toDatabase(),
       'date_naissance': dateNaissance.toIso8601String(),
       'poids': poids,
       'statut': statut,
@@ -179,6 +222,7 @@ class Lapin {
       'notes': notes,
       'caracteristiques': caracteristiques,
       'cage_id': cageId,
+      'lot_id': lotId,
     };
   }
 
@@ -188,7 +232,7 @@ class Lapin {
       id: map['id'] as int?,
       nom: map['nom'] as String,
       race: map['race'] as String,
-      sexe: map['sexe'] as String,
+      sexe: Sexe.fromString(map['sexe'] as String),
       dateNaissance: DateTime.parse(map['date_naissance'] as String),
       poids: map['poids'] as double?,
       statut: map['statut'] as String?,
@@ -201,11 +245,12 @@ class Lapin {
       notes: map['notes'] as String?,
       caracteristiques: map['caracteristiques'] as String?,
       cageId: map['cage_id'] as int?,
+      lotId: map['lot_id'] as int?,
     );
   }
 
   @override
   String toString() {
-    return 'Lapin{id: $id, nom: $nom, race: $race, sexe: $sexe, age: $ageFormate}';
+    return 'Lapin{id: $id, nom: $nom, race: $race, sexe: $sexe, age: $ageFormate, lotId: $lotId}';
   }
 }

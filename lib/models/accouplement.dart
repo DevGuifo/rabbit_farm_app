@@ -1,3 +1,5 @@
+import 'enums/statut_accouplement.dart';
+
 /// Modèle de données pour un accouplement
 class Accouplement {
   final int? id;
@@ -5,7 +7,7 @@ class Accouplement {
   final int femelleId;
   final DateTime dateAccouplement;
   final DateTime dateMiseBasPrevue;
-  final String statut; // 'en_attente', 'confirme', 'echec', 'termine'
+  final StatutAccouplement statut;
   final String? notes;
 
   Accouplement({
@@ -14,7 +16,7 @@ class Accouplement {
     required this.femelleId,
     required this.dateAccouplement,
     required this.dateMiseBasPrevue,
-    this.statut = 'en_attente',
+    this.statut = StatutAccouplement.enAttente,
     this.notes,
   });
 
@@ -50,7 +52,7 @@ class Accouplement {
     int? femelleId,
     DateTime? dateAccouplement,
     DateTime? dateMiseBasPrevue,
-    String? statut,
+    StatutAccouplement? statut,
     String? notes,
   }) {
     return Accouplement(
@@ -72,7 +74,7 @@ class Accouplement {
       'femelle_id': femelleId,
       'date_accouplement': dateAccouplement.toIso8601String(),
       'date_mise_bas_prevue': dateMiseBasPrevue.toIso8601String(),
-      'statut': statut,
+      'statut': statut.toDatabase(),
       'notes': notes,
     };
   }
@@ -85,7 +87,9 @@ class Accouplement {
       femelleId: map['femelle_id'] as int,
       dateAccouplement: DateTime.parse(map['date_accouplement'] as String),
       dateMiseBasPrevue: DateTime.parse(map['date_mise_bas_prevue'] as String),
-      statut: map['statut'] as String? ?? 'en_attente',
+      statut: StatutAccouplement.fromString(
+        map['statut'] as String? ?? 'en_attente',
+      ),
       notes: map['notes'] as String?,
     );
   }

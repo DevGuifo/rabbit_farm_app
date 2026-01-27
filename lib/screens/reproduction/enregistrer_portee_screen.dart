@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import 'package:rabbit_farm_app/l10n/app_localizations.dart';
 import '../../models/accouplement.dart';
+import '../../models/enums/sexe.dart';
+import '../../models/enums/statut_accouplement.dart';
 import '../../models/portee.dart';
 import '../../models/lapin.dart';
 import '../../providers/reproduction_provider.dart';
@@ -64,7 +66,7 @@ class _EnregistrerPorteeScreenState extends State<EnregistrerPorteeScreen> {
 
     // Filtrer les accouplements en attente ou confirmés
     final accouplementsActifs = reproProvider.accouplements.where((a) {
-      return a.statut == 'en_attente' || a.statut == 'confirme';
+      return a.statut == StatutAccouplement.enAttente || a.statut == StatutAccouplement.confirme;
     }).toList();
 
     setState(() {
@@ -102,7 +104,7 @@ class _EnregistrerPorteeScreenState extends State<EnregistrerPorteeScreen> {
       final lapereau = Lapin(
         nom: '${_femelle!.nom} - Lapereau $i',
         race: _femelle!.race,
-        sexe: 'Inconnu',
+        sexe: Sexe.inconnu,
         dateNaissance: _dateKindling,
         statut: 'Jeune',
         localisation: _femelle!.localisation ?? 'Nid',
@@ -188,7 +190,10 @@ class _EnregistrerPorteeScreenState extends State<EnregistrerPorteeScreen> {
       }
     } catch (e) {
       if (mounted) {
-        SnackbarHelper.showError(context, 'Erreur : $e');
+        SnackbarHelper.showError(
+          context,
+          AppLocalizations.of(context).msgErreurOperationEchouee,
+        );
       }
     }
   }
@@ -202,10 +207,8 @@ class _EnregistrerPorteeScreenState extends State<EnregistrerPorteeScreen> {
         backgroundColor: isDark
             ? AppTheme.backgroundDark
             : AppTheme.backgroundLight,
-        appBar: UniformAppBar(
+        appBar: SimpleAppBar(
           title: AppLocalizations.of(context).reproEnregistrerPortee,
-          icon: Icons.child_care_rounded,
-          iconColor: AppTheme.accentPink,
         ),
         body: const Center(child: CircularProgressIndicator()),
       );
@@ -215,10 +218,8 @@ class _EnregistrerPorteeScreenState extends State<EnregistrerPorteeScreen> {
       backgroundColor: isDark
           ? AppTheme.backgroundDark
           : AppTheme.backgroundLight,
-      appBar: UniformAppBar(
+      appBar: SimpleAppBar(
         title: AppLocalizations.of(context).titleEnregistrerPortee,
-        icon: Icons.child_care_rounded,
-        iconColor: AppTheme.accentPink,
         actions: [
           IconButton(
             icon: const Icon(Icons.sync),

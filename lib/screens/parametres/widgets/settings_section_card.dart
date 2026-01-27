@@ -30,7 +30,7 @@ class SettingsSectionCard extends StatelessWidget {
               letterSpacing: 1.2,
               color: isDark
                   ? AppTheme.stitchTextSecDark
-                  : AppTheme.stitchTextSecLight,
+                  : AppTheme.textSecondary,
             ),
           ),
         ),
@@ -39,8 +39,8 @@ class SettingsSectionCard extends StatelessWidget {
         Container(
           decoration: BoxDecoration(
             color: isDark
-                ? AppTheme.stitchSurfaceDark
-                : AppTheme.stitchSurfaceLight,
+                ? AppTheme.surfaceDark
+                : AppTheme.surfaceWhite,
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
               color: isDark

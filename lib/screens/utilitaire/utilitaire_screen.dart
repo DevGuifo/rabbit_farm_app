@@ -4,6 +4,7 @@ import '../../l10n/app_localizations.dart';
 import '../../providers/sync_provider.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/common/common_widgets.dart';
+import '../../utils/navigation_helper.dart';
 import '../parametres/parametres_screen.dart';
 import '../finance/finance_screen.dart';
 import '../alimentation/inventaire_aliments_screen.dart';
@@ -43,15 +44,17 @@ class UtilitaireScreen extends StatelessWidget {
               await syncProvider.syncNow();
             },
             onNotifications: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const AlertesScreen()),
+              NavigationHelper.openModalWithHeight(
+                context: context,
+                child: const AlertesScreen(),
+                maxHeight: 0.95,
               );
             },
             onSettings: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const ParametresScreen()),
+              NavigationHelper.openModalWithHeight(
+                context: context,
+                child: const ParametresScreen(),
+                maxHeight: 0.95,
               );
             },
           ),
@@ -70,9 +73,10 @@ class UtilitaireScreen extends StatelessWidget {
                   title: AppLocalizations.of(context).utilFinances,
                   subtitle: AppLocalizations.of(context).utilFinancesDetail,
                   iconColor: AppTheme.primaryGreen,
-                  onTap: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const FinanceScreen()),
+                  onTap: () => NavigationHelper.openModalWithHeight(
+                    context: context,
+                    child: const FinanceScreen(),
+                    maxHeight: 0.95,
                   ),
                 ),
                 const SizedBox(height: AppTheme.spacing16),
@@ -82,11 +86,10 @@ class UtilitaireScreen extends StatelessWidget {
                   title: AppLocalizations.of(context).utilAlimentation,
                   subtitle: AppLocalizations.of(context).utilAlimentationDetail,
                   iconColor: AppTheme.primaryGreenLight,
-                  onTap: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const InventaireAlimentsScreen(),
-                    ),
+                  onTap: () => NavigationHelper.openModalWithHeight(
+                    context: context,
+                    child: const InventaireAlimentsScreen(),
+                    maxHeight: 0.95,
                   ),
                 ),
                 const SizedBox(height: AppTheme.spacing16),
@@ -96,9 +99,10 @@ class UtilitaireScreen extends StatelessWidget {
                   title: AppLocalizations.of(context).utilAlertes,
                   subtitle: AppLocalizations.of(context).utilAlertesDetail,
                   iconColor: AppTheme.error,
-                  onTap: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const AlertesScreen()),
+                  onTap: () => NavigationHelper.openModalWithHeight(
+                    context: context,
+                    child: const AlertesScreen(),
+                    maxHeight: 0.95,
                   ),
                 ),
                 _buildSectionTitle('Optimisation', isDark),
@@ -110,11 +114,10 @@ class UtilitaireScreen extends StatelessWidget {
                     context,
                   ).utilCourbesCroissanceDetail,
                   iconColor: AppTheme.info,
-                  onTap: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const CourbesCroissanceScreen(),
-                    ),
+                  onTap: () => NavigationHelper.openModalWithHeight(
+                    context: context,
+                    child: const CourbesCroissanceScreen(),
+                    maxHeight: 0.95,
                   ),
                 ),
                 _buildSectionTitle('Rentabilité', isDark),
@@ -126,9 +129,10 @@ class UtilitaireScreen extends StatelessWidget {
                     context,
                   ).utilFumierCompostDetail,
                   iconColor: AppTheme.warning,
-                  onTap: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const FumierScreen()),
+                  onTap: () => NavigationHelper.openModalWithHeight(
+                    context: context,
+                    child: const FumierScreen(),
+                    maxHeight: 0.95,
                   ),
                 ),
                 const SizedBox(height: AppTheme.spacing16),
@@ -138,9 +142,10 @@ class UtilitaireScreen extends StatelessWidget {
                   title: AppLocalizations.of(context).screenReforme,
                   subtitle: AppLocalizations.of(context).labelGestionReformes,
                   iconColor: AppTheme.textSecondary,
-                  onTap: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const ReformeScreen()),
+                  onTap: () => NavigationHelper.openModalWithHeight(
+                    context: context,
+                    child: const ReformeScreen(),
+                    maxHeight: 0.95,
                   ),
                 ),
                 _buildSectionTitle('Organisation', isDark),
@@ -152,11 +157,10 @@ class UtilitaireScreen extends StatelessWidget {
                     context,
                   ).utilGestionnaireTachesDetail,
                   iconColor: AppTheme.primaryNeonGreen,
-                  onTap: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const GestionnaireTachesScreen(),
-                    ),
+                  onTap: () => NavigationHelper.openModalWithHeight(
+                    context: context,
+                    child: const GestionnaireTachesScreen(),
+                    maxHeight: 0.95,
                   ),
                 ),
                 const SizedBox(height: AppTheme.spacing16),
@@ -167,11 +171,10 @@ class UtilitaireScreen extends StatelessWidget {
                   title: AppLocalizations.of(context).utilCalculatrice,
                   subtitle: AppLocalizations.of(context).utilCalculatriceDetail,
                   iconColor: AppTheme.info,
-                  onTap: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const CalculatriceScreen(),
-                    ),
+                  onTap: () => NavigationHelper.openModalWithHeight(
+                    context: context,
+                    child: const CalculatriceScreen(),
+                    maxHeight: 0.95,
                   ),
                 ),
                 const SizedBox(height: AppTheme.spacing16),
@@ -181,9 +184,10 @@ class UtilitaireScreen extends StatelessWidget {
                   title: AppLocalizations.of(context).utilRapports,
                   subtitle: AppLocalizations.of(context).utilRapportsDetail,
                   iconColor: AppTheme.accentPink,
-                  onTap: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const RapportsScreen()),
+                  onTap: () => NavigationHelper.openModalWithHeight(
+                    context: context,
+                    child: const RapportsScreen(),
+                    maxHeight: 0.95,
                   ),
                 ),
                 const SizedBox(height: AppTheme.spacing16),
@@ -193,9 +197,10 @@ class UtilitaireScreen extends StatelessWidget {
                   title: AppLocalizations.of(context).utilCalendrier,
                   subtitle: AppLocalizations.of(context).utilCalendrierDetail,
                   iconColor: AppTheme.accentTeal,
-                  onTap: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const CalendrierScreen()),
+                  onTap: () => NavigationHelper.openModalWithHeight(
+                    context: context,
+                    child: const CalendrierScreen(),
+                    maxHeight: 0.95,
                   ),
                 ),
                 const SizedBox(height: AppTheme.spacing16),
@@ -205,9 +210,10 @@ class UtilitaireScreen extends StatelessWidget {
                   title: AppLocalizations.of(context).utilNotes,
                   subtitle: AppLocalizations.of(context).utilNotesDetail,
                   iconColor: AppTheme.error,
-                  onTap: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const NotesScreen()),
+                  onTap: () => NavigationHelper.openModalWithHeight(
+                    context: context,
+                    child: const NotesScreen(),
+                    maxHeight: 0.95,
                   ),
                 ),
                 const SizedBox(height: AppTheme.spacing16),
@@ -217,11 +223,10 @@ class UtilitaireScreen extends StatelessWidget {
                   title: AppLocalizations.of(context).utilExportImport,
                   subtitle: AppLocalizations.of(context).utilExportImportDetail,
                   iconColor: AppTheme.info,
-                  onTap: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const ExportImportScreen(),
-                    ),
+                  onTap: () => NavigationHelper.openModalWithHeight(
+                    context: context,
+                    child: const ExportImportScreen(),
+                    maxHeight: 0.95,
                   ),
                 ),
                 const SizedBox(height: AppTheme.spacing16),
@@ -231,11 +236,10 @@ class UtilitaireScreen extends StatelessWidget {
                   title: AppLocalizations.of(context).utilLocalisation,
                   subtitle: AppLocalizations.of(context).utilLocalisationDetail,
                   iconColor: AppTheme.accentTeal,
-                  onTap: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const LocalisationScreen(),
-                    ),
+                  onTap: () => NavigationHelper.openModalWithHeight(
+                    context: context,
+                    child: const LocalisationScreen(),
+                    maxHeight: 0.95,
                   ),
                 ),
               ],

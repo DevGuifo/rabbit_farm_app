@@ -16,6 +16,7 @@ import 'widgets/fiche_sante_rabbit_card.dart';
 import 'widgets/fiche_sante_filters.dart';
 import 'widgets/fiche_sante_records_list.dart';
 import 'package:rabbit_farm_app/theme/app_theme.dart';
+import '../../widgets/common/common_widgets.dart';
 
 /// Fiche de santé détaillée d'un lapin - Design Stitch "Health Details"
 class FicheSanteScreen extends StatefulWidget {
@@ -61,56 +62,59 @@ class _FicheSanteScreenState extends State<FicheSanteScreen> {
     return Scaffold(
       backgroundColor: backgroundColor,
       body: SafeArea(
-        child: Column(
-          children: [
-            FicheSanteHeader(
-              onBack: () => Navigator.pop(context),
-              onRefresh: _chargerDonnees,
-              onNotification:
-                  null, // Masquer car pas de fonctionnalité spécifique
-              onSettings: null, // Masquer car pas de fonctionnalité spécifique
-            ),
-            Expanded(
-              child: RefreshIndicator(
-                onRefresh: _chargerDonnees,
-                child: SingleChildScrollView(
-                  physics: const AlwaysScrollableScrollPhysics(),
-                  child: Column(
-                    children: [
-                      FicheSanteRabbitCard(
-                        lapin: widget.lapin,
-                        pesees: _pesees,
-                        onEdit: () {},
-                      ),
-                      FicheSanteFilters(
-                        activeFilter: _filtreActif,
-                        onFilterChanged: (filter) =>
-                            setState(() => _filtreActif = filter),
-                        onSort: () {},
-                      ),
-                      FicheSanteRecordsList(
-                        soins: _soins,
-                        pesees: _pesees,
-                        activeFilter: _filtreActif,
-                        onEditSoin: _modifierSoin,
-                        onDeleteSoin: _supprimerSoin,
-                        onEditPesee: _modifierPesee,
-                        onDeletePesee: _supprimerPesee,
-                        onPeseeCardTap: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) =>
-                                PeseeTrackingScreen(lapin: widget.lapin),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 80),
-                    ],
-                  ),
+        child: RefreshIndicator(
+          onRefresh: _chargerDonnees,
+          child: CustomScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            slivers: [
+              // Header fixe
+              SliverToBoxAdapter(
+                child: FicheSanteHeader(
+                  onBack: () => Navigator.pop(context),
+                  onRefresh: _chargerDonnees,
+                  onNotification:
+                      null, // Masquer car pas de fonctionnalité spécifique
+                  onSettings:
+                      null, // Masquer car pas de fonctionnalité spécifique
                 ),
               ),
-            ),
-          ],
+              // Contenu scrollable
+              SliverToBoxAdapter(
+                child: Column(
+                  children: [
+                    FicheSanteRabbitCard(
+                      lapin: widget.lapin,
+                      pesees: _pesees,
+                      onEdit: () {},
+                    ),
+                    FicheSanteFilters(
+                      activeFilter: _filtreActif,
+                      onFilterChanged: (filter) =>
+                          setState(() => _filtreActif = filter),
+                      onSort: () {},
+                    ),
+                    FicheSanteRecordsList(
+                      soins: _soins,
+                      pesees: _pesees,
+                      activeFilter: _filtreActif,
+                      onEditSoin: _modifierSoin,
+                      onDeleteSoin: _supprimerSoin,
+                      onEditPesee: _modifierPesee,
+                      onDeletePesee: _supprimerPesee,
+                      onPeseeCardTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) =>
+                              PeseeTrackingScreen(lapin: widget.lapin),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 80),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
       floatingActionButton: _buildFAB(),
@@ -118,32 +122,10 @@ class _FicheSanteScreenState extends State<FicheSanteScreen> {
   }
 
   Widget _buildFAB() {
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: AppTheme.borderRadiusLarge,
-        gradient: LinearGradient(
-          colors: [AppTheme.success, AppTheme.primaryGreen],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: AppTheme.success.withValues(alpha: 0.4),
-            blurRadius: 16,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: FloatingActionButton.extended(
-        onPressed: _afficherMenuAjout,
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        icon: Icon(Icons.add, size: 24, color: AppTheme.backgroundDark),
-        label: Text(
-          AppLocalizations.of(context).santeAddRecord,
-          style: AppTheme.titleSmall.copyWith(color: AppTheme.backgroundDark),
-        ),
-      ),
+    return UnifiedFAB.extended(
+      onPressed: _afficherMenuAjout,
+      label: AppLocalizations.of(context).santeAddRecord,
+      tooltip: AppLocalizations.of(context).santeAddRecord,
     );
   }
 

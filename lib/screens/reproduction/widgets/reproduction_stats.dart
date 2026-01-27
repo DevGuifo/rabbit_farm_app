@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:rabbit_farm_app/l10n/app_localizations.dart';
+import '../../../models/enums/statut_accouplement.dart';
 import '../../../providers/reproduction_provider.dart';
 import '../../../widgets/glossaire/glossaire_cuniculture.dart';
 import 'package:rabbit_farm_app/theme/app_theme.dart';
@@ -17,7 +18,7 @@ class ReproductionStats extends StatelessWidget {
     return Consumer<ReproductionProvider>(
       builder: (context, provider, _) {
         final activePregnancies = provider.accouplements
-            .where((a) => a.statut == 'confirme' || a.statut == 'en_cours')
+            .where((a) => a.statut == StatutAccouplement.confirme)
             .length;
 
         final now = DateTime.now();
@@ -140,7 +141,7 @@ class ReproductionPalpationAlert extends StatelessWidget {
       builder: (context, provider, _) {
         final now = DateTime.now();
         final accouplementsAPalper = provider.accouplements.where((a) {
-          if (a.statut != 'en_attente') return false;
+          if (a.statut != StatutAccouplement.enAttente) return false;
           final joursDepuis = now.difference(a.dateAccouplement).inDays;
           return joursDepuis >= 10 && joursDepuis <= 14;
         }).toList();

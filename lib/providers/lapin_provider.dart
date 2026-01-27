@@ -2,18 +2,33 @@ import 'package:flutter/foundation.dart';
 import '../models/lapin.dart';
 import '../models/portee.dart';
 import '../models/journal_entry.dart';
-import '../services/database_helper.dart';
+import '../models/enums/sexe.dart';
+import '../repositories/lapin_repository.dart';
 import '../services/journal_service.dart';
 import '../utils/logger.dart';
 
 /// Provider pour gérer la liste des lapins avec SQLite
 class LapinProvider with ChangeNotifier {
-  // Services
-  final JournalService _journal = JournalService();
+  // Services - injection de dépendance pour les tests
+  final LapinRepository _repository;
+  final JournalService _journal;
 
   // Liste des lapins en cache
   List<Lapin> _lapins = [];
   bool _isLoading = false;
+
+  /// Constructeur par défaut utilisant les singletons
+  LapinProvider()
+    : _repository = LapinRepository.instance,
+      _journal = JournalService();
+
+  /// Constructeur pour les tests avec injection de dépendance
+  @visibleForTesting
+  LapinProvider.withRepository(
+    LapinRepository repository, [
+    JournalService? journal,
+  ]) : _repository = repository,
+       _journal = journal ?? JournalService();
 
   /// Obtenir la liste complète des lapins
   List<Lapin> get lapins => List.unmodifiable(_lapins);
@@ -30,7 +45,7 @@ class LapinProvider with ChangeNotifier {
     notifyListeners();
 
     try {
-      _lapins = await DatabaseHelper.instance.getAllLapins();
+      _lapins = await _repository.getAll();
     } catch (e) {
       logger.error('❌ Erreur lors du chargement des lapins', e);
       _lapins = [];
@@ -52,7 +67,7 @@ class LapinProvider with ChangeNotifier {
   /// Ajouter un nouveau lapin
   Future<Lapin> ajouterLapin(Lapin lapin) async {
     try {
-      final lapinAjoute = await DatabaseHelper.instance.insertLapin(lapin);
+      final lapinAjoute = await _repository.insert(lapin);
       _lapins.add(lapinAjoute);
       notifyListeners();
 
@@ -78,7 +93,7 @@ class LapinProvider with ChangeNotifier {
   /// Modifier un lapin existant
   Future<void> modifierLapin(Lapin lapin) async {
     try {
-      await DatabaseHelper.instance.updateLapin(lapin);
+      await _repository.update(lapin);
       final index = _lapins.indexWhere((l) => l.id == lapin.id);
       if (index != -1) {
         _lapins[index] = lapin;
@@ -105,7 +120,7 @@ class LapinProvider with ChangeNotifier {
       final lapin = getLapinById(id);
       final nomLapin = lapin?.nom ?? 'Lapin #$id';
 
-      await DatabaseHelper.instance.deleteLapin(id);
+      await _repository.delete(id);
       _lapins.removeWhere((lapin) => lapin.id == id);
       notifyListeners();
 
@@ -122,17 +137,15 @@ class LapinProvider with ChangeNotifier {
   }
 
   /// Obtenir les lapins filtrés par sexe
-  List<Lapin> getLapinsParSexe(String sexe) {
-    return _lapins
-        .where((lapin) => lapin.sexe.toLowerCase() == sexe.toLowerCase())
-        .toList();
+  List<Lapin> getLapinsParSexe(Sexe sexe) {
+    return _lapins.where((lapin) => lapin.sexe == sexe).toList();
   }
 
   /// Obtenir les mâles
-  List<Lapin> get males => getLapinsParSexe('mâle');
+  List<Lapin> get males => getLapinsParSexe(Sexe.male);
 
   /// Obtenir les femelles
-  List<Lapin> get femelles => getLapinsParSexe('femelle');
+  List<Lapin> get femelles => getLapinsParSexe(Sexe.femelle);
 
   /// Obtenir les lapins par statut
   List<Lapin> getLapinsParStatut(String statut) {
@@ -153,7 +166,7 @@ class LapinProvider with ChangeNotifier {
 
   /// Initialiser avec des données de test (uniquement si la BDD est vide)
   Future<void> initialiserDonneesTest() async {
-    final count = await DatabaseHelper.instance.countLapins();
+    final count = await _repository.count();
 
     if (count == 0) {
       // Ajouter 5 lapins de test uniquement si la BDD est vide
@@ -161,7 +174,7 @@ class LapinProvider with ChangeNotifier {
         Lapin(
           nom: 'Flocon',
           race: 'Géant des Flandres',
-          sexe: 'Mâle',
+          sexe: Sexe.male,
           dateNaissance: DateTime.now().subtract(const Duration(days: 365)),
           poids: 7.5,
           statut: 'Reproducteur',
@@ -170,7 +183,7 @@ class LapinProvider with ChangeNotifier {
         Lapin(
           nom: 'Caramel',
           race: 'Fauve de Bourgogne',
-          sexe: 'Femelle',
+          sexe: Sexe.femelle,
           dateNaissance: DateTime.now().subtract(const Duration(days: 280)),
           poids: 4.2,
           statut: 'Reproductrice',
@@ -179,7 +192,7 @@ class LapinProvider with ChangeNotifier {
         Lapin(
           nom: 'Panpan',
           race: 'Bélier Nain',
-          sexe: 'Mâle',
+          sexe: Sexe.male,
           dateNaissance: DateTime.now().subtract(const Duration(days: 120)),
           poids: 1.8,
           statut: 'Engraissement',
@@ -188,7 +201,7 @@ class LapinProvider with ChangeNotifier {
         Lapin(
           nom: 'Neige',
           race: 'Blanc de Hotot',
-          sexe: 'Femelle',
+          sexe: Sexe.femelle,
           dateNaissance: DateTime.now().subtract(const Duration(days: 90)),
           poids: 2.1,
           localisation: 'Cage C2',
@@ -196,7 +209,7 @@ class LapinProvider with ChangeNotifier {
         Lapin(
           nom: 'Roux',
           race: 'Néo-Zélandais',
-          sexe: 'Mâle',
+          sexe: Sexe.male,
           dateNaissance: DateTime.now().subtract(const Duration(days: 60)),
           poids: 1.5,
           localisation: 'Cage D1',
@@ -204,7 +217,7 @@ class LapinProvider with ChangeNotifier {
       ];
 
       for (final lapin in lapinsTest) {
-        await DatabaseHelper.instance.insertLapin(lapin);
+        await _repository.insert(lapin);
       }
 
       logger.info('✅ 5 lapins de test ajoutés à la base de données');
@@ -219,7 +232,7 @@ class LapinProvider with ChangeNotifier {
     try {
       for (final lapin in _lapins) {
         if (lapin.id != null) {
-          await DatabaseHelper.instance.deleteLapin(lapin.id!);
+          await _repository.delete(lapin.id!);
         }
       }
       _lapins.clear();
@@ -240,14 +253,14 @@ class LapinProvider with ChangeNotifier {
   Map<String, int> getStatistiquesCheptel(dynamic reproProvider) {
     // Compter les reproducteurs mâles
     final malesReproducteurs = _lapins
-        .where((l) => l.sexe == 'Mâle' && l.statut == 'Reproducteur')
+        .where((l) => l.sexe == Sexe.male && l.statut == 'Reproducteur')
         .length;
 
     // Compter les reproductrices femelles
     final femellesReproductrices = _lapins
         .where(
           (l) =>
-              l.sexe == 'Femelle' &&
+              l.sexe == Sexe.femelle &&
               (l.statut == 'Reproductrice' || l.statut == 'Reproducteur'),
         )
         .length;

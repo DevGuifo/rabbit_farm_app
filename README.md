@@ -2,9 +2,9 @@
 
 <img src="assets/logo/logo.png" alt="BunnyManager Logo" width="200"/>
 
-**Version :** 1.2.0+5  
+**Version :** 1.3.0+6  
 **Date :** 8 janvier 2026  
-**Status :** ✅ Production Ready (i18n 100% FR/EN)
+**Status :** ✅ Production Ready (i18n 100% FR/EN + Supabase Sync)
 
 ## 📱 Application Mobile Flutter
 
@@ -18,10 +18,11 @@ Application complète de gestion d'élevage de lapins avec :
 
 ## 🏆 Accomplissements Récents
 
-✅ **Internationalisation 100%** (Phase P1.2 - Janvier 2026)  
-✅ **30 chaînes dialogues FR/EN** internationalisées  
+✅ **Intégration Supabase** (Phase 2 - Janvier 2026)  
+✅ **Architecture offline-first** avec queue de synchronisation  
+✅ **Onboarding métier** (5 écrans de configuration initiale)  
+✅ **Internationalisation 100%** (FR/EN - 5306+ clés)  
 ✅ **Build release validé** (79.7 MB APK, 0 erreur)  
-✅ **Workflow Git simplifié** pour non-développeur  
 
 Voir [Rapport Final GO/NO-GO](docs/rapports/RAPPORT_FINAL_GO_NOGO_V1.md)
 
@@ -37,28 +38,41 @@ Voir [Rapport Final GO/NO-GO](docs/rapports/RAPPORT_FINAL_GO_NOGO_V1.md)
 ## 🏗 Architecture
 
 - **Framework** : Flutter 3.9.2+ / Dart 3.9+
-- **Base de données** : SQLite (offline-first) - 14 tables, 3167 lignes
+- **Base de données locale** : SQLite (offline-first) - 14 tables
+- **Backend cloud** : Supabase (PostgreSQL + Auth + RLS)
 - **State Management** : Provider (17 providers)
 - **Pattern** : MVVM (Models → Services → Providers → Views)
+- **Sync** : Queue locale offline-first → Supabase
 - **Internationalisation** : flutter_localizations (5306+ clés FR/EN)
-- **Backend optionnel** : Supabase (sync cloud)
+
+### Architecture Sync Offline-First
+```
+App → SQLite (toujours) → sync_queue → Supabase (si disponible)
+```
 
 ## 📂 Structure du Projet
 
 ```
 lib/
-├── main.dart                    # Entry point (17 MultiProvider setup)
-├── models/                      # Data models (Lapin, Pesee, Soin, Accouplement, etc.)
-├── providers/                   # State management (17 ChangeNotifier providers)
-├── services/                    # Business logic (DatabaseHelper, NotificationService, PdfService)
+├── main.dart                    # Entry point (17 MultiProvider setup + Supabase init)
+├── config/
+│   └── supabase_config.dart    # Configuration Supabase singleton
+├── models/                      # Data models (Lapin, Farm, UserProfile, OnboardingStatus, etc.)
+├── providers/                   # State management (17+ ChangeNotifier providers)
+├── services/                    # Business logic
+│   ├── database_helper.dart    # SQLite local (14 tables)
+│   ├── sync_service.dart       # Queue sync offline-first
+│   ├── auth_service.dart       # Authentification locale + Supabase
+│   └── ...                     # NotificationService, PdfService, etc.
 ├── screens/                     # UI organisée par fonctionnalité
+│   ├── onboarding/             # 5 écrans configuration initiale
 │   ├── cheptel/                # Gestion lapins, localisation
 │   ├── sante/                  # Santé, pesées, vaccinations
 │   ├── reproduction/           # Accouplements, portées, sevrages
 │   ├── parametres/             # Settings, thème, langue
 │   └── utilitaire/             # Calculatrices, exports
-├── widgets/                     # Composants réutilisables (lapin_card, animations)
-├── constants/                   # Constantes app
+├── widgets/                     # Composants réutilisables
+│   └── sync_status_indicator.dart  # Indicateur sync UI
 ├── theme/                       # app_theme.dart (Material 3 light/dark)
 ├── l10n/                        # Fichiers i18n (app_fr.arb, app_en.arb)
 └── utils/                       # Helpers (logger, formatters, pdf_generator)
@@ -130,6 +144,7 @@ Documentation historique disponible dans [docs/archives/](docs/archives/)
 | Domaine | Package | Version | Usage |
 |---------|---------|---------|-------|
 | **Database** | `sqflite` | ^2.3.0 | SQLite local (14 tables) |
+| **Backend** | `supabase_flutter` | ^2.5.0 | Sync cloud, Auth, RLS |
 | **State** | `provider` | ^6.1.0 | MVVM (17 providers) |
 | **PDF** | `printing` | ^5.11.0 | Exports (fiches, pedigrees) |
 | **Photos** | `image_picker` | ^1.0.7 | Capture/sélection images |
@@ -137,6 +152,7 @@ Documentation historique disponible dans [docs/archives/](docs/archives/)
 | **Notifications** | `flutter_local_notifications` | ^17.0.0 | Rappels vaccinations/accouplements |
 | **Charts** | `fl_chart` | ^0.69.0 | Courbes croissance |
 | **Dates** | `intl` | ^0.20.2 | Formatage FR (DD/MM/YYYY) |
+| **Security** | `flutter_secure_storage` | ^9.2.4 | Tokens, PIN sécurisés |
 
 ## 🎨 Design & UX
 
@@ -179,6 +195,6 @@ Développé par **DevGuifo** avec assistance GitHub Copilot
 
 ---
 
-**Version actuelle** : 1.2.0+5 (Voir [CHANGELOG.md](CHANGELOG.md))  
+**Version actuelle** : 1.3.0+6 (Voir [CHANGELOG.md](CHANGELOG.md))  
 **Dernière mise à jour** : 8 janvier 2026
 

@@ -3,8 +3,7 @@ import '../l10n/app_localizations.dart';
 import '../models/batiment.dart';
 import '../models/clapier.dart';
 import '../models/cage.dart';
-import '../services/database_helper.dart';
-import '../services/localisation_service.dart';
+import '../repositories/localisation_repository.dart';
 import 'package:rabbit_farm_app/theme/app_theme.dart';
 
 /// Sélecteur de cage avec navigation hiérarchique
@@ -19,7 +18,7 @@ class CageSelector extends StatefulWidget {
 }
 
 class _CageSelectorState extends State<CageSelector> {
-  final _dbHelper = DatabaseHelper.instance;
+  final _repository = LocalisationRepository.instance;
 
   List<Batiment> _batiments = [];
   List<Clapier> _clapiers = [];
@@ -37,7 +36,7 @@ class _CageSelectorState extends State<CageSelector> {
 
   Future<void> _chargerDonnees() async {
     setState(() => _loading = true);
-    _batiments = await _dbHelper.getAllBatiments();
+    _batiments = await _repository.getAllBatiments();
 
     if (widget.cageIdInitiale != null) {
       await _restaurerSelection(widget.cageIdInitiale!);
@@ -47,13 +46,13 @@ class _CageSelectorState extends State<CageSelector> {
   }
 
   Future<void> _restaurerSelection(int cageId) async {
-    final cage = await _dbHelper.getCageById(cageId);
+    final cage = await _repository.getCageById(cageId);
     if (cage == null) return;
 
-    final clapier = await _dbHelper.getClapierById(cage.clapierId);
+    final clapier = await _repository.getClapierById(cage.clapierId);
     if (clapier == null) return;
 
-    final batiment = await _dbHelper.getBatimentById(clapier.batimentId);
+    final batiment = await _repository.getBatimentById(clapier.batimentId);
     if (batiment == null) return;
 
     setState(() {
@@ -66,16 +65,16 @@ class _CageSelectorState extends State<CageSelector> {
   }
 
   Future<void> _chargerClapiers(int batimentId) async {
-    _clapiers = await _dbHelper.getClapiersByBatiment(batimentId);
+    _clapiers = await _repository.getClapiersByBatiment(batimentId);
     setState(() {});
   }
 
   Future<void> _chargerCages(int clapierId) async {
-    final cages = await _dbHelper.getCagesByClapier(clapierId);
+    final cages = await _repository.getCagesByClapier(clapierId);
     _cages = [];
 
     for (var cage in cages) {
-      final occupants = await _dbHelper.getOccupantsCage(cage.id!);
+      final occupants = await _repository.getOccupantsCage(cage.id!);
       _cages.add({
         'cage': cage,
         'occupants': occupants,
@@ -251,7 +250,7 @@ class _CageSelectorState extends State<CageSelector> {
         decoration: BoxDecoration(
           color: isActive
               ? AppTheme.info
-              : (isDark ? AppTheme.stitchBorderDark : AppTheme.border),
+              : (isDark ? AppTheme.borderDark : AppTheme.border),
           borderRadius: BorderRadius.circular(20),
         ),
         child: Text(
@@ -362,7 +361,7 @@ class _CageSelectorState extends State<CageSelector> {
         color: isDark ? AppTheme.cardDark : AppTheme.cardLight,
         borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
         border: Border.all(
-          color: isDark ? AppTheme.stitchBorderDark : AppTheme.border,
+          color: isDark ? AppTheme.borderDark : AppTheme.border,
         ),
         boxShadow: AppTheme.shadowSmall,
       ),
@@ -384,7 +383,7 @@ class _CageSelectorState extends State<CageSelector> {
           ),
         ),
         subtitle: Text(
-          clapier.type.toUpperCase(),
+          clapier.type.label.toUpperCase(),
           style: TextStyle(
             color: isDark
                 ? AppTheme.textLight.withValues(alpha: 0.7)

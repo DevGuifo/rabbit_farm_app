@@ -15,6 +15,7 @@ import '../providers/sync_provider.dart';
 import '../services/database_helper.dart';
 import '../services/smart_notification_service.dart';
 import '../utils/logger.dart';
+import '../l10n/app_localizations.dart';
 
 /// Écran de chargement intelligent de BunnyManager
 /// Effectue tous les chargements nécessaires (BD, providers, préférences)
@@ -232,8 +233,8 @@ class _SplashScreenState extends State<SplashScreen> {
 
     return Scaffold(
       backgroundColor: isDark
-          ? AppTheme.stitchBackgroundDark
-          : AppTheme.stitchBackgroundLight,
+          ? AppTheme.backgroundDark
+          : AppTheme.backgroundLight,
       body: Stack(
         children: [
           // Dégradé radial en arrière-plan
@@ -241,8 +242,8 @@ class _SplashScreenState extends State<SplashScreen> {
             child: Container(
               decoration: BoxDecoration(
                 color: isDark
-                    ? AppTheme.stitchBackgroundDark
-                    : AppTheme.stitchBackgroundLight,
+                    ? AppTheme.backgroundDark
+                    : AppTheme.backgroundLight,
               ),
               child: Stack(
                 children: [
@@ -323,19 +324,19 @@ class _SplashScreenState extends State<SplashScreen> {
                     Column(
                       children: [
                         Text(
-                          'RabbitManager',
+                          AppLocalizations.of(context).appTitle,
                           style: TextStyle(
                             fontSize: 30,
                             fontWeight: FontWeight.bold,
                             letterSpacing: -0.5,
                             color: isDark
                                 ? AppTheme.stitchTextMainDark
-                                : AppTheme.stitchTextMainLight,
+                                : AppTheme.textPrimary,
                           ),
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          'Smart Farm Management',
+                          AppLocalizations.of(context).appDescription,
                           style: AppTheme.bodyMedium.copyWith(
                             fontWeight: FontWeight.w500,
                             color: AppTheme.textSecondary,
@@ -360,7 +361,7 @@ class _SplashScreenState extends State<SplashScreen> {
 
                       // Version
                       Text(
-                        'v1.2.0',
+                        'v1.3.0+6',
                         style: AppTheme.bodySmall.copyWith(
                           fontWeight: FontWeight.w500,
                           color: AppTheme.textTertiary,
@@ -427,7 +428,7 @@ class _SplashScreenState extends State<SplashScreen> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              'LOADING',
+              AppLocalizations.of(context).splashLoading,
               style: AppTheme.labelMedium.copyWith(
                 letterSpacing: 1.2,
                 color: AppTheme.primaryNeonGreen,
@@ -449,9 +450,7 @@ class _SplashScreenState extends State<SplashScreen> {
           height: 8,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(4),
-            color: isDark
-                ? AppTheme.stitchSurfaceDark
-                : AppTheme.splashGreen,
+            color: isDark ? AppTheme.surfaceDark : AppTheme.splashGreen,
           ),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(4),
@@ -461,9 +460,7 @@ class _SplashScreenState extends State<SplashScreen> {
                 Container(
                   width: double.infinity,
                   height: 8,
-                  color: isDark
-                      ? AppTheme.stitchSurfaceDark
-                      : AppTheme.splashGreen,
+                  color: isDark ? AppTheme.surfaceDark : AppTheme.splashGreen,
                 ),
                 // Barre de progression
                 LayoutBuilder(

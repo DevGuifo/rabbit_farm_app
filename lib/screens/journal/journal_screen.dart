@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/journal_entry.dart';
 import '../../providers/journal_provider.dart';
+import '../../widgets/common/common_widgets.dart' show SimpleAppBar;
 
 /// Écran de consultation du journal automatique
 ///
@@ -30,8 +31,8 @@ class _JournalScreenState extends State<JournalScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(AppLocalizations.of(context).titleJournal),
+      appBar: SimpleAppBar(
+        title: AppLocalizations.of(context).titleJournal,
         actions: [
           // Badge non lus
           Consumer<JournalProvider>(
@@ -41,7 +42,7 @@ class _JournalScreenState extends State<JournalScreen> {
                   onPressed: () => provider.chargerNonLus(),
                   icon: Badge(
                     label: Text('${provider.countNonLus}'),
-                    child: const Icon(Icons.notifications_active),
+                    child: const Icon(Icons.mail_outline),
                   ),
                   label: Text(AppLocalizations.of(context).journalNonLus),
                 );
@@ -119,14 +120,14 @@ class _JournalScreenState extends State<JournalScreen> {
               if (provider.filtreEntite != null ||
                   provider.filtreStatut != null)
                 ActionChip(
-                  label: const Text('✕ Filtres'),
+                  label: Text(AppLocalizations.of(context).filtres),
                   onPressed: () => provider.reinitialiserFiltres(),
                 ),
               const SizedBox(width: 8),
 
               // Filtres par statut
               FilterChip(
-                label: const Text('⚠️ Anomalies'),
+                label: Text(AppLocalizations.of(context).anomalies),
                 selected: provider.filtreStatut == StatutEvenement.anomalie,
                 onSelected: (_) => provider.filtrerParStatut(
                   provider.filtreStatut == StatutEvenement.anomalie
@@ -148,7 +149,7 @@ class _JournalScreenState extends State<JournalScreen> {
 
               // Filtres par entité les plus courants
               FilterChip(
-                label: const Text('🐰 Lapins'),
+                label: Text(AppLocalizations.of(context).lapinsFiltre),
                 selected: provider.filtreEntite == TypeEntite.lapin,
                 onSelected: (_) => provider.filtrerParEntite(
                   provider.filtreEntite == TypeEntite.lapin
@@ -158,7 +159,7 @@ class _JournalScreenState extends State<JournalScreen> {
               ),
               const SizedBox(width: 8),
               FilterChip(
-                label: const Text('💕 Reproduction'),
+                label: Text(AppLocalizations.of(context).reproductionFiltre),
                 selected: provider.filtreEntite == TypeEntite.accouplement,
                 onSelected: (_) => provider.filtrerParEntite(
                   provider.filtreEntite == TypeEntite.accouplement
@@ -168,7 +169,7 @@ class _JournalScreenState extends State<JournalScreen> {
               ),
               const SizedBox(width: 8),
               FilterChip(
-                label: const Text('💊 Santé'),
+                label: Text(AppLocalizations.of(context).santeFiltre),
                 selected: provider.filtreEntite == TypeEntite.soin,
                 onSelected: (_) => provider.filtrerParEntite(
                   provider.filtreEntite == TypeEntite.soin
@@ -178,7 +179,7 @@ class _JournalScreenState extends State<JournalScreen> {
               ),
               const SizedBox(width: 8),
               FilterChip(
-                label: const Text('💰 Finances'),
+                label: Text(AppLocalizations.of(context).financesFiltre),
                 selected:
                     provider.filtreEntite == TypeEntite.recette ||
                     provider.filtreEntite == TypeEntite.depense,

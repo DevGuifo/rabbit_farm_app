@@ -4,10 +4,10 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/depense.dart';
+import '../../models/enums/finance_enums.dart';
 import '../../providers/finance_provider.dart';
 import '../../utils/snackbar_helper.dart';
-import '../../theme/app_theme.dart';
-import '../../widgets/uniform_app_bar.dart';
+import '../../widgets/common/common_widgets.dart';
 
 class EditDepenseScreen extends StatefulWidget {
   final Depense depense;
@@ -26,7 +26,7 @@ class _EditDepenseScreenState extends State<EditDepenseScreen> {
   final DateFormat _formatDate = DateFormat('dd/MM/yyyy');
 
   late DateTime _dateSelectionnee;
-  late String _categorieSelectionnee;
+  late CategorieDepense _categorieSelectionnee;
 
   @override
   void initState() {
@@ -57,10 +57,8 @@ class _EditDepenseScreenState extends State<EditDepenseScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
-      appBar: UniformAppBar(
+      appBar: SimpleAppBar(
         title: AppLocalizations.of(context).screenModifierDepense,
-        icon: Icons.edit_rounded,
-        iconColor: AppTheme.error,
       ),
       body: Form(
         key: _formKey,
@@ -79,7 +77,7 @@ class _EditDepenseScreenState extends State<EditDepenseScreen> {
             const SizedBox(height: 16),
 
             // Catégorie
-            DropdownButtonFormField<String>(
+            DropdownButtonFormField<CategorieDepense>(
               initialValue: _categorieSelectionnee,
               decoration: InputDecoration(
                 labelText: AppLocalizations.of(context).financeCategorie,
@@ -88,25 +86,25 @@ class _EditDepenseScreenState extends State<EditDepenseScreen> {
               ),
               items: [
                 DropdownMenuItem(
-                  value: 'alimentation',
+                  value: CategorieDepense.alimentation,
                   child: Text(
                     AppLocalizations.of(context).financeCategorieAlimentation,
                   ),
                 ),
                 DropdownMenuItem(
-                  value: 'veterinaire',
+                  value: CategorieDepense.veterinaire,
                   child: Text(
                     AppLocalizations.of(context).financeCategorieSante,
                   ),
                 ),
                 DropdownMenuItem(
-                  value: 'equipement',
+                  value: CategorieDepense.equipement,
                   child: Text(
                     AppLocalizations.of(context).financeCategorieEquipement,
                   ),
                 ),
                 DropdownMenuItem(
-                  value: 'autre',
+                  value: CategorieDepense.autre,
                   child: Text(
                     AppLocalizations.of(context).financesCategorieAutre,
                   ),
@@ -179,39 +177,15 @@ class _EditDepenseScreenState extends State<EditDepenseScreen> {
               ),
               maxLines: 3,
             ),
-            const SizedBox(height: 24),
-
-            // Boutons d'action
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: () => Navigator.pop(context),
-                    icon: const Icon(Icons.close),
-                    label: Text(AppLocalizations.of(context).actionAnnuler),
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.all(16),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  flex: 2,
-                  child: FilledButton.icon(
-                    onPressed: _modifier,
-                    icon: const Icon(Icons.save),
-                    label: Text(AppLocalizations.of(context).actionEnregistrer),
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.all(16),
-                      backgroundColor: AppTheme.error,
-                      foregroundColor: AppTheme.textOnPrimary,
-                    ),
-                  ),
-                ),
-              ],
-            ),
+            // Espace pour FormActionBar
+            const SizedBox(height: 80),
           ],
         ),
+      ),
+      bottomNavigationBar: FormActionBar(
+        onCancel: () => Navigator.pop(context),
+        onSave: _modifier,
+        saveText: AppLocalizations.of(context).actionEnregistrer,
       ),
     );
   }

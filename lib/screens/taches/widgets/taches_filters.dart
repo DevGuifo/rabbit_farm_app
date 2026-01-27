@@ -1,6 +1,6 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../../providers/tache_provider.dart';
+import '../../../providers/tache_generique_provider.dart';
 import '../../../theme/app_theme.dart';
 
 /// Widget de filtres pour les tâches
@@ -11,7 +11,7 @@ class TachesFilters extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<TacheProvider>(
+    return Consumer<TacheGeneriqueProvider>(
       builder: (context, provider, _) {
         return Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -128,4 +128,5 @@ class TachesFilters extends StatelessWidget {
     );
   }
 }
+
 

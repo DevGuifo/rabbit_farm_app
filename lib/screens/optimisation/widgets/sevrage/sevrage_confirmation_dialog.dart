@@ -24,19 +24,17 @@ class SevrageConfirmationDialog {
             children: [
               Text(
                 AppLocalizations.of(context).sevrageVousAllezSevrer,
-                style: const TextStyle(color: Color(0xFF757575)),
+                style: const TextStyle(color: AppTheme.neutral600),
               ),
               const SizedBox(height: 12),
               Text(
                 '• ${AppLocalizations.of(context).sevrageLapereaux(totalPetits, nbMales, nbFemelles)}',
-                style: AppTheme.bodyMedium.copyWith(
-                  color: const Color(0xFF212121),
-                ),
+                style: AppTheme.bodyMedium.copyWith(color: AppTheme.neutral900),
               ),
               const SizedBox(height: 8),
               const Text(
                 'Cette action va :',
-                style: TextStyle(color: Color(0xFF757575)),
+                style: TextStyle(color: AppTheme.neutral600),
               ),
               const SizedBox(height: 8),
               const Text(

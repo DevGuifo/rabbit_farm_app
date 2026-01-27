@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:provider/provider.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/lapin.dart';
+import '../../models/enums/sexe.dart';
 import '../../providers/lapin_provider.dart';
 import '../../providers/sante_provider.dart';
 import '../../providers/alerte_provider.dart';
@@ -13,8 +14,14 @@ import '../../widgets/common/common_widgets.dart';
 import '../../widgets/quarantaine/quarantaine_quick_dialog.dart';
 import '../parametres/parametres_screen.dart';
 import '../alertes/alertes_screen.dart';
-import 'add_lapin_screen.dart';
+import '../sante/ajouter_pesee_screen.dart';
+import '../sante/ajouter_soin_screen.dart';
+import '../sante/fiche_sante_screen.dart';
+import 'add_lapin_screen_validated.dart';
 import 'lapin_detail_screen.dart';
+import '../../widgets/cheptel/rabbit_card.dart';
+import '../../widgets/cheptel/rabbit_table_view.dart';
+import '../../widgets/common/paginated_list_view.dart';
 
 /// Écran Cheptel - Stitch Design "Mon Élevage"
 /// Liste complète des lapins avec recherche et filtres
@@ -29,6 +36,7 @@ class _CheptelScreenState extends State<CheptelScreen> {
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
   String _selectedFilter = ''; // Vide par défaut = Tous
+  bool _isTableView = false; // Toggle pour vue tableau
 
   List<String> _getFilters(BuildContext context) {
     return [
@@ -80,14 +88,14 @@ class _CheptelScreenState extends State<CheptelScreen> {
       filtres = filtres
           .where(
             (l) =>
-                l.sexe == 'Femelle' &&
+                l.sexe == Sexe.femelle &&
                 (l.statut == 'Reproductrice' || l.statut == 'Reproducteur'),
           )
           .toList();
     } else if (_selectedFilter == filters[2]) {
       // Mâles
       filtres = filtres
-          .where((l) => l.sexe == 'Mâle' && l.statut == 'Reproducteur')
+          .where((l) => l.sexe == Sexe.male && l.statut == 'Reproducteur')
           .toList();
     } else if (_selectedFilter == filters[3]) {
       // Lapereaux
@@ -120,6 +128,8 @@ class _CheptelScreenState extends State<CheptelScreen> {
       body: Column(
         children: [
           _buildHeader(isDark),
+          // Indicateur mode hors-ligne
+          const OfflineBanner(),
           _buildSearchBar(isDark),
           _buildFilterPills(isDark),
           Expanded(
@@ -256,296 +266,76 @@ class _CheptelScreenState extends State<CheptelScreen> {
                       .withValues(alpha: 0.7),
                 ),
               ),
+              const SizedBox(width: 12),
+              // Toggle vue Cartes/Tableau
+              IconButton(
+                icon: Icon(
+                  _isTableView ? Icons.grid_view : Icons.table_chart,
+                  color: AppTheme.primaryGreen,
+                ),
+                onPressed: () => setState(() => _isTableView = !_isTableView),
+                tooltip: _isTableView ? 'Vue Cartes' : 'Vue Tableau',
+              ),
             ],
           ),
         ),
 
-        // Liste
+        // Liste ou Tableau selon le mode
         Expanded(
-          child: ListView.builder(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 100),
-            itemCount: lapins.length,
-            itemBuilder: (context, index) {
-              return _buildRabbitCard(lapins[index], isDark);
-            },
-          ),
+          child: _isTableView
+              ? RabbitTableView(
+                  lapins: lapins,
+                  onTap: _navigateToDetail,
+                  onLongPress: (lapin) => _showRabbitActions(context, lapin),
+                  showLotColumn: true,
+                )
+              : lapins.length > 50
+              // Pagination pour grandes listes (50+ elements)
+              ? PaginatedListView<Lapin>(
+                  items: lapins,
+                  itemsPerPage: 50,
+                  itemExtent: 100.0,
+                  itemBuilder: (context, lapin, index) {
+                    return RabbitCard(
+                      lapin: lapin,
+                      isDark: isDark,
+                      onTap: () => _navigateToDetail(lapin),
+                      onLongPress: () => _showRabbitActions(context, lapin),
+                    );
+                  },
+                )
+              // Liste simple pour petites listes
+              : ListView.builder(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 100),
+                  itemCount: lapins.length,
+                  itemExtent: 100.0,
+                  cacheExtent: 250.0,
+                  itemBuilder: (context, index) {
+                    final lapin = lapins[index];
+                    return RabbitCard(
+                      lapin: lapin,
+                      isDark: isDark,
+                      onTap: () => _navigateToDetail(lapin),
+                      onLongPress: () => _showRabbitActions(context, lapin),
+                    );
+                  },
+                ),
         ),
       ],
     );
   }
 
-  /// Card d'un lapin
-  Widget _buildRabbitCard(Lapin lapin, bool isDark) {
-    // Vérifier si le lapin est malade via SanteProvider
-    final santeProvider = Provider.of<SanteProvider>(context, listen: false);
-
-    // Utiliser FutureBuilder pour vérifier de manière asynchrone
-    return FutureBuilder<bool>(
-      future: lapin.id != null
-          ? santeProvider.estLapinMalade(lapin.id!)
-          : Future.value(lapin.statut == 'Malade'),
-      builder: (context, snapshot) {
-        final bool isSick = snapshot.data ?? (lapin.statut == 'Malade');
-        return _buildRabbitCardContent(lapin, isDark, isSick);
-      },
+  /// Naviguer vers le détail d'un lapin
+  void _navigateToDetail(Lapin lapin) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => LapinDetailScreen(lapin: lapin)),
     );
   }
 
-  Widget _buildRabbitCardContent(Lapin lapin, bool isDark, bool isSick) {
-    // Récupérer les accouplements pour vérifier si la femelle est gestante
-    final reproProvider = Provider.of<ReproductionProvider>(
-      context,
-      listen: false,
-    );
-    final accouplements = reproProvider.accouplements;
-
-    // Vérifier si la femelle est gestante
-    final estGestante = lapin.estGestante(accouplements);
-
-    // Déterminer le badge statut
-    String badgeText = AppLocalizations.of(context).cheptelSain;
-    Color badgeBg = isDark
-        ? AppTheme.success.withValues(alpha: 0.3)
-        : AppTheme.success.withValues(alpha: 0.2);
-    Color badgeTextColor = AppTheme.success;
-
-    if (isSick) {
-      badgeText = AppLocalizations.of(context).cheptelMalade;
-      badgeBg = isDark
-          ? AppTheme.error.withValues(alpha: 0.3)
-          : AppTheme.error.withValues(alpha: 0.2);
-      badgeTextColor = AppTheme.error;
-    } else if (estGestante) {
-      badgeText = AppLocalizations.of(context).cheptelGestante;
-      badgeBg = isDark
-          ? AppTheme.accentPink.withValues(alpha: 0.3)
-          : AppTheme.accentPink.withValues(alpha: 0.1);
-      badgeTextColor = AppTheme.accentPink;
-    }
-
-    // Badge sexe (ou medical si malade)
-    IconData sexeIcon = Icons.female;
-    Color sexeColor = AppTheme.primaryYellow;
-    Color sexeBg = AppTheme.primaryYellow;
-
-    if (isSick) {
-      // Badge medical pour les lapins malades
-      sexeIcon = Icons.medical_services;
-      sexeColor = AppTheme.error;
-      sexeBg = isDark
-          ? AppTheme.error.withValues(alpha: 0.3)
-          : AppTheme.error.withValues(alpha: 0.2);
-    } else if (lapin.sexe == 'Mâle') {
-      sexeIcon = Icons.male;
-      sexeColor = AppTheme.textSecondary;
-      sexeBg = AppTheme.textSecondary.withValues(alpha: 0.2);
-    }
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      decoration: BoxDecoration(
-        color: isDark ? AppTheme.cardDark : AppTheme.cardLight,
-        borderRadius: BorderRadius.circular(32),
-        border: isSick
-            ? Border(
-                left: const BorderSide(color: AppTheme.error, width: 4),
-                top: BorderSide(
-                  color: isDark ? AppTheme.borderDark : AppTheme.border,
-                ),
-                right: BorderSide(
-                  color: isDark ? AppTheme.borderDark : AppTheme.border,
-                ),
-                bottom: BorderSide(
-                  color: isDark ? AppTheme.borderDark : AppTheme.border,
-                ),
-              )
-            : Border.all(color: isDark ? AppTheme.borderDark : AppTheme.border),
-        boxShadow: AppTheme.cardShadow(isDark: isDark),
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => LapinDetailScreen(lapin: lapin),
-              ),
-            );
-          },
-          onLongPress: () => _showRabbitContextMenu(lapin),
-          borderRadius: BorderRadius.circular(32),
-          child: Padding(
-            padding: const EdgeInsets.all(12),
-            child: Row(
-              children: [
-                // Photo avec badge sexe
-                Stack(
-                  children: [
-                    Container(
-                      height: 64,
-                      width: 64,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: isDark
-                            ? AppTheme.textSecondary
-                            : AppTheme.border,
-                        border: Border.all(
-                          color: isDark
-                              ? AppTheme.backgroundDark
-                              : AppTheme.cardLight,
-                          width: 2,
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: AppTheme.textPrimary.withValues(alpha: 0.1),
-                            blurRadius: 4,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                      child: ClipOval(
-                        child: ColorFiltered(
-                          colorFilter: isSick
-                              ? ColorFilter.mode(
-                                  AppTheme.textSecondary.withValues(alpha: 0.3),
-                                  BlendMode.saturation,
-                                )
-                              : const ColorFilter.mode(
-                                  Colors.transparent,
-                                  BlendMode.multiply,
-                                ),
-                          child:
-                              lapin.photoPath != null &&
-                                  File(lapin.photoPath!).existsSync()
-                              ? Image.file(
-                                  File(lapin.photoPath!),
-                                  fit: BoxFit.cover,
-                                  errorBuilder: (_, __, ___) => Icon(
-                                    Icons.pets,
-                                    size: 32,
-                                    color: AppTheme.textSecondary,
-                                  ),
-                                )
-                              : Icon(
-                                  Icons.pets,
-                                  size: 32,
-                                  color: AppTheme.textSecondary,
-                                ),
-                        ),
-                      ),
-                    ),
-                    Positioned(
-                      bottom: -2,
-                      right: -2,
-                      child: Container(
-                        height: 24,
-                        width: 24,
-                        decoration: BoxDecoration(
-                          color: sexeBg,
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color: isDark
-                                ? AppTheme.backgroundDark
-                                : AppTheme.cardLight,
-                            width: 2,
-                          ),
-                        ),
-                        child: Icon(
-                          sexeIcon,
-                          size: 14,
-                          color: isSick
-                              ? sexeColor
-                              : (lapin.sexe == 'Mâle'
-                                    ? sexeColor
-                                    : AppTheme.textPrimary),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(width: 16),
-
-                // Infos
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Expanded(
-                            child: Text(
-                              lapin.nom,
-                              style: AppTheme.headingMedium.copyWith(
-                                color: isDark
-                                    ? AppTheme.textLight
-                                    : AppTheme.textPrimary,
-                                fontSize: 18,
-                              ),
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Flexible(
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 10,
-                                vertical: 4,
-                              ),
-                              decoration: BoxDecoration(
-                                color: badgeBg,
-                                borderRadius: BorderRadius.circular(999),
-                              ),
-                              child: Text(
-                                badgeText,
-                                style: AppTheme.labelLarge.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                  color: badgeTextColor,
-                                  fontSize: 11,
-                                ),
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        '${lapin.race} • ${lapin.ageFormate}',
-                        style: AppTheme.bodyMedium.copyWith(
-                          color: isDark
-                              ? AppTheme.textLight.withValues(alpha: 0.7)
-                              : AppTheme.textSecondary,
-                        ),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        'ID: ${lapin.numeroIdentification ?? '#${lapin.id}'}',
-                        style: AppTheme.labelLarge.copyWith(
-                          fontFamily: 'monospace',
-                          color: isDark
-                              ? AppTheme.textLight.withValues(alpha: 0.5)
-                              : AppTheme.textSecondary.withValues(alpha: 0.6),
-                          fontSize: 11,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                // Chevron
-                Icon(
-                  Icons.chevron_right,
-                  color: isDark ? AppTheme.textLight : AppTheme.textSecondary,
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
+  /// Afficher le menu d'actions pour un lapin
+  void _showRabbitActions(BuildContext context, Lapin lapin) {
+    _showRabbitContextMenu(lapin);
   }
 
   /// Menu contextuel pour actions rapides sur un lapin
@@ -635,6 +425,53 @@ class _CheptelScreenState extends State<CheptelScreen> {
                 );
               },
             ),
+            // Actions rapides santé
+            ListTile(
+              leading: const Icon(
+                Icons.monitor_weight,
+                color: AppTheme.accentCyan,
+              ),
+              title: Text(AppLocalizations.of(context).cheptelActionPesee),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => AjouterPeseeScreen(lapin: lapin),
+                  ),
+                );
+              },
+            ),
+            ListTile(
+              leading: const Icon(
+                Icons.medical_services,
+                color: AppTheme.neonGreen,
+              ),
+              title: Text(AppLocalizations.of(context).cheptelActionSoin),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => AjouterSoinScreen(lapin: lapin),
+                  ),
+                );
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.favorite, color: AppTheme.accentPink),
+              title: Text(AppLocalizations.of(context).cheptelActionFicheSante),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => FicheSanteScreen(lapin: lapin),
+                  ),
+                );
+              },
+            ),
+            const Divider(height: 1),
             ListTile(
               leading: const Icon(
                 Icons.health_and_safety,
@@ -662,20 +499,18 @@ class _CheptelScreenState extends State<CheptelScreen> {
     );
   }
 
-  /// FAB jaune
+  /// FAB standardisé pour ajouter un lapin
   Widget _buildFAB() {
-    return FloatingActionButton(
-      heroTag: 'fab_cheptel',
+    return UnifiedFAB(
       onPressed: () {
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (_) => const AddLapinScreen()),
+          MaterialPageRoute(
+            builder: (_) => const AddLapinScreenWithValidation(),
+          ),
         );
       },
-      backgroundColor: AppTheme.primaryYellow,
-      foregroundColor: AppTheme.textPrimary,
-      elevation: 8,
-      child: const Icon(Icons.add, size: 28),
+      tooltip: AppLocalizations.of(context).cheptelAjouterLapin,
     );
   }
 }

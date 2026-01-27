@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/lapin.dart';
 import '../../models/soin.dart';
+import '../../models/enums/type_soin.dart';
 import '../../providers/sante_provider.dart';
 import '../../utils/snackbar_helper.dart';
 import 'widgets/soin_form_layout.dart';
@@ -28,7 +29,7 @@ class _AjouterSoinScreenState extends State<AjouterSoinScreen> {
   final _medicamentController = TextEditingController();
   final _dosageController = TextEditingController();
 
-  String _typeSoin = 'traitement';
+  TypeSoin _typeSoin = TypeSoin.traitement;
   DateTime _date = DateTime.now();
   DateTime? _dateRappel;
   bool _avecRappel = false;
@@ -36,7 +37,6 @@ class _AjouterSoinScreenState extends State<AjouterSoinScreen> {
 
   // Phase 4: Ajout medicament_id FK
   int? _medicamentId;
-  String? _medicamentNom;
 
   final List<String> _typesSoins = [
     'vaccination',
@@ -125,8 +125,7 @@ class _AjouterSoinScreenState extends State<AjouterSoinScreen> {
       date: _date,
       type: _typeSoin,
       description: _descriptionController.text,
-      medicament: _medicamentNom, // Garde STRING pour backward compatibility
-      medicamentId: _medicamentId, // Phase 4: FK medicament_id
+      medicamentId: _medicamentId,
       dosage: _dosageController.text.isNotEmpty ? _dosageController.text : null,
       dateRappel: _avecRappel ? _dateRappel : null,
       notes: notes,
@@ -145,7 +144,10 @@ class _AjouterSoinScreenState extends State<AjouterSoinScreen> {
       }
     } catch (e) {
       if (mounted) {
-        SnackbarHelper.showError(context, 'Erreur : $e');
+        SnackbarHelper.showError(
+          context,
+          AppLocalizations.of(context).msgErreurOperationEchouee,
+        );
       }
     }
   }
@@ -162,10 +164,8 @@ class _AjouterSoinScreenState extends State<AjouterSoinScreen> {
 
     return Scaffold(
       backgroundColor: backgroundColor,
-      appBar: UniformAppBar(
+      appBar: SimpleAppBar(
         title: AppLocalizations.of(context).santeAjouterSoin,
-        icon: Icons.medical_services_rounded,
-        iconColor: AppTheme.info,
         actions: [
           IconButton(
             icon: Icon(Icons.sync, color: textSecondary, size: 22),
@@ -203,15 +203,14 @@ class _AjouterSoinScreenState extends State<AjouterSoinScreen> {
         lapin: widget.lapin,
         date: _date,
         onSelectDate: _selectDate,
-        typeSoin: _typeSoin,
-        onTypeSoinChanged: (value) => setState(() => _typeSoin = value),
+        typeSoin: _typeSoin.value,
+        onTypeSoinChanged: (value) => setState(() => _typeSoin = TypeSoin.fromString(value)),
         descriptionController: _descriptionController,
         typesSoins: _typesSoins,
         medicamentIdInitial: _medicamentId,
         onMedicamentChanged: (int? id, String? nom) {
           setState(() {
             _medicamentId = id;
-            _medicamentNom = nom;
           });
         },
         dosageController: _dosageController,

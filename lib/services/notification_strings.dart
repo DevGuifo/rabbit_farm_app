@@ -39,32 +39,32 @@ class NotificationStrings {
 
   static String notifMiseBasCorps(String nomFemelle, String date) {
     return _currentLocale == 'en'
-        ? 'The doe $nomFemelle should give birth on $date'
-        : 'La femelle $nomFemelle devrait mettre bas le $date';
+        ? '🐰 It\'s D-Day for $nomFemelle! Check the nest.'
+        : '🐰 C\'est le jour J pour $nomFemelle ! Surveillez le nid.';
   }
 
   static String notifSoinCorps(String nomLapin, String typeSoin, String date) {
     return _currentLocale == 'en'
-        ? '$nomLapin - $typeSoin on $date'
-        : '$nomLapin - $typeSoin le $date';
+        ? '❤️ $nomLapin needs a little care: $typeSoin'
+        : '❤️ $nomLapin a besoin d\'un petit soin : $typeSoin';
   }
 
   static String notifPalpationCorps(String nomFemelle, String date) {
     return _currentLocale == 'en'
-        ? 'Palpation scheduled for $nomFemelle on $date'
-        : 'Palpation prévue pour $nomFemelle le $date';
+        ? '🔍 Time to check if $nomFemelle is expecting!'
+        : '🔍 Il est temps de vérifier si $nomFemelle attend des petits !';
   }
 
   static String notifNidCorps(String nomFemelle, String date) {
     return _currentLocale == 'en'
-        ? 'Prepare nest for $nomFemelle on $date'
-        : 'Préparer le nid pour $nomFemelle le $date';
+        ? '🏠 Birth is coming soon. Is $nomFemelle\'s nest ready?'
+        : '🏠 La mise bas approche. Le nid de $nomFemelle est-il prêt ?';
   }
 
   static String notifPeseeCorps(String nomLapin, String date) {
     return _currentLocale == 'en'
-        ? 'Weekly weighing for $nomLapin on $date'
-        : 'Pesée hebdomadaire pour $nomLapin le $date';
+        ? '⚖️ Weekly weighing time for $nomLapin.'
+        : '⚖️ C\'est l\'heure de la pesée hebdo pour $nomLapin.';
   }
 
   // ===== ACTIONS DE NOTIFICATIONS =====

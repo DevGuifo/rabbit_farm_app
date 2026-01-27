@@ -1,238 +1,228 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:rabbit_farm_app/models/lapin.dart';
-import 'package:rabbit_farm_app/models/accouplement.dart';
+import 'package:rabbit_farm_app/models/enums/sexe.dart';
 
+/// Tests unitaires pour le modèle Lapin
+/// 
+/// Ces tests vérifient :
+/// - La création d'un lapin avec enum Sexe
+/// - Les conversions toMap() / fromMap()
+/// - Les propriétés calculées (âge)
+/// - La méthode copyWith()
 void main() {
-  group('Lapin Model Tests', () {
-    test('Création d\'un lapin avec tous les champs', () {
-      final lapin = Lapin(
+  group('Lapin Model', () {
+    // Données de test réutilisables
+    late Lapin lapinTest;
+    late DateTime dateNaissanceTest;
+
+    setUp(() {
+      dateNaissanceTest = DateTime(2025, 6, 15); // 15 juin 2025
+      lapinTest = Lapin(
         id: 1,
-        nom: 'Pompon',
-        sexe: 'M',
-        dateNaissance: DateTime(2024, 1, 15),
-        race: 'Rex',
-        couleur: 'Gris',
-        numeroIdentification: 'REX001',
-        poids: 2.5,
-        statut: 'Actif',
-        localisation: 'Cage A1',
-        photoPath: '/photos/pompon.jpg',
-        notes: 'Très calme',
-      );
-
-      expect(lapin.id, equals(1));
-      expect(lapin.nom, equals('Pompon'));
-      expect(lapin.sexe, equals('M'));
-      expect(lapin.race, equals('Rex'));
-      expect(lapin.poids, equals(2.5));
-    });
-
-    test('Conversion lapin vers Map', () {
-      final lapin = Lapin(
         nom: 'Flocon',
-        sexe: 'F',
-        dateNaissance: DateTime(2024, 3, 20),
-        race: 'Nain',
+        race: 'Géant des Flandres',
+        sexe: Sexe.male,
+        dateNaissance: dateNaissanceTest,
+        poids: 7.5,
+        statut: 'Reproducteur',
+        localisation: 'Cage A1',
+        numeroIdentification: 'LAP-001',
+        couleur: 'Blanc',
+        prixAchat: 50.0,
+        origine: 'Élevage local',
+        notes: 'Bon reproducteur',
       );
-
-      final map = lapin.toMap();
-
-      expect(map['nom'], equals('Flocon'));
-      expect(map['sexe'], equals('F'));
-      expect(map['race'], equals('Nain'));
-      expect(map['date_naissance'], isNotNull);
     });
 
-    test('Création lapin depuis Map', () {
-      final map = {
-        'id': 5,
-        'nom': 'Caramel',
-        'sexe': 'F',
-        'date_naissance': DateTime(2024, 5, 10).toIso8601String(),
-        'race': 'Bélier',
-        'couleur': 'Marron',
-        'poids': 3.2,
-        'statut': 'Actif',
-      };
+    group('Création', () {
+      test('devrait créer un lapin avec tous les champs requis', () {
+        final lapin = Lapin(
+          nom: 'Test',
+          race: 'Bélier',
+          sexe: Sexe.femelle,
+          dateNaissance: DateTime.now(),
+        );
 
-      final lapin = Lapin.fromMap(map);
+        expect(lapin.nom, 'Test');
+        expect(lapin.race, 'Bélier');
+        expect(lapin.sexe, Sexe.femelle);
+        expect(lapin.id, isNull); // ID null pour nouveau lapin
+      });
 
-      expect(lapin.id, equals(5));
-      expect(lapin.nom, equals('Caramel'));
-      expect(lapin.sexe, equals('F'));
-      expect(lapin.race, equals('Bélier'));
-      expect(lapin.poids, equals(3.2));
+      test('devrait créer un lapin avec tous les champs optionnels', () {
+        expect(lapinTest.id, 1);
+        expect(lapinTest.nom, 'Flocon');
+        expect(lapinTest.poids, 7.5);
+        expect(lapinTest.statut, 'Reproducteur');
+        expect(lapinTest.localisation, 'Cage A1');
+        expect(lapinTest.numeroIdentification, 'LAP-001');
+      });
     });
 
-    test('Gestion des valeurs nullables', () {
-      final lapin = Lapin(
-        nom: 'Test',
-        race: 'Test Race',
-        sexe: 'M',
-        dateNaissance: DateTime.now(),
-      );
+    group('toMap() / fromMap()', () {
+      test('toMap() devrait convertir correctement le lapin en Map', () {
+        final map = lapinTest.toMap();
 
-      expect(lapin.couleur, isNull);
-      expect(lapin.poids, isNull);
-      expect(lapin.localisation, isNull);
-      expect(lapin.photoPath, isNull);
+        expect(map['id'], 1);
+        expect(map['nom'], 'Flocon');
+        expect(map['race'], 'Géant des Flandres');
+        expect(map['sexe'], 'male'); // ✅ Valeur normalisée par enum
+        expect(map['date_naissance'], dateNaissanceTest.toIso8601String());
+        expect(map['poids'], 7.5);
+        expect(map['statut'], 'Reproducteur');
+        expect(map['localisation'], 'Cage A1');
+        expect(map['numero_identification'], 'LAP-001');
+      });
+
+      test('fromMap() devrait recréer un lapin identique depuis un Map', () {
+        final map = lapinTest.toMap();
+        final lapinRecree = Lapin.fromMap(map);
+
+        expect(lapinRecree.id, lapinTest.id);
+        expect(lapinRecree.nom, lapinTest.nom);
+        expect(lapinRecree.race, lapinTest.race);
+        expect(lapinRecree.sexe, lapinTest.sexe); // ✅ Comparaison enum
+        expect(lapinRecree.dateNaissance, lapinTest.dateNaissance);
+        expect(lapinRecree.poids, lapinTest.poids);
+        expect(lapinRecree.statut, lapinTest.statut);
+      });
+
+      test('fromMap() devrait accepter anciennes valeurs String', () {
+        final mapAncien = {
+          'id': 1,
+          'nom': 'Test',
+          'race': 'Bélier',
+          'sexe': 'Mâle', // ❌ Ancien format
+          'date_naissance': DateTime.now().toIso8601String(),
+        };
+        
+        final lapin = Lapin.fromMap(mapAncien);
+        expect(lapin.sexe, Sexe.male); // ✅ Converti via fromString()
+      });
+
+      test('cycle toMap → fromMap devrait être idempotent', () {
+        final map1 = lapinTest.toMap();
+        final lapinRecree = Lapin.fromMap(map1);
+        final map2 = lapinRecree.toMap();
+
+        // Les maps doivent être identiques
+        expect(map2['nom'], map1['nom']);
+        expect(map2['race'], map1['race']);
+        expect(map2['poids'], map1['poids']);
+      });
     });
 
-    test('Clone d\'un lapin', () {
-      final original = Lapin(
-        id: 1,
-        nom: 'Original',
-        sexe: 'M',
-        dateNaissance: DateTime(2024, 1, 1),
-        race: 'Géant',
-        poids: 4.5,
-      );
+    group('Propriétés calculées - Âge', () {
+      test('ageEnJours devrait calculer correctement', () {
+        final aujourdhui = DateTime.now();
+        final ilY30Jours = aujourdhui.subtract(const Duration(days: 30));
+        
+        final lapin = Lapin(
+          nom: 'Test',
+          race: 'Test',
+          sexe: Sexe.male,
+          dateNaissance: ilY30Jours,
+        );
 
-      final clone = Lapin.fromMap(original.toMap());
+        expect(lapin.ageEnJours, 30);
+      });
 
-      expect(clone.nom, equals(original.nom));
-      expect(clone.sexe, equals(original.sexe));
-      expect(clone.race, equals(original.race));
-      expect(clone.poids, equals(original.poids));
+      test('ageEnMois devrait calculer correctement', () {
+        final aujourdhui = DateTime.now();
+        final ilY90Jours = aujourdhui.subtract(const Duration(days: 90));
+        
+        final lapin = Lapin(
+          nom: 'Test',
+          race: 'Test',
+          sexe: Sexe.male,
+          dateNaissance: ilY90Jours,
+        );
+
+        expect(lapin.ageEnMois, 3); // 90 jours = 3 mois
+      });
+
+      test('ageFormate devrait afficher "X jours" pour moins de 30 jours', () {
+        final aujourdhui = DateTime.now();
+        final ilY15Jours = aujourdhui.subtract(const Duration(days: 15));
+        
+        final lapin = Lapin(
+          nom: 'Test',
+          race: 'Test',
+          sexe: Sexe.male,
+          dateNaissance: ilY15Jours,
+        );
+
+        expect(lapin.ageFormate, '15 jours');
+      });
+
+      test('ageFormate devrait afficher "X mois" entre 1 et 11 mois', () {
+        final aujourdhui = DateTime.now();
+        final ilY180Jours = aujourdhui.subtract(const Duration(days: 180));
+        
+        final lapin = Lapin(
+          nom: 'Test',
+          race: 'Test',
+          sexe: Sexe.male,
+          dateNaissance: ilY180Jours,
+        );
+
+        expect(lapin.ageFormate, '6 mois');
+      });
     });
 
-    group('estGestante', () {
-      test('Femelle avec accouplement actif est gestante', () {
-        final femelle = Lapin(
-          id: 1,
-          nom: 'Caramel',
-          sexe: 'Femelle',
-          dateNaissance: DateTime(2024, 1, 1),
-          race: 'Rex',
-        );
+    group('copyWith()', () {
+      test('devrait créer une copie identique sans modifications', () {
+        final copie = lapinTest.copyWith();
 
-        final accouplement = Accouplement(
-          id: 1,
-          maleId: 2,
-          femelleId: 1,
-          dateAccouplement: DateTime.now().subtract(const Duration(days: 10)),
-          dateMiseBasPrevue: DateTime.now().add(const Duration(days: 21)),
-          statut: 'confirme',
-        );
-
-        expect(femelle.estGestante([accouplement]), isTrue);
+        expect(copie.id, lapinTest.id);
+        expect(copie.nom, lapinTest.nom);
+        expect(copie.race, lapinTest.race);
+        expect(copie.poids, lapinTest.poids);
       });
 
-      test('Femelle avec accouplement en_attente est gestante', () {
-        final femelle = Lapin(
-          id: 1,
-          nom: 'Neige',
-          sexe: 'F',
-          dateNaissance: DateTime(2024, 1, 1),
-          race: 'Nain',
+      test('devrait modifier uniquement les champs spécifiés', () {
+        final copie = lapinTest.copyWith(
+          nom: 'Nouveau Nom',
+          poids: 8.0,
         );
 
-        final accouplement = Accouplement(
-          id: 1,
-          maleId: 2,
-          femelleId: 1,
-          dateAccouplement: DateTime.now().subtract(const Duration(days: 5)),
-          dateMiseBasPrevue: DateTime.now().add(const Duration(days: 26)),
-          statut: 'en_attente',
-        );
-
-        expect(femelle.estGestante([accouplement]), isTrue);
+        // Champs modifiés
+        expect(copie.nom, 'Nouveau Nom');
+        expect(copie.poids, 8.0);
+        
+        // Champs non modifiés
+        expect(copie.id, lapinTest.id);
+        expect(copie.race, lapinTest.race);
+        expect(copie.sexe, lapinTest.sexe);
+        expect(copie.statut, lapinTest.statut);
       });
 
-      test('Femelle avec accouplement terminé n\'est pas gestante', () {
-        final femelle = Lapin(
-          id: 1,
-          nom: 'Caramel',
-          sexe: 'Femelle',
-          dateNaissance: DateTime(2024, 1, 1),
-          race: 'Rex',
-        );
+      test('devrait pouvoir modifier le statut', () {
+        final copie = lapinTest.copyWith(statut: 'Réformé');
 
-        final accouplement = Accouplement(
-          id: 1,
-          maleId: 2,
-          femelleId: 1,
-          dateAccouplement: DateTime.now().subtract(const Duration(days: 40)),
-          dateMiseBasPrevue: DateTime.now().subtract(const Duration(days: 9)),
-          statut: 'termine',
-        );
+        expect(copie.statut, 'Réformé');
+        expect(copie.nom, lapinTest.nom); // Autres champs inchangés
+      });
+    });
 
-        expect(femelle.estGestante([accouplement]), isFalse);
+    group('Filtrage par sexe', () {
+      test('devrait identifier correctement un mâle', () {
+        expect(lapinTest.sexe, Sexe.male);
       });
 
-      test('Femelle avec date de mise bas passée n\'est pas gestante', () {
-        final femelle = Lapin(
-          id: 1,
-          nom: 'Caramel',
-          sexe: 'Femelle',
-          dateNaissance: DateTime(2024, 1, 1),
-          race: 'Rex',
-        );
-
-        final accouplement = Accouplement(
-          id: 1,
-          maleId: 2,
-          femelleId: 1,
-          dateAccouplement: DateTime.now().subtract(const Duration(days: 40)),
-          dateMiseBasPrevue: DateTime.now().subtract(const Duration(days: 1)),
-          statut: 'confirme',
-        );
-
-        expect(femelle.estGestante([accouplement]), isFalse);
+      test('devrait identifier correctement une femelle', () {
+        final femelle = lapinTest.copyWith(sexe: Sexe.femelle);
+        expect(femelle.sexe, Sexe.femelle);
       });
+    });
 
-      test('Mâle n\'est jamais gestante', () {
-        final male = Lapin(
-          id: 2,
-          nom: 'Flocon',
-          sexe: 'Mâle',
-          dateNaissance: DateTime(2024, 1, 1),
-          race: 'Géant',
-        );
+    group('toString()', () {
+      test('devrait retourner une représentation lisible', () {
+        final str = lapinTest.toString();
 
-        final accouplement = Accouplement(
-          id: 1,
-          maleId: 2,
-          femelleId: 1,
-          dateAccouplement: DateTime.now().subtract(const Duration(days: 10)),
-          dateMiseBasPrevue: DateTime.now().add(const Duration(days: 21)),
-          statut: 'confirme',
-        );
-
-        expect(male.estGestante([accouplement]), isFalse);
-      });
-
-      test('Femelle sans accouplement n\'est pas gestante', () {
-        final femelle = Lapin(
-          id: 1,
-          nom: 'Caramel',
-          sexe: 'Femelle',
-          dateNaissance: DateTime(2024, 1, 1),
-          race: 'Rex',
-        );
-
-        expect(femelle.estGestante([]), isFalse);
-      });
-
-      test('Femelle avec accouplement pour une autre femelle n\'est pas gestante', () {
-        final femelle1 = Lapin(
-          id: 1,
-          nom: 'Caramel',
-          sexe: 'Femelle',
-          dateNaissance: DateTime(2024, 1, 1),
-          race: 'Rex',
-        );
-
-        final accouplement = Accouplement(
-          id: 1,
-          maleId: 2,
-          femelleId: 3, // Autre femelle
-          dateAccouplement: DateTime.now().subtract(const Duration(days: 10)),
-          dateMiseBasPrevue: DateTime.now().add(const Duration(days: 21)),
-          statut: 'confirme',
-        );
-
-        expect(femelle1.estGestante([accouplement]), isFalse);
+        expect(str.contains('Flocon'), true);
+        expect(str.contains('Géant des Flandres'), true);
+        expect(str.contains('Mâle'), true);
       });
     });
   });

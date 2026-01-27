@@ -1,8 +1,9 @@
+import 'enums/medicament_enums.dart';
+
 class Medicament {
   final int? id;
   final String nom;
-  final String
-  type; // 'antibiotique', 'antiparasitaire', 'vitamine', 'vaccin', 'autre'
+  final TypeMedicament type;
   final double quantiteStock; // en ml ou g selon unite
   final String unite; // 'ml', 'g', 'comprime', 'dose'
   final double? seuilAlerte; // quantité minimum avant alerte
@@ -28,7 +29,7 @@ class Medicament {
     return {
       'id': id,
       'nom': nom,
-      'type': type,
+      'type': type.toDatabase(),
       'quantite_stock': quantiteStock,
       'unite': unite,
       'seuil_alerte': seuilAlerte,
@@ -43,7 +44,7 @@ class Medicament {
     return Medicament(
       id: map['id'] as int?,
       nom: map['nom'] as String,
-      type: map['type'] as String,
+      type: TypeMedicament.fromString(map['type'] as String),
       quantiteStock: (map['quantite_stock'] as num).toDouble(),
       unite: map['unite'] as String,
       seuilAlerte: map['seuil_alerte'] != null
@@ -76,7 +77,7 @@ class Medicament {
   Medicament copyWith({
     int? id,
     String? nom,
-    String? type,
+    TypeMedicament? type,
     double? quantiteStock,
     String? unite,
     double? seuilAlerte,

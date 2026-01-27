@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../theme/app_theme.dart';
-import 'home_screen.dart';
 import 'auth/auth_screen.dart';
+import '../utils/onboarding_navigation_helper.dart';
 import 'welcome/widgets/welcome_brand_header.dart';
 import 'welcome/widgets/welcome_hero_section.dart';
 import 'welcome/widgets/welcome_content.dart';
@@ -11,7 +11,7 @@ import 'welcome/widgets/welcome_action_buttons.dart';
 
 /// Écran de bienvenue (Welcome/Onboarding)
 /// Affiche le design Stitch avec logo, image hero, titre, description et boutons d'action
-/// Gère la navigation vers HomeScreen après "Get Started" ou "Log in"
+/// Gère la navigation basée sur le statut d'onboarding après "Get Started" ou "Log in"
 class WelcomeScreen extends StatelessWidget {
   const WelcomeScreen({super.key});
 
@@ -40,19 +40,9 @@ class WelcomeScreen extends StatelessWidget {
     // Marquer comme vu
     await markWelcomeAsSeen();
 
-    // Naviguer vers HomeScreen
+    // Naviguer basé sur le statut d'onboarding
     if (!context.mounted) return;
-    Navigator.pushReplacement(
-      context,
-      PageRouteBuilder(
-        pageBuilder: (context, animation, secondaryAnimation) =>
-            const HomeScreen(),
-        transitionsBuilder: (context, animation, secondaryAnimation, child) {
-          return FadeTransition(opacity: animation, child: child);
-        },
-        transitionDuration: const Duration(milliseconds: 300),
-      ),
-    );
+    OnboardingNavigationHelper.navigateBasedOnOnboardingStatus(context);
   }
 
   void _handleLogIn(BuildContext context) async {
@@ -80,16 +70,14 @@ class WelcomeScreen extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: isDark
-          ? AppTheme.stitchBackgroundDark
-          : AppTheme.stitchBackgroundLight,
+          ? AppTheme.backgroundDark
+          : AppTheme.backgroundLight,
       body: SafeArea(
         child: LayoutBuilder(
           builder: (context, constraints) {
             return SingleChildScrollView(
               child: ConstrainedBox(
-                constraints: BoxConstraints(
-                  minHeight: constraints.maxHeight,
-                ),
+                constraints: BoxConstraints(minHeight: constraints.maxHeight),
                 child: Padding(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 24,
@@ -147,4 +135,3 @@ class WelcomeScreen extends StatelessWidget {
     );
   }
 }
-

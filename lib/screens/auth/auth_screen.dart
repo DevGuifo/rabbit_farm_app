@@ -4,14 +4,14 @@ import '../../l10n/app_localizations.dart';
 import '../../theme/app_theme.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/connectivity_provider.dart';
-import '../../services/supabase_auth_service.dart';
-import '../home_screen.dart';
+import '../../utils/onboarding_navigation_helper.dart';
 import 'pin_setup_screen.dart';
 import 'widgets/auth_hero_section.dart';
 import 'widgets/auth_toggle_tabs.dart';
 import 'widgets/auth_form_fields.dart';
 import 'widgets/auth_social_buttons.dart';
 import 'widgets/auth_footer.dart';
+import '../../services/error_service.dart';
 
 /// Écran d'authentification (Sign In / Sign Up)
 /// Affiche le design Stitch avec formulaire, toggle Sign In/Sign Up, et boutons sociaux
@@ -190,18 +190,9 @@ class _AuthScreenState extends State<AuthScreen> {
 
         if (!mounted) return;
         if (hasPin) {
-          // Navigation vers HomeScreen (le PIN sera demandé au démarrage)
-          Navigator.pushReplacement(
+          // Navigation basée sur l'état de l'onboarding
+          await OnboardingNavigationHelper.navigateBasedOnOnboardingStatus(
             context,
-            PageRouteBuilder(
-              pageBuilder: (context, animation, secondaryAnimation) =>
-                  const HomeScreen(),
-              transitionsBuilder:
-                  (context, animation, secondaryAnimation, child) {
-                    return FadeTransition(opacity: animation, child: child);
-                  },
-              transitionDuration: const Duration(milliseconds: 300),
-            ),
           );
         } else {
           // Navigation vers l'écran de configuration du PIN
@@ -418,18 +409,17 @@ class _AuthScreenState extends State<AuthScreen> {
               );
 
               try {
-                final authService = SupabaseAuthService();
-                await authService.resetPassword(email);
-
+                // En mode offline-first, la réinitialisation de mot de passe
+                // n'est pas disponible. Afficher un message informatif.
                 if (!context.mounted) return;
                 Navigator.pop(context); // Fermer le dialog
 
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
                     content: Text(
-                      'Email de réinitialisation envoyé. Vérifiez votre boîte de réception.',
+                      'La réinitialisation du mot de passe sera disponible dans une prochaine version.',
                     ),
-                    backgroundColor: AppTheme.success,
+                    backgroundColor: AppTheme.warning,
                     duration: Duration(seconds: 5),
                   ),
                 );
@@ -437,15 +427,10 @@ class _AuthScreenState extends State<AuthScreen> {
                 if (!context.mounted) return;
                 Navigator.pop(context); // Fermer le dialog
 
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('Erreur: ${e.toString()}'),
-                    backgroundColor: AppTheme.error,
-                  ),
-                );
+                ErrorService.showError(context, e);
               }
             },
-            child: const Text('Envoyer'),
+            child: Text(AppLocalizations.of(context).btnEnvoyer),
           ),
         ],
       ),
@@ -460,8 +445,8 @@ class _AuthScreenState extends State<AuthScreen> {
 
     return Scaffold(
       backgroundColor: isDark
-          ? AppTheme.stitchBackgroundDark
-          : AppTheme.stitchBackgroundLight,
+          ? AppTheme.backgroundDark
+          : AppTheme.backgroundLight,
       body: SafeArea(
         child: SingleChildScrollView(
           child: Column(

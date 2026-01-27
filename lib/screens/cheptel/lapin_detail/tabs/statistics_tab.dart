@@ -7,6 +7,7 @@ import '../../../../models/soin.dart';
 import '../../../../models/accouplement.dart';
 import '../../../../models/portee.dart';
 import '../../../../models/lapin.dart';
+import '../../../../models/enums/statut_accouplement.dart';
 import '../../../../theme/app_theme.dart';
 import '../../../../services/rentabilite_service.dart';
 import '../../../../providers/alimentation_provider.dart';
@@ -79,7 +80,7 @@ class StatisticsTab extends StatelessWidget {
                 accouplements.length.toString(),
                 AppTheme.accentPink,
                 subtitle:
-                    '${accouplements.where((a) => a.statut == 'confirme').length} ${AppLocalizations.of(context).cheptelConfirmes.toLowerCase()}',
+                    '${accouplements.where((a) => a.statut == StatutAccouplement.confirme).length} ${AppLocalizations.of(context).cheptelConfirmes.toLowerCase()}',
               ),
               _buildStatCard(
                 context,
@@ -141,7 +142,7 @@ class StatisticsTab extends StatelessWidget {
             value,
             style: AppTheme.titleLarge.copyWith(
               fontSize: 28,
-              color: isDark ? AppTheme.textLight : AppTheme.stitchTextMainLight,
+              color: isDark ? AppTheme.textLight : AppTheme.textPrimary,
             ),
           ),
           Text(

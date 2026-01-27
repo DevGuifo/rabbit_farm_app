@@ -33,8 +33,8 @@ String getTypeEntiteLabel(BuildContext context, TypeEntite type) {
       return l10n.typeEntiteQuarantaine;
     case TypeEntite.sevrage:
       return l10n.typeEntiteSevrage;
-    case TypeEntite.rituel:
-      return l10n.typeEntiteRituel;
+    case TypeEntite.verification:
+      return l10n.typeEntiteVerification;
     case TypeEntite.anomalie:
       return l10n.typeEntiteAnomalie;
     case TypeEntite.aliment:
@@ -99,3 +99,4 @@ String getStatutEvenementLabel(BuildContext context, StatutEvenement statut) {
       return l10n.statutEvenementSucces;
   }
 }
+

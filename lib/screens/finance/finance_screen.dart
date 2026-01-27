@@ -227,7 +227,7 @@ class _FinanceScreenState extends State<FinanceScreen> {
         return _buildTransactionCard(
           isDark,
           recette.montant.toString(),
-          recette.categorie,
+          recette.categorie.label,
           recette.date,
           AppTheme.success,
           () => _editRecette(recette),
@@ -255,7 +255,7 @@ class _FinanceScreenState extends State<FinanceScreen> {
         return _buildTransactionCard(
           isDark,
           depense.montant.toString(),
-          depense.categorie,
+          depense.categorie.label,
           depense.date,
           AppTheme.error,
           () => _editDepense(depense),

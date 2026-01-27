@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../l10n/app_localizations.dart';
 import '../models/lapin.dart';
+import '../models/enums/sexe.dart';
 import 'package:rabbit_farm_app/theme/app_theme.dart';
 
 /// Widget pour sélectionner un parent (père ou mère)
@@ -117,10 +118,10 @@ class ParentSelector extends StatelessWidget {
                                 parentSelectionne?.id == lapin.id;
                             return ListTile(
                               leading: Icon(
-                                lapin.sexe.toLowerCase() == 'mâle'
+                                lapin.sexe == Sexe.male
                                     ? Icons.male
                                     : Icons.female,
-                                color: lapin.sexe.toLowerCase() == 'mâle'
+                                color: lapin.sexe == Sexe.male
                                     ? AppTheme.info
                                     : AppTheme.accentPink,
                               ),

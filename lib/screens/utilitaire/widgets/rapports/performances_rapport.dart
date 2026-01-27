@@ -5,6 +5,7 @@ import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 import 'package:intl/intl.dart';
 import '../../../../l10n/app_localizations.dart';
+import '../../../../models/enums/sexe.dart';
 import '../../../../providers/lapin_provider.dart';
 import '../../../../providers/reproduction_provider.dart';
 import '../../../../theme/app_theme.dart';
@@ -65,8 +66,7 @@ class PerformancesRapport extends StatelessWidget {
 
     final reproducteurs = lapinProvider.lapins
         .where(
-          (l) =>
-              l.sexe.toLowerCase() == 'femelle' || l.sexe.toLowerCase() == 'f',
+          (l) => l.sexe == Sexe.femelle,
         )
         .toList();
 

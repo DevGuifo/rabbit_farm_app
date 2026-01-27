@@ -2,14 +2,18 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:timezone/timezone.dart' as tz;
 import 'package:timezone/data/latest.dart' as tz;
+import 'package:shared_preferences/shared_preferences.dart';
 import '../utils/logger.dart';
-import 'navigation_service.dart';
+import '../core/services/navigation_service.dart';
 import 'notification_strings.dart';
+import 'notification_quota_manager.dart';
 import '../screens/reproduction/reproduction_screen.dart';
 import '../screens/sante/fiche_sante_screen.dart';
 import '../screens/cheptel/lapin_detail_screen.dart';
 import 'database_helper.dart';
 import 'notification_action_handler.dart';
+import '../models/mode_focus.dart';
+import '../models/notification_priority_ux.dart';
 
 /// Définition d'une action de notification
 class NotificationAction {
@@ -111,7 +115,16 @@ class NotificationService {
   /// Accès lazy au NotificationActionHandler pour éviter la dépendance circulaire
   NotificationActionHandler get _actionHandler => NotificationActionHandler();
 
+  /// Gestionnaire de quota pour limiter les notifications
+  final NotificationQuotaManager _quotaManager = NotificationQuotaManager();
+
+  /// Getter public pour accès externe au quota manager
+  NotificationQuotaManager get quotaManager => _quotaManager;
+
   bool _isInitialized = false;
+
+  // Clé SharedPreferences pour mode focus
+  static const String _keyModeFocus = 'notification_mode_focus';
 
   /// Initialiser le service de notifications
   Future<void> initialize() async {
@@ -263,16 +276,16 @@ class NotificationService {
           ),
         ],
       ),
-      // Catégorie Coach Quotidien - Rituel Matin
+      // Catégorie Coach Quotidien - Vérification Quotidienne
       DarwinNotificationCategory(
-        'rituel_matin',
+        'verif_quotidienne',
         actions: [
-          DarwinNotificationAction.plain('rituel_ok', '✅ Oui, tout normal'),
+          DarwinNotificationAction.plain('verif_ok', '✅ Oui, tout normal'),
           DarwinNotificationAction.plain(
-            'rituel_probleme',
+            'verif_probleme',
             '⚠️ J\'ai vu un problème',
           ),
-          DarwinNotificationAction.plain('rituel_later', '⏰ Plus tard'),
+          DarwinNotificationAction.plain('verif_later', '⏰ Plus tard'),
         ],
       ),
       // Catégorie Coach Quotidien - Suivi Problème
@@ -284,7 +297,51 @@ class NotificationService {
           DarwinNotificationAction.plain('suivi_aide', '❓ Besoin d\'aide'),
         ],
       ),
+      // Catégorie Urgence (nouveau canal critique)
+      DarwinNotificationCategory(
+        'urgence_category',
+        actions: [
+          DarwinNotificationAction.plain(
+            'urgence_action',
+            'Voir immédiatement',
+          ),
+        ],
+        options: <DarwinNotificationCategoryOption>{
+          DarwinNotificationCategoryOption.hiddenPreviewShowTitle,
+        },
+      ),
     ];
+  }
+
+  /// Obtenir le mode focus actuel
+  Future<ModeFocus> getModeFocus() async {
+    final prefs = await SharedPreferences.getInstance();
+    final modeIndex = prefs.getInt(_keyModeFocus) ?? ModeFocus.normal.index;
+    return ModeFocus.values[modeIndex];
+  }
+
+  /// Définir le mode focus
+  Future<void> setModeFocus(ModeFocus mode) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt(_keyModeFocus, mode.index);
+    logger.info('🔔 Mode focus défini: ${mode.label}');
+  }
+
+  /// Vérifier si une notification doit être envoyée selon le mode focus
+  Future<bool> shouldSendNotification(NotificationPrioriteUX prioriteUX) async {
+    final mode = await getModeFocus();
+
+    switch (mode) {
+      case ModeFocus.normal:
+        return true; // Toutes les notifications
+      case ModeFocus.essentiel:
+        return prioriteUX == NotificationPrioriteUX.urgence ||
+            prioriteUX == NotificationPrioriteUX.actionRequise;
+      case ModeFocus.urgencesOnly:
+        return prioriteUX == NotificationPrioriteUX.urgence;
+      case ModeFocus.silent:
+        return false; // Aucun push
+    }
   }
 
   /// Demander les permissions de notification
@@ -426,6 +483,9 @@ class NotificationService {
   // ========== MÉTHODES DE PLANIFICATION ACTIONNABLES ==========
 
   /// Planifier une notification pour une mise bas avec boutons d'action
+  ///
+  /// Note: Les notifications de mise bas sont considérées comme CRITIQUES
+  /// et ne sont pas soumises au quota journalier.
   Future<void> planifierRappelMiseBas({
     required int accouplementId,
     required DateTime dateMiseBasPrevue,
@@ -443,6 +503,8 @@ class NotificationService {
       );
       return;
     }
+
+    // Mise bas = critique, toujours planifiée (pas de check quota pour planification)
 
     final scheduledDate = tz.TZDateTime.from(dateRappel, tz.local);
 
@@ -496,8 +558,6 @@ class NotificationService {
       scheduledDate,
       details,
       androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-      uiLocalNotificationDateInterpretation:
-          UILocalNotificationDateInterpretation.absoluteTime,
       payload: 'mise_bas:$accouplementId',
     );
 
@@ -573,8 +633,6 @@ class NotificationService {
       scheduledDate,
       details,
       androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-      uiLocalNotificationDateInterpretation:
-          UILocalNotificationDateInterpretation.absoluteTime,
       payload: 'soin:$soinId',
     );
 
@@ -656,8 +714,6 @@ class NotificationService {
       scheduledDate,
       details,
       androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-      uiLocalNotificationDateInterpretation:
-          UILocalNotificationDateInterpretation.absoluteTime,
       payload: 'palpation:$accouplementId',
     );
 
@@ -731,8 +787,6 @@ class NotificationService {
       scheduledDate,
       details,
       androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-      uiLocalNotificationDateInterpretation:
-          UILocalNotificationDateInterpretation.absoluteTime,
       payload: 'nid:$accouplementId',
     );
 
@@ -811,8 +865,6 @@ class NotificationService {
       scheduledDate,
       details,
       androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-      uiLocalNotificationDateInterpretation:
-          UILocalNotificationDateInterpretation.absoluteTime,
       payload: 'pesee:$lapinId',
     );
 
@@ -944,8 +996,6 @@ class NotificationService {
       scheduledDate,
       details,
       androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-      uiLocalNotificationDateInterpretation:
-          UILocalNotificationDateInterpretation.absoluteTime,
       payload: payload,
     );
 

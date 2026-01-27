@@ -1,9 +1,11 @@
+import 'enums/fumier_enums.dart';
+
 class CollecteFumier {
   final int? id;
   final DateTime dateCollecte;
   final double quantite; // en kg
-  final String type; // 'crottes', 'urine', 'mixte'
-  final String? destination; // 'vente', 'compost', 'utilisation_personnelle'
+  final TypeFumier type;
+  final DestinationFumier? destination;
   final double? prixVente; // si vendu
   final String? notes;
 
@@ -22,8 +24,8 @@ class CollecteFumier {
       'id': id,
       'date_collecte': dateCollecte.toIso8601String(),
       'quantite': quantite,
-      'type': type,
-      'destination': destination,
+      'type': type.toDatabase(),
+      'destination': destination?.toDatabase(),
       'prix_vente': prixVente,
       'notes': notes,
     };
@@ -34,8 +36,10 @@ class CollecteFumier {
       id: map['id'] as int?,
       dateCollecte: DateTime.parse(map['date_collecte'] as String),
       quantite: (map['quantite'] as num).toDouble(),
-      type: map['type'] as String,
-      destination: map['destination'] as String?,
+      type: TypeFumier.fromString(map['type'] as String),
+      destination: map['destination'] != null
+          ? DestinationFumier.fromString(map['destination'] as String)
+          : null,
       prixVente: map['prix_vente'] != null
           ? (map['prix_vente'] as num).toDouble()
           : null,
@@ -47,8 +51,8 @@ class CollecteFumier {
     int? id,
     DateTime? dateCollecte,
     double? quantite,
-    String? type,
-    String? destination,
+    TypeFumier? type,
+    DestinationFumier? destination,
     double? prixVente,
     String? notes,
   }) {

@@ -5,6 +5,7 @@ import '../../providers/fumier_provider.dart';
 import '../../utils/dialog_helper.dart';
 import '../../utils/snackbar_helper.dart';
 import '../../models/collecte_fumier.dart';
+import '../../models/enums/fumier_enums.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/uniform_app_bar.dart';
 import '../../l10n/app_localizations.dart';
@@ -94,14 +95,14 @@ class _FumierScreenState extends State<FumierScreen> {
       margin: const EdgeInsets.only(bottom: 12),
       child: ListTile(
         leading: CircleAvatar(
-          backgroundColor: _getTypeColor(collecte.type),
+          backgroundColor: _getTypeColor(collecte.type.value),
           child: Icon(
-            _getTypeIcon(collecte.type),
+            _getTypeIcon(collecte.type.value),
             color: AppTheme.textOnPrimary,
           ),
         ),
         title: Text(
-          '${collecte.quantite} kg - ${_getTypeLabel(collecte.type)}',
+          '${collecte.quantite} kg - ${collecte.type.label}',
           style: AppTheme.bodyLarge.copyWith(fontWeight: FontWeight.bold),
           overflow: TextOverflow.ellipsis,
         ),
@@ -111,7 +112,7 @@ class _FumierScreenState extends State<FumierScreen> {
             Text(dateFormat.format(collecte.dateCollecte)),
             if (collecte.destination != null)
               Text(
-                'Destination: ${_getDestinationLabel(collecte.destination!)}',
+                'Destination: ${collecte.destination!.label}',
               ),
             if (collecte.prixVente != null)
               Text(
@@ -129,19 +130,6 @@ class _FumierScreenState extends State<FumierScreen> {
         ),
       ),
     );
-  }
-
-  String _getTypeLabel(String type) {
-    switch (type) {
-      case 'crottes':
-        return 'Crottes';
-      case 'urine':
-        return 'Urine';
-      case 'mixte':
-        return 'Mixte';
-      default:
-        return type;
-    }
   }
 
   Color _getTypeColor(String type) {
@@ -167,19 +155,6 @@ class _FumierScreenState extends State<FumierScreen> {
         return Icons.layers;
       default:
         return Icons.help;
-    }
-  }
-
-  String _getDestinationLabel(String destination) {
-    switch (destination) {
-      case 'vente':
-        return 'Vendu';
-      case 'compost':
-        return 'Compost';
-      case 'utilisation_personnelle':
-        return 'Utilisation personnelle';
-      default:
-        return destination;
     }
   }
 
@@ -353,8 +328,10 @@ class _FumierScreenState extends State<FumierScreen> {
                 final collecte = CollecteFumier(
                   dateCollecte: selectedDate,
                   quantite: quantite,
-                  type: selectedType,
-                  destination: selectedDestination,
+                  type: TypeFumier.fromString(selectedType),
+                  destination: selectedDestination != null
+                      ? DestinationFumier.fromString(selectedDestination!)
+                      : null,
                   prixVente: prixVente,
                   notes: notes,
                 );

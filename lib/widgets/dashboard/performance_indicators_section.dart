@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import '../../l10n/app_localizations.dart';
 import '../../services/kpi_service.dart';
 import '../../theme/app_theme.dart';
+import '../../utils/kpi_thresholds.dart';
 import '../../screens/finance/finance_screen.dart';
 import '../../screens/cheptel/cheptel_screen.dart';
 
@@ -83,6 +84,9 @@ class PerformanceIndicatorsSection extends StatelessWidget {
                       context,
                     ).dashPeseesMois(kpis.peseesCeMois),
                     color: AppTheme.success,
+                    statusOverride: KpiThresholds.gmqStatus(
+                      kpis.gmqMoyen,
+                    ), // ✅ PHASE 3
                     onTap: () {
                       Navigator.push(
                         context,
@@ -102,6 +106,9 @@ class PerformanceIndicatorsSection extends StatelessWidget {
                     subtitle: AppLocalizations.of(
                       context,
                     ).dashAccouplementsActifs(kpis.accouplementsActifs),
+                    statusOverride: KpiThresholds.reproductionStatus(
+                      kpis.tauxReproduction,
+                    ), // ✅ PHASE 3
                     color: AppTheme.accentPurple,
                     onTap: null, // Pas de navigation spécifique
                   ),
@@ -120,6 +127,9 @@ class PerformanceIndicatorsSection extends StatelessWidget {
                     color: kpis.beneficeMensuel >= 0
                         ? AppTheme.success
                         : AppTheme.error,
+                    statusOverride: KpiThresholds.beneficeStatus(
+                      kpis.beneficeMensuel,
+                    ), // ✅ PHASE 3
                     onTap: () {
                       Navigator.push(
                         context,
@@ -134,11 +144,7 @@ class PerformanceIndicatorsSection extends StatelessWidget {
             },
           ),
         ),
-
-        const SizedBox(height: 16),
-
-        // Barre de détails financiers
-        _buildFinancialDetails(context, euroFormat),
+        // Note: Détails financiers supprimés car déjà dans RoiPerformanceSection
       ],
     );
   }
@@ -151,6 +157,7 @@ class PerformanceIndicatorsSection extends StatelessWidget {
     required String value,
     required String subtitle,
     required Color color,
+    String? statusOverride, // ✅ PHASE 3: Statut personnalisé
     VoidCallback? onTap,
   }) {
     return GestureDetector(
@@ -176,15 +183,25 @@ class PerformanceIndicatorsSection extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            // Icône
-            Container(
-              height: 36,
-              width: 36,
-              decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Icon(icon, size: 20, color: color),
+            // Icône + Badge statut (✅ PHASE 3)
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Container(
+                  height: 36,
+                  width: 36,
+                  decoration: BoxDecoration(
+                    color: color.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Icon(icon, size: 20, color: color),
+                ),
+                if (statusOverride != null)
+                  KpiThresholds.buildStatusBadge(
+                    statusOverride,
+                    isDark: isDark,
+                  ),
+              ],
             ),
 
             // Valeur (responsive)
@@ -226,127 +243,6 @@ class PerformanceIndicatorsSection extends StatelessWidget {
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  /// Détails financiers en barre horizontale
-  Widget _buildFinancialDetails(BuildContext context, NumberFormat euroFormat) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: isDark
-              ? AppTheme.neutral900.withValues(alpha: 0.5)
-              : AppTheme.neutral50,
-          borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
-          border: Border.all(
-            color: isDark ? AppTheme.neutral800 : AppTheme.neutral200,
-            width: 1,
-          ),
-        ),
-        child: Row(
-          children: [
-            // Dépenses mensuelles
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.trending_down,
-                        size: 16,
-                        color: AppTheme.error600,
-                      ),
-                      const SizedBox(width: 4),
-                      Flexible(
-                        child: Text(
-                          AppLocalizations.of(context).dashDepenses,
-                          style: AppTheme.caption.copyWith(
-                            fontWeight: FontWeight.w600,
-                            color:
-                                (isDark
-                                        ? AppTheme.textLight
-                                        : AppTheme.textSecondary)
-                                    .withValues(alpha: 0.7),
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 4),
-                  FittedBox(
-                    fit: BoxFit.scaleDown,
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                      euroFormat.format(kpis.depensesMensuelles),
-                      style: AppTheme.bodyLarge.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: AppTheme.error600,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            // Séparateur vertical
-            Container(
-              height: 40,
-              width: 1,
-              color: isDark ? AppTheme.neutral700 : AppTheme.borderLight,
-            ),
-            const SizedBox(width: 16),
-
-            // Coût alimentation
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.restaurant,
-                        size: 16,
-                        color: AppTheme.warning600,
-                      ),
-                      const SizedBox(width: 4),
-                      Flexible(
-                        child: Text(
-                          AppLocalizations.of(context).dashAlimentation,
-                          style: AppTheme.caption.copyWith(
-                            fontWeight: FontWeight.w600,
-                            color:
-                                (isDark
-                                        ? AppTheme.textLight
-                                        : AppTheme.textSecondary)
-                                    .withValues(alpha: 0.7),
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 4),
-                  FittedBox(
-                    fit: BoxFit.scaleDown,
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                      euroFormat.format(kpis.coutAlimentationMensuel),
-                      style: AppTheme.bodyLarge.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: AppTheme.warning600,
-                      ),
-                    ),
                   ),
                 ],
               ),

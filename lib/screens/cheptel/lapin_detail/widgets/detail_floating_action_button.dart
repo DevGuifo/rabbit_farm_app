@@ -15,10 +15,10 @@ class DetailFloatingActionButton extends StatelessWidget {
       width: 64,
       height: 64,
       decoration: BoxDecoration(
-        color: AppTheme.primaryYellow,
+        color: AppTheme.accentGreen,
         shape: BoxShape.circle,
         border: Border.all(color: surfaceColor, width: 4),
-        boxShadow: AppTheme.fabShadow(AppTheme.primaryYellow),
+        boxShadow: AppTheme.fabShadow(AppTheme.accentGreen),
       ),
       child: Material(
         color: Colors.transparent,

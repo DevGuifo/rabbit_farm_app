@@ -1,8 +1,8 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-import '../models/anomalie_rituel.dart';
-import '../models/rituel.dart';
+import '../models/anomalie_tache.dart';
+import '../models/tache_quotidienne.dart';
 import '../providers/anomalie_provider.dart';
 import '../theme/app_theme.dart';
 import '../l10n/app_localizations.dart';
@@ -16,17 +16,17 @@ import '../l10n/app_localizations.dart';
 /// - Action suggérée automatique
 /// - Note libre optionnelle
 class AnomalieGuideeSheet extends StatefulWidget {
-  final int? rituelId;
-  final TypeRituel typeRituel;
-  final ActionRituel actionRituel;
-  final AnomalieRituel? anomalieInitiale;
+  final int? tacheId;
+  final TypeTacheQuotidienne typeTache;
+  final ActionTache action;
+  final AnomalieTache? anomalieInitiale;
   final VoidCallback? onAnomalieEnregistree;
 
   const AnomalieGuideeSheet({
     super.key,
-    this.rituelId,
-    required this.typeRituel,
-    required this.actionRituel,
+    this.tacheId,
+    required this.typeTache,
+    required this.action,
     this.anomalieInitiale,
     this.onAnomalieEnregistree,
   });
@@ -246,11 +246,11 @@ class _AnomalieGuideeSheetState extends State<AnomalieGuideeSheet> {
       child: Row(
         children: [
           _buildContexteChip(
-            widget.typeRituel == TypeRituel.matin ? '🌅' : '🌙',
-            'Rituel ${widget.typeRituel == TypeRituel.matin ? "matin" : "soir"}',
+            widget.typeTache == TypeTacheQuotidienne.matin ? '🌅' : '🌙',
+            'Rituel ${widget.typeTache == TypeTacheQuotidienne.matin ? "matin" : "soir"}',
           ),
           const SizedBox(width: 12),
-          _buildContexteChip('📋', widget.actionRituel.titre),
+          _buildContexteChip('📋', widget.action.titre),
           const SizedBox(width: 12),
           _buildContexteChip('🕐', heureStr),
         ],
@@ -679,9 +679,9 @@ class _AnomalieGuideeSheetState extends State<AnomalieGuideeSheet> {
         }
       } else {
         final anomalie = await provider.enregistrerAnomalie(
-          rituelId: widget.rituelId,
-          actionRituelId: widget.actionRituel.id,
-          actionRituelTitre: widget.actionRituel.titre,
+          tacheId: widget.tacheId,
+          actionRituelId: widget.action.id,
+          actionRituelTitre: widget.action.titre,
           typesSelectionnes: _selectedTypes,
           portee: _portee,
           noteLibre: noteLibre,
@@ -730,3 +730,4 @@ class _AnomalieGuideeSheetState extends State<AnomalieGuideeSheet> {
     }
   }
 }
+

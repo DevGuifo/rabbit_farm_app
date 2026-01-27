@@ -118,12 +118,10 @@ class _AjouterUtilisateurScreenState extends State<AjouterUtilisateurScreen> {
       backgroundColor: isDark
           ? AppTheme.backgroundDarkMode
           : AppTheme.backgroundLight,
-      appBar: UniformAppBar(
+      appBar: SimpleAppBar(
         title: widget.user != null
             ? 'Modifier l\'utilisateur'
             : 'Nouvel utilisateur',
-        icon: Icons.person_add_rounded,
-        iconColor: AppTheme.info,
         actions: [
           IconButton(
             icon: const Icon(Icons.save_rounded),
@@ -273,7 +271,9 @@ class _AjouterUtilisateurScreenState extends State<AjouterUtilisateurScreen> {
                 ),
               ),
               child: Text(
-                widget.user != null ? 'Modifier' : 'Créer',
+                widget.user != null
+                    ? AppLocalizations.of(context).btnModifier
+                    : AppLocalizations.of(context).creer,
                 style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,

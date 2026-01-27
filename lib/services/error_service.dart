@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
-import '../utils/logger.dart';
+import '../core/utils/logger.dart';
+import '../core/exceptions/exceptions.dart';
 import '../utils/snackbar_helper.dart';
 import '../utils/dialog_helper.dart';
-import '../constants/error_messages.dart';
+import '../core/constants/error_messages.dart';
 
-/// Types d'erreurs possibles dans l'application
+/// Types d'erreurs possibles dans l'application (pour compatibilité)
 enum ErrorType {
   database, // Erreurs de base de données
   network, // Erreurs réseau (pour future sync)
@@ -20,6 +21,20 @@ class ErrorService {
   static final ErrorService _instance = ErrorService._internal();
   factory ErrorService() => _instance;
   ErrorService._internal();
+
+  /// Afficher une erreur à l'utilisateur (méthode principale simplifiée)
+  /// 
+  /// [context] : Le contexte Flutter
+  /// [error] : L'exception ou l'erreur
+  /// [userMessage] : Message personnalisé (optionnel, détecté automatiquement si AppException)
+  static void showError(BuildContext context, dynamic error, {String? userMessage}) {
+    final errorService = ErrorService();
+    errorService.handleError(
+      error: error,
+      context: context,
+      userMessage: userMessage,
+    );
+  }
 
   /// Gérer une erreur et afficher un message à l'utilisateur
   /// 
@@ -38,6 +53,23 @@ class ErrorService {
     bool logError = true,
     StackTrace? stackTrace,
   }) async {
+    // Si c'est une AppException, utiliser son message directement
+    if (error is AppException) {
+      if (logError) {
+        logger.error(
+          '[${error.code}] ${error.message}',
+          error.details ?? error,
+          error.stackTrace ?? stackTrace,
+        );
+      }
+
+      final message = userMessage ?? error.message;
+      if (showToUser && context != null) {
+        _showErrorToUser(context, message, _mapExceptionToErrorType(error));
+      }
+      return;
+    }
+
     // Déterminer le type d'erreur si non fourni
     final type = errorType ?? _detectErrorType(error);
 
@@ -53,6 +85,16 @@ class ErrorService {
     if (showToUser && context != null) {
       _showErrorToUser(context, message, type);
     }
+  }
+
+  /// Mapper une AppException vers ErrorType (pour compatibilité)
+  ErrorType _mapExceptionToErrorType(AppException exception) {
+    if (exception is ValidationException) return ErrorType.validation;
+    if (exception is DatabaseException) return ErrorType.database;
+    if (exception is NetworkException) return ErrorType.network;
+    if (exception is PermissionException) return ErrorType.permission;
+    if (exception is NotFoundException) return ErrorType.unknown;
+    return ErrorType.unknown;
   }
 
   /// Gérer une erreur silencieusement (seulement logging)
@@ -71,6 +113,11 @@ class ErrorService {
 
   /// Détecter le type d'erreur à partir de l'exception
   ErrorType _detectErrorType(dynamic error) {
+    // Si c'est une AppException, utiliser le mapping
+    if (error is AppException) {
+      return _mapExceptionToErrorType(error);
+    }
+
     final errorString = error.toString().toLowerCase();
 
     if (errorString.contains('database') ||
@@ -92,9 +139,10 @@ class ErrorService {
       return ErrorType.validation;
     }
 
-    if (errorString.contains('file') ||
-        errorString.contains('permission') ||
-        errorString.contains('access denied')) {
+    if (errorString.contains('permission') ||
+        errorString.contains('access denied') ||
+        errorString.contains('camera') ||
+        errorString.contains('storage')) {
       return ErrorType.permission;
     }
 
@@ -109,6 +157,11 @@ class ErrorService {
 
   /// Générer un message utilisateur clair à partir de l'erreur
   String _generateUserMessage(dynamic error, ErrorType type) {
+    // Si c'est une AppException, utiliser son message
+    if (error is AppException) {
+      return error.message;
+    }
+
     switch (type) {
       case ErrorType.database:
         return ErrorMessages.databaseError;
@@ -161,7 +214,34 @@ class ErrorService {
     }
 
     // Pour les autres erreurs, utiliser un snackbar d'erreur
+    // Ne jamais afficher e.toString() directement - toujours utiliser un message friendly
     SnackbarHelper.showError(context, message);
+  }
+
+  /// Méthodes spécialisées pour chaque type d'erreur
+  static void showValidationError(BuildContext context, String message) {
+    SnackbarHelper.showValidationError(context, message);
+  }
+
+  static void showNetworkError(BuildContext context, [String? message]) {
+    SnackbarHelper.showError(
+      context,
+      message ?? ErrorMessages.networkError,
+    );
+  }
+
+  static void showDatabaseError(BuildContext context, [String? message]) {
+    SnackbarHelper.showError(
+      context,
+      message ?? ErrorMessages.databaseError,
+    );
+  }
+
+  static void showPermissionError(BuildContext context, [String? message]) {
+    SnackbarHelper.showError(
+      context,
+      message ?? ErrorMessages.permissionDenied,
+    );
   }
 
   /// Gérer une erreur avec un dialog (pour erreurs critiques)

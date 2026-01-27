@@ -1,10 +1,12 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../l10n/app_localizations.dart';
-import '../../providers/rituel_provider.dart';
+import '../../providers/tache_provider.dart';
 import '../../providers/anomalie_provider.dart';
 import '../../theme/app_theme.dart';
+import '../../theme/theme_variations.dart';
 import '../../services/database_helper.dart';
+import '../../screens/sante/sante_screen.dart';
 
 /// Section Discipline Opérationnelle du Dashboard
 ///
@@ -41,12 +43,12 @@ class _DisciplineSectionState extends State<DisciplineSection> {
 
   Future<void> _chargerDonnees() async {
     try {
-      final rituelProvider = context.read<RituelProvider>();
+      final tacheProvider = context.read<TacheProvider>();
       final anomalieProvider = context.read<AnomalieProvider>();
       final db = DatabaseHelper.instance;
 
       // Charger les statistiques
-      final statsRituels = await rituelProvider.getStatistiquesRituels(
+      final statsTaches = await tacheProvider.getStatistiquesRituels(
         jours: 7,
       );
       final joursConsec = await _calculerJoursConsecutifs(db);
@@ -55,7 +57,7 @@ class _DisciplineSectionState extends State<DisciplineSection> {
       if (mounted) {
         setState(() {
           _joursConsecutifs = joursConsec;
-          _pourcentageRituels = statsRituels['tauxCompletion'] ?? 0;
+          _pourcentageRituels = statsTaches['tauxCompletion'] ?? 0;
           _anomaliesOuvertes = anomalieProvider.nombreNonResolues;
           _lotsSousVeille = anomalieProvider.nombreCritiques;
           _derniereObservation = derniereObs;
@@ -72,21 +74,21 @@ class _DisciplineSectionState extends State<DisciplineSection> {
 
   Future<int> _calculerJoursConsecutifs(DatabaseHelper db) async {
     try {
-      final historique = await db.getHistoriqueRituels(limite: 30);
+      final historique = await db.getHistoriqueTaches(limite: 30);
       if (historique.isEmpty) return 0;
 
       int consecutifs = 0;
 
       // Grouper par date et vérifier si au moins un rituel est complet par jour
-      final Map<String, bool> joursAvecRituel = {};
+      final Map<String, bool> joursAvecTache = {};
 
-      for (final rituel in historique) {
+      for (final tache in historique) {
         final dateKey =
-            '${rituel.date.year}-${rituel.date.month}-${rituel.date.day}';
-        if (rituel.estComplet) {
-          joursAvecRituel[dateKey] = true;
+            '${tache.date.year}-${tache.date.month}-${tache.date.day}';
+        if (tache.estComplet) {
+          joursAvecTache[dateKey] = true;
         } else {
-          joursAvecRituel.putIfAbsent(dateKey, () => false);
+          joursAvecTache.putIfAbsent(dateKey, () => false);
         }
       }
 
@@ -96,7 +98,7 @@ class _DisciplineSectionState extends State<DisciplineSection> {
         final date = aujourdhui.subtract(Duration(days: i));
         final dateKey = '${date.year}-${date.month}-${date.day}';
 
-        if (joursAvecRituel[dateKey] == true) {
+        if (joursAvecTache[dateKey] == true) {
           consecutifs++;
         } else if (i == 0) {
           // Aujourd'hui pas encore fait, vérifier hier
@@ -114,7 +116,7 @@ class _DisciplineSectionState extends State<DisciplineSection> {
 
   Future<DateTime?> _getDerniereObservation(DatabaseHelper db) async {
     try {
-      final historique = await db.getHistoriqueRituels(limite: 1);
+      final historique = await db.getHistoriqueTaches(limite: 1);
       if (historique.isNotEmpty && historique.first.dateCompletion != null) {
         return historique.first.dateCompletion;
       }
@@ -165,6 +167,19 @@ class _DisciplineSectionState extends State<DisciplineSection> {
                       ? AppTheme.textLight
                       : AppTheme.textPrimary,
                 ),
+              ),
+              const Spacer(),
+              // Raccourci rapide "Ajouter Pesée"
+              IconButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const SanteScreen()),
+                  );
+                },
+                icon: Icon(ThemeVariations.sante.icon),
+                tooltip: AppLocalizations.of(context).dashActionAjouterPesee,
+                color: ThemeVariations.sante.accentColor,
               ),
             ],
           ),
@@ -571,3 +586,4 @@ class _ConseilPedagogique {
     required this.color,
   });
 }
+

@@ -1,8 +1,7 @@
 import 'package:flutter/foundation.dart';
-import '../services/supabase_auth_service.dart';
+import '../services/auth_service.dart';
 import '../services/secure_storage_service.dart';
 import '../services/local_auth_service.dart';
-import 'sync_provider.dart';
 import '../utils/logger.dart';
 
 /// État d'authentification
@@ -26,11 +25,11 @@ enum AuthState {
   error,
 }
 
-/// Provider pour gérer l'authentification
-/// 
+/// Provider pour gérer l'authentification (offline-first)
+///
 /// Gère :
 /// - L'état d'authentification
-/// - L'inscription/connexion Supabase
+/// - L'inscription/connexion locale
 /// - La vérification du PIN (offline)
 /// - La session utilisateur
 class AuthProvider extends ChangeNotifier {
@@ -38,7 +37,7 @@ class AuthProvider extends ChangeNotifier {
   factory AuthProvider() => _instance;
   AuthProvider._internal();
 
-  final SupabaseAuthService _authService = SupabaseAuthService();
+  final AuthService _authService = AuthService();
   final SecureStorageService _secureStorage = SecureStorageService();
   final LocalAuthService _localAuthService = LocalAuthService();
 
@@ -51,60 +50,42 @@ class AuthProvider extends ChangeNotifier {
   AuthState get state => _state;
   String? get errorMessage => _errorMessage;
   String? get currentUserId => _currentUserId;
-  bool get isAuthenticated => _state == AuthState.authenticatedWithPin ||
+  bool get isAuthenticated =>
+      _state == AuthState.authenticatedWithPin ||
       _state == AuthState.authenticatedNoPin;
   bool get hasPin => _state == AuthState.authenticatedWithPin;
 
   // ============= INITIALISATION =============
 
   /// Initialiser le provider
-  /// 
+  ///
   /// Vérifie si une session existe et si un PIN est configuré
-  /// Fonctionne en mode offline si Supabase n'est pas initialisé
   Future<void> initialize() async {
     try {
       _setState(AuthState.initializing);
 
-      // Vérifier si un userId est stocké localement (pour mode offline)
+      // Initialiser le service d'authentification
+      await _authService.initialize();
+
+      // Vérifier si un userId est stocké localement
       final storedUserId = await _secureStorage.getUserId();
       final isPinSet = await _secureStorage.isPinSet();
 
-      // Vérifier si une session Supabase existe (seulement si Supabase est initialisé)
-      bool isAuthenticated = false;
-      try {
-        isAuthenticated = _authService.isAuthenticated;
-        if (isAuthenticated) {
-          _currentUserId = _authService.currentUserId ?? storedUserId;
-          logger.info('✅ Session Supabase trouvée: $_currentUserId');
-        }
-      } catch (e) {
-        // Supabase non initialisé (mode offline)
-        logger.info('ℹ️ Supabase non initialisé (mode offline)');
-        if (storedUserId != null) {
-          _currentUserId = storedUserId;
-        }
-      }
+      if (storedUserId != null) {
+        _currentUserId = storedUserId;
+        logger.info('✅ Utilisateur trouvé: $_currentUserId');
 
-      // Déterminer l'état selon la session et le PIN
-      if (isAuthenticated) {
-        // Session Supabase active
         if (isPinSet) {
           _setState(AuthState.authenticatedWithPin);
+          logger.info('ℹ️ PIN configuré - déverrouillage requis');
         } else {
           _setState(AuthState.authenticatedNoPin);
         }
-      } else if (storedUserId != null && isPinSet) {
-        // Pas de session Supabase mais PIN disponible (mode offline)
-        // Permettre l'accès via PIN même sans connexion
-        _setState(AuthState.authenticatedWithPin);
-        logger.info('ℹ️ Mode offline - PIN disponible pour déverrouillage');
       } else {
-        // Aucune session, aucun PIN
         _setState(AuthState.unauthenticated);
       }
     } catch (e) {
       logger.error('❌ Erreur lors de l\'initialisation AuthProvider: $e');
-      // En cas d'erreur, permettre quand même le démarrage
       _setState(AuthState.unauthenticated);
     }
   }
@@ -112,44 +93,22 @@ class AuthProvider extends ChangeNotifier {
   // ============= INSCRIPTION =============
 
   /// Inscrire un nouvel utilisateur
-  /// 
+  ///
   /// [email] : Email de l'utilisateur
   /// [password] : Mot de passe
-  /// 
+  ///
   /// Retourne true si l'inscription réussit
-  /// 
-  /// Si Supabase n'est pas disponible, crée un compte local (mode offline)
-  Future<bool> signUp({
-    required String email,
-    required String password,
-  }) async {
+  Future<bool> signUp({required String email, required String password}) async {
     try {
       _setState(AuthState.authenticating);
       _clearError();
 
       logger.info('📝 Inscription: $email');
 
-      String userId;
-
-      // Essayer d'abord avec Supabase si disponible
-      if (_authService.isAvailable) {
-        try {
-          userId = await _authService.signUp(
-            email: email,
-            password: password,
-          );
-          logger.info('✅ Inscription Supabase réussie: $userId');
-        } catch (e) {
-          // Si Supabase échoue, créer un compte local
-          logger.warning('⚠️ Inscription Supabase échouée, création compte local: $e');
-          userId = _generateLocalUserId(email);
-          logger.info('✅ Compte local créé: $userId');
-        }
-      } else {
-        // Supabase non disponible, créer un compte local
-        userId = _generateLocalUserId(email);
-        logger.info('✅ Compte local créé (mode offline): $userId');
-      }
+      final userId = await _authService.signUp(
+        email: email,
+        password: password,
+      );
 
       _currentUserId = userId;
       await _secureStorage.setUserId(userId);
@@ -167,70 +126,25 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  /// Générer un ID utilisateur local (pour mode offline)
-  String _generateLocalUserId(String email) {
-    final timestamp = DateTime.now().millisecondsSinceEpoch;
-    final random = (timestamp % 1000000).toString().padLeft(6, '0');
-    // Format: local_<timestamp>_<random>_<email_hash>
-    final emailHash = email.hashCode.abs().toString();
-    return 'local_${timestamp}_${random}_$emailHash';
-  }
-
   // ============= CONNEXION =============
 
   /// Connecter un utilisateur existant
-  /// 
+  ///
   /// [email] : Email de l'utilisateur
   /// [password] : Mot de passe
-  /// 
+  ///
   /// Retourne true si la connexion réussit
-  /// 
-  /// Si Supabase n'est pas disponible, vérifie si un compte local existe
-  Future<bool> signIn({
-    required String email,
-    required String password,
-  }) async {
+  Future<bool> signIn({required String email, required String password}) async {
     try {
       _setState(AuthState.authenticating);
       _clearError();
 
       logger.info('🔐 Connexion: $email');
 
-      String userId;
-
-      // Essayer d'abord avec Supabase si disponible
-      if (_authService.isAvailable) {
-        try {
-          userId = await _authService.signIn(
-            email: email,
-            password: password,
-          );
-          logger.info('✅ Connexion Supabase réussie: $userId');
-        } catch (e) {
-          // Si Supabase échoue, vérifier si un compte local existe
-          logger.warning('⚠️ Connexion Supabase échouée, vérification compte local: $e');
-          final storedUserId = await _secureStorage.getUserId();
-          if (storedUserId != null && storedUserId.startsWith('local_')) {
-            // Compte local trouvé, vérifier que l'email correspond
-            userId = storedUserId;
-            logger.info('✅ Connexion locale réussie: $userId');
-          } else {
-            // Pas de compte local, rethrow l'erreur Supabase
-            rethrow;
-          }
-        }
-      } else {
-        // Supabase non disponible, vérifier si un compte local existe
-        final storedUserId = await _secureStorage.getUserId();
-        if (storedUserId != null && storedUserId.startsWith('local_')) {
-          userId = storedUserId;
-          logger.info('✅ Connexion locale (mode offline): $userId');
-        } else {
-          throw Exception(
-            'Aucun compte trouvé. Veuillez créer un compte d\'abord.',
-          );
-        }
-      }
+      final userId = await _authService.signIn(
+        email: email,
+        password: password,
+      );
 
       _currentUserId = userId;
       await _secureStorage.setUserId(userId);
@@ -263,14 +177,6 @@ class AuthProvider extends ChangeNotifier {
 
       logger.info('🚪 Déconnexion');
 
-      // Arrêter la synchronisation automatique
-      try {
-        final syncProvider = SyncProvider();
-        syncProvider.stopAutoSync();
-      } catch (e) {
-        logger.debug('⚠️ Impossible d\'arrêter la synchronisation: $e');
-      }
-
       await _authService.signOut();
       _currentUserId = null;
 
@@ -289,9 +195,9 @@ class AuthProvider extends ChangeNotifier {
   // ============= PIN (OFFLINE AUTH) =============
 
   /// Configurer un PIN pour l'authentification offline
-  /// 
+  ///
   /// [pin] : PIN à configurer (4-6 chiffres)
-  /// 
+  ///
   /// Retourne true si la configuration réussit
   Future<bool> setupPin(String pin) async {
     try {
@@ -321,9 +227,9 @@ class AuthProvider extends ChangeNotifier {
   }
 
   /// Valider un PIN pour déverrouiller l'application (offline)
-  /// 
+  ///
   /// [pin] : PIN à valider
-  /// 
+  ///
   /// Retourne true si le PIN est valide
   Future<bool> validatePin(String pin) async {
     try {
@@ -385,4 +291,3 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
   }
 }
-

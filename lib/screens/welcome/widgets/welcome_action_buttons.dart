@@ -58,6 +58,7 @@ class WelcomeActionButtons extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 12),
+
         // Lien "Already have an account? Log in"
         TextButton(
           onPressed: onLogIn,
@@ -72,7 +73,7 @@ class WelcomeActionButtons extends StatelessWidget {
                 fontWeight: FontWeight.w600,
                 color: isDark
                     ? AppTheme.stitchTextSecDark
-                    : AppTheme.stitchTextSecLight,
+                    : AppTheme.textSecondary,
               ),
               children: [
                 TextSpan(text: l10n.welcomeAlreadyAccount),
@@ -84,7 +85,7 @@ class WelcomeActionButtons extends StatelessWidget {
                       fontWeight: FontWeight.w600,
                       color: isDark
                           ? AppTheme.stitchTextMainDark
-                          : AppTheme.stitchTextMainLight,
+                          : AppTheme.textPrimary,
                       decoration: TextDecoration.underline,
                       decorationThickness: 2,
                     ),

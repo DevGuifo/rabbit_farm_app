@@ -48,8 +48,8 @@ class _MateriauSelectorState extends State<MateriauSelector> {
     final surfaceColor = isDark ? AppTheme.backgroundDark : AppTheme.cardLight;
     final textPrimary = isDark ? AppTheme.cardLight : AppTheme.textPrimary;
     final borderColor = isDark
-        ? AppTheme.stitchSurfaceDarkCard
-        : AppTheme.stitchSurfaceLightAlt;
+        ? AppTheme.surfaceDarkElevated
+        : AppTheme.surfaceLight;
 
     return Container(
       decoration: BoxDecoration(
@@ -127,7 +127,7 @@ class _MateriauSelectorState extends State<MateriauSelector> {
     final isSelected = _selectedId == id;
     final textPrimary = isDark ? AppTheme.cardLight : AppTheme.textPrimary;
     final textSecondary = isDark
-        ? AppTheme.stitchGreenLight
+        ? AppTheme.success100
         : AppTheme.textSecondary;
 
     return InkWell(
@@ -143,7 +143,7 @@ class _MateriauSelectorState extends State<MateriauSelector> {
           border: Border.all(
             color: isSelected
                 ? AppTheme.primaryNeonGreen
-                : (isDark ? AppTheme.stitchSurfaceDarkCard : AppTheme.stitchSurfaceLightAlt),
+                : (isDark ? AppTheme.surfaceDarkElevated : AppTheme.surfaceLight),
             width: isSelected ? 2 : 1,
           ),
         ),

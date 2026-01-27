@@ -23,8 +23,8 @@ class LocalisationEmptyState extends StatelessWidget {
             height: 128,
             decoration: BoxDecoration(
               color: isDark
-                  ? AppTheme.stitchSurfaceDarkAlt
-                  : AppTheme.stitchBackgroundLight,
+                  ? AppTheme.surfaceDark
+                  : AppTheme.backgroundLight,
               shape: BoxShape.circle,
             ),
             child: Icon(
@@ -38,8 +38,8 @@ class LocalisationEmptyState extends StatelessWidget {
             l10n.noBuildingsYet,
             style: AppTheme.titleLarge.copyWith(
               color: isDark
-                  ? AppTheme.stitchTextLight
-                  : AppTheme.stitchTextMainLight,
+                  ? AppTheme.textOnPrimary
+                  : AppTheme.textPrimary,
             ),
           ),
           const SizedBox(height: 8),
@@ -47,8 +47,8 @@ class LocalisationEmptyState extends StatelessWidget {
             l10n.startByAddingBuilding,
             style: AppTheme.bodyMedium.copyWith(
               color: isDark
-                  ? AppTheme.stitchGreen
-                  : AppTheme.stitchTextSecLight,
+                  ? AppTheme.accentGreen
+                  : AppTheme.textSecondary,
             ),
           ),
           const SizedBox(height: 24),

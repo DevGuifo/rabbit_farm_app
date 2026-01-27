@@ -314,8 +314,8 @@ class JournalService {
   /// Journaliser un rituel
   Future<int> rituel({
     required TypeAction action,
-    required int rituelId,
-    required String typeRituel,
+    required int tacheId,
+    required String typeTacheQuotidienne,
     int? actionsCompletees,
     int? totalActions,
     Map<String, dynamic> contexte = const {},
@@ -324,14 +324,14 @@ class JournalService {
     final progression = actionsCompletees != null && totalActions != null
         ? ' ($actionsCompletees/$totalActions)'
         : '';
-    final nom = 'Rituel $typeRituel$progression';
+    final nom = 'Vérification $typeTacheQuotidienne$progression';
     return enregistrer(
-      typeEntite: TypeEntite.rituel,
+      typeEntite: TypeEntite.verification,
       typeAction: action,
-      entiteId: rituelId,
+      entiteId: tacheId,
       entiteNom: nom,
       contexte: {
-        'type': typeRituel,
+        'type': typeTacheQuotidienne,
         if (actionsCompletees != null) 'completees': actionsCompletees,
         if (totalActions != null) 'total': totalActions,
         ...contexte,

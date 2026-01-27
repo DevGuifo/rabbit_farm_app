@@ -3,12 +3,14 @@ import 'package:provider/provider.dart';
 import 'package:rabbit_farm_app/l10n/app_localizations.dart';
 import '../../models/accouplement.dart';
 import '../../models/lapin.dart';
+import '../../models/enums/sexe.dart';
+import '../../models/enums/statut_accouplement.dart';
 import '../../providers/lapin_provider.dart';
 import '../../providers/reproduction_provider.dart';
 import '../../utils/snackbar_helper.dart';
 import 'package:intl/intl.dart';
 import 'package:rabbit_farm_app/theme/app_theme.dart';
-import '../../widgets/uniform_app_bar.dart';
+import '../../widgets/common/common_widgets.dart';
 
 /// Écran pour modifier un accouplement existant
 class EditAccouplementScreen extends StatefulWidget {
@@ -99,7 +101,7 @@ class _EditAccouplementScreenState extends State<EditAccouplementScreen> {
   /// Sélectionner un mâle reproducteur
   Future<void> _selectionnerMale(BuildContext context) async {
     final lapinProvider = Provider.of<LapinProvider>(context, listen: false);
-    final males = lapinProvider.lapins.where((l) => l.sexe == 'Mâle').toList();
+    final males = lapinProvider.lapins.where((l) => l.sexe == Sexe.male).toList();
 
     if (males.isEmpty) {
       if (context.mounted) {
@@ -114,27 +116,11 @@ class _EditAccouplementScreenState extends State<EditAccouplementScreen> {
       return;
     }
 
-    final Lapin? selected = await showDialog<Lapin>(
+    final Lapin? selected = await LapinSelectorDialog.showMaleSelector<Lapin>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text(AppLocalizations.of(context).reproSelectionnerMale),
-        content: SizedBox(
-          width: double.maxFinite,
-          child: ListView.builder(
-            shrinkWrap: true,
-            itemCount: males.length,
-            itemBuilder: (context, index) {
-              final male = males[index];
-              return ListTile(
-                leading: const CircleAvatar(child: Icon(Icons.male)),
-                title: Text(male.nom),
-                subtitle: Text('${male.race} - ${male.ageFormate}'),
-                onTap: () => Navigator.of(context).pop(male),
-              );
-            },
-          ),
-        ),
-      ),
+      males: males,
+      getName: (lapin) => lapin.nom,
+      getSubtitle: (lapin) => '${lapin.race} - ${lapin.ageFormate}',
     );
 
     if (!mounted) return;
@@ -149,7 +135,7 @@ class _EditAccouplementScreenState extends State<EditAccouplementScreen> {
   Future<void> _selectionnerFemelle(BuildContext context) async {
     final lapinProvider = Provider.of<LapinProvider>(context, listen: false);
     final femelles = lapinProvider.lapins
-        .where((l) => l.sexe == 'Femelle')
+        .where((l) => l.sexe == Sexe.femelle)
         .toList();
 
     if (femelles.isEmpty) {
@@ -165,28 +151,13 @@ class _EditAccouplementScreenState extends State<EditAccouplementScreen> {
       return;
     }
 
-    final Lapin? selected = await showDialog<Lapin>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(AppLocalizations.of(context).reproSelectionnerFemelle),
-        content: SizedBox(
-          width: double.maxFinite,
-          child: ListView.builder(
-            shrinkWrap: true,
-            itemCount: femelles.length,
-            itemBuilder: (context, index) {
-              final femelle = femelles[index];
-              return ListTile(
-                leading: const CircleAvatar(child: Icon(Icons.female)),
-                title: Text(femelle.nom),
-                subtitle: Text('${femelle.race} - ${femelle.ageFormate}'),
-                onTap: () => Navigator.of(context).pop(femelle),
-              );
-            },
-          ),
-        ),
-      ),
-    );
+    final Lapin? selected =
+        await LapinSelectorDialog.showFemelleSelector<Lapin>(
+          context: context,
+          femelles: femelles,
+          getName: (lapin) => lapin.nom,
+          getSubtitle: (lapin) => '${lapin.race} - ${lapin.ageFormate}',
+        );
 
     if (!mounted) return;
     if (selected != null) {
@@ -219,7 +190,7 @@ class _EditAccouplementScreenState extends State<EditAccouplementScreen> {
     }
 
     // Ne pas permettre la modification si l'accouplement est terminé
-    if (widget.accouplement.statut == 'termine') {
+    if (widget.accouplement.statut == StatutAccouplement.termine) {
       SnackbarHelper.showWarning(
         context,
         AppLocalizations.of(context).reproImpossibleModifier,
@@ -251,7 +222,10 @@ class _EditAccouplementScreenState extends State<EditAccouplementScreen> {
       }
     } catch (e) {
       if (mounted) {
-        SnackbarHelper.showError(context, 'Erreur : $e');
+        SnackbarHelper.showError(
+          context,
+          AppLocalizations.of(context).msgErreurOperationEchouee,
+        );
       }
     }
   }
@@ -262,10 +236,8 @@ class _EditAccouplementScreenState extends State<EditAccouplementScreen> {
 
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
-      appBar: UniformAppBar(
+      appBar: SimpleAppBar(
         title: AppLocalizations.of(context).reproModifierAccouplement,
-        icon: Icons.favorite_rounded,
-        iconColor: AppTheme.accentPink,
       ),
       body: Form(
         key: _formKey,
@@ -273,7 +245,7 @@ class _EditAccouplementScreenState extends State<EditAccouplementScreen> {
           padding: const EdgeInsets.all(16),
           children: [
             // Avertissement si terminé
-            if (widget.accouplement.statut == 'termine')
+            if (widget.accouplement.statut == StatutAccouplement.termine)
               Card(
                 color: AppTheme.warning.withValues(alpha: 0.2),
                 child: Padding(
@@ -294,7 +266,7 @@ class _EditAccouplementScreenState extends State<EditAccouplementScreen> {
                   ),
                 ),
               ),
-            if (widget.accouplement.statut == 'termine')
+            if (widget.accouplement.statut == StatutAccouplement.termine)
               const SizedBox(height: 16),
 
             // Sélection du mâle
@@ -317,7 +289,7 @@ class _EditAccouplementScreenState extends State<EditAccouplementScreen> {
                         AppLocalizations.of(context).reproAppuyezSelectionner,
                       ),
                 trailing: const Icon(Icons.chevron_right),
-                onTap: widget.accouplement.statut != 'termine'
+                onTap: widget.accouplement.statut != StatutAccouplement.termine
                     ? () => _selectionnerMale(context)
                     : null,
               ),
@@ -344,7 +316,7 @@ class _EditAccouplementScreenState extends State<EditAccouplementScreen> {
                         AppLocalizations.of(context).reproAppuyezSelectionner,
                       ),
                 trailing: const Icon(Icons.chevron_right),
-                onTap: widget.accouplement.statut != 'termine'
+                onTap: widget.accouplement.statut != StatutAccouplement.termine
                     ? () => _selectionnerFemelle(context)
                     : null,
               ),
@@ -358,7 +330,7 @@ class _EditAccouplementScreenState extends State<EditAccouplementScreen> {
                 title: Text(AppLocalizations.of(context).reproDateAccouplement),
                 subtitle: Text(dateFormat.format(_dateAccouplement)),
                 trailing: const Icon(Icons.edit),
-                onTap: widget.accouplement.statut != 'termine'
+                onTap: widget.accouplement.statut != StatutAccouplement.termine
                     ? () => _selectionnerDate(context)
                     : null,
               ),
@@ -432,12 +404,12 @@ class _EditAccouplementScreenState extends State<EditAccouplementScreen> {
                 prefixIcon: Icons.notes,
               ),
               maxLines: 3,
-              enabled: widget.accouplement.statut != 'termine',
+              enabled: widget.accouplement.statut != StatutAccouplement.termine,
             ),
             const SizedBox(height: 24),
 
             // Boutons d'action
-            if (widget.accouplement.statut != 'termine')
+            if (widget.accouplement.statut != StatutAccouplement.termine)
               Row(
                 children: [
                   Expanded(

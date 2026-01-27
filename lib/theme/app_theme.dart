@@ -28,10 +28,16 @@ class AppTheme {
   ); // Accent (plus sobre)
 
   // SECONDAIRES - Accent professionnel
-  static const Color primaryYellow = Color(
-    0xFF43A047,
-  ); // Remplacé par vert accent
-  static const Color primaryYellowDark = Color(0xFF388E3C);
+  static const Color accentGreen = Color(
+    0xFF2E7D32,
+  ); // Vert accent foncé (WCAG AA compliant)
+  static const Color accentGreenDark = Color(0xFF1B5E20);
+
+  // ALIAS DEPRECATED - Migration en cours
+  @Deprecated('Use accentGreen instead')
+  static const Color primaryYellow = accentGreen;
+  @Deprecated('Use accentGreenDark instead')
+  static const Color primaryYellowDark = accentGreenDark;
 
   // TEXTES
   static const Color textPrimary = Color(0xFF1A1A1A); // Noir profond lisible
@@ -167,19 +173,27 @@ class AppTheme {
   static const Color neutral900 = Color(0xFF212121);
 
   // ════════════════════════════════════════════════════════════════════════════
-  // 🔄 ALIAS DE COMPATIBILITÉ (LEGACY)
+  // 🔄 ALIAS DE COMPATIBILITÉ (LEGACY) - À MIGRER PROGRESSIVEMENT
   // ════════════════════════════════════════════════════════════════════════════
 
+  @Deprecated('Use backgroundLight instead')
   static const Color stitchBackgroundLight = backgroundLight;
+  @Deprecated('Use backgroundDark instead')
   static const Color stitchBackgroundDark = backgroundDark;
   static const Color backgroundDarkMode = backgroundDark;
+  @Deprecated('Use surfaceWhite instead')
   static const Color stitchSurfaceLight = surfaceWhite;
+  @Deprecated('Use surfaceDark instead')
   static const Color stitchSurfaceDark = surfaceDark;
+  @Deprecated('Use textPrimary instead')
   static const Color stitchTextMainLight = textPrimary;
   static const Color stitchTextMainDark = Color(0xFFE8E8E8);
+  @Deprecated('Use textSecondary instead')
   static const Color stitchTextSecLight = textSecondary;
   static const Color stitchTextSecDark = Color(0xFFB0B0B0);
+  @Deprecated('Use borderLight instead')
   static const Color stitchBorderLight = borderLight;
+  @Deprecated('Use borderDark instead')
   static const Color stitchBorderDark = borderDark;
 
   static const Color bgLight = backgroundLight;
@@ -204,31 +218,37 @@ class AppTheme {
   static const Color outlineDark = borderDark;
 
   // ════════════════════════════════════════════════════════════════════════════
-  // 🎨 COULEURS THÈME STITCHUI (Compatibilité)
+  // 🎨 COULEURS THÈME STITCHUI (Compatibilité) - DEPRECATED
   // ════════════════════════════════════════════════════════════════════════════
 
   // Verts stitchUI
+  @Deprecated('Use accentGreen or primaryGreenLight instead')
   static const Color stitchGreen = Color(0xFF8BA88E); // Vert menthe doux
+  @Deprecated('Use success100 instead')
   static const Color stitchGreenLight = Color(0xFFB4C4B7); // Vert très clair
+  @Deprecated('Use primaryGreen instead')
   static const Color stitchGreenAccent = Color(0xFF618965); // Vert accent
+  @Deprecated('Use primaryGreenDark instead')
   static const Color stitchGreenMuted = Color(0xFF4a704e); // Vert sourd
+  @Deprecated('Use success400 instead')
   static const Color stitchGreenVivid = Color(0xFF84cc16); // Lime vif
 
   // Surfaces stitchUI
-  static const Color stitchSurfaceDarkAlt = Color(
-    0xFF1A2C1E,
-  ); // Surface dark alt
+  @Deprecated('Use surfaceDark instead')
+  static const Color stitchSurfaceDarkAlt = Color(0xFF1A2C1E); // Surface dark alt
+  @Deprecated('Use surfaceDarkElevated instead')
   static const Color stitchSurfaceDarkCard = Color(0xFF2A422E); // Carte dark
-  static const Color stitchSurfaceDarkElevated = Color(
-    0xFF2a4e2d,
-  ); // Elevated dark
-  static const Color stitchSurfaceLightAlt = Color(
-    0xFFDBE6DC,
-  ); // Surface light alt
+  @Deprecated('Use surfaceDarkElevated instead')
+  static const Color stitchSurfaceDarkElevated = Color(0xFF2a4e2d); // Elevated dark
+  @Deprecated('Use surfaceLight instead')
+  static const Color stitchSurfaceLightAlt = Color(0xFFDBE6DC); // Surface light alt
+  @Deprecated('Use surfaceLight instead')
   static const Color stitchSurfaceLightCard = Color(0xFFdbe6dc); // Carte light
 
   // Textes stitchUI
+  @Deprecated('Use textOnPrimary instead')
   static const Color stitchTextLight = Color(0xFFE0E6E0); // Texte clair
+  @Deprecated('Use textPrimary instead')
   static const Color stitchTextDark = Color(0xFF111812); // Texte sombre
   static const Color textPrimary80 = Color(0xCC1A1A1A); // 80% opacity
 

@@ -2,11 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/medicament.dart';
+import '../../models/enums/medicament_enums.dart';
 import '../../providers/medicament_provider.dart';
 import 'ajouter_medicament_screen.dart';
 import 'package:rabbit_farm_app/theme/app_theme.dart';
+import '../../widgets/common/common_widgets.dart';
 import '../alertes/alertes_screen.dart';
 import '../parametres/parametres_screen.dart';
+import '../../core/constants/error_messages.dart';
 
 /// Écran Pharmacie - Gestion intelligente des médicaments
 /// Connexion avec Treatments & Care pour suivre les stocks
@@ -51,11 +54,13 @@ class _PharmacieScreenState extends State<PharmacieScreen> {
       backgroundColor: isDark
           ? AppTheme.backgroundDarkMode
           : AppTheme.backgroundLight,
-      body: Column(
-        children: [
-          _buildHeader(isDark),
-          Expanded(
-            child: SingleChildScrollView(
+      body: CustomScrollView(
+        slivers: [
+          // Header fixe
+          SliverToBoxAdapter(child: _buildHeader(isDark)),
+          // Contenu scrollable
+          SliverToBoxAdapter(
+            child: Padding(
               padding: const EdgeInsets.only(bottom: 100),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -500,7 +505,7 @@ class _PharmacieScreenState extends State<PharmacieScreen> {
                     m.nom.toLowerCase().contains(
                       _searchController.text.toLowerCase(),
                     ) ||
-                    m.type.toLowerCase().contains(
+                    m.type.label.toLowerCase().contains(
                       _searchController.text.toLowerCase(),
                     ),
               )
@@ -512,14 +517,14 @@ class _PharmacieScreenState extends State<PharmacieScreen> {
           medicaments = medicaments.where((m) => m.quantiteStock < 10).toList();
         } else if (_selectedFilter == 'vaccines') {
           medicaments = medicaments
-              .where((m) => m.type.toLowerCase().contains('vaccin'))
+              .where((m) => m.type == TypeMedicament.vaccin)
               .toList();
         } else if (_selectedFilter == 'treatments') {
           medicaments = medicaments
               .where(
                 (m) =>
-                    m.type.toLowerCase().contains('traitement') ||
-                    m.type.toLowerCase().contains('antibio'),
+                    m.type == TypeMedicament.antibiotique ||
+                    m.type == TypeMedicament.antiparasitaire,
               )
               .toList();
         }
@@ -610,7 +615,7 @@ class _PharmacieScreenState extends State<PharmacieScreen> {
                 borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
               ),
               child: Icon(
-                medicament.type.toLowerCase().contains('vaccin')
+                medicament.type == TypeMedicament.vaccin
                     ? Icons.vaccines
                     : Icons.medication_liquid,
                 color: AppTheme.info,
@@ -628,7 +633,7 @@ class _PharmacieScreenState extends State<PharmacieScreen> {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    medicament.type,
+                    medicament.type.label,
                     style: AppTheme.bodySmall.copyWith(color: textSecondary),
                   ),
                   const SizedBox(height: AppTheme.spacing8),
@@ -756,26 +761,14 @@ class _PharmacieScreenState extends State<PharmacieScreen> {
   }
 
   Future<void> _confirmerSuppression(Medicament medicament) async {
-    final confirmed = await showDialog<bool>(
+    final l10n = AppLocalizations.of(context);
+    final confirmed = await ConfirmDialog.show(
       context: context,
-      builder: (context) {
-        final l10n = AppLocalizations.of(context);
-        return AlertDialog(
-          title: Text(l10n.confirmerSuppression),
-          content: Text('${l10n.actionSupprimer} "${medicament.nom}" ?'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context, false),
-              child: Text(l10n.actionAnnuler),
-            ),
-            TextButton(
-              onPressed: () => Navigator.pop(context, true),
-              style: TextButton.styleFrom(foregroundColor: AppTheme.error),
-              child: Text(l10n.actionSupprimer),
-            ),
-          ],
-        );
-      },
+      title: l10n.confirmerSuppression,
+      message: '${l10n.actionSupprimer} "${medicament.nom}" ?',
+      confirmText: l10n.actionSupprimer,
+      cancelText: l10n.actionAnnuler,
+      isDestructive: true,
     );
 
     if (confirmed == true) {
@@ -799,9 +792,7 @@ class _PharmacieScreenState extends State<PharmacieScreen> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(
-                AppLocalizations.of(context).msgErreurGenerique(e.toString()),
-              ),
+              content: Text(ErrorMessages.genericError),
               backgroundColor: AppTheme.error,
             ),
           );
@@ -810,9 +801,9 @@ class _PharmacieScreenState extends State<PharmacieScreen> {
     }
   }
 
-  // FAB
+  // FAB standardisé
   Widget _buildFAB() {
-    return FloatingActionButton.extended(
+    return UnifiedFAB.extended(
       onPressed: () {
         Navigator.push(
           context,
@@ -822,13 +813,9 @@ class _PharmacieScreenState extends State<PharmacieScreen> {
           _chargerDonnees();
         });
       },
-      backgroundColor: AppTheme.info,
-      elevation: 8,
-      icon: Icon(Icons.add, color: AppTheme.cardLight, size: 26),
-      label: Text(
-        AppLocalizations.of(context).ajouter,
-        style: AppTheme.titleSmall.copyWith(color: AppTheme.cardLight),
-      ),
+      icon: Icons.add,
+      label: AppLocalizations.of(context).ajouter,
+      tooltip: AppLocalizations.of(context).ajouter,
     );
   }
 }

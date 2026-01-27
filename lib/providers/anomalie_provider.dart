@@ -1,5 +1,5 @@
 import 'package:flutter/foundation.dart';
-import '../models/anomalie_rituel.dart';
+import '../models/anomalie_tache.dart';
 import '../services/database_helper.dart';
 import '../utils/logger.dart';
 
@@ -13,16 +13,16 @@ import '../utils/logger.dart';
 class AnomalieProvider with ChangeNotifier {
   final DatabaseHelper _db = DatabaseHelper.instance;
 
-  List<AnomalieRituel> _anomaliesAujourdhui = [];
-  List<AnomalieRituel> _anomaliesNonResolues = [];
-  List<AnomalieRituel> _anomaliesCritiques = [];
+  List<AnomalieTache> _anomaliesAujourdhui = [];
+  List<AnomalieTache> _anomaliesNonResolues = [];
+  List<AnomalieTache> _anomaliesCritiques = [];
   StatsAnomalies? _stats;
   bool _isLoading = false;
 
   // Getters
-  List<AnomalieRituel> get anomaliesAujourdhui => _anomaliesAujourdhui;
-  List<AnomalieRituel> get anomaliesNonResolues => _anomaliesNonResolues;
-  List<AnomalieRituel> get anomaliesCritiques => _anomaliesCritiques;
+  List<AnomalieTache> get anomaliesAujourdhui => _anomaliesAujourdhui;
+  List<AnomalieTache> get anomaliesNonResolues => _anomaliesNonResolues;
+  List<AnomalieTache> get anomaliesCritiques => _anomaliesCritiques;
   StatsAnomalies? get stats => _stats;
   bool get isLoading => _isLoading;
 
@@ -48,7 +48,7 @@ class AnomalieProvider with ChangeNotifier {
         chargerStats(),
       ]);
     } catch (e, stackTrace) {
-      logger.error('❌ Erreur chargement anomalies', e, stackTrace);
+      logger.error('âŒ Erreur chargement anomalies', e, stackTrace);
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -61,7 +61,7 @@ class AnomalieProvider with ChangeNotifier {
       _anomaliesAujourdhui = await _db.getAnomaliesAujourdhui();
       notifyListeners();
     } catch (e) {
-      logger.error('❌ Erreur chargement anomalies du jour', e);
+      logger.error('âŒ Erreur chargement anomalies du jour', e);
     }
   }
 
@@ -71,7 +71,7 @@ class AnomalieProvider with ChangeNotifier {
       _anomaliesNonResolues = await _db.getAnomaliesNonResolues();
       notifyListeners();
     } catch (e) {
-      logger.error('❌ Erreur chargement anomalies non résolues', e);
+      logger.error('âŒ Erreur chargement anomalies non résolues', e);
     }
   }
 
@@ -81,7 +81,7 @@ class AnomalieProvider with ChangeNotifier {
       _anomaliesCritiques = await _db.getAnomaliesCritiques();
       notifyListeners();
     } catch (e) {
-      logger.error('❌ Erreur chargement anomalies critiques', e);
+      logger.error('âŒ Erreur chargement anomalies critiques', e);
     }
   }
 
@@ -91,7 +91,7 @@ class AnomalieProvider with ChangeNotifier {
       _stats = await _db.getStatsAnomalies();
       notifyListeners();
     } catch (e) {
-      logger.error('❌ Erreur chargement stats anomalies', e);
+      logger.error('âŒ Erreur chargement stats anomalies', e);
     }
   }
 
@@ -104,8 +104,8 @@ class AnomalieProvider with ChangeNotifier {
   /// - Portée (individu/lot)
   /// - Sévérité calculée
   /// - Action suggérée automatique
-  Future<AnomalieRituel?> enregistrerAnomalie({
-    required int? rituelId,
+  Future<AnomalieTache?> enregistrerAnomalie({
+    required int? tacheId,
     required String actionRituelId,
     required String actionRituelTitre,
     required List<TypeAnomalie> typesSelectionnes,
@@ -115,7 +115,7 @@ class AnomalieProvider with ChangeNotifier {
     String? noteLibre,
   }) async {
     if (typesSelectionnes.isEmpty) {
-      logger.warning('⚠️ Tentative d\'enregistrer anomalie sans type');
+      logger.warning('âš ï¸ Tentative d\'enregistrer anomalie sans type');
       return null;
     }
 
@@ -128,19 +128,19 @@ class AnomalieProvider with ChangeNotifier {
       // Déterminer l'action suggérée principale
       ActionSuggeree actionSuggeree;
       if (portee == PorteeAnomalie.lot) {
-        // Lot entier → surveillance
+        // Lot entier â†’ surveillance
         actionSuggeree = ActionSuggeree.surveiller;
       } else {
-        // Individu → action du type le plus sévère
+        // Individu â†’ action du type le plus sévère
         final typePlusSevere = typesSelectionnes.reduce(
           (a, b) => a.severiteDefaut > b.severiteDefaut ? a : b,
         );
         actionSuggeree = typePlusSevere.actionSuggeree;
       }
 
-      final anomalie = AnomalieRituel(
+      final anomalie = AnomalieTache(
         dateObservation: DateTime.now(),
-        rituelId: rituelId,
+        tacheId: tacheId,
         actionRituelId: actionRituelId,
         actionRituelTitre: actionRituelTitre,
         typesAnomalies: typesSelectionnes,
@@ -153,10 +153,10 @@ class AnomalieProvider with ChangeNotifier {
         noteLibre: noteLibre,
       );
 
-      final id = await _db.insertAnomalieRituel(anomalie);
+      final id = await _db.insertAnomalieTache(anomalie);
       final anomalieAvecId = anomalie.copyWith(id: id);
 
-      // Mettre à jour les listes locales
+      // Mettre Ã  jour les listes locales
       _anomaliesAujourdhui.insert(0, anomalieAvecId);
       _anomaliesNonResolues.insert(0, anomalieAvecId);
 
@@ -171,14 +171,14 @@ class AnomalieProvider with ChangeNotifier {
 
       return anomalieAvecId;
     } catch (e, stackTrace) {
-      logger.error('❌ Erreur enregistrement anomalie', e, stackTrace);
+      logger.error('âŒ Erreur enregistrement anomalie', e, stackTrace);
       return null;
     }
   }
 
-  /// Mettre à jour une anomalie existante (édition depuis la feuille guidée)
+  /// Mettre Ã  jour une anomalie existante (édition depuis la feuille guidée)
   Future<bool> mettreAJourAnomalie({
-    required AnomalieRituel anomalie,
+    required AnomalieTache anomalie,
     required List<TypeAnomalie> typesSelectionnes,
     required PorteeAnomalie portee,
     int? lapinId,
@@ -186,11 +186,11 @@ class AnomalieProvider with ChangeNotifier {
     String? noteLibre,
   }) async {
     if (anomalie.id == null) {
-      logger.warning('⚠️ Mise à jour anomalie sans id');
+      logger.warning('âš ï¸ Mise Ã  jour anomalie sans id');
       return false;
     }
     if (typesSelectionnes.isEmpty) {
-      logger.warning('⚠️ Mise à jour anomalie sans type');
+      logger.warning('âš ï¸ Mise Ã  jour anomalie sans type');
       return false;
     }
 
@@ -219,14 +219,14 @@ class AnomalieProvider with ChangeNotifier {
         noteLibre: noteLibre,
       );
 
-      await _db.updateAnomalieRituel(updated);
+      await _db.updateAnomalieTache(updated);
       logger.info('✅ Anomalie ${updated.id} mise à jour');
 
       // Simple et sûr : recharger pour garder les listes/stats cohérentes
       await chargerTout();
       return true;
     } catch (e, stackTrace) {
-      logger.error('❌ Erreur mise à jour anomalie', e, stackTrace);
+      logger.error('âŒ Erreur mise Ã  jour anomalie', e, stackTrace);
       return false;
     }
   }
@@ -239,7 +239,7 @@ class AnomalieProvider with ChangeNotifier {
       logger.info('🔄 Anomalie $id marquée en cours');
       return true;
     } catch (e) {
-      logger.error('❌ Erreur marquage en cours', e);
+      logger.error('âŒ Erreur marquage en cours', e);
       return false;
     }
   }
@@ -253,7 +253,7 @@ class AnomalieProvider with ChangeNotifier {
       _anomaliesNonResolues.removeWhere((a) => a.id == id);
       _anomaliesCritiques.removeWhere((a) => a.id == id);
 
-      // Mettre à jour dans la liste du jour
+      // Mettre Ã  jour dans la liste du jour
       final index = _anomaliesAujourdhui.indexWhere((a) => a.id == id);
       if (index != -1) {
         _anomaliesAujourdhui[index] = _anomaliesAujourdhui[index].copyWith(
@@ -267,7 +267,7 @@ class AnomalieProvider with ChangeNotifier {
       notifyListeners();
       return true;
     } catch (e) {
-      logger.error('❌ Erreur résolution anomalie', e);
+      logger.error('âŒ Erreur résolution anomalie', e);
       return false;
     }
   }
@@ -281,18 +281,18 @@ class AnomalieProvider with ChangeNotifier {
       _anomaliesNonResolues.removeWhere((a) => a.id == id);
       _anomaliesCritiques.removeWhere((a) => a.id == id);
 
-      logger.info('⏭️ Anomalie $id ignorée');
+      logger.info('â­ï¸ Anomalie $id ignorée');
       notifyListeners();
       return true;
     } catch (e) {
-      logger.error('❌ Erreur ignore anomalie', e);
+      logger.error('âŒ Erreur ignore anomalie', e);
       return false;
     }
   }
 
-  /// Mettre à jour localement le statut
+  /// Mettre Ã  jour localement le statut
   Future<void> _mettreAJourLocalement(int id, StatutAnomalie statut) async {
-    // Mettre à jour dans toutes les listes
+    // Mettre Ã  jour dans toutes les listes
     for (var list in [_anomaliesAujourdhui, _anomaliesNonResolues]) {
       final index = list.indexWhere((a) => a.id == id);
       if (index != -1) {
@@ -303,25 +303,26 @@ class AnomalieProvider with ChangeNotifier {
   }
 
   /// Récupérer l'historique des anomalies (paginé)
-  Future<List<AnomalieRituel>> getHistorique({
+  Future<List<AnomalieTache>> getHistorique({
     int limit = 50,
     int offset = 0,
   }) async {
     try {
       return await _db.getHistoriqueAnomalies(limit: limit, offset: offset);
     } catch (e) {
-      logger.error('❌ Erreur chargement historique', e);
+      logger.error('âŒ Erreur chargement historique', e);
       return [];
     }
   }
 
   /// Récupérer les anomalies pour un lapin
-  Future<List<AnomalieRituel>> getAnomaliesPourLapin(int lapinId) async {
+  Future<List<AnomalieTache>> getAnomaliesPourLapin(int lapinId) async {
     try {
       return await _db.getAnomaliesPourLapin(lapinId);
     } catch (e) {
-      logger.error('❌ Erreur chargement anomalies lapin', e);
+      logger.error('âŒ Erreur chargement anomalies lapin', e);
       return [];
     }
   }
 }
+

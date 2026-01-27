@@ -3,9 +3,10 @@ import '../../l10n/app_localizations.dart';
 import '../../models/batiment.dart';
 import '../../models/clapier.dart';
 import '../../models/cage.dart';
-import '../../services/database_helper.dart';
-import '../../services/localisation_service.dart';
+import '../../models/enums/localisation_enums.dart';
+import '../../repositories/localisation_repository.dart';
 import '../../theme/app_theme.dart';
+import '../../widgets/common/common_widgets.dart';
 
 class LocalisationManagerScreen extends StatefulWidget {
   const LocalisationManagerScreen({super.key});
@@ -16,7 +17,7 @@ class LocalisationManagerScreen extends StatefulWidget {
 }
 
 class _LocalisationManagerScreenState extends State<LocalisationManagerScreen> {
-  final _dbHelper = DatabaseHelper.instance;
+  final _repository = LocalisationRepository.instance;
 
   List<Batiment> _batiments = [];
   final Map<int, List<Clapier>> _clapiersParBatiment = {};
@@ -36,11 +37,11 @@ class _LocalisationManagerScreenState extends State<LocalisationManagerScreen> {
   Future<void> _chargerDonnees() async {
     setState(() => _loading = true);
 
-    _batiments = await _dbHelper.getAllBatiments();
+    _batiments = await _repository.getAllBatiments();
 
     if (_batiments.isEmpty) {
-      await _dbHelper.initialiserLocalisationParDefaut();
-      _batiments = await _dbHelper.getAllBatiments();
+      await _repository.initialiserLocalisationParDefaut();
+      _batiments = await _repository.getAllBatiments();
     }
 
     if (_batiments.isNotEmpty && _batimentSelectionne == null) {
@@ -58,15 +59,15 @@ class _LocalisationManagerScreenState extends State<LocalisationManagerScreen> {
     _cagesParClapier.clear();
 
     for (var batiment in _batiments) {
-      final clapiers = await _dbHelper.getClapiersByBatiment(batiment.id!);
+      final clapiers = await _repository.getClapiersByBatiment(batiment.id!);
       _clapiersParBatiment[batiment.id!] = clapiers;
 
       for (var clapier in clapiers) {
-        final cages = await _dbHelper.getCagesByClapier(clapier.id!);
+        final cages = await _repository.getCagesByClapier(clapier.id!);
         List<Map<String, dynamic>> cagesData = [];
 
         for (var cage in cages) {
-          final occupants = await _dbHelper.getOccupantsCage(cage.id!);
+          final occupants = await _repository.getOccupantsCage(cage.id!);
           cagesData.add({
             'cage': cage,
             'occupants': occupants,
@@ -86,7 +87,7 @@ class _LocalisationManagerScreenState extends State<LocalisationManagerScreen> {
     final clapiers = _clapiersParBatiment[_batimentSelectionne!.id!] ?? [];
 
     if (_filtreClapier == 'tous') return clapiers;
-    return clapiers.where((c) => c.type == _filtreClapier).toList();
+    return clapiers.where((c) => c.type.value == _filtreClapier).toList();
   }
 
   @override
@@ -401,7 +402,7 @@ class _LocalisationManagerScreenState extends State<LocalisationManagerScreen> {
                     Icons.add_circle_outline,
                     color: AppTheme.primaryGreen,
                   ),
-                  tooltip: 'Ajouter une cage',
+                  tooltip: '${AppLocalizations.of(context).commonAjouter} cage',
                 ),
               ],
             ),
@@ -548,7 +549,7 @@ class _LocalisationManagerScreenState extends State<LocalisationManagerScreen> {
                 ],
               ),
               const SizedBox(height: 20),
-              _buildInfoRow('Type', cage.type),
+              _buildInfoRow('Type', cage.type.label),
               _buildInfoRow('Capacité', '${cage.capacite} lapin(s)'),
               _buildInfoRow('Occupants', '$occupants lapin(s)'),
               _buildInfoRow(
@@ -595,41 +596,31 @@ class _LocalisationManagerScreenState extends State<LocalisationManagerScreen> {
   }
 
   Widget _buildFAB() {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        SizedBox(
-          width: 48,
-          height: 48,
-          child: FloatingActionButton(
-            onPressed: _ajouterBatiment,
-            heroTag: 'bat',
-            backgroundColor: AppTheme.info,
-            tooltip: 'Bâtiment',
-            child: const Icon(Icons.domain, size: 20),
-          ),
+    return UnifiedFABSpeedDial(
+      tooltip: AppLocalizations.of(context).commonAjouter,
+      actions: [
+        UnifiedFABAction(
+          icon: Icons.domain,
+          label: 'Bâtiment',
+          tooltip: 'Ajouter un bâtiment',
+          onPressed: _ajouterBatiment,
         ),
-        const SizedBox(height: 8),
-        SizedBox(
-          width: 48,
-          height: 48,
-          child: FloatingActionButton(
-            onPressed: _ajouterClapier,
-            heroTag: 'clap',
-            backgroundColor: AppTheme.accentPink,
-            tooltip: 'Clapier',
-            child: const Icon(Icons.meeting_room, size: 20),
-          ),
+        UnifiedFABAction(
+          icon: Icons.meeting_room,
+          label: 'Clapier',
+          tooltip: 'Ajouter un clapier',
+          onPressed: _ajouterClapier,
         ),
       ],
     );
   }
 
   Future<void> _ajouterBatiment() async {
-    final nom = await _showInputDialog('Nouveau bâtiment', 'Nom');
+    final dialogTitle = AppLocalizations.of(context).commonAjouter;
+    final nom = await _showInputDialog('$dialogTitle bâtiment', 'Nom');
     if (nom == null) return;
 
-    await _dbHelper.ajouterBatiment(Batiment(nom: nom));
+    await _repository.insertBatiment(Batiment(nom: nom));
     if (!mounted) return;
     _chargerDonnees();
   }
@@ -637,14 +628,17 @@ class _LocalisationManagerScreenState extends State<LocalisationManagerScreen> {
   Future<void> _ajouterClapier() async {
     if (_batimentSelectionne == null) return;
 
-    final nom = await _showInputDialog('Nouveau clapier', 'Nom');
+    final dialogTitle = AppLocalizations.of(context).commonAjouter;
+    final nom = await _showInputDialog('$dialogTitle clapier', 'Nom');
     if (nom == null) return;
 
-    await _dbHelper.ajouterClapier(
+    await _repository.insertClapier(
       Clapier(
         batimentId: _batimentSelectionne!.id!,
         nom: nom,
-        type: _filtreClapier == 'tous' ? 'interieur' : _filtreClapier,
+        type: _filtreClapier == 'tous'
+            ? TypeClapier.interieur
+            : TypeClapier.fromString(_filtreClapier),
       ),
     );
     if (!mounted) return;
@@ -652,13 +646,13 @@ class _LocalisationManagerScreenState extends State<LocalisationManagerScreen> {
   }
 
   Future<void> _ajouterCage(Clapier clapier) async {
-    final numero = await _dbHelper.genererNumeroCage(clapier.id!);
+    final numero = await _repository.genererNumeroCage(clapier.id!);
 
-    await _dbHelper.ajouterCage(
+    await _repository.insertCage(
       Cage(
         clapierId: clapier.id!,
         numero: numero,
-        type: 'individuelle',
+        type: TypeCage.individuelle,
         capacite: 1,
       ),
     );
@@ -671,7 +665,7 @@ class _LocalisationManagerScreenState extends State<LocalisationManagerScreen> {
     final capaciteController = TextEditingController(
       text: cage.capacite.toString(),
     );
-    String typeSelectionne = cage.type;
+    TypeCage typeSelectionne = cage.type;
 
     final result = await showDialog<Map<String, dynamic>>(
       context: context,
@@ -689,15 +683,17 @@ class _LocalisationManagerScreenState extends State<LocalisationManagerScreen> {
                   ),
                 ),
                 const SizedBox(height: 16),
-                DropdownButtonFormField<String>(
+                DropdownButtonFormField<TypeCage>(
                   initialValue: typeSelectionne,
                   decoration: AppTheme.inputDecoration(
                     label: AppLocalizations.of(context).hintTypeCage,
                   ),
-                  items: ['individuelle', 'collective', 'maternité']
+                  items: TypeCage.values
                       .map(
-                        (type) =>
-                            DropdownMenuItem(value: type, child: Text(type)),
+                        (type) => DropdownMenuItem(
+                          value: type,
+                          child: Text(type.label),
+                        ),
                       )
                       .toList(),
                   onChanged: (value) {
@@ -763,17 +759,11 @@ class _LocalisationManagerScreenState extends State<LocalisationManagerScreen> {
         id: cage.id,
         clapierId: cage.clapierId,
         numero: result['numero'] as String,
-        type: result['type'] as String,
+        type: result['type'] as TypeCage,
         capacite: result['capacite'] as int,
       );
 
-      final db = await _dbHelper.database;
-      await db.update(
-        'cages',
-        cageModifiee.toMap(),
-        where: 'id = ?',
-        whereArgs: [cageModifiee.id],
-      );
+      await _repository.updateCage(cageModifiee);
       if (!mounted) return;
       _chargerDonnees();
 
@@ -811,7 +801,7 @@ class _LocalisationManagerScreenState extends State<LocalisationManagerScreen> {
     if (confirm != true) return;
 
     try {
-      await _dbHelper.supprimerCage(cage.id!);
+      await _repository.deleteCage(cage.id!);
       if (!mounted) return;
       _chargerDonnees();
       ScaffoldMessenger.of(context).showSnackBar(

@@ -4,11 +4,12 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/lapin.dart';
+import '../../models/enums/sexe.dart';
 import '../../models/pesee.dart';
 import '../../providers/sante_provider.dart';
 import '../../utils/snackbar_helper.dart';
 import '../../theme/app_theme.dart';
-import '../../widgets/uniform_app_bar.dart';
+import '../../widgets/common/common_widgets.dart';
 
 /// Écran pour modifier une pesée existante
 class EditPeseeScreen extends StatefulWidget {
@@ -88,7 +89,10 @@ class _EditPeseeScreenState extends State<EditPeseeScreen> {
       }
     } catch (e) {
       if (mounted) {
-        SnackbarHelper.showError(context, 'Erreur : $e');
+        SnackbarHelper.showError(
+          context,
+          AppLocalizations.of(context).msgErreurOperationEchouee,
+        );
       }
     }
   }
@@ -99,10 +103,8 @@ class _EditPeseeScreenState extends State<EditPeseeScreen> {
 
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
-      appBar: UniformAppBar(
+      appBar: SimpleAppBar(
         title: AppLocalizations.of(context).santeModifierPesee,
-        icon: Icons.monitor_weight_rounded,
-        iconColor: AppTheme.info,
       ),
       body: Form(
         key: _formKey,
@@ -118,12 +120,12 @@ class _EditPeseeScreenState extends State<EditPeseeScreen> {
                   children: [
                     CircleAvatar(
                       radius: 30,
-                      backgroundColor: widget.lapin.sexe == 'Mâle'
+                      backgroundColor: widget.lapin.sexe == Sexe.male
                           ? AppTheme.info.withValues(alpha: 0.2)
                           : AppTheme.accentPink.withValues(alpha: 0.2),
                       child: Icon(
-                        widget.lapin.sexe == 'Mâle' ? Icons.male : Icons.female,
-                        color: widget.lapin.sexe == 'Mâle'
+                        widget.lapin.sexe == Sexe.male ? Icons.male : Icons.female,
+                        color: widget.lapin.sexe == Sexe.male
                             ? AppTheme.info
                             : AppTheme.accentPink,
                         size: 32,
@@ -200,37 +202,15 @@ class _EditPeseeScreenState extends State<EditPeseeScreen> {
               ),
               maxLines: 3,
             ),
-            AppTheme.verticalSpace24,
-
-            // Boutons d'action
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: () => Navigator.pop(context),
-                    icon: const Icon(Icons.close),
-                    label: Text(AppLocalizations.of(context).actionAnnuler),
-                    style: OutlinedButton.styleFrom(
-                      padding: AppTheme.paddingAllMedium,
-                    ),
-                  ),
-                ),
-                AppTheme.horizontalSpace16,
-                Expanded(
-                  flex: 2,
-                  child: FilledButton.icon(
-                    onPressed: _modifierPesee,
-                    icon: const Icon(Icons.save),
-                    label: Text(AppLocalizations.of(context).actionEnregistrer),
-                    style: FilledButton.styleFrom(
-                      padding: AppTheme.paddingAllMedium,
-                    ),
-                  ),
-                ),
-              ],
-            ),
+            // Espace pour FormActionBar
+            const SizedBox(height: 80),
           ],
         ),
+      ),
+      bottomNavigationBar: FormActionBar(
+        onCancel: () => Navigator.pop(context),
+        onSave: _modifierPesee,
+        saveText: AppLocalizations.of(context).actionEnregistrer,
       ),
     );
   }

@@ -14,7 +14,7 @@ enum TypeEntite {
   reforme,
   quarantaine,
   sevrage,
-  rituel,
+  verification,
   anomalie,
   aliment,
   medicament,
@@ -76,8 +76,8 @@ extension TypeEntiteExtension on TypeEntite {
         return 'Quarantaine';
       case TypeEntite.sevrage:
         return 'Sevrage';
-      case TypeEntite.rituel:
-        return 'Rituel';
+      case TypeEntite.verification:
+        return 'Vérification';
       case TypeEntite.anomalie:
         return 'Anomalie';
       case TypeEntite.aliment:
@@ -125,7 +125,7 @@ extension TypeEntiteExtension on TypeEntite {
         return '🔒';
       case TypeEntite.sevrage:
         return '🍼';
-      case TypeEntite.rituel:
+      case TypeEntite.verification:
         return '📋';
       case TypeEntite.anomalie:
         return '⚠️';

@@ -259,7 +259,7 @@ class _SevrageScreenState extends State<SevrageScreen> {
             ),
           ),
 
-          // Informations de la portÃ©e
+          // Informations de la portée
           Padding(
             padding: const EdgeInsets.all(AppTheme.spacing16),
             child: Column(
@@ -325,7 +325,7 @@ class _SevrageScreenState extends State<SevrageScreen> {
                 child: ElevatedButton.icon(
                   onPressed: () => _demarrerSevrage(portee, mere),
                   icon: const Icon(Icons.grass),
-                  label: const Text('Demarrer le sevrage'),
+                  label: Text(AppLocalizations.of(context).sevrageDebutLabel),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppTheme.primaryGreen,
                     foregroundColor: AppTheme.textOnPrimary,

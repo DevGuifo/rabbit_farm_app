@@ -99,8 +99,8 @@ class WelcomeHeroSection extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: (isDark
-                ? AppTheme.stitchSurfaceDark
-                : AppTheme.stitchSurfaceLight)
+                ? AppTheme.surfaceDark
+                : AppTheme.surfaceWhite)
             .withValues(alpha: 0.95),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
@@ -148,7 +148,7 @@ class WelcomeHeroSection extends StatelessWidget {
                     fontWeight: FontWeight.w500,
                     color: isDark
                         ? AppTheme.stitchTextSecDark
-                        : AppTheme.stitchTextSecLight,
+                        : AppTheme.textSecondary,
                   ),
                 ),
                 const SizedBox(height: 2),
@@ -159,7 +159,7 @@ class WelcomeHeroSection extends StatelessWidget {
                     fontWeight: FontWeight.bold,
                     color: isDark
                         ? AppTheme.stitchTextMainDark
-                        : AppTheme.stitchTextMainLight,
+                        : AppTheme.textPrimary,
                   ),
                 ),
               ],

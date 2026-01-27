@@ -5,6 +5,7 @@ import '../../../l10n/app_localizations.dart';
 import '../../../models/accouplement.dart';
 import '../../../models/lapin.dart';
 import '../../../models/portee.dart';
+import '../../../models/enums/statut_accouplement.dart';
 import '../../../providers/reproduction_provider.dart';
 import '../../../utils/snackbar_helper.dart';
 import '../../../theme/app_theme.dart';
@@ -208,7 +209,7 @@ class ReproductionPairingCard extends StatelessWidget {
     final List<Widget> actions = [];
 
     // Bouton Confirmer (si en attente)
-    if (pairing.statut == 'en_attente') {
+    if (pairing.statut == StatutAccouplement.enAttente) {
       actions.add(
         Expanded(
           child: ElevatedButton.icon(
@@ -229,7 +230,7 @@ class ReproductionPairingCard extends StatelessWidget {
     }
 
     // Bouton Palper (si en attente et entre 10-14 jours)
-    if (pairing.statut == 'en_attente' &&
+    if (pairing.statut == StatutAccouplement.enAttente &&
         joursDepuisAccouplement >= 10 &&
         joursDepuisAccouplement <= 14) {
       actions.add(const SizedBox(width: 8));
@@ -253,7 +254,7 @@ class ReproductionPairingCard extends StatelessWidget {
     }
 
     // Bouton Préparer le nid (si confirmé et proche de la mise bas)
-    if (pairing.statut == 'confirme' &&
+    if (pairing.statut == StatutAccouplement.confirme &&
         joursAvantMiseBas <= 3 &&
         joursAvantMiseBas >= 0) {
       actions.add(const SizedBox(width: 8));
@@ -277,7 +278,7 @@ class ReproductionPairingCard extends StatelessWidget {
     }
 
     // Bouton Enregistrer portée (si confirmé et après la date de mise bas)
-    if (pairing.statut == 'confirme' &&
+    if (pairing.statut == StatutAccouplement.confirme &&
         joursAvantMiseBas < 0 &&
         portee == null) {
       actions.add(const SizedBox(width: 8));
@@ -301,7 +302,7 @@ class ReproductionPairingCard extends StatelessWidget {
     }
 
     // Bouton Sevrer (si terminé et portée existe)
-    if (pairing.statut == 'termine' && portee != null) {
+    if (pairing.statut == StatutAccouplement.termine && portee != null) {
       final ageEnJours = DateTime.now()
           .difference(portee.dateMiseBasReelle)
           .inDays;
@@ -391,10 +392,10 @@ class ReproductionPairingCard extends StatelessWidget {
   Widget _buildStatusBadge(BuildContext context) {
     final loc = AppLocalizations.of(context);
     final statusMap = {
-      'en_attente': (loc.reproductionPending, AppTheme.warning),
-      'confirme': (loc.reproductionConfirmed, AppTheme.primaryNeonGreen),
-      'en_cours': (loc.reproductionInProgress, AppTheme.info),
-      'termine': (loc.reproductionCompleted, AppTheme.textSecondary),
+      StatutAccouplement.enAttente: (loc.reproductionPending, AppTheme.warning),
+      StatutAccouplement.confirme: (loc.reproductionConfirmed, AppTheme.primaryNeonGreen),
+      StatutAccouplement.termine: (loc.reproductionCompleted, AppTheme.textSecondary),
+      StatutAccouplement.echec: (loc.reproductionUnknown, AppTheme.error),
     };
 
     final (label, color) =

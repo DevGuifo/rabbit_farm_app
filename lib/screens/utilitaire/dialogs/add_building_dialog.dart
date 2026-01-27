@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import '../../../models/batiment.dart';
-import '../../../services/database_helper.dart';
-import '../../../services/localisation_service.dart'; // Extension methods
+import '../../../repositories/localisation_repository.dart';
 import 'package:rabbit_farm_app/theme/app_theme.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../../services/error_service.dart';
 
 /// Dialog Stitch pour ajout d'un nouveau bâtiment
 /// Design: Google Stitch - palette neon green #13EC25
@@ -24,7 +24,7 @@ class AddBuildingDialog extends StatefulWidget {
 
 class _AddBuildingDialogState extends State<AddBuildingDialog> {
   final _formKey = GlobalKey<FormState>();
-  final _dbHelper = DatabaseHelper.instance;
+  final _repository = LocalisationRepository.instance;
 
   final _nameController = TextEditingController();
   final _capacityController = TextEditingController();
@@ -42,7 +42,7 @@ class _AddBuildingDialogState extends State<AddBuildingDialog> {
     if (!_formKey.currentState!.validate()) return;
 
     try {
-      await _dbHelper.ajouterBatiment(
+      await _repository.insertBatiment(
         Batiment(
           nom: _nameController.text.trim(),
           description: _descriptionController.text.trim().isEmpty
@@ -68,12 +68,7 @@ class _AddBuildingDialogState extends State<AddBuildingDialog> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(AppLocalizations.of(context).msgErreur(e.toString())),
-            backgroundColor: AppTheme.error,
-          ),
-        );
+        ErrorService.showError(context, e);
       }
     }
   }
@@ -88,9 +83,7 @@ class _AddBuildingDialogState extends State<AddBuildingDialog> {
       child: Container(
         constraints: const BoxConstraints(maxHeight: 680),
         decoration: BoxDecoration(
-          color: isDark
-              ? AppTheme.stitchBackgroundDark
-              : AppTheme.stitchBackgroundLight,
+          color: isDark ? AppTheme.backgroundDark : AppTheme.backgroundLight,
           borderRadius: BorderRadius.circular(20),
         ),
         child: Column(

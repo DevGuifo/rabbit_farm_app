@@ -6,12 +6,14 @@
 
   "appTitle": "BunnyManager",
   "appDescription": "Gestion d'élevage cunicole professionnelle",
+  "splashLoading": "CHARGEMENT",
 
   "navDashboard": "Dashboard",
   "navCheptel": "Cheptel",
   "navSante": "Santé",
   "navReproduction": "Reproduction",
   "navFinances": "Finances",
+  "navPlus": "Plus",
   "navParametres": "Paramètres",
   "navUtilitaires": "Utilitaires",
   "navAlimentation": "Alimentation",
@@ -56,6 +58,12 @@
   "cheptelAucunLapinTrouve": "Aucun lapin trouvé",
   "cheptelVoirFiche": "Voir la fiche",
   "cheptelMettreQuarantaine": "Mettre en quarantaine",
+  "cheptelActionPesee": "Ajouter une pesée",
+  "@cheptelActionPesee": {"description": "Quick action - Add weighing"},
+  "cheptelActionSoin": "Enregistrer un soin",
+  "@cheptelActionSoin": {"description": "Quick action - Add care record"},
+  "cheptelActionFicheSante": "Fiche santé",
+  "@cheptelActionFicheSante": {"description": "Quick action - Health sheet"},
   "cheptelAjouterLapin": "Ajouter un lapin",
   "cheptelPrendrePhoto": "Prendre une photo",
   "cheptelChoisirGalerie": "Choisir depuis la galerie",
@@ -205,11 +213,21 @@
   "paramVersion": "Version 1.2.0",
   "paramDeveloppe": "Développé par",
   "paramDeveloppeNom": "GUIFO KAMTO ROSTAND Jr",
-  "paramLogOut": "Log Out",
+  "paramLogOut": "Déconnexion",
 
   "utilTitre": "Utilitaires",
   "utilOutilsGestion": "Outils de gestion",
   "utilOutilsGestionDetail": "Accédez aux différentes fonctionnalités",
+  
+  "plusTitre": "Plus",
+  "plusSousTitre": "Fonctionnalités complémentaires",
+  "plusDescription": "Accédez aux outils et sections secondaires",
+  "plusReproductionDetail": "Gestion des accouplements et portées",
+  "plusGestion": "Gestion",
+  "plusOptimisation": "Optimisation",
+  "plusRentabilite": "Rentabilité",
+  "plusOutils": "Outils",
+
   "utilFinances": "Finances",
   "utilFinancesDetail": "Gérez vos recettes et dépenses",
   "utilAlimentation": "Alimentation",
@@ -224,6 +242,8 @@
   "utilReformeDetail": "Gestion des réformes",
   "utilGestionnaireTaches": "Gestionnaire de tâches",
   "utilGestionnaireTachesDetail": "Organisez vos tâches quotidiennes",
+  "utilTaches": "Tâches",
+  "utilTachesDetail": "Gérez vos tâches et rappels",
   "utilCalculatrice": "Calculatrice",
   "utilCalculatriceDetail": "Calculs et estimations",
   "utilRapports": "Rapports",
@@ -236,6 +256,8 @@
   "utilExportImportDetail": "Sauvegardez vos données",
   "utilLocalisation": "Localisation",
   "utilLocalisationDetail": "Gérez vos emplacements",
+  "utilLots": "Lots",
+  "utilLotsDetail": "Gérer par groupes",
 
   "utilNotesObservations": "Notes & Observations",
   "utilNoteLapin": "Note Lapin",
@@ -568,6 +590,11 @@
   "commonAttention": "Attention",
   "commonOui": "Oui",
   "commonNon": "Non",
+  "commonConfirmer": "Confirmer",
+  "commonActionEffectuee": "Action effectuée",
+  "commonModeHorsLigne": "Vous êtes hors ligne",
+  "commonHorsLigne": "Hors ligne",
+  "commonEnLigne": "En ligne",
 
   "validationChampObligatoire": "Ce champ est obligatoire",
   "validationNumeroObligatoire": "Le numéro d'identification est obligatoire",
@@ -665,12 +692,22 @@
   "dashDans3Jours": "Dans 3 jours",
   "dashVaccinsRetard": "Vaccins en retard",
   "dashActionRequise": "Action requise",
+  "dashActionNouveauLapin": "Nouveau lapin",
+  "@dashActionNouveauLapin": {"description": "Quick action - New rabbit"},
+  "dashActionAccouplement": "Accouplement",
+  "@dashActionAccouplement": {"description": "Quick action - Mating"},
+  "dashActionAjouterPesee": "Ajouter pesée",
+  "@dashActionAjouterPesee": {"description": "Quick action - Add weighing"},
+  "dashActionNoterAnomalie": "Noter anomalie",
+  "@dashActionNoterAnomalie": {"description": "Quick action - Note anomaly"},
   "dashMedicamentsCritiques": "Médicaments critiques",
   "dashReapproUrgent": "Réappro. urgent",
   "dashAlimentsSurveiller": "Aliments à surveiller",
   "dashStockExpiration": "Stock/expiration",
   "dashLapinsSousPoids": "Lapins sous-poids",
   "dashPoids80Attendu": "< 80% attendu",
+  "dashRoiPerformance": "ROI & Performance",
+  "@dashRoiPerformance": {"description": "Section title for ROI and performance graphs"},
   "dashLapinsMalades": "Lapins malades",
   "dashQuarantaineMalades": "Quarantaine/malades",
   "dashTauxMortaliteEleve": "Taux mortalité élevé",
@@ -1091,7 +1128,7 @@
   "reproSelectionnerFemelle": "Sélectionner la femelle",
   "reproSelectionnerMale": "Sélectionner le mâle",
   "reproEnregistrerPortee": "Enregistrer portée",
-  "reproDetailsPortee": "Enter the details of the new litter below. Accurate records help in tracking doe performance and kit survival rates.",
+  "reproDetailsPortee": "Saisissez les détails de la nouvelle portée. Un suivi précis aide à évaluer la performance de la femelle et le taux de survie des lapereaux.",
   "reproNombreTotalInvalide": "Le nombre total de nés doit être supérieur à 0",
   "reproNombreVivantsExcede": "Le nombre de vivants ne peut pas dépasser le total",
   "reproTotalIncorrect": "Le total vivants + morts doit être égal au nombre de nés",
@@ -1153,7 +1190,8 @@
   "financeModifierDepense": "Modifier une dépense",
   "financeModifierRecette": "Modifier une recette",
   "financeAjouterDepense": "Ajouter dépense",
-  "financeAjouterRecette": "Ajouter recette",
+    "financeEvolution": "Évolution Financière",
+    "financeAjouterRecette": "Ajouter recette",
   "financeSupprimerDepense": "Supprimer dépense",
   "financeSupprimerRecette": "Supprimer recette",
   "financeConfirmerSuppression": "Confirmer la suppression?",
@@ -1435,22 +1473,22 @@
     "description": "Bouton pour voir l'arbre généalogique complet"
   },
 
-  "cheptelLineage": "Lineage",
+  "cheptelLineage": "Lignée",
   "@cheptelLineage": {
     "description": "Titre de la carte lignée"
   },
 
-  "cheptelFather": "FATHER",
+  "cheptelFather": "PÈRE",
   "@cheptelFather": {
-    "description": "Label père en anglais"
+    "description": "Label père"
   },
 
-  "cheptelMother": "MOTHER",
+  "cheptelMother": "MÈRE",
   "@cheptelMother": {
-    "description": "Label mère en anglais"
+    "description": "Label mère"
   },
 
-  "cheptelGoodTemperament": "Good temperament. Shows high resistance to common infections. Slightly aggressive during feeding time.",
+  "cheptelGoodTemperament": "Bon tempérament. Bonne résistance aux infections courantes. Légèrement agité au moment du repas.",
   "@cheptelGoodTemperament": {
     "description": "Texte par défaut des notes"
   },
@@ -1460,12 +1498,12 @@
     "description": "Label revenus total"
   },
 
-  "cheptelRabbitDetails": "Rabbit Details",
+  "cheptelRabbitDetails": "Détails du lapin",
   "@cheptelRabbitDetails": {
     "description": "Titre app bar détail lapin"
   },
 
-  "cheptelActiveBreeder": "ACTIVE BREEDER",
+  "cheptelActiveBreeder": "REPRODUCTEUR ACTIF",
   "@cheptelActiveBreeder": {
     "description": "Chip reproducteur actif"
   },
@@ -1478,7 +1516,7 @@
     }
   },
 
-  "santeAddRecord": "Add Record",
+  "santeAddRecord": "Ajouter",
   "@santeAddRecord": {
     "description": "Bouton ajouter enregistrement"
   },
@@ -1493,47 +1531,47 @@
     "description": "Option ajouter soin"
   },
 
-  "santeWeightTracking": "Weight Tracking",
+  "santeWeightTracking": "Suivi du poids",
   "@santeWeightTracking": {
     "description": "Titre suivi des pesées"
   },
 
-  "santeCurrentWeight": "Current Weight",
+  "santeCurrentWeight": "Poids actuel",
   "@santeCurrentWeight": {
     "description": "Poids actuel"
   },
 
-  "santeNewTreatment": "New Treatment",
+  "santeNewTreatment": "Nouveau soin",
   "@santeNewTreatment": {
     "description": "Bouton nouveau traitement"
   },
 
-  "santeSelectRabbit": "Select Rabbit",
+  "santeSelectRabbit": "Sélectionner un lapin",
   "@santeSelectRabbit": {
     "description": "Sélectionner un lapin"
   },
 
-  "reproductionPending": "Pending",
+  "reproductionPending": "En attente",
   "@reproductionPending": {
     "description": "Statut en attente"
   },
 
-  "reproductionConfirmed": "Confirmed",
+  "reproductionConfirmed": "Confirmé",
   "@reproductionConfirmed": {
     "description": "Statut confirmé"
   },
 
-  "reproductionInProgress": "In Progress",
+  "reproductionInProgress": "En cours",
   "@reproductionInProgress": {
     "description": "Statut en cours"
   },
 
-  "reproductionCompleted": "Completed",
+  "reproductionCompleted": "Terminé",
   "@reproductionCompleted": {
     "description": "Statut terminé"
   },
 
-  "reproductionUnknown": "Unknown",
+  "reproductionUnknown": "Inconnu",
   "@reproductionUnknown": {
     "description": "Statut inconnu"
   },
@@ -3127,10 +3165,6 @@
   "labelPoids": "Poids",
   "@labelPoids": {
     "description": "Label - Weight"
-  },
-  "labelRace": "Race",
-  "@labelRace": {
-    "description": "Label - Breed"
   },
   "labelAge": "Âge",
   "@labelAge": {
@@ -4968,8 +5002,8 @@
   "@typeEntiteQuarantaine": {"description": "Entity type - Quarantine"},
   "typeEntiteSevrage": "Sevrage",
   "@typeEntiteSevrage": {"description": "Entity type - Weaning"},
-  "typeEntiteRituel": "Vérification",
-  "@typeEntiteRituel": {"description": "Entity type - Daily check"},
+  "typeEntiteVerification": "Vérification",
+  "@typeEntiteVerification": {"description": "Entity type - Daily check"},
   "typeEntiteAnomalie": "Problème",
   "@typeEntiteAnomalie": {"description": "Entity type - Issue"},
   "typeEntiteAliment": "Aliment",
@@ -5308,5 +5342,87 @@
   "rituelHebdomadaire": "Hebdomadaire",
   "@rituelHebdomadaire": {"description": "Check frequency - Weekly"},
   "rituelMensuel": "Mensuel",
-  "@rituelMensuel": {"description": "Check frequency - Monthly"}
+  "@rituelMensuel": {"description": "Check frequency - Monthly"},
+
+  "tacheMatin": "Matin",
+  "@tacheMatin": {"description": "Check - Morning"},
+  "tacheSoir": "Soir",
+  "@tacheSoir": {"description": "Check - Evening"},
+  "tacheTermine": "Termin\u00e9",
+  "@tacheTermine": {"description": "Check status - Completed"},
+  "tacheEnCours": "En cours ({done}/{total})",
+  "@tacheEnCours": {
+    "description": "Check status - In progress",
+    "placeholders": {"done": {"type": "int"}, "total": {"type": "int"}}
+  },
+  "tacheAFaire": "\u00c0 faire",
+  "@tacheAFaire": {"description": "Check status - To do"},
+  "tacheMessageDeuxFaits": "Les deux v\u00e9rifications sont faites !",
+  "@tacheMessageDeuxFaits": {"description": "Check card - Both checks done"},
+  "tacheMessagePremierValide": "Premi\u00e8re v\u00e9rification valid\u00e9e",
+  "@tacheMessagePremierValide": {"description": "Check card - First check validated"},
+  "tacheMessageMatinAttend": "La v\u00e9rification du matin attend",
+  "@tacheMessageMatinAttend": {"description": "Check card - Morning check awaits"},
+  "tacheMessageHeureSoir": "C'est l'heure de la tourn\u00e9e du soir",
+  "@tacheMessageHeureSoir": {"description": "Check card - Evening round time"},
+  "tachesDuJour": "V\u00e9rifications du jour",
+  "@tachesDuJour": {"description": "Check card - Daily checks title"},
+  "tacheAppuyerCommencer": "Appuyez pour commencer",
+  "@tacheAppuyerCommencer": {"description": "Check card - Tap to start"},
+  "tacheMatinFaitSoirAttente": "\uD83C\uDF05 Matin \u2714 \u2022 \uD83C\uDF19 Soir en attente",
+  "@tacheMatinFaitSoirAttente": {"description": "Check status - Morning done, evening waiting"},
+  "tacheMatinAttenteSoirFait": "\uD83C\uDF05 Matin en attente \u2022 \uD83C\uDF19 Soir \u2714",
+  "@tacheMatinAttenteSoirFait": {"description": "Check status - Morning waiting, evening done"},
+  "tacheMatinEnCours": "\uD83C\uDF05 Matin en cours...",
+  "@tacheMatinEnCours": {"description": "Check status - Morning in progress"},
+  "tacheSoirEnCours": "\uD83C\uDF19 Soir en cours...",
+  "@tacheSoirEnCours": {"description": "Check status - Evening in progress"},
+  "tacheFait": "\u2714 Fait",
+  "@tacheFait": {"description": "Check status - Done"},
+  "tacheAnomaliesAujourdhui": "{count, plural, =1{{count} probl\u00e8me signal\u00e9 aujourd'hui} other{{count} probl\u00e8mes signal\u00e9s aujourd'hui}}",
+  "@tacheAnomaliesAujourdhui": {
+    "description": "Check card - Issues today",
+    "placeholders": {"count": {"type": "int"}}
+  },
+  "tacheDuMatin": "V\u00e9rification du matin",
+  "@tacheDuMatin": {"description": "Check - Morning check title"},
+  "tacheDuSoir": "V\u00e9rification du soir",
+  "@tacheDuSoir": {"description": "Check - Evening check title"},
+  "tacheChargement": "Chargement...",
+  "@tacheChargement": {"description": "Check - Loading"},
+  "tacheLabel": "V\u00e9rification {type}",
+  "@tacheLabel": {
+    "description": "Check - Label with type",
+    "placeholders": {"type": {"type": "String"}}
+  },
+  "tacheNormal": "\u2713 OK",
+  "@tacheNormal": {"description": "Check action - Normal/OK"},
+  "tacheAnomalie": "Probl\u00e8me",
+  "@tacheAnomalie": {"description": "Check action - Problem"},
+  "tachePlusTard": "Reporter",
+  "@tachePlusTard": {"description": "Check action - Later"},
+  "tacheSnackActionValidee": "Action valid\u00e9e",
+  "@tacheSnackActionValidee": {"description": "Snackbar - Action validated"},
+  "tacheSnackActionReportee": "Report\u00e9 \u00e0 plus tard",
+  "@tacheSnackActionReportee": {"description": "Snackbar - Postponed"},
+  "tacheSnackProblemeEnregistre": "Probl\u00e8me enregistr\u00e9",
+  "@tacheSnackProblemeEnregistre": {"description": "Snackbar - Problem recorded"},
+  "tacheTermineMessage": "V\u00e9rification termin\u00e9e !",
+  "@tacheTermineMessage": {"description": "Message - Check completed"},
+  "tacheBravo": "Bravo, vos lapins sont bien soign\u00e9s.",
+  "@tacheBravo": {"description": "Message - Congratulations"},
+  "tacheBoutonTermine": "Termin\u00e9",
+  "@tacheBoutonTermine": {"description": "Button - Completed"},
+  "tacheAstucePerformants": "Astuce : des lapins bien soign\u00e9s sont plus performants",
+  "@tacheAstucePerformants": {"description": "Tip - Well-cared rabbits perform better"},
+  "tacheAstuceComplet": "Bravo ! Toutes les v\u00e9rifications sont compl\u00e8tes",
+  "@tacheAstuceComplet": {"description": "Tip - All checks complete"},
+  "tacheAstuceObservation": "Astuce : l'observation r\u00e9guli\u00e8re pr\u00e9vient les probl\u00e8mes",
+  "@tacheAstuceObservation": {"description": "Tip - Regular observation prevents issues"},
+  "tacheAstuceObserverNuit": "Astuce : observez le comportement nocturne de vos lapins",
+  "@tacheAstuceObserverNuit": {"description": "Tip - Observe night behavior"},
+  "tacheDuMatinComplet": "V\u00e9rification du matin compl\u00e8te",
+  "@tacheDuMatinComplet": {"description": "Message - Morning check complete"},
+  "tacheDuSoirComplet": "V\u00e9rification du soir compl\u00e8te",
+  "@tacheDuSoirComplet": {"description": "Message - Evening check complete"}
 }

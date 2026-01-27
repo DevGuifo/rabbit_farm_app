@@ -1,20 +1,25 @@
 # Cahier des charges - Application d'élevage de lapins Flutter Android
 
+**Version** : 2.0 - Janvier 2026  
+**Statut** : ✅ Production Ready
+
 ## 1. PRÉSENTATION DU PROJET
 
 ### 1.1 Contexte
-Développement d'une application mobile Android avec Flutter pour la gestion d'élevage de lapins, fonctionnant entièrement en local sans connexion internet requise.
+Développement d'une application mobile Android avec Flutter pour la gestion d'élevage de lapins, fonctionnant en **mode offline-first** avec synchronisation cloud optionnelle via Supabase.
 
 ### 1.2 Objectifs
 - Faciliter la gestion quotidienne d'un élevage de lapins
 - Éliminer la paperasse traditionnelle
 - Améliorer le suivi de la reproduction et de la santé des animaux
 - Optimiser la rentabilité de l'élevage
+- **Permettre la synchronisation multi-appareils** (optionnel)
+- **Sécuriser les données avec backup cloud** (optionnel)
 
 ### 1.3 Cible
 - Éleveurs amateurs et professionnels de lapins
 - Utilisateurs possédant un smartphone Android
-- Personnes souhaitant une solution locale sans dépendance cloud
+- Personnes souhaitant une solution locale avec option cloud
 
 ## 2. SPÉCIFICATIONS TECHNIQUES
 
@@ -27,20 +32,29 @@ Développement d'une application mobile Android avec Flutter pour la gestion d'�
 - **Sauvegarde** : Export/Import via fichiers locaux
 
 ### 2.2 Stack technique Flutter
-- **Framework** : Flutter 3.0+ avec Dart
-- **Base de données** : sqflite (SQLite pour Flutter)
-- **Navigation** : go_router ou Navigator 2.0
-- **Gestion d'état** : Provider ou Riverpod
-- **Stockage local** : shared_preferences + path_provider
+- **Framework** : Flutter 3.9.2+ avec Dart 3.9+
+- **Base de données locale** : sqflite (SQLite - 14 tables)
+- **Backend cloud** : Supabase (PostgreSQL + Auth + RLS)
+- **Navigation** : Navigator 2.0
+- **Gestion d'état** : Provider (17 providers MVVM)
+- **Stockage local** : shared_preferences + path_provider + flutter_secure_storage
 - **Photos** : image_picker
-- **Notifications** : flutter_local_notifications
+- **Notifications** : flutter_local_notifications (smart notifications)
 - **PDF/Export** : pdf + printing packages
 - **Charts** : fl_chart pour les graphiques
+- **Internationalisation** : flutter_localizations (FR/EN - 5306+ clés)
 
-### 2.3 Contraintes techniques
-- Fonctionnement 100% hors ligne
-- Aucune connexion internet requise
-- Stockage local sécurisé
+### 2.3 Architecture Offline-First
+- **Fonctionnement 100% hors ligne** : Toutes les opérations CRUD en local d'abord
+- **Synchronisation optionnelle** : Queue locale → Supabase quand disponible
+- **Stockage local sécurisé** : SQLite + SecureStorage pour tokens
+- **Interface responsive** : Smartphones et tablettes
+- **Row Level Security (RLS)** : Chaque utilisateur ne voit que ses données
+
+### 2.4 Contraintes techniques
+- Mode offline-first obligatoire
+- Connexion internet optionnelle (sync cloud)
+- Stockage local chiffré
 - Interface responsive adaptée aux smartphones et tablettes
 
 ## 3. FONCTIONNALITÉS PRINCIPALES

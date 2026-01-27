@@ -3,12 +3,15 @@ import 'package:provider/provider.dart';
 import 'package:rabbit_farm_app/l10n/app_localizations.dart';
 import '../../models/lapin.dart';
 import '../../models/accouplement.dart';
+import '../../models/enums/sexe.dart';
+import '../../models/enums/statut_accouplement.dart';
 import '../../providers/reproduction_provider.dart';
 import '../../providers/lapin_provider.dart';
 import '../../services/database_helper.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/uniform_app_bar.dart';
 import '../../utils/logger.dart';
+import '../../core/constants/error_messages.dart';
 
 /// Écran d'accouplement rapide (workflow simplifié)
 ///
@@ -52,8 +55,7 @@ class _QuickMatingScreenState extends State<QuickMatingScreen> {
     final tousMales = lapinProvider.lapins
         .where(
           (l) =>
-              (l.sexe.toLowerCase() == 'mâle' ||
-                  l.sexe.toLowerCase() == 'male') &&
+              l.sexe == Sexe.male &&
               l.statut != 'vendu' &&
               l.statut != 'decede' &&
               l.ageEnMois >= 5,
@@ -108,7 +110,8 @@ class _QuickMatingScreenState extends State<QuickMatingScreen> {
           .where(
             (a) =>
                 a.maleId == male.id &&
-                (a.statut == 'confirme' || a.statut == 'porte'),
+                (a.statut == StatutAccouplement.confirme ||
+                    a.statut == StatutAccouplement.termine),
           )
           .length;
       score += accouplementsReussis * 10.0;
@@ -166,7 +169,7 @@ class _QuickMatingScreenState extends State<QuickMatingScreen> {
         femelleId: widget.femelle.id!,
         dateAccouplement: _dateAccouplement,
         dateMiseBasPrevue: _dateAccouplement.add(const Duration(days: 31)),
-        statut: 'en_attente',
+        statut: StatutAccouplement.enAttente,
       );
 
       await reproProvider.ajouterAccouplement(accouplement);
@@ -187,9 +190,7 @@ class _QuickMatingScreenState extends State<QuickMatingScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(
-              AppLocalizations.of(context).msgErreurGenerique(e.toString()),
-            ),
+            content: Text(ErrorMessages.genericError),
             backgroundColor: AppTheme.error,
           ),
         );
@@ -206,12 +207,10 @@ class _QuickMatingScreenState extends State<QuickMatingScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      appBar: UniformAppBar(
+      appBar: SimpleAppBar(
         title: AppLocalizations.of(
           context,
         ).reproAccouplerAvec(widget.femelle.nom),
-        icon: Icons.favorite_rounded,
-        iconColor: AppTheme.accentPink,
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())

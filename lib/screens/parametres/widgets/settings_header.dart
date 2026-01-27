@@ -23,8 +23,8 @@ class SettingsHeader extends StatelessWidget {
       decoration: BoxDecoration(
         color:
             (isDark
-                    ? AppTheme.stitchBackgroundDark
-                    : AppTheme.stitchBackgroundLight)
+                    ? AppTheme.backgroundDark
+                    : AppTheme.backgroundLight)
                 .withValues(alpha: 0.95),
         border: Border(
           bottom: BorderSide(
@@ -49,7 +49,7 @@ class SettingsHeader extends StatelessWidget {
                 letterSpacing: -0.5,
                 color: isDark
                     ? AppTheme.textOnPrimary
-                    : AppTheme.stitchTextDark,
+                    : AppTheme.textPrimary,
               ),
             ),
 
@@ -63,7 +63,7 @@ class SettingsHeader extends StatelessWidget {
                     Icons.sync,
                     color: isDark
                         ? AppTheme.textOnPrimary
-                        : AppTheme.stitchTextDark,
+                        : AppTheme.textPrimary,
                   ),
                   style: IconButton.styleFrom(
                     backgroundColor: Colors.transparent,
@@ -80,7 +80,7 @@ class SettingsHeader extends StatelessWidget {
                         Icons.notifications,
                         color: isDark
                             ? AppTheme.textOnPrimary
-                            : AppTheme.stitchTextDark,
+                            : AppTheme.textPrimary,
                       ),
                       style: IconButton.styleFrom(
                         backgroundColor: Colors.transparent,
@@ -99,7 +99,7 @@ class SettingsHeader extends StatelessWidget {
                             shape: BoxShape.circle,
                             border: Border.all(
                               color: isDark
-                                  ? AppTheme.stitchBackgroundDark
+                                  ? AppTheme.backgroundDark
                                   : AppTheme.textOnPrimary,
                               width: 1.5,
                             ),

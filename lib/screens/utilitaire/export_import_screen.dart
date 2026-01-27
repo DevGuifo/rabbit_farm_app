@@ -23,6 +23,9 @@ import '../../utils/dialog_helper.dart';
 import '../../utils/snackbar_helper.dart';
 import '../../utils/logger.dart';
 import '../../models/lapin.dart';
+import '../../models/enums/sexe.dart';
+import '../../models/enums/statut_accouplement.dart';
+import '../../models/enums/finance_enums.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/uniform_app_bar.dart';
 import 'widgets/export_options_section.dart';
@@ -161,9 +164,12 @@ class _ExportImportScreenState extends State<ExportImportScreen> {
 
   Future<void> _shareBackup() async {
     if (_lastBackupPath != null) {
-      await Share.shareXFiles([
-        XFile(_lastBackupPath!),
-      ], subject: 'Sauvegarde BunnyManager');
+      await SharePlus.instance.share(
+        ShareParams(
+          files: [XFile(_lastBackupPath!)],
+          subject: 'Sauvegarde BunnyManager',
+        ),
+      );
     }
   }
 
@@ -228,10 +234,12 @@ class _ExportImportScreenState extends State<ExportImportScreen> {
       logger.info('Archive ZIP créée: $zipPath');
 
       // 7. Partager l'archive ZIP
-      await Share.shareXFiles(
-        [XFile(zipPath)],
-        subject: 'Sauvegarde BunnyManager - $timestamp',
-        text: 'Sauvegarde complète de vos données d\'élevage (format ZIP)',
+      await SharePlus.instance.share(
+        ShareParams(
+          files: [XFile(zipPath)],
+          subject: 'Sauvegarde BunnyManager - $timestamp',
+          text: 'Sauvegarde complète de vos données d\'élevage (format ZIP)',
+        ),
       );
 
       // 8. Sauvegarder les infos de backup
@@ -276,7 +284,7 @@ class _ExportImportScreenState extends State<ExportImportScreen> {
           IntCellValue(lapin.id ?? 0),
           TextCellValue(lapin.nom),
           TextCellValue(lapin.race),
-          TextCellValue(lapin.sexe),
+          TextCellValue(lapin.sexe.label),
           TextCellValue(DateFormat('dd/MM/yyyy').format(lapin.dateNaissance)),
           TextCellValue(lapin.statut ?? ''),
         ]);
@@ -299,7 +307,7 @@ class _ExportImportScreenState extends State<ExportImportScreen> {
           IntCellValue(acc.maleId),
           IntCellValue(acc.femelleId),
           TextCellValue(DateFormat('dd/MM/yyyy').format(acc.dateAccouplement)),
-          TextCellValue(acc.statut),
+          TextCellValue(acc.statut.label),
         ]);
       }
 
@@ -317,7 +325,7 @@ class _ExportImportScreenState extends State<ExportImportScreen> {
         recettesSheet.appendRow([
           IntCellValue(r.id ?? 0),
           DoubleCellValue(r.montant),
-          TextCellValue(r.categorie),
+          TextCellValue(r.categorie.label),
           TextCellValue(DateFormat('dd/MM/yyyy').format(r.date)),
         ]);
       }
@@ -336,7 +344,7 @@ class _ExportImportScreenState extends State<ExportImportScreen> {
         depensesSheet.appendRow([
           IntCellValue(d.id ?? 0),
           DoubleCellValue(d.montant),
-          TextCellValue(d.categorie),
+          TextCellValue(d.categorie.label),
           TextCellValue(DateFormat('dd/MM/yyyy').format(d.date)),
         ]);
       }
@@ -354,9 +362,12 @@ class _ExportImportScreenState extends State<ExportImportScreen> {
       await file.writeAsBytes(fileBytes!);
 
       // Partager
-      await Share.shareXFiles([
-        XFile(filePath),
-      ], text: 'Export Excel de l\'\u00e9levage');
+      await SharePlus.instance.share(
+        ShareParams(
+          files: [XFile(filePath)],
+          text: 'Export Excel de l\'\u00e9levage',
+        ),
+      );
 
       if (mounted) {
         SnackbarHelper.showSuccess(
@@ -401,7 +412,7 @@ class _ExportImportScreenState extends State<ExportImportScreen> {
             lapin.id?.toString() ?? '',
             _escapeCsv(lapin.nom),
             _escapeCsv(lapin.race),
-            _escapeCsv(lapin.sexe),
+            _escapeCsv(lapin.sexe.label),
             DateFormat('yyyy-MM-dd').format(lapin.dateNaissance),
             lapin.poids?.toString() ?? '',
             lapin.statut ?? '',
@@ -431,7 +442,7 @@ class _ExportImportScreenState extends State<ExportImportScreen> {
             _escapeCsv(femelle?.nom ?? 'Inconnu'),
             DateFormat('yyyy-MM-dd').format(acc.dateAccouplement),
             DateFormat('yyyy-MM-dd').format(acc.dateMiseBasPrevue),
-            _escapeCsv(acc.statut),
+            _escapeCsv(acc.statut.label),
           ].join(','),
         );
       }
@@ -477,7 +488,7 @@ class _ExportImportScreenState extends State<ExportImportScreen> {
       // 5. SOINS
       csvLines.add('=== SOINS ===');
       csvLines.add(
-        'ID,Lapin ID,Lapin Nom,Date,Type,Description,Médicament,Dosage',
+        'ID,Lapin ID,Lapin Nom,Date,Type,Description,Médicament ID,Dosage',
       );
       final soins = await db.getAllSoins();
       for (final soin in soins) {
@@ -488,9 +499,9 @@ class _ExportImportScreenState extends State<ExportImportScreen> {
             soin.lapinId.toString(),
             _escapeCsv(lapin?.nom ?? 'Inconnu'),
             DateFormat('yyyy-MM-dd').format(soin.date),
-            _escapeCsv(soin.type),
+            _escapeCsv(soin.type.label),
             _escapeCsv(soin.description),
-            _escapeCsv(soin.medicament ?? ''),
+            soin.medicamentId?.toString() ?? '',
             _escapeCsv(soin.dosage ?? ''),
           ].join(','),
         );
@@ -506,7 +517,7 @@ class _ExportImportScreenState extends State<ExportImportScreen> {
           [
             recette.id?.toString() ?? '',
             DateFormat('yyyy-MM-dd').format(recette.date),
-            _escapeCsv(recette.categorie),
+            _escapeCsv(recette.categorie.label),
             recette.montant.toString(),
             _escapeCsv(recette.description),
             recette.lapinId?.toString() ?? '',
@@ -524,7 +535,7 @@ class _ExportImportScreenState extends State<ExportImportScreen> {
           [
             depense.id?.toString() ?? '',
             DateFormat('yyyy-MM-dd').format(depense.date),
-            _escapeCsv(depense.categorie),
+            _escapeCsv(depense.categorie.label),
             depense.montant.toString(),
             _escapeCsv(depense.description),
           ].join(','),
@@ -540,9 +551,12 @@ class _ExportImportScreenState extends State<ExportImportScreen> {
       await file.writeAsString(csvLines.join('\n'), encoding: utf8);
 
       // Partager
-      await Share.shareXFiles([
-        XFile(filePath),
-      ], text: 'Export CSV complet de l\'élevage');
+      await SharePlus.instance.share(
+        ShareParams(
+          files: [XFile(filePath)],
+          text: 'Export CSV complet de l\'élevage',
+        ),
+      );
 
       if (mounted) {
         SnackbarHelper.showSuccess(context, '✅ Export CSV réussi : $fileName');
@@ -595,9 +609,12 @@ class _ExportImportScreenState extends State<ExportImportScreen> {
       await file.writeAsString(jsonString);
 
       // Partager
-      await Share.shareXFiles([
-        XFile(filePath),
-      ], text: 'Export JSON de l\'\u00e9levage');
+      await SharePlus.instance.share(
+        ShareParams(
+          files: [XFile(filePath)],
+          text: 'Export JSON de l\'\u00e9levage',
+        ),
+      );
 
       if (mounted) {
         SnackbarHelper.showSuccess(context, '✅ Export JSON réussi : $fileName');
@@ -807,7 +824,7 @@ class _ExportImportScreenState extends State<ExportImportScreen> {
             final lapin = Lapin(
               nom: nom,
               race: race,
-              sexe: sexeStr,
+              sexe: Sexe.fromString(sexeStr),
               dateNaissance: dateNaissance,
               statut: statut,
             );
@@ -884,7 +901,7 @@ class _ExportImportScreenState extends State<ExportImportScreen> {
                 continue;
               }
 
-              final statut =
+              final statutStr =
                   _getCellValue(row[4])?.toString().trim() ?? 'en_attente';
 
               final accouplement = Accouplement(
@@ -894,7 +911,7 @@ class _ExportImportScreenState extends State<ExportImportScreen> {
                 dateMiseBasPrevue: dateAccouplement.add(
                   const Duration(days: 31),
                 ),
-                statut: statut,
+                statut: StatutAccouplement.fromString(statutStr),
               );
 
               await db.insertAccouplement(accouplement);
@@ -953,7 +970,7 @@ class _ExportImportScreenState extends State<ExportImportScreen> {
 
               final recette = Recette(
                 montant: montant,
-                categorie: categorie,
+                categorie: CategorieRecette.fromString(categorie),
                 date: date,
                 description: 'Import Excel',
               );
@@ -1113,7 +1130,7 @@ class _ExportImportScreenState extends State<ExportImportScreen> {
           final lapin = Lapin(
             nom: nom,
             race: race,
-            sexe: sexe == 'male' || sexe == 'm' ? 'male' : 'femelle',
+            sexe: Sexe.fromString(sexe),
             dateNaissance: dateNaissance,
           );
 
@@ -1217,9 +1234,7 @@ class _ExportImportScreenState extends State<ExportImportScreen> {
           final lapin = Lapin(
             nom: lapinData['nom'] as String,
             race: lapinData['race'] as String,
-            sexe: (lapinData['sexe'] as String).toLowerCase() == 'male'
-                ? 'male'
-                : 'femelle',
+            sexe: Sexe.fromString(lapinData['sexe'] as String),
             dateNaissance: DateTime.parse(
               lapinData['date_naissance'] as String,
             ),

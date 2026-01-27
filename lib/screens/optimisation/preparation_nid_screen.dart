@@ -6,9 +6,10 @@ import '../../providers/preparation_nid_provider.dart';
 import '../../providers/reproduction_provider.dart';
 import '../../providers/lapin_provider.dart';
 import '../../models/preparation_nid.dart';
+import '../../models/enums/statut_accouplement.dart';
 import '../../theme/app_theme.dart';
+import '../../widgets/common/common_widgets.dart';
 import '../../widgets/materiau_selector.dart';
-import '../../widgets/uniform_app_bar.dart';
 
 class PreparationNidScreen extends StatefulWidget {
   const PreparationNidScreen({super.key});
@@ -32,10 +33,8 @@ class _PreparationNidScreenState extends State<PreparationNidScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: UniformAppBar(
+      appBar: SimpleAppBar(
         title: AppLocalizations.of(context).screenPreparationNid,
-        icon: Icons.nest_cam_wired_stand_rounded,
-        iconColor: AppTheme.accentBrown,
         actions: [
           PopupMenuButton<String>(
             icon: const Icon(Icons.filter_list),
@@ -188,11 +187,9 @@ class _PreparationNidScreenState extends State<PreparationNidScreen> {
               );
             },
       ),
-      floatingActionButton: FloatingActionButton(
-        heroTag: 'fab_prep_nid',
+      floatingActionButton: UnifiedFAB(
         onPressed: () => _showAjouterPreparationDialog(context),
-        backgroundColor: AppTheme.accentBrown,
-        child: const Icon(Icons.add),
+        tooltip: '${AppLocalizations.of(context).commonAjouter} nid',
       ),
     );
   }
@@ -459,7 +456,7 @@ class _PreparationNidScreenState extends State<PreparationNidScreen> {
   void _showAjouterPreparationDialog(BuildContext context) {
     final reproProvider = context.read<ReproductionProvider>();
     final accouplements = reproProvider.accouplements
-        .where((a) => a.statut == 'confirme')
+        .where((a) => a.statut == StatutAccouplement.confirme)
         .toList();
 
     if (accouplements.isEmpty) {
@@ -847,30 +844,25 @@ class _PreparationNidScreenState extends State<PreparationNidScreen> {
     );
   }
 
-  void _confirmerSuppression(BuildContext context, PreparationNid preparation) {
-    showDialog(
+  void _confirmerSuppression(
+    BuildContext context,
+    PreparationNid preparation,
+  ) async {
+    final l10n = AppLocalizations.of(context);
+    final confirmed = await ConfirmDialog.show(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text(AppLocalizations.of(context).commonConfirmDeletion),
-        content: Text(AppLocalizations.of(context).commonDeleteQuestion),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(AppLocalizations.of(context).commonCancel),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: AppTheme.error),
-            onPressed: () {
-              context.read<PreparationNidProvider>().supprimerPreparation(
-                preparation.id!,
-              );
-              Navigator.pop(context);
-            },
-            child: Text(AppLocalizations.of(context).supprimer),
-          ),
-        ],
-      ),
+      title: l10n.commonConfirmDeletion,
+      message: l10n.commonDeleteQuestion,
+      confirmText: l10n.supprimer,
+      cancelText: l10n.commonCancel,
+      isDestructive: true,
     );
+
+    if (confirmed == true && context.mounted) {
+      context.read<PreparationNidProvider>().supprimerPreparation(
+        preparation.id!,
+      );
+    }
   }
 
   void _showAideDialog(BuildContext context) {
@@ -881,7 +873,7 @@ class _PreparationNidScreenState extends State<PreparationNidScreen> {
           children: [
             Icon(Icons.help, color: AppTheme.accentOrange700),
             const SizedBox(width: 8),
-            const Text('Aide - Préparation du nid'),
+            Text(AppLocalizations.of(context).aidePreparationNid),
           ],
         ),
         content: SingleChildScrollView(
@@ -950,7 +942,7 @@ class _PreparationNidScreenState extends State<PreparationNidScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Fermer'),
+            child: Text(AppLocalizations.of(context).btnFermer),
           ),
         ],
       ),

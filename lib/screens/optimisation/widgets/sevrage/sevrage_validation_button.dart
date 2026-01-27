@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:rabbit_farm_app/theme/app_theme.dart';
+import '../../../../l10n/app_localizations.dart';
 
 class SevrageValidationButton extends StatelessWidget {
   final bool enabled;
@@ -18,7 +19,10 @@ class SevrageValidationButton extends StatelessWidget {
       child: ElevatedButton.icon(
         onPressed: enabled ? onValidate : null,
         icon: const Icon(Icons.check_circle, size: 24),
-        label: const Text('Valider le sevrage', style: AppTheme.titleSmall),
+        label: Text(
+          AppLocalizations.of(context).sevrageValiderLabel,
+          style: AppTheme.titleSmall,
+        ),
         style: ElevatedButton.styleFrom(
           backgroundColor: AppTheme.success,
           foregroundColor: AppTheme.textOnPrimary,

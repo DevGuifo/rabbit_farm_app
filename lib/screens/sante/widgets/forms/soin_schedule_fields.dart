@@ -20,11 +20,11 @@ class RappelDateFieldWidget extends StatelessWidget {
     final surfaceColor = isDark ? AppTheme.backgroundDark : AppTheme.cardLight;
     final textPrimary = isDark ? AppTheme.cardLight : AppTheme.textPrimary;
     final textSecondary = isDark
-        ? AppTheme.stitchGreenLight
+        ? AppTheme.success100
         : AppTheme.textSecondary;
     final borderColor = isDark
-        ? AppTheme.stitchSurfaceDarkCard
-        : AppTheme.stitchSurfaceLightAlt;
+        ? AppTheme.surfaceDarkElevated
+        : AppTheme.surfaceLight;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -94,11 +94,11 @@ class ReminderCheckbox extends StatelessWidget {
     final surfaceColor = isDark ? AppTheme.backgroundDark : AppTheme.cardLight;
     final textPrimary = isDark ? AppTheme.cardLight : AppTheme.textPrimary;
     final textSecondary = isDark
-        ? AppTheme.stitchGreenLight
+        ? AppTheme.success100
         : AppTheme.textSecondary;
     final borderColor = isDark
-        ? AppTheme.stitchSurfaceDarkCard
-        : AppTheme.stitchSurfaceLightAlt;
+        ? AppTheme.surfaceDarkElevated
+        : AppTheme.surfaceLight;
 
     return Container(
       padding: AppTheme.paddingAllMedium,

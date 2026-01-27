@@ -42,8 +42,8 @@ class LocalisationBuildingCards extends StatelessWidget {
                 'Buildings',
                 style: AppTheme.titleMedium.copyWith(
                   color: isDark
-                      ? AppTheme.stitchTextLight
-                      : AppTheme.stitchTextMainLight,
+                      ? AppTheme.textOnPrimary
+                      : AppTheme.textPrimary,
                 ),
               ),
               TextButton(
@@ -109,7 +109,7 @@ class LocalisationBuildingCards extends StatelessWidget {
         width: 160,
         margin: const EdgeInsets.only(right: 12),
         decoration: BoxDecoration(
-          color: isDark ? AppTheme.stitchSurfaceDarkAlt : AppTheme.textOnPrimary,
+          color: isDark ? AppTheme.surfaceDark : AppTheme.textOnPrimary,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
             color: isDark ? AppTheme.greyDarkest : AppTheme.greyE5,
@@ -150,8 +150,8 @@ class LocalisationBuildingCards extends StatelessWidget {
                       Icons.more_horiz_rounded,
                       size: 20,
                       color: isDark
-                          ? AppTheme.stitchGreen
-                          : AppTheme.stitchTextSecLight,
+                          ? AppTheme.accentGreen
+                          : AppTheme.textSecondary,
                     ),
                     padding: EdgeInsets.zero,
                     constraints: const BoxConstraints(),
@@ -165,8 +165,8 @@ class LocalisationBuildingCards extends StatelessWidget {
                   fontSize: 15,
                   fontWeight: FontWeight.bold,
                   color: isDark
-                      ? AppTheme.stitchTextLight
-                      : AppTheme.stitchTextMainLight,
+                      ? AppTheme.textOnPrimary
+                      : AppTheme.textPrimary,
                 ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
@@ -177,8 +177,8 @@ class LocalisationBuildingCards extends StatelessWidget {
                 style: AppTheme.caption.copyWith(
                   fontWeight: FontWeight.w600,
                   color: isDark
-                      ? AppTheme.stitchGreen
-                      : AppTheme.stitchTextSecLight,
+                      ? AppTheme.accentGreen
+                      : AppTheme.textSecondary,
                 ),
               ),
               const SizedBox(height: 1),
@@ -186,8 +186,8 @@ class LocalisationBuildingCards extends StatelessWidget {
                 emptyCages == 0 ? 'Full' : '$emptyCages Empty',
                 style: AppTheme.caption.copyWith(
                   color: isDark
-                      ? AppTheme.stitchGreen
-                      : AppTheme.stitchTextSecLight,
+                      ? AppTheme.accentGreen
+                      : AppTheme.textSecondary,
                 ),
               ),
             ],
@@ -238,8 +238,8 @@ class LocalisationBuildingCards extends StatelessWidget {
               style: AppTheme.caption.copyWith(
                 fontWeight: FontWeight.bold,
                 color: isDark
-                    ? AppTheme.stitchGreen
-                    : AppTheme.stitchTextSecLight,
+                    ? AppTheme.accentGreen
+                    : AppTheme.textSecondary,
               ),
             ),
           ],

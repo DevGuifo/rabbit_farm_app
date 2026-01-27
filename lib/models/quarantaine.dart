@@ -1,13 +1,14 @@
+import 'enums/quarantaine_enums.dart';
+
 class Quarantaine {
   final int? id;
   final int lapinId;
   final DateTime dateDebut;
   final DateTime? dateFin;
-  final String
-  motif; // 'nouveau', 'maladie', 'isolement_sanitaire', 'observation'
+  final MotifQuarantaine motif;
   final String? symptomes;
   final String? traitement;
-  final String statut; // 'en_cours', 'termine', 'transfere'
+  final StatutQuarantaine statut;
   final String? notes;
 
   Quarantaine({
@@ -28,10 +29,10 @@ class Quarantaine {
       'lapin_id': lapinId,
       'date_debut': dateDebut.toIso8601String(),
       'date_fin': dateFin?.toIso8601String(),
-      'motif': motif,
+      'motif': motif.toDatabase(),
       'symptomes': symptomes,
       'traitement': traitement,
-      'statut': statut,
+      'statut': statut.toDatabase(),
       'notes': notes,
     };
   }
@@ -44,10 +45,10 @@ class Quarantaine {
       dateFin: map['date_fin'] != null
           ? DateTime.parse(map['date_fin'] as String)
           : null,
-      motif: map['motif'] as String,
+      motif: MotifQuarantaine.fromString(map['motif'] as String),
       symptomes: map['symptomes'] as String?,
       traitement: map['traitement'] as String?,
-      statut: map['statut'] as String,
+      statut: StatutQuarantaine.fromString(map['statut'] as String),
       notes: map['notes'] as String?,
     );
   }
@@ -57,17 +58,17 @@ class Quarantaine {
     return fin.difference(dateDebut).inDays;
   }
 
-  bool get estEnCours => statut == 'en_cours';
+  bool get estEnCours => statut == StatutQuarantaine.enCours;
 
   Quarantaine copyWith({
     int? id,
     int? lapinId,
     DateTime? dateDebut,
     DateTime? dateFin,
-    String? motif,
+    MotifQuarantaine? motif,
     String? symptomes,
     String? traitement,
-    String? statut,
+    StatutQuarantaine? statut,
     String? notes,
   }) {
     return Quarantaine(

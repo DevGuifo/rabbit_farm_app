@@ -3,11 +3,13 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import 'package:rabbit_farm_app/l10n/app_localizations.dart';
 import '../../models/lapin.dart';
+import '../../models/enums/sexe.dart';
 import '../../models/soin.dart';
+import '../../models/enums/type_soin.dart';
 import '../../providers/sante_provider.dart';
 import '../../utils/snackbar_helper.dart';
 import '../../theme/app_theme.dart';
-import '../../widgets/uniform_app_bar.dart';
+import '../../widgets/common/common_widgets.dart';
 
 /// Écran pour modifier un soin existant
 class EditSoinScreen extends StatefulWidget {
@@ -27,17 +29,12 @@ class _EditSoinScreenState extends State<EditSoinScreen> {
   late final TextEditingController _dosageController;
   late final TextEditingController _notesController;
 
-  late String _typeSoin;
+  late TypeSoin _typeSoin;
   late DateTime _date;
   DateTime? _dateRappel;
   late bool _avecRappel;
 
-  final List<String> _typesSoins = [
-    'vaccination',
-    'traitement',
-    'vermifuge',
-    'autre',
-  ];
+  final List<TypeSoin> _typesSoins = TypeSoin.values;
 
   @override
   void initState() {
@@ -48,7 +45,7 @@ class _EditSoinScreenState extends State<EditSoinScreen> {
       text: widget.soin.description,
     );
     _medicamentController = TextEditingController(
-      text: widget.soin.medicament ?? '',
+      text: '',
     );
     _dosageController = TextEditingController(text: widget.soin.dosage ?? '');
     _notesController = TextEditingController(text: widget.soin.notes ?? '');
@@ -100,9 +97,6 @@ class _EditSoinScreenState extends State<EditSoinScreen> {
       date: _date,
       type: _typeSoin,
       description: _descriptionController.text,
-      medicament: _medicamentController.text.isNotEmpty
-          ? _medicamentController.text
-          : null,
       dosage: _dosageController.text.isNotEmpty ? _dosageController.text : null,
       dateRappel: _avecRappel ? _dateRappel : null,
       notes: _notesController.text.isNotEmpty ? _notesController.text : null,
@@ -121,7 +115,10 @@ class _EditSoinScreenState extends State<EditSoinScreen> {
       }
     } catch (e) {
       if (mounted) {
-        SnackbarHelper.showError(context, 'Erreur : $e');
+        SnackbarHelper.showError(
+          context,
+          AppLocalizations.of(context).msgErreurOperationEchouee,
+        );
       }
     }
   }
@@ -132,10 +129,8 @@ class _EditSoinScreenState extends State<EditSoinScreen> {
 
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
-      appBar: UniformAppBar(
+      appBar: SimpleAppBar(
         title: AppLocalizations.of(context).santeModifierSoin,
-        icon: Icons.medical_services_rounded,
-        iconColor: AppTheme.info,
       ),
       body: Form(
         key: _formKey,
@@ -151,12 +146,12 @@ class _EditSoinScreenState extends State<EditSoinScreen> {
                   children: [
                     CircleAvatar(
                       radius: 30,
-                      backgroundColor: widget.lapin.sexe == 'Mâle'
+                      backgroundColor: widget.lapin.sexe == Sexe.male
                           ? AppTheme.info.withValues(alpha: 0.2)
                           : AppTheme.accentPink.withValues(alpha: 0.2),
                       child: Icon(
-                        widget.lapin.sexe == 'Mâle' ? Icons.male : Icons.female,
-                        color: widget.lapin.sexe == 'Mâle'
+                        widget.lapin.sexe == Sexe.male ? Icons.male : Icons.female,
+                        color: widget.lapin.sexe == Sexe.male
                             ? AppTheme.info
                             : AppTheme.accentPink,
                         size: 32,
@@ -193,16 +188,16 @@ class _EditSoinScreenState extends State<EditSoinScreen> {
             AppTheme.verticalSpace16,
 
             // Type de soin
-            DropdownButtonFormField<String>(
+            DropdownButtonFormField<TypeSoin>(
               initialValue: _typeSoin,
               decoration: AppTheme.inputDecoration(
                 label: AppLocalizations.of(context).santeTypeSoin,
                 prefixIcon: Icons.category,
               ),
               items: _typesSoins.map((type) {
-                return DropdownMenuItem(
+                return DropdownMenuItem<TypeSoin>(
                   value: type,
-                  child: Text(_getTypeLabel(type)),
+                  child: Text(type.label),
                 );
               }).toList(),
               onChanged: (value) {
@@ -303,53 +298,17 @@ class _EditSoinScreenState extends State<EditSoinScreen> {
               ),
               maxLines: 3,
             ),
-            AppTheme.verticalSpace24,
-
-            // Boutons d'action
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: () => Navigator.pop(context),
-                    icon: const Icon(Icons.close),
-                    label: Text(AppLocalizations.of(context).commonCancel),
-                    style: OutlinedButton.styleFrom(
-                      padding: AppTheme.paddingAllMedium,
-                    ),
-                  ),
-                ),
-                AppTheme.horizontalSpace16,
-                Expanded(
-                  flex: 2,
-                  child: FilledButton.icon(
-                    onPressed: _modifierSoin,
-                    icon: const Icon(Icons.save),
-                    label: Text(AppLocalizations.of(context).commonSave),
-                    style: FilledButton.styleFrom(
-                      padding: AppTheme.paddingAllMedium,
-                    ),
-                  ),
-                ),
-              ],
-            ),
+            // Espace pour FormActionBar
+            const SizedBox(height: 80),
           ],
         ),
+      ),
+      bottomNavigationBar: FormActionBar(
+        onCancel: () => Navigator.pop(context),
+        onSave: _modifierSoin,
+        saveText: AppLocalizations.of(context).commonSave,
       ),
     );
   }
 
-  String _getTypeLabel(String type) {
-    switch (type) {
-      case 'vaccination':
-        return 'Vaccination';
-      case 'traitement':
-        return 'Traitement';
-      case 'vermifuge':
-        return 'Vermifuge';
-      case 'autre':
-        return 'Autre';
-      default:
-        return type;
-    }
-  }
 }

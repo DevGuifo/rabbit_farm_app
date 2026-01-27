@@ -1,17 +1,15 @@
 import '../services/database_helper.dart';
 import '../services/notification_service.dart';
+import '../services/notification_consolidator.dart';
 import '../models/portee.dart';
-import '../models/soin.dart';
+import '../models/enums/statut_accouplement.dart';
 import '../utils/logger.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 /// Service intelligent de notifications automatiques
-/// 
-/// Scanne automatiquement les données et planifie toutes les notifications nécessaires :
-/// - Accouplements : palpation, préparation nid, mise bas
-/// - Portées : sevrage, pesées hebdomadaires des lapereaux
-/// - Soins : rappels de vaccinations et traitements
-/// - Pesées : rappels hebdomadaires
+///
+/// Scanne les données, consolide les événements similaires et planifie les notifications.
+/// Implémente la logique "Moins mais Mieux" de l'audit UX 2026.
 class SmartNotificationService {
   static final SmartNotificationService _instance =
       SmartNotificationService._internal();
@@ -20,6 +18,7 @@ class SmartNotificationService {
 
   final DatabaseHelper _db = DatabaseHelper.instance;
   final NotificationService _notificationService = NotificationService();
+  final NotificationConsolidator _consolidator = NotificationConsolidator();
 
   bool _isInitialized = false;
 
@@ -28,64 +27,57 @@ class SmartNotificationService {
     if (_isInitialized) return;
     await _notificationService.initialize();
     _isInitialized = true;
-    logger.info('✅ SmartNotificationService initialisé');
+    logger.info('✅ SmartNotificationService initialisé (Mode Consolidé)');
   }
 
-  /// Scanner et planifier toutes les notifications nécessaires
-  /// 
-  /// Cette méthode doit être appelée :
-  /// - Au démarrage de l'application
-  /// - Après chaque modification importante (accouplement, portée, soin)
-  /// - Périodiquement (tous les jours)
+  /// Scanner, consolider et planifier toutes les notifications
   Future<void> scanAndScheduleAllNotifications() async {
     if (!_isInitialized) await initialize();
 
     try {
-      logger.info('🔄 Début du scan des notifications...');
+      logger.info('🔄 Début du scan et consolidation des notifications...');
 
-      // 1. Scanner les accouplements
-      await _scanAccouplements();
+      // 1. Collecte des événements bruts
+      await _processAccouplements();
+      await _processPortees();
+      await _processSoins();
 
-      // 2. Scanner les portées
-      await _scanPortees();
+      // 2. Traitement des pesées avec consolidation
+      await _processPeseesConsolidees();
 
-      // 3. Scanner les soins avec rappels
-      await _scanSoins();
+      // 3. Traitement des stocks avec consolidation
+      await _processStocksConsolides();
 
-      // 4. Scanner les pesées pour rappels hebdomadaires
-      await _scanPesees();
-
-      logger.info('✅ Scan des notifications terminé');
+      logger.info('✅ Scan et planification terminés');
     } catch (e, stackTrace) {
       logger.error(
-        '❌ Erreur lors du scan des notifications',
+        '❌ Erreur lors du smart scan des notifications',
         e,
         stackTrace,
       );
     }
   }
 
-  /// Scanner les accouplements et planifier les notifications
-  Future<void> _scanAccouplements() async {
+  /// Traiter les accouplements (Mise bas, Palpation, Nid)
+  Future<void> _processAccouplements() async {
     try {
       final accouplements = await _db.getAllAccouplements();
       int count = 0;
 
       for (final accouplement in accouplements) {
-        // Seulement pour les accouplements en attente ou confirmés
-        if (accouplement.statut != 'en_attente' &&
-            accouplement.statut != 'confirme') {
+        if (accouplement.statut != StatutAccouplement.enAttente &&
+            accouplement.statut != StatutAccouplement.confirme) {
           continue;
         }
-
         if (accouplement.id == null) continue;
 
         final femelle = await _db.getLapinById(accouplement.femelleId);
         if (femelle == null) continue;
 
-        // 1. Notification de palpation (10-12 jours après accouplement)
-        final datePalpation = accouplement.dateAccouplement
-            .add(const Duration(days: 11)); // 11 jours = milieu de la fenêtre
+        // A. Palpation (J+11)
+        final datePalpation = accouplement.dateAccouplement.add(
+          const Duration(days: 11),
+        );
         if (datePalpation.isAfter(DateTime.now())) {
           await _notificationService.planifierRappelPalpation(
             accouplementId: accouplement.id!,
@@ -95,9 +87,10 @@ class SmartNotificationService {
           count++;
         }
 
-        // 2. Notification de préparation du nid (3 jours avant mise bas = 28 jours après accouplement)
-        final dateNid = accouplement.dateAccouplement
-            .add(const Duration(days: 28));
+        // B. Préparation Nid (J+28)
+        final dateNid = accouplement.dateAccouplement.add(
+          const Duration(days: 28),
+        );
         if (dateNid.isAfter(DateTime.now())) {
           await _notificationService.planifierRappelNid(
             accouplementId: accouplement.id!,
@@ -107,23 +100,12 @@ class SmartNotificationService {
           count++;
         }
 
-        // 3. Notification de mise bas (3 jours avant la date prévue)
-        final dateRappelMiseBas = accouplement.dateMiseBasPrevue
-            .subtract(const Duration(days: 3));
-        if (dateRappelMiseBas.isAfter(DateTime.now())) {
-          await _notificationService.planifierRappelMiseBas(
-            accouplementId: accouplement.id!,
-            dateMiseBasPrevue: accouplement.dateMiseBasPrevue,
-            nomFemelle: femelle.nom,
-          );
-          count++;
-        }
-
-        // 4. Notification du jour de mise bas (le jour même)
+        // C. Mise Bas Jour J (Matin 8h)
+        // Note: Suppression du rappel J-3 (anxiogène) selon audit UX
         if (accouplement.dateMiseBasPrevue.isAfter(DateTime.now()) &&
-            accouplement.dateMiseBasPrevue
-                .difference(DateTime.now())
-                .inDays <= 1) {
+            accouplement.dateMiseBasPrevue.difference(DateTime.now()).inDays <=
+                30) {
+          // On planifie le jour même à 8h00
           await _scheduleMiseBasDayNotification(
             accouplementId: accouplement.id!,
             dateMiseBas: accouplement.dateMiseBasPrevue,
@@ -132,15 +114,14 @@ class SmartNotificationService {
           count++;
         }
       }
-
-      logger.info('✅ $count notifications d\'accouplements planifiées');
+      logger.info('🐰 $count notifications reproduction planifiées');
     } catch (e) {
-      logger.error('❌ Erreur lors du scan des accouplements: $e');
+      logger.error('❌ Erreur process accouplements: $e');
     }
   }
 
-  /// Scanner les portées et planifier les notifications de sevrage
-  Future<void> _scanPortees() async {
+  /// Traiter les portées (Sevrage, Pesées Portée)
+  Future<void> _processPortees() async {
     try {
       final portees = await _db.getAllPortees();
       int count = 0;
@@ -148,12 +129,10 @@ class SmartNotificationService {
       for (final portee in portees) {
         if (portee.id == null) continue;
 
-        // Calculer la date de sevrage (5-6 semaines = 35-42 jours après mise bas)
-        // On planifie à 5 semaines (35 jours) pour rappel
-        final dateSevrage = portee.dateMiseBasReelle
-            .add(const Duration(days: 35));
-
-        // Seulement si la date de sevrage est dans le futur
+        // Sevrage à 35 jours
+        final dateSevrage = portee.dateMiseBasReelle.add(
+          const Duration(days: 35),
+        );
         if (dateSevrage.isAfter(DateTime.now())) {
           await _scheduleSevrageNotification(
             porteeId: portee.id!,
@@ -161,21 +140,20 @@ class SmartNotificationService {
             portee: portee,
           );
           count++;
-
-          // Planifier les pesées hebdomadaires des lapereaux
-          // (toutes les semaines jusqu'au sevrage)
-          await _scheduleWeeklyPeseeForPortee(portee);
         }
-      }
 
-      logger.info('✅ $count notifications de sevrage planifiées');
+        // Pesées hebdo des lapereaux (Jusqu'à 5 semaines)
+        // On ne consolide pas encore celles-ci car liées à une portée spécifique
+        await _scheduleWeeklyPeseeForPortee(portee);
+      }
+      logger.info('🍼 $count notifications sevrage planifiées');
     } catch (e) {
-      logger.error('❌ Erreur lors du scan des portées: $e');
+      logger.error('❌ Erreur process portées: $e');
     }
   }
 
-  /// Scanner les soins et planifier les rappels
-  Future<void> _scanSoins() async {
+  /// Traiter les soins individuels (Vaccins, Traitements)
+  Future<void> _processSoins() async {
     try {
       final soins = await _db.getAllSoins();
       int count = 0;
@@ -183,7 +161,7 @@ class SmartNotificationService {
       for (final soin in soins) {
         if (soin.id == null) continue;
 
-        // Si le soin a une date de rappel
+        // Rappel programmé
         if (soin.dateRappel != null &&
             soin.dateRappel!.isAfter(DateTime.now())) {
           final lapin = await _db.getLapinById(soin.lapinId);
@@ -192,70 +170,136 @@ class SmartNotificationService {
               soinId: soin.id!,
               dateRappel: soin.dateRappel!,
               nomLapin: lapin.nom,
-              typeSoin: soin.type,
+              typeSoin: soin.type.label,
             );
             count++;
           }
         }
 
-        // Pour les vaccinations, planifier les rappels annuels
-        if (soin.type.toLowerCase().contains('vaccin')) {
-          await _scheduleVaccinationReminder(soin);
+        // Rappel annuel Vaccin
+        if (soin.type.label.toLowerCase().contains('vaccin')) {
+          final dateRappelAn = soin.date.add(const Duration(days: 365));
+          if (dateRappelAn.isAfter(DateTime.now())) {
+            final lapin = await _db.getLapinById(soin.lapinId);
+            if (lapin != null) {
+              await _notificationService.planifierRappelSoin(
+                soinId: soin.id!,
+                dateRappel: dateRappelAn,
+                nomLapin: lapin.nom,
+                typeSoin: 'Rappel Vaccin An',
+              );
+            }
+          }
         }
       }
-
-      logger.info('✅ $count notifications de soins planifiées');
+      logger.info('💉 $count notifications soins planifiées');
     } catch (e) {
-      logger.error('❌ Erreur lors du scan des soins: $e');
+      logger.error('❌ Erreur process soins: $e');
     }
   }
 
-  /// Scanner les pesées et planifier les rappels hebdomadaires
-  Future<void> _scanPesees() async {
+  /// Traiter les pesées avec consolidation
+  Future<void> _processPeseesConsolidees() async {
     try {
-      final lapins = await _db.getAllLapins();
+      // 1. Récupérer toutes les pesées à faire
+      final peseesEnAttente = await _consolidator.getPeseesEnAttente();
 
-      for (final lapin in lapins) {
-        if (lapin.id == null) continue;
+      // 2. Tenter la consolidation
+      final consolidatedNotif = await _consolidator.consoliderPesees(
+        peseesEnAttente,
+      );
 
-        // Récupérer la dernière pesée
-        final allPesees = await _db.getAllPesees();
-        final peseesLapin = allPesees
-            .where((p) => p.lapinId == lapin.id)
-            .toList();
-        DateTime? dateDernierePesee;
+      if (consolidatedNotif != null) {
+        // --- CAS CONSOLIDÉ ---
+        // On planifie une seule notification résumé pour DEMAIN MATIN (ou aujourd'hui si tôt)
+        // Pour simplifier, on la met à 9h00 le jour de la prochaine échéance la plus proche
+        final dateCible = peseesEnAttente
+            .map((p) => p.datePrevue)
+            .reduce((a, b) => a.isBefore(b) ? a : b);
+        final dateNotif = DateTime(
+          dateCible.year,
+          dateCible.month,
+          dateCible.day,
+          9,
+          0,
+        ); // 9h00 digest
 
-        if (peseesLapin.isNotEmpty) {
-          // Trier par date décroissante
-          peseesLapin.sort((a, b) => b.date.compareTo(a.date));
-          dateDernierePesee = peseesLapin.first.date;
+        if (dateNotif.isAfter(DateTime.now())) {
+          await _notificationService.planifierNotification(
+            notificationId: 888000, // ID fixe pour le digest pesée
+            titre: consolidatedNotif.titre,
+            corps: consolidatedNotif.corps,
+            date: dateNotif,
+            payload: consolidatedNotif.payload,
+            channelId: 'pesee_channel',
+            channelName: 'Rappels Pesées',
+            importance: Importance.defaultImportance,
+          );
+          logger.info(
+            '⚖️ NOTIFICATION CONSOLIDÉE: ${peseesEnAttente.length} pesées -> 1 notif',
+          );
         }
-
-        // Planifier la prochaine pesée hebdomadaire
-        await _notificationService.planifierRappelPeseeHebdomadaire(
-          lapinId: lapin.id!,
-          nomLapin: lapin.nom,
-          dateDernierePesee: dateDernierePesee,
+      } else {
+        // --- CAS INDIVIDUEL (Pas assez pour consolider) ---
+        for (final p in peseesEnAttente) {
+          await _notificationService.planifierRappelPeseeHebdomadaire(
+            lapinId: p.lapinId,
+            nomLapin: p.nomLapin,
+            dateDernierePesee: p.datePrevue.subtract(const Duration(days: 7)),
+          );
+        }
+        logger.info(
+          '⚖️ ${peseesEnAttente.length} notifications pesées individuelles (sous seuil)',
         );
       }
-
-      logger.info(
-        '✅ Rappels de pesées planifiés pour ${lapins.length} lapins',
-      );
     } catch (e) {
-      logger.error('❌ Erreur lors du scan des pesées: $e');
+      logger.error('❌ Erreur process pesées: $e');
     }
   }
 
-  /// Planifier une notification pour le jour de la mise bas
+  /// Traiter les stocks avec consolidation
+  Future<void> _processStocksConsolides() async {
+    try {
+      final stocksFaibles = await _consolidator.getStocksFaibles();
+      final consolidatedNotif = await _consolidator.consoliderStocks(
+        stocksFaibles,
+      );
+
+      if (consolidatedNotif != null) {
+        // Notification stock : on la met à 18h00 (après le travail)
+        final now = DateTime.now();
+        var dateNotif = DateTime(now.year, now.month, now.day, 18, 0);
+        if (dateNotif.isBefore(now)) {
+          dateNotif = dateNotif.add(const Duration(days: 1));
+        }
+
+        await _notificationService.planifierNotification(
+          notificationId: 999000, // ID fixe pour stock
+          titre: consolidatedNotif.titre,
+          corps: consolidatedNotif.corps,
+          date: dateNotif,
+          payload: consolidatedNotif.payload,
+          channelId: 'stock_channel',
+          channelName: 'Alertes Stocks',
+          importance: Importance.defaultImportance,
+        );
+        logger.info(
+          '📦 NOTIFICATION CONSOLIDÉE: ${stocksFaibles.length} produits -> 1 notif',
+        );
+      }
+    } catch (e) {
+      logger.error('❌ Erreur process stocks: $e');
+    }
+  }
+
+  // === Helpers privés ===
+
   Future<void> _scheduleMiseBasDayNotification({
     required int accouplementId,
     required DateTime dateMiseBas,
     required String nomFemelle,
   }) async {
-    if (!_isInitialized) await initialize();
-
-    // Planifier pour le matin du jour de mise bas (8h)
+    // 8h00 le jour J
     final scheduledDate = DateTime(
       dateMiseBas.year,
       dateMiseBas.month,
@@ -263,106 +307,80 @@ class SmartNotificationService {
       8,
       0,
     );
-
     if (scheduledDate.isBefore(DateTime.now())) return;
 
-    // ID unique pour le jour de mise bas (offset de 500000)
     await _notificationService.planifierNotification(
       notificationId: 500000 + accouplementId,
-      titre: '🐰 Mise bas prévue aujourd\'hui',
-      corps: 'La femelle $nomFemelle devrait mettre bas aujourd\'hui',
+      titre: '🐰 C\'est le jour J !', // Wording amélioré
+      corps: 'Mise bas prévue pour $nomFemelle. Préparez le calme.',
       date: scheduledDate,
       payload: 'mise_bas_jour:$accouplementId',
       channelId: 'mise_bas_channel',
-      channelName: 'Rappels de mise bas',
-      channelDescription: 'Notifications pour les mises bas prévues',
+      channelName: 'Mise bas',
       importance: Importance.high,
       priority: Priority.high,
     );
   }
 
-  /// Planifier une notification de sevrage
   Future<void> _scheduleSevrageNotification({
     required int porteeId,
     required DateTime dateSevrage,
     required Portee portee,
   }) async {
-    if (!_isInitialized) await initialize();
-
-    // Planifier 2 jours avant le sevrage
-    final dateRappel = dateSevrage.subtract(const Duration(days: 2));
-
+    // Rappel le matin du sevrage
+    final dateRappel = DateTime(
+      dateSevrage.year,
+      dateSevrage.month,
+      dateSevrage.day,
+      9,
+      0,
+    );
     if (dateRappel.isBefore(DateTime.now())) return;
 
-    // ID unique pour les sevrages (offset de 600000)
     await _notificationService.planifierNotification(
       notificationId: 600000 + porteeId,
-      titre: '🍼 Rappel de sevrage',
-      corps: 'Sevrage prévu le ${_formatDate(dateSevrage)} pour ${portee.nombreVivants} lapereaux',
+      titre: '🍼 L\'heure de l\'indépendance !',
+      corps:
+          'Sevrage prévu le ${_formatDate(dateSevrage)} pour la portée de ${portee.nombreVivants} lapereaux.',
       date: dateRappel,
       payload: 'sevrage:$porteeId',
       channelId: 'sevrage_channel',
-      channelName: 'Rappels de sevrage',
-      channelDescription: 'Notifications pour les sevrages à effectuer',
+      channelName: 'Sevrage',
       importance: Importance.high,
       priority: Priority.high,
     );
-
-    logger.info(
-      '✅ Notification de sevrage planifiée pour le ${_formatDate(dateSevrage)}',
-    );
   }
 
-  /// Planifier les pesées hebdomadaires pour une portée
   Future<void> _scheduleWeeklyPeseeForPortee(Portee portee) async {
     if (portee.id == null) return;
-
-    // Planifier une pesée chaque semaine pendant 5 semaines (jusqu'au sevrage)
     for (int semaine = 1; semaine <= 5; semaine++) {
-      final datePesee = portee.dateMiseBasReelle
-          .add(Duration(days: 7 * semaine));
+      final datePesee = portee.dateMiseBasReelle.add(
+        Duration(days: 7 * semaine),
+      );
+      // Rappel à 10h le jour de la pesée
+      final dateRappel = DateTime(
+        datePesee.year,
+        datePesee.month,
+        datePesee.day,
+        10,
+        0,
+      );
 
-      if (datePesee.isBefore(DateTime.now())) continue;
+      if (dateRappel.isBefore(DateTime.now())) continue;
 
-      // ID unique pour les pesées de portée (offset de 700000)
       await _notificationService.planifierNotification(
         notificationId: 700000 + (portee.id! * 10) + semaine,
-        titre: '⚖️ Pesée hebdomadaire - Semaine $semaine',
-        corps: 'Pesée des lapereaux de la portée (${portee.nombreVivants} lapereaux)',
-        date: datePesee,
+        titre: '⚖️ Pesée Portée - Semaine $semaine',
+        corps: 'Pesée des ${portee.nombreVivants} lapereaux.',
+        date: dateRappel,
         payload: 'pesee_portee:${portee.id}',
         channelId: 'pesee_channel',
-        channelName: 'Rappels de pesées',
-        channelDescription: 'Notifications pour les pesées régulières',
-        importance: Importance.defaultImportance,
-        priority: Priority.defaultPriority,
+        channelName: 'Pesée Portée',
       );
     }
   }
 
-  /// Planifier un rappel de vaccination annuel
-  Future<void> _scheduleVaccinationReminder(Soin soin) async {
-    if (soin.id == null) return;
-
-    // Planifier un rappel 1 an après la vaccination
-    final dateRappel = soin.date.add(const Duration(days: 365));
-
-    if (dateRappel.isBefore(DateTime.now())) return;
-
-    final lapin = await _db.getLapinById(soin.lapinId);
-    if (lapin == null) return;
-
-    await _notificationService.planifierRappelSoin(
-      soinId: soin.id!,
-      dateRappel: dateRappel,
-      nomLapin: lapin.nom,
-      typeSoin: 'Rappel de vaccination',
-    );
-  }
-
-  /// Formater une date
   String _formatDate(DateTime date) {
     return '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}';
   }
 }
-

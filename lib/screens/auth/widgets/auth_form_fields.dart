@@ -144,11 +144,11 @@ class _AuthFormFieldsState extends State<AuthFormFields> {
         decoration: InputDecoration(
           hintText: hintText,
           hintStyle: TextStyle(
-            color: isDark ? AppTheme.stitchGreenMuted : AppTheme.stitchGreenAccent,
+            color: isDark ? AppTheme.primaryGreenDark : AppTheme.primaryGreen,
           ),
           prefixIcon: Icon(
             icon,
-            color: isDark ? AppTheme.stitchGreenMuted : AppTheme.stitchGreenAccent,
+            color: isDark ? AppTheme.primaryGreenDark : AppTheme.primaryGreen,
           ),
           border: InputBorder.none,
           contentPadding: const EdgeInsets.symmetric(
@@ -172,7 +172,7 @@ class _AuthFormFieldsState extends State<AuthFormFields> {
         color: isDark ? AppTheme.surfaceDarkForest : AppTheme.textOnPrimary,
         borderRadius: BorderRadius.circular(8),
         border: Border.all(
-          color: isDark ? AppTheme.stitchSurfaceDarkElevated : AppTheme.stitchSurfaceLightCard,
+          color: isDark ? AppTheme.surfaceDarkElevated : AppTheme.surfaceWhite,
         ),
       ),
       child: TextField(
@@ -181,21 +181,21 @@ class _AuthFormFieldsState extends State<AuthFormFields> {
         style: TextStyle(
           fontSize: 16,
           fontWeight: FontWeight.w500,
-          color: isDark ? AppTheme.textOnPrimary : AppTheme.stitchTextDark,
+          color: isDark ? AppTheme.textOnPrimary : AppTheme.textPrimary,
         ),
         decoration: InputDecoration(
           hintText: '••••••••',
           hintStyle: TextStyle(
-            color: isDark ? AppTheme.stitchGreenMuted : AppTheme.stitchGreenAccent,
+            color: isDark ? AppTheme.primaryGreenDark : AppTheme.primaryGreen,
           ),
           prefixIcon: Icon(
             Icons.lock,
-            color: isDark ? AppTheme.stitchGreenMuted : AppTheme.stitchGreenAccent,
+            color: isDark ? AppTheme.primaryGreenDark : AppTheme.primaryGreen,
           ),
           suffixIcon: IconButton(
             icon: Icon(
               isObscure ? Icons.visibility : Icons.visibility_off,
-              color: isDark ? AppTheme.stitchGreenMuted : AppTheme.stitchGreenAccent,
+              color: isDark ? AppTheme.primaryGreenDark : AppTheme.primaryGreen,
             ),
             onPressed: onToggle,
           ),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../../models/soin.dart';
 import '../../../models/pesee.dart';
+import '../../../models/enums/type_soin.dart';
 import 'package:rabbit_farm_app/theme/app_theme.dart';
 import '../../../l10n/app_localizations.dart';
 
@@ -148,24 +149,24 @@ class _SoinCard extends StatelessWidget {
     String typeLabel;
     double opacity = 1.0;
 
-    switch (soin.type.toLowerCase()) {
-      case 'vaccination':
+    switch (soin.type) {
+      case TypeSoin.vaccination:
         typeColor = AppTheme.info;
         typeIcon = Icons.vaccines;
         typeLabel = 'Vaccine';
         break;
-      case 'traitement':
+      case TypeSoin.traitement:
         typeColor = AppTheme.error;
         typeIcon = Icons.healing;
         typeLabel = 'Treatment';
         break;
-      case 'observation':
+      case TypeSoin.vermifuge:
         typeColor = AppTheme.primaryGreen;
         typeIcon = Icons.visibility;
-        typeLabel = 'Observation';
+        typeLabel = 'Vermifuge';
         opacity = 0.8;
         break;
-      default:
+      case TypeSoin.autre:
         typeColor = AppTheme.textSecondary;
         typeIcon = Icons.medical_services;
         typeLabel = 'Medical';
@@ -265,7 +266,7 @@ class _SoinCard extends StatelessWidget {
                   ),
                 ),
               ],
-              if (soin.type.toLowerCase() == 'vaccination') ...[
+              if (soin.type == TypeSoin.vaccination) ...[
                 AppTheme.verticalSpace12,
                 Padding(
                   padding: const EdgeInsets.only(left: 52),
@@ -308,10 +309,8 @@ class _SoinCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              _buildInfoRow('Type', soin.type),
+              _buildInfoRow('Type', soin.type.label),
               _buildInfoRow('Date', dateFormat.format(soin.date)),
-              if (soin.medicament != null)
-                _buildInfoRow('Médicament', soin.medicament!),
               if (soin.dosage != null) _buildInfoRow('Dosage', soin.dosage!),
               if (soin.dateRappel != null)
                 _buildInfoRow('Rappel', dateFormat.format(soin.dateRappel!)),

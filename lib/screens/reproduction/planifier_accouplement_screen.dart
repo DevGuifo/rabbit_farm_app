@@ -3,13 +3,15 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import 'package:rabbit_farm_app/l10n/app_localizations.dart';
 import '../../models/accouplement.dart';
+import '../../models/enums/statut_accouplement.dart';
+import '../../models/enums/sexe.dart';
 import '../../models/lapin.dart';
 import '../../providers/lapin_provider.dart';
 import '../../providers/reproduction_provider.dart';
 import '../../utils/snackbar_helper.dart';
 import 'package:rabbit_farm_app/theme/app_theme.dart';
-import '../alertes/alertes_screen.dart';
-import '../parametres/parametres_screen.dart';
+import '../../widgets/uniform_app_bar.dart';
+import '../../services/error_service.dart';
 
 /// Écran Plan New Mating - Design Stitch complet
 class PlanifierAccouplementScreen extends StatefulWidget {
@@ -79,7 +81,7 @@ class _PlanifierAccouplementScreenState
       femelleId: _femelleSelectionnee!.id!,
       dateAccouplement: _dateAccouplement,
       dateMiseBasPrevue: _dateMiseBasPrevue!,
-      statut: 'en_attente',
+      statut: StatutAccouplement.enAttente,
       notes: _notesController.text.isNotEmpty ? _notesController.text : null,
     );
 
@@ -99,10 +101,7 @@ class _PlanifierAccouplementScreenState
       }
     } catch (e) {
       if (mounted) {
-        SnackbarHelper.showError(
-          context,
-          AppLocalizations.of(context).reproErreurSuppression(e.toString()),
-        );
+        ErrorService.showError(context, e);
       }
     }
   }
@@ -115,7 +114,7 @@ class _PlanifierAccouplementScreenState
       backgroundColor: isDark
           ? AppTheme.backgroundDark
           : AppTheme.backgroundLight,
-      appBar: _buildAppBar(isDark),
+      appBar: SimpleAppBar(title: 'Plan New Mating'),
       body: SafeArea(
         child: SingleChildScrollView(
           child: Padding(
@@ -152,67 +151,11 @@ class _PlanifierAccouplementScreenState
     );
   }
 
-  PreferredSizeWidget _buildAppBar(bool isDark) {
-    return AppBar(
-      backgroundColor: (isDark ? AppTheme.backgroundDark : AppTheme.cardLight)
-          .withValues(alpha: 0.95),
-      elevation: 1,
-      leading: IconButton(
-        icon: Icon(
-          Icons.arrow_back,
-          color: isDark ? AppTheme.textLight : AppTheme.textPrimary,
-        ),
-        onPressed: () => Navigator.of(context).pop(),
-      ),
-      title: Text(
-        'Plan New Mating',
-        style: AppTheme.titleLarge.copyWith(
-          color: isDark ? AppTheme.textLight : AppTheme.textPrimary,
-        ),
-      ),
-      actions: [
-        IconButton(
-          icon: Icon(
-            Icons.sync,
-            color: isDark ? AppTheme.textLight : AppTheme.textPrimary,
-          ),
-          onPressed: () {
-            Provider.of<LapinProvider>(context, listen: false).chargerLapins();
-          },
-        ),
-        IconButton(
-          icon: Icon(
-            Icons.notifications,
-            color: isDark ? AppTheme.textLight : AppTheme.textPrimary,
-          ),
-          onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const AlertesScreen()),
-            );
-          },
-        ),
-        IconButton(
-          icon: Icon(
-            Icons.settings,
-            color: isDark ? AppTheme.textLight : AppTheme.textPrimary,
-          ),
-          onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const ParametresScreen()),
-            );
-          },
-        ),
-      ],
-    );
-  }
-
   Widget _buildDoeSelector(bool isDark) {
     return Consumer<LapinProvider>(
       builder: (context, lapinProvider, _) {
         final femelles = lapinProvider.lapins
-            .where((l) => l.sexe == 'Femelle')
+            .where((l) => l.sexe == Sexe.femelle)
             .toList();
 
         final hasNoFemelles = femelles.isEmpty;
@@ -377,7 +320,7 @@ class _PlanifierAccouplementScreenState
     return Consumer<LapinProvider>(
       builder: (context, lapinProvider, _) {
         final males = lapinProvider.lapins
-            .where((l) => l.sexe == 'Mâle')
+            .where((l) => l.sexe == Sexe.male)
             .toList();
 
         final hasNoMales = males.isEmpty;

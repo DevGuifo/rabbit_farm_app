@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:animate_do/animate_do.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../models/lapin.dart';
+import '../../../../models/enums/sexe.dart';
 import '../../../../providers/lapin_provider.dart';
 import '../../../../theme/app_theme.dart';
 import '../../../../widgets/parent_selector.dart';
@@ -71,7 +72,7 @@ class LapinFormPage3Genealogy extends StatelessWidget {
           child: Consumer<LapinProvider>(
             builder: (context, provider, child) {
               final males = provider.lapins
-                  .where((l) => l.sexe.toLowerCase() == 'mâle')
+                  .where((l) => l.sexe == Sexe.male)
                   .toList();
               return ParentSelector(
                 label: AppLocalizations.of(context).labelPere,
@@ -91,7 +92,7 @@ class LapinFormPage3Genealogy extends StatelessWidget {
           child: Consumer<LapinProvider>(
             builder: (context, provider, child) {
               final femelles = provider.lapins
-                  .where((l) => l.sexe.toLowerCase() == 'femelle')
+                  .where((l) => l.sexe == Sexe.femelle)
                   .toList();
               return ParentSelector(
                 label: AppLocalizations.of(context).labelMere,

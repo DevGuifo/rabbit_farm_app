@@ -148,7 +148,10 @@ class _EditPorteeScreenState extends State<EditPorteeScreen> {
       }
     } catch (e) {
       if (mounted) {
-        SnackbarHelper.showError(context, 'Erreur : $e');
+        SnackbarHelper.showError(
+          context,
+          AppLocalizations.of(context).msgErreurOperationEchouee,
+        );
       }
     }
   }
@@ -163,10 +166,8 @@ class _EditPorteeScreenState extends State<EditPorteeScreen> {
 
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
-      appBar: UniformAppBar(
+      appBar: SimpleAppBar(
         title: AppLocalizations.of(context).reproModifierPortee,
-        icon: Icons.child_care_rounded,
-        iconColor: AppTheme.accentPink,
       ),
       body: Form(
         key: _formKey,

@@ -1,8 +1,10 @@
 import 'package:flutter/foundation.dart';
 import '../models/accouplement.dart';
+import '../models/enums/statut_accouplement.dart';
 import '../models/portee.dart';
 import '../models/journal_entry.dart';
-import '../services/database_helper.dart';
+import '../repositories/reproduction_repository.dart';
+import '../repositories/lapin_repository.dart';
 import '../services/notification_service.dart';
 import '../services/smart_notification_service.dart';
 import '../services/journal_service.dart';
@@ -10,9 +12,27 @@ import '../utils/logger.dart';
 
 /// Provider pour gérer l'état des accouplements et portées
 class ReproductionProvider with ChangeNotifier {
-  final DatabaseHelper _db = DatabaseHelper.instance;
-  final NotificationService _notificationService = NotificationService();
-  final JournalService _journal = JournalService();
+  final ReproductionRepository _repository;
+  final LapinRepository _lapinRepository;
+  final NotificationService _notificationService;
+  final JournalService _journal;
+
+  ReproductionProvider()
+    : _repository = ReproductionRepository.instance,
+      _lapinRepository = LapinRepository.instance,
+      _notificationService = NotificationService(),
+      _journal = JournalService();
+
+  @visibleForTesting
+  ReproductionProvider.withRepository(
+    ReproductionRepository repository,
+    LapinRepository lapinRepository,
+    NotificationService notificationService,
+    JournalService journalService,
+  ) : _repository = repository,
+      _lapinRepository = lapinRepository,
+      _notificationService = notificationService,
+      _journal = journalService;
 
   List<Accouplement> _accouplements = [];
   List<Portee> _portees = [];
@@ -28,7 +48,7 @@ class ReproductionProvider with ChangeNotifier {
     notifyListeners();
 
     try {
-      _accouplements = await _db.getAllAccouplements();
+      _accouplements = await _repository.getAllAccouplements();
     } catch (e) {
       logger.error('Erreur lors du chargement des accouplements', e);
     } finally {
@@ -43,7 +63,7 @@ class ReproductionProvider with ChangeNotifier {
     notifyListeners();
 
     try {
-      _portees = await _db.getAllPortees();
+      _portees = await _repository.getAllPortees();
     } catch (e) {
       logger.error('Erreur lors du chargement des portées', e);
     } finally {
@@ -60,13 +80,17 @@ class ReproductionProvider with ChangeNotifier {
   /// Ajouter un accouplement
   Future<Accouplement> ajouterAccouplement(Accouplement accouplement) async {
     try {
-      final nouveauAccouplement = await _db.insertAccouplement(accouplement);
+      final nouveauAccouplement = await _repository.insertAccouplement(
+        accouplement,
+      );
       _accouplements.insert(0, nouveauAccouplement);
 
       // Planifier les notifications si l'accouplement est en attente
-      if (nouveauAccouplement.statut == 'en_attente' &&
+      if (nouveauAccouplement.statut == StatutAccouplement.enAttente &&
           nouveauAccouplement.id != null) {
-        final femelle = await _db.getLapinById(nouveauAccouplement.femelleId);
+        final femelle = await _lapinRepository.getById(
+          nouveauAccouplement.femelleId,
+        );
         if (femelle != null) {
           // Notification mise bas (3 jours avant)
           await _notificationService.planifierRappelMiseBas(
@@ -109,16 +133,18 @@ class ReproductionProvider with ChangeNotifier {
   /// Modifier un accouplement
   Future<void> modifierAccouplement(Accouplement accouplement) async {
     try {
-      await _db.updateAccouplement(accouplement);
+      await _repository.updateAccouplement(accouplement);
       final index = _accouplements.indexWhere((a) => a.id == accouplement.id);
       if (index != -1) {
         _accouplements[index] = accouplement;
 
         // Gérer les notifications selon le statut
         if (accouplement.id != null) {
-          if (accouplement.statut == 'en_attente') {
+          if (accouplement.statut == StatutAccouplement.enAttente) {
             // Replanifier toutes les notifications
-            final femelle = await _db.getLapinById(accouplement.femelleId);
+            final femelle = await _lapinRepository.getById(
+              accouplement.femelleId,
+            );
             if (femelle != null) {
               // Annuler les anciennes notifications
               await _notificationService.annulerRappelMiseBas(accouplement.id!);
@@ -165,7 +191,7 @@ class ReproductionProvider with ChangeNotifier {
       // Annuler la notification associée
       await _notificationService.annulerRappelMiseBas(id);
 
-      await _db.deleteAccouplement(id);
+      await _repository.deleteAccouplement(id);
       _accouplements.removeWhere((a) => a.id == id);
       notifyListeners();
     } catch (e) {
@@ -177,17 +203,17 @@ class ReproductionProvider with ChangeNotifier {
   /// Ajouter une portée
   Future<Portee> ajouterPortee(Portee portee) async {
     try {
-      final nouvellePortee = await _db.insertPortee(portee);
+      final nouvellePortee = await _repository.insertPortee(portee);
       _portees.insert(0, nouvellePortee);
       notifyListeners();
 
       // 📝 Journal automatique - récupérer la mère via l'accouplement
-      final accouplement = await _db.getAccouplementById(
+      final accouplement = await _repository.getAccouplementById(
         nouvellePortee.accouplementId,
       );
       String? mereNom;
       if (accouplement != null) {
-        final mere = await _db.getLapinById(accouplement.femelleId);
+        final mere = await _lapinRepository.getById(accouplement.femelleId);
         mereNom = mere?.nom;
       }
       await _journal.portee(
@@ -220,7 +246,7 @@ class ReproductionProvider with ChangeNotifier {
   /// Modifier une portée
   Future<void> modifierPortee(Portee portee) async {
     try {
-      await _db.updatePortee(portee);
+      await _repository.updatePortee(portee);
       final index = _portees.indexWhere((p) => p.id == portee.id);
       if (index != -1) {
         _portees[index] = portee;
@@ -235,7 +261,7 @@ class ReproductionProvider with ChangeNotifier {
   /// Supprimer une portée
   Future<void> supprimerPortee(int id) async {
     try {
-      await _db.deletePortee(id);
+      await _repository.deletePortee(id);
       _portees.removeWhere((p) => p.id == id);
       notifyListeners();
     } catch (e) {
@@ -247,7 +273,7 @@ class ReproductionProvider with ChangeNotifier {
   /// Récupérer les accouplements en attente
   Future<List<Accouplement>> getAccouplementsEnAttente() async {
     try {
-      return await _db.getAccouplementsEnAttente();
+      return await _repository.getAccouplementsEnAttente();
     } catch (e) {
       logger.error(
         'Erreur lors de la récupération des accouplements en attente',
@@ -260,7 +286,7 @@ class ReproductionProvider with ChangeNotifier {
   /// Récupérer la portée d'un accouplement
   Future<Portee?> getPorteeByAccouplement(int accouplementId) async {
     try {
-      return await _db.getPorteeByAccouplement(accouplementId);
+      return await _repository.getPorteeByAccouplement(accouplementId);
     } catch (e) {
       logger.error('Erreur lors de la récupération de la portée', e);
       return null;
@@ -272,7 +298,9 @@ class ReproductionProvider with ChangeNotifier {
     final accouplement = _accouplements.firstWhere(
       (a) => a.id == accouplementId,
     );
-    await modifierAccouplement(accouplement.copyWith(statut: 'confirme'));
+    await modifierAccouplement(
+      accouplement.copyWith(statut: StatutAccouplement.confirme),
+    );
   }
 
   /// Marquer un accouplement comme échec
@@ -280,7 +308,9 @@ class ReproductionProvider with ChangeNotifier {
     final accouplement = _accouplements.firstWhere(
       (a) => a.id == accouplementId,
     );
-    await modifierAccouplement(accouplement.copyWith(statut: 'echec'));
+    await modifierAccouplement(
+      accouplement.copyWith(statut: StatutAccouplement.echec),
+    );
   }
 
   /// Terminer un accouplement (après enregistrement de la portée)
@@ -288,7 +318,9 @@ class ReproductionProvider with ChangeNotifier {
     final accouplement = _accouplements.firstWhere(
       (a) => a.id == accouplementId,
     );
-    await modifierAccouplement(accouplement.copyWith(statut: 'termine'));
+    await modifierAccouplement(
+      accouplement.copyWith(statut: StatutAccouplement.termine),
+    );
   }
 
   /// LOGIQUE MÉTIER POUR LE DASHBOARD
@@ -297,7 +329,10 @@ class ReproductionProvider with ChangeNotifier {
   List<Accouplement> getMisesBasImminentes() {
     final maintenant = DateTime.now();
     return _accouplements.where((acc) {
-      if (acc.statut != 'en_attente' && acc.statut != 'confirme') return false;
+      if (acc.statut != StatutAccouplement.enAttente &&
+          acc.statut != StatutAccouplement.confirme) {
+        return false;
+      }
       final joursRestants = acc.dateMiseBasPrevue.difference(maintenant).inDays;
       return joursRestants >= 0 && joursRestants <= 3;
     }).toList()..sort(
@@ -309,7 +344,9 @@ class ReproductionProvider with ChangeNotifier {
   List<Accouplement> getPalpationsAFaire() {
     final maintenant = DateTime.now();
     return _accouplements.where((acc) {
-        if (acc.statut != 'en_attente') return false;
+        if (acc.statut != StatutAccouplement.enAttente) {
+          return false;
+        }
         final joursDepuis = maintenant.difference(acc.dateAccouplement).inDays;
         return joursDepuis >= 10 && joursDepuis <= 12;
       }).toList()

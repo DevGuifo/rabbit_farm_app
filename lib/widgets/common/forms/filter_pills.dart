@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../theme/app_theme.dart';
 
 /// Pastille de filtre sélectionnable
-/// 
+///
 /// Usage:
 /// ```dart
 /// FilterPill(
@@ -32,7 +32,7 @@ class FilterPill extends StatelessWidget {
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: AppTheme.spacing20),
-        height: 36,
+        height: 44, // WCAG accessibility: minimum touch target
         decoration: BoxDecoration(
           color: isSelected
               ? (isDark ? AppTheme.textLight : AppTheme.textPrimary)
@@ -63,4 +63,3 @@ class FilterPill extends StatelessWidget {
     );
   }
 }
-

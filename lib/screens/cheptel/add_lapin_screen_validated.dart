@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:rabbit_farm_app/l10n/app_localizations.dart';
 import '../../models/lapin.dart';
+import '../../models/enums/sexe.dart';
 import '../../providers/lapin_provider.dart';
 import '../../utils/snackbar_helper.dart';
+import '../../services/error_service.dart';
 import '../../services/database_helper.dart';
 import '../../services/photo_service.dart';
 import '../../theme/app_theme.dart';
@@ -207,7 +209,7 @@ class _AddLapinScreenWithValidationState
       final nouveauLapin = Lapin(
         nom: _nomController.text.trim(),
         race: _raceSelectionnee,
-        sexe: _sexeSelectionne,
+        sexe: Sexe.fromString(_sexeSelectionne),
         dateNaissance: _dateNaissance,
         poids: _poidsController.text.isNotEmpty
             ? double.tryParse(_poidsController.text)
@@ -268,7 +270,7 @@ class _AddLapinScreenWithValidationState
         }
       } catch (e) {
         if (mounted) {
-          SnackbarHelper.showError(context, 'Erreur: ${e.toString()}');
+          ErrorService.showError(context, e);
         }
       }
     }
@@ -298,10 +300,8 @@ class _AddLapinScreenWithValidationState
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
-      appBar: UniformAppBar(
+      appBar: SimpleAppBar(
         title: AppLocalizations.of(context).cheptelAjouterLapin,
-        icon: Icons.pets_rounded,
-        iconColor: AppTheme.primaryGreen,
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(4),
           child: LinearProgressIndicator(

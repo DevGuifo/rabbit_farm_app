@@ -1,5 +1,6 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import '../../../models/tache.dart';
+import '../../../models/enums/tache_enums.dart';
 import '../../../theme/app_theme.dart';
 import '../../../models/lapin.dart';
 import '../../../l10n/app_localizations.dart';
@@ -25,92 +26,90 @@ class TacheCard extends StatelessWidget {
 
   Color _getCouleurPriorite() {
     switch (tache.priorite) {
-      case 'haute':
+      case PrioriteTache.haute:
         return AppTheme.error;
-      case 'normale':
+      case PrioriteTache.normale:
         return AppTheme.warning;
-      case 'basse':
+      case PrioriteTache.basse:
         return AppTheme.info;
-      default:
-        return AppTheme.textSecondary;
     }
   }
 
   Color _getCouleurStatut() {
     switch (tache.statut) {
-      case 'terminee':
+      case StatutTache.terminee:
         return AppTheme.primaryGreen;
-      case 'en_cours':
+      case StatutTache.enCours:
         return AppTheme.info;
-      case 'annulee':
+      case StatutTache.annulee:
         return AppTheme.textSecondary;
-      case 'reportee':
+      case StatutTache.reportee:
         return AppTheme.warning;
-      default:
+      case StatutTache.aFaire:
         return AppTheme.textPrimary;
     }
   }
 
   IconData _getIconeStatut() {
     switch (tache.statut) {
-      case 'terminee':
+      case StatutTache.terminee:
         return Icons.check_circle_rounded;
-      case 'en_cours':
+      case StatutTache.enCours:
         return Icons.play_circle_rounded;
-      case 'annulee':
+      case StatutTache.annulee:
         return Icons.cancel_rounded;
-      case 'reportee':
+      case StatutTache.reportee:
         return Icons.schedule_rounded;
-      default:
+      case StatutTache.aFaire:
         return Icons.radio_button_unchecked_rounded;
     }
   }
 
   String _getLabelStatut() {
     switch (tache.statut) {
-      case 'terminee':
+      case StatutTache.terminee:
         return 'Terminée';
-      case 'en_cours':
+      case StatutTache.enCours:
         return 'En cours';
-      case 'annulee':
+      case StatutTache.annulee:
         return 'Annulée';
-      case 'reportee':
+      case StatutTache.reportee:
         return 'Reportée';
-      default:
+      case StatutTache.aFaire:
         return 'À faire';
     }
   }
 
   String _getLabelCategorie(BuildContext context) {
     switch (tache.categorie) {
-      case 'reproduction':
+      case CategorieTache.reproduction:
         return AppLocalizations.of(context).tachesCategorieReproduction;
-      case 'sante':
+      case CategorieTache.sante:
         return AppLocalizations.of(context).santeTous;
-      case 'alimentation':
+      case CategorieTache.alimentation:
         return AppLocalizations.of(context).tachesCategorieAlimentation;
-      case 'entretien':
+      case CategorieTache.entretien:
         return AppLocalizations.of(context).tachesEntretien;
-      case 'administratif':
+      case CategorieTache.administratif:
         return AppLocalizations.of(context).tachesAdministratif;
-      default:
+      case CategorieTache.autre:
         return AppLocalizations.of(context).financesCategorieAutre;
     }
   }
 
   IconData _getIconeCategorie() {
     switch (tache.categorie) {
-      case 'reproduction':
+      case CategorieTache.reproduction:
         return Icons.family_restroom_rounded;
-      case 'sante':
+      case CategorieTache.sante:
         return Icons.medical_services_rounded;
-      case 'alimentation':
+      case CategorieTache.alimentation:
         return Icons.restaurant_rounded;
-      case 'entretien':
+      case CategorieTache.entretien:
         return Icons.build_rounded;
-      case 'administratif':
+      case CategorieTache.administratif:
         return Icons.description_rounded;
-      default:
+      case CategorieTache.autre:
         return Icons.task_rounded;
     }
   }
@@ -176,10 +175,10 @@ class TacheCard extends StatelessWidget {
                                 tache.titre,
                                 style: AppTheme.titleMedium.copyWith(
                                   fontWeight: FontWeight.bold,
-                                  decoration: tache.statut == 'terminee'
+                                  decoration: tache.statut == StatutTache.terminee
                                       ? TextDecoration.lineThrough
                                       : null,
-                                  color: tache.statut == 'terminee'
+                                  color: tache.statut == StatutTache.terminee
                                       ? AppTheme.textSecondary
                                       : (isDark
                                             ? AppTheme.textLight
@@ -376,3 +375,4 @@ class TacheCard extends StatelessWidget {
     );
   }
 }
+

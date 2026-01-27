@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../models/lapin.dart';
 import '../../../../theme/app_theme.dart';
+import '../../../../widgets/quick_action_buttons.dart';
 import 'basic_information_card.dart';
 import 'lineage_card.dart';
 import 'notes_card.dart';
@@ -16,6 +17,11 @@ class IdentityTab extends StatelessWidget {
   final VoidCallback? onExportPDF;
   final VoidCallback? onMarkQuarantaine;
   final VoidCallback? onMarkDecede;
+  final VoidCallback? onMatingPressed;
+  final VoidCallback? onPalpationPressed;
+  final VoidCallback? onNestPrepPressed;
+  final VoidCallback? onWeaningPressed;
+  final VoidCallback? onReproductionsPressed;
 
   const IdentityTab({
     super.key,
@@ -26,6 +32,11 @@ class IdentityTab extends StatelessWidget {
     this.onExportPDF,
     this.onMarkQuarantaine,
     this.onMarkDecede,
+    this.onMatingPressed,
+    this.onPalpationPressed,
+    this.onNestPrepPressed,
+    this.onWeaningPressed,
+    this.onReproductionsPressed,
   });
 
   @override
@@ -36,6 +47,16 @@ class IdentityTab extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       child: Column(
         children: [
+          // Quick Action Buttons (Orphelin intégré)
+          QuickActionButtons(
+            lapin: lapin,
+            onMatingPressed: onMatingPressed,
+            onPalpationPressed: onPalpationPressed,
+            onNestPrepPressed: onNestPrepPressed,
+            onWeaningPressed: onWeaningPressed,
+            onReproductionsPressed: onReproductionsPressed,
+          ),
+          const SizedBox(height: 16),
           // Basic Information Card
           BasicInformationCard(lapin: lapin),
           const SizedBox(height: 16),

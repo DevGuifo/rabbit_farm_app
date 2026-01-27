@@ -40,7 +40,7 @@ class AlertesFilterChips extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 16),
           scrollDirection: Axis.horizontal,
           itemCount: filters.length,
-          separatorBuilder: (_, __) => const SizedBox(width: 8),
+          separatorBuilder: (_, index) => const SizedBox(width: 8),
           itemBuilder: (context, index) {
             final filter = filters[index];
             final label = filter['label'] as String;

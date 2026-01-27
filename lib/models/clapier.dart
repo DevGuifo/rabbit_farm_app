@@ -1,9 +1,11 @@
+import 'enums/localisation_enums.dart';
+
 /// Modèle représentant un clapier/zone dans un bâtiment
 class Clapier {
   final int? id;
   final int batimentId;
   final String nom;
-  final String type; // 'interieur', 'exterieur', 'quarantaine', 'personnalise'
+  final TypeClapier type;
   final String? description;
   final DateTime dateCreation;
 
@@ -11,19 +13,19 @@ class Clapier {
     this.id,
     required this.batimentId,
     required this.nom,
-    this.type = 'interieur',
+    this.type = TypeClapier.interieur,
     this.description,
     DateTime? dateCreation,
   }) : dateCreation = dateCreation ?? DateTime.now();
 
   /// Obtenir l'icône selon le type
   String get icone {
-    switch (type.toLowerCase()) {
-      case 'interieur':
+    switch (type) {
+      case TypeClapier.interieur:
         return 'meeting_room';
-      case 'exterieur':
+      case TypeClapier.exterieur:
         return 'grass';
-      case 'quarantaine':
+      case TypeClapier.quarantaine:
         return 'health_and_safety';
       default:
         return 'location_on';
@@ -36,7 +38,7 @@ class Clapier {
       'id': id,
       'batiment_id': batimentId,
       'nom': nom,
-      'type': type,
+      'type': type.toDatabase(),
       'description': description,
       'date_creation': dateCreation.toIso8601String(),
     };
@@ -48,7 +50,7 @@ class Clapier {
       id: map['id'] as int?,
       batimentId: map['batiment_id'] as int,
       nom: map['nom'] as String,
-      type: map['type'] as String? ?? 'interieur',
+      type: TypeClapier.fromString(map['type'] as String? ?? 'interieur'),
       description: map['description'] as String?,
       dateCreation: DateTime.parse(map['date_creation'] as String),
     );
@@ -59,7 +61,7 @@ class Clapier {
     int? id,
     int? batimentId,
     String? nom,
-    String? type,
+    TypeClapier? type,
     String? description,
     DateTime? dateCreation,
   }) {

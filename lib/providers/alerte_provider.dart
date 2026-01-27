@@ -2,6 +2,8 @@ import 'package:flutter/foundation.dart';
 import '../models/alerte.dart';
 import '../services/database_helper.dart';
 import '../services/poids_normes_service.dart';
+import '../models/enums/statut_accouplement.dart';
+import '../models/enums/type_soin.dart';
 import '../utils/logger.dart';
 import 'deces_provider.dart';
 import 'alimentation_provider.dart';
@@ -122,7 +124,7 @@ class AlerteProvider with ChangeNotifier {
       for (final lapin in lapins) {
         // Récupérer le dernier vaccin
         final soins = await _dbHelper.getSoinsByLapin(lapin.id!);
-        final vaccins = soins.where((s) => s.type == 'Vaccination').toList();
+        final vaccins = soins.where((s) => s.type == TypeSoin.vaccination).toList();
 
         if (vaccins.isNotEmpty) {
           vaccins.sort((a, b) => b.date.compareTo(a.date));
@@ -167,8 +169,8 @@ class AlerteProvider with ChangeNotifier {
       final maintenant = DateTime.now();
 
       for (final accouplement in accouplements) {
-        if (accouplement.statut == 'En cours' ||
-            accouplement.statut == 'Confirmé') {
+        if (accouplement.statut == StatutAccouplement.enAttente ||
+            accouplement.statut == StatutAccouplement.confirme) {
           final joursDepuisAccouplement = maintenant
               .difference(accouplement.dateAccouplement)
               .inDays;
@@ -208,7 +210,7 @@ class AlerteProvider with ChangeNotifier {
       final maintenant = DateTime.now();
 
       for (final accouplement in accouplements) {
-        if (accouplement.statut == 'Confirmé') {
+        if (accouplement.statut == StatutAccouplement.confirme) {
           final joursDepuisAccouplement = maintenant
               .difference(accouplement.dateAccouplement)
               .inDays;
@@ -248,7 +250,7 @@ class AlerteProvider with ChangeNotifier {
       final maintenant = DateTime.now();
 
       for (final accouplement in accouplements) {
-        if (accouplement.statut == 'Confirmé') {
+        if (accouplement.statut == StatutAccouplement.confirme) {
           final joursJusqueMiseBas = accouplement.dateMiseBasPrevue
               .difference(maintenant)
               .inDays;
@@ -425,7 +427,7 @@ class AlerteProvider with ChangeNotifier {
                 id: 'traitement_${traitement.id}_${DateTime.now().millisecondsSinceEpoch}',
                 titre: 'Traitement à administrer',
                 description:
-                    '${traitement.type} pour ${lapin.nom}: ${traitement.medicament ?? ""}',
+                    '${traitement.type} pour ${lapin.nom}${traitement.medicamentId != null ? " (méd. #${traitement.medicamentId})" : ""}',
                 type: TypeAlerte.traitement,
                 priorite: PrioriteAlerte.urgent,
                 dateCreation: maintenant,
@@ -460,20 +462,20 @@ class AlerteProvider with ChangeNotifier {
             poids: lapin.poids!,
             race: lapin.race,
             ageJours: ageJours,
-            sexe: lapin.sexe,
+            sexe: lapin.sexe.label,
           );
 
           if (poidsAnormal) {
             final normes = PoidsNormesService.getPoidsNormal(
               race: lapin.race,
               ageJours: ageJours,
-              sexe: lapin.sexe,
+              sexe: lapin.sexe.label,
             );
             final message = PoidsNormesService.getMessagePoids(
               poids: lapin.poids!,
               race: lapin.race,
               ageJours: ageJours,
-              sexe: lapin.sexe,
+              sexe: lapin.sexe.label,
             );
 
             _alertes.add(

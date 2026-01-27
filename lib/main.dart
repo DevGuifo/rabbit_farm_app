@@ -4,56 +4,59 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
 import 'screens/splash_screen.dart';
-import 'providers/lapin_provider.dart';
+import 'config/supabase_config.dart';
 import 'providers/locale_provider.dart';
-import 'providers/reproduction_provider.dart';
-import 'providers/sante_provider.dart';
-import 'providers/finance_provider.dart';
 import 'providers/theme_provider.dart';
-import 'providers/deces_provider.dart';
-import 'providers/alimentation_provider.dart';
-import 'providers/alerte_provider.dart';
-import 'providers/fumier_provider.dart';
-import 'providers/medicament_provider.dart';
-import 'providers/quarantaine_provider.dart';
-import 'providers/reforme_provider.dart';
-import 'providers/sevrage_provider.dart';
-import 'providers/palpation_provider.dart';
-import 'providers/preparation_nid_provider.dart';
-import 'providers/protocole_soin_provider.dart';
-import 'providers/evenement_personnalise_provider.dart';
-import 'providers/tache_provider.dart';
-import 'providers/rituel_provider.dart';
-import 'providers/anomalie_provider.dart';
-import 'providers/journal_provider.dart';
 import 'providers/auth_provider.dart';
 import 'providers/connectivity_provider.dart';
 import 'providers/sync_provider.dart';
-import 'providers/user_provider.dart';
 import 'services/notification_service.dart';
 import 'services/notification_strings.dart';
 import 'services/smart_notification_service.dart';
 import 'services/coach_notification_service.dart';
-import 'services/navigation_service.dart';
-import 'services/supabase_auth_service.dart';
-import 'utils/logger.dart';
+import 'services/daily_summary_notification_service.dart';
+import 'services/kpi_history_service.dart';
+import 'core/services/navigation_service.dart';
+import 'services/auth_service.dart';
+import 'screens/onboarding/onboarding_main_screen.dart';
+import 'screens/onboarding/presentation_screen.dart';
+import 'screens/onboarding/type_elevage_screen.dart';
+import 'screens/onboarding/informations_ferme_screen.dart';
+import 'screens/onboarding/profil_utilisateur_screen.dart';
+import 'screens/onboarding/synchronisation_screen.dart';
+import 'screens/home_screen.dart';
+import 'core/utils/logger.dart';
 import 'theme/app_theme.dart';
+import 'core/providers/app_providers.dart';
 
 /// Point d'entrée de l'application BunnyManager
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Initialiser le logger
-  logger.initialize(isProduction: false);
-  logger.info('🚀 Démarrage de BunnyManager');
+  // Initialiser le logger (mode production automatique en release)
+  logger.initialize(isProduction: kReleaseMode);
+  if (!kReleaseMode) {
+    logger.info('🚀 Démarrage de BunnyManager');
+  }
 
-  // Initialiser Supabase (doit être fait avant tout)
+  // Initialiser le service d'authentification (offline-first)
   try {
-    await SupabaseAuthService().initialize();
+    await AuthService().initialize();
+    logger.info('✅ AuthService initialisé');
   } catch (e) {
-    logger.error('❌ Erreur lors de l\'initialisation Supabase: $e');
-    // Continuer quand même si Supabase n'est pas configuré
-    // (pour le développement local)
+    logger.error('❌ Erreur lors de l\'initialisation AuthService: $e');
+  }
+
+  // Initialiser Supabase (optionnel - l'app fonctionne sans)
+  try {
+    final supabaseInitialized = await supabaseConfig.initialize();
+    if (supabaseInitialized) {
+      logger.info('✅ Supabase initialisé');
+    } else {
+      logger.info('ℹ️ Supabase non configuré - mode offline uniquement');
+    }
+  } catch (e) {
+    logger.warning('⚠️ Supabase non disponible: $e');
   }
 
   // Initialiser les chaînes de notification
@@ -73,8 +76,25 @@ void main() async {
   });
 
   // Planifier le rituel du matin (coach quotidien)
-  CoachNotificationService().planifierRituelMatin().catchError((e) {
-    logger.error('Erreur lors de la planification du rituel matin: $e');
+  CoachNotificationService().planifierVerificationMatin().catchError((e) {
+    logger.error(
+      'Erreur lors de la planification de la vérification matin: $e',
+    );
+  });
+
+  // Planifier le résumé quotidien 8h (Phase 2)
+  DailySummaryNotificationService().planifierResumQuotidien().catchError((e) {
+    logger.error('Erreur lors de la planification du résumé quotidien: $e');
+  });
+
+  // ✅ PHASE 4 : Enregistrer KPIs quotidiens (en arrière-plan)
+  KpiHistoryService().enregistrerKpisQuotidiens().catchError((e) {
+    logger.error('Erreur lors de l\'enregistrement des KPIs: $e');
+  });
+
+  // Initialiser historique rétroactif au premier lancement (optionnel)
+  KpiHistoryService().initialiserHistoriqueRetroactif().catchError((e) {
+    logger.error('Erreur lors de l\'initialisation historique rétroactif: $e');
   });
 
   // Créer et initialiser le theme provider
@@ -123,153 +143,34 @@ class BunnyManagerApp extends StatelessWidget {
     required this.localeProvider,
   });
 
+  /// Construit la carte des routes de l'application
+  Map<String, WidgetBuilder> _buildRoutes() {
+    return {
+      '/home': (context) => const HomeScreen(),
+      '/onboarding': (context) => const OnboardingMainScreen(),
+      '/onboarding/presentation': (context) =>
+          const OnboardingPresentationScreen(),
+      '/onboarding/type-elevage': (context) =>
+          const OnboardingTypeElevageScreen(),
+      '/onboarding/informations-ferme': (context) =>
+          const OnboardingInformationsFermeScreen(),
+      '/onboarding/profil-utilisateur': (context) =>
+          const OnboardingProfilUtilisateurScreen(),
+      '/onboarding/synchronisation': (context) =>
+          const OnboardingSynchronisationScreen(),
+    };
+  }
+
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
-      providers: [
-        ChangeNotifierProvider.value(value: themeProvider),
-        ChangeNotifierProvider.value(value: localeProvider),
-        ChangeNotifierProvider.value(value: authProvider),
-        ChangeNotifierProvider.value(value: connectivityProvider),
-        ChangeNotifierProvider.value(value: syncProvider),
-        ChangeNotifierProvider(
-          create: (_) {
-            final provider = LapinProvider();
-            // Initialiser les données de test uniquement en mode debug
-            if (kDebugMode) {
-              provider.initialiserDonneesTest();
-            }
-            return provider;
-          },
-        ),
-        ChangeNotifierProvider(create: (_) => ReproductionProvider()),
-        ChangeNotifierProvider(create: (_) => SanteProvider()),
-        ChangeNotifierProvider(create: (_) => FinanceProvider()),
-        ChangeNotifierProvider(
-          create: (_) {
-            final provider = DecesProvider();
-            provider.chargerDeces();
-            return provider;
-          },
-        ),
-        ChangeNotifierProvider(
-          create: (_) {
-            final provider = AlimentationProvider();
-            provider.loadAliments();
-            provider.loadDistributions();
-            return provider;
-          },
-        ),
-        ChangeNotifierProvider(
-          create: (_) {
-            final provider = FumierProvider();
-            provider.chargerCollectes();
-            return provider;
-          },
-        ),
-        ChangeNotifierProvider(
-          create: (_) {
-            final provider = MedicamentProvider();
-            provider.chargerMedicaments();
-            provider.chargerUtilisations();
-            return provider;
-          },
-        ),
-        ChangeNotifierProvider(
-          create: (_) {
-            final provider = QuarantaineProvider();
-            provider.chargerQuarantaines();
-            return provider;
-          },
-        ),
-        ChangeNotifierProvider(
-          create: (_) {
-            final provider = ReformeProvider();
-            provider.chargerReformes();
-            return provider;
-          },
-        ),
-        ChangeNotifierProvider(
-          create: (_) {
-            final provider = SevrageProvider();
-            provider.chargerSevrages();
-            return provider;
-          },
-        ),
-        ChangeNotifierProvider(
-          create: (_) {
-            final provider = PalpationProvider();
-            provider.chargerPalpations();
-            return provider;
-          },
-        ),
-        ChangeNotifierProvider(
-          create: (_) {
-            final provider = PreparationNidProvider();
-            provider.chargerPreparations();
-            return provider;
-          },
-        ),
-        ChangeNotifierProvider(
-          create: (_) {
-            final provider = ProtocoleSoinProvider();
-            provider.chargerProtocoles();
-            return provider;
-          },
-        ),
-        ChangeNotifierProvider(
-          create: (_) {
-            final provider = EvenementPersonnaliseProvider();
-            provider.chargerEvenements();
-            return provider;
-          },
-        ),
-        ChangeNotifierProvider(
-          create: (_) {
-            final provider = TacheProvider();
-            provider.chargerTaches();
-            return provider;
-          },
-        ),
-        ChangeNotifierProvider(create: (_) => UserProvider()),
-        ChangeNotifierProvider(
-          create: (_) {
-            final provider = RituelProvider();
-            provider.chargerRituelsJour();
-            return provider;
-          },
-        ),
-        ChangeNotifierProvider(
-          create: (_) {
-            final provider = AnomalieProvider();
-            provider.chargerTout();
-            return provider;
-          },
-        ),
-        ChangeNotifierProvider(
-          create: (_) {
-            final provider = JournalProvider();
-            provider.chargerJournal();
-            return provider;
-          },
-        ),
-        ChangeNotifierProxyProvider2<
-          DecesProvider,
-          AlimentationProvider,
-          AlerteProvider
-        >(
-          create: (context) => AlerteProvider(
-            decesProvider: context.read<DecesProvider>(),
-            alimentationProvider: context.read<AlimentationProvider>(),
-          ),
-          update: (context, decesProvider, alimentationProvider, previous) =>
-              previous ??
-              AlerteProvider(
-                decesProvider: decesProvider,
-                alimentationProvider: alimentationProvider,
-              ),
-        ),
-      ],
+      providers: getAppProviders(
+        themeProvider: themeProvider,
+        localeProvider: localeProvider,
+        authProvider: authProvider,
+        connectivityProvider: connectivityProvider,
+        syncProvider: syncProvider,
+      ),
       child: Consumer2<ThemeProvider, LocaleProvider>(
         builder: (context, themeProvider, localeProvider, child) {
           // IMPORTANT: Ne pas utiliser AppLocalizations ici car context incomplet
@@ -296,6 +197,7 @@ class BunnyManagerApp extends StatelessWidget {
             darkTheme: AppTheme.darkTheme,
             themeMode: themeProvider.themeMode,
             home: const SplashScreen(),
+            routes: _buildRoutes(),
           );
         },
       ),

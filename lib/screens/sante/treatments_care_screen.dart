@@ -13,6 +13,7 @@ import 'treatments_care/sections/active_treatments_section.dart';
 import 'treatments_care/sections/scheduled_treatments_section.dart';
 import 'treatments_care/sections/history_section.dart';
 import 'package:rabbit_farm_app/theme/app_theme.dart';
+import '../../widgets/common/common_widgets.dart';
 
 /// Écran Treatments & Care - Design Stitch (Refactorisé)
 /// Architecture: Orchestrateur léger utilisant composants modulaires
@@ -70,17 +71,21 @@ class _TreatmentsCareScreenState extends State<TreatmentsCareScreen> {
 
     return Scaffold(
       backgroundColor: backgroundColor,
-      body: Column(
-        children: [
-          TreatmentsHeader(
-            onBack: () => Navigator.pop(context),
-            onSync: _chargerDonnees,
-            isDark: isDark,
-            textPrimary: textPrimary,
-            backgroundColor: backgroundColor,
+      body: CustomScrollView(
+        slivers: [
+          // Header fixe
+          SliverToBoxAdapter(
+            child: TreatmentsHeader(
+              onBack: () => Navigator.pop(context),
+              onSync: _chargerDonnees,
+              isDark: isDark,
+              textPrimary: textPrimary,
+              backgroundColor: backgroundColor,
+            ),
           ),
-          Expanded(
-            child: SingleChildScrollView(
+          // Contenu scrollable
+          SliverToBoxAdapter(
+            child: Padding(
               padding: const EdgeInsets.only(bottom: 100),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -175,24 +180,19 @@ class _TreatmentsCareScreenState extends State<TreatmentsCareScreen> {
     }
   }
 
-  /// FAB pour ajouter un nouveau traitement
+  /// FAB standardisé pour ajouter un nouveau traitement
   Widget _buildFAB(Color primaryColor, Color textPrimary) {
     return Consumer<LapinProvider>(
       builder: (context, lapinProvider, _) {
-        return FloatingActionButton.extended(
+        return UnifiedFAB.extended(
           onPressed: () async {
             await lapinProvider.chargerLapins();
             final lapins = lapinProvider.lapins;
             if (lapins.isEmpty) return;
             _showRabbitSelectorForNewTreatment(lapins);
           },
-          backgroundColor: textPrimary,
-          elevation: 8,
-          icon: Icon(Icons.add, color: primaryColor, size: 26),
-          label: Text(
-            AppLocalizations.of(context).santeNewTreatment,
-            style: AppTheme.titleSmall.copyWith(color: primaryColor),
-          ),
+          label: AppLocalizations.of(context).santeNewTreatment,
+          tooltip: AppLocalizations.of(context).santeNewTreatment,
         );
       },
     );

@@ -3,6 +3,7 @@ import 'package:rabbit_farm_app/theme/app_theme.dart';
 import 'package:intl/intl.dart';
 import '../../../../models/lapin.dart';
 import '../../../../models/soin.dart';
+import '../../../../models/enums/type_soin.dart';
 import '../../../../l10n/app_localizations.dart';
 
 /// Item compact pour l'historique (Design Stitch)
@@ -33,16 +34,14 @@ class HistoryItemCard extends StatelessWidget {
     Color iconBg;
 
     switch (soin.type) {
-      case 'vaccination':
+      case TypeSoin.vaccination:
         icon = Icons.vaccines;
         iconColor = AppTheme.info;
         iconBg = AppTheme.info.withValues(alpha: 0.15);
-        break;
-      case 'traitement':
+      case TypeSoin.traitement:
         icon = Icons.medication;
         iconColor = AppTheme.primaryGreen;
         iconBg = AppTheme.primaryGreen.withValues(alpha: 0.15);
-        break;
       default:
         icon = Icons.check;
         iconColor = AppTheme.textSecondary;

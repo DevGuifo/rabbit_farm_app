@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:rabbit_farm_app/l10n/app_localizations.dart';
 import '../../models/lapin.dart';
+import '../../models/enums/sexe.dart';
 import '../../models/accouplement.dart';
 import '../../models/portee.dart';
 import '../../models/pesee.dart';
@@ -9,6 +10,7 @@ import '../../models/soin.dart';
 import '../../services/database_helper.dart';
 import '../../services/pdf_service.dart';
 import '../../utils/snackbar_helper.dart';
+import '../../services/error_service.dart';
 import '../../providers/lapin_provider.dart';
 import '../../widgets/quarantaine/quarantaine_quick_dialog.dart';
 import '../deces/enregistrer_deces_screen.dart';
@@ -17,6 +19,7 @@ import 'edit_lapin_screen.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/quick_add_pesee_dialog.dart';
 import '../../widgets/quick_add_soin_dialog.dart';
+import '../../widgets/common/common_widgets.dart';
 
 // Stitch Design Components
 import 'lapin_detail/widgets/detail_app_bar.dart';
@@ -28,6 +31,9 @@ import 'lapin_detail/tabs/statistics_tab.dart';
 import 'lapin_detail/tabs/reproduction_tab.dart';
 import '../reproduction/quick_mating_screen.dart';
 import '../reproduction/reproduction_screen.dart';
+import '../optimisation/palpation_screen.dart';
+import '../optimisation/preparation_nid_screen.dart';
+import '../optimisation/sevrage_screen.dart';
 
 /// Écran de détails d'un lapin - Design Stitch (Yellow Primary)
 /// Architecture: Orchestrateur léger avec widgets dédiés
@@ -79,8 +85,7 @@ class _LapinDetailScreenState extends State<LapinDetailScreen> {
     _soins = await _db.getSoinsByLapin(widget.lapin.id!);
 
     // Charger accouplements (mâle ou femelle)
-    if (widget.lapin.sexe.toLowerCase() == 'mâle' ||
-        widget.lapin.sexe.toLowerCase() == 'male') {
+    if (widget.lapin.sexe == Sexe.male) {
       _accouplements = await _db.getAccouplementsByMale(widget.lapin.id!);
     } else {
       _accouplements = await _db.getAccouplementsByFemelle(widget.lapin.id!);
@@ -105,7 +110,7 @@ class _LapinDetailScreenState extends State<LapinDetailScreen> {
       return Scaffold(
         backgroundColor: backgroundColor,
         body: Center(
-          child: CircularProgressIndicator(color: AppTheme.primaryYellow),
+          child: CircularProgressIndicator(color: AppTheme.accentGreen),
         ),
       );
     }
@@ -181,23 +186,21 @@ class _LapinDetailScreenState extends State<LapinDetailScreen> {
 
   /// FAB pour l'onglet Statistics avec menu pesée/soin
   Widget _buildStatisticsFAB() {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        // Bouton Ajouter soin
-        FloatingActionButton.small(
-          heroTag: 'add_soin',
+    return UnifiedFABSpeedDial(
+      actions: [
+        UnifiedFABAction(
+          icon: Icons.medical_services,
+          label: 'Soin',
           onPressed: _ajouterSoin,
+          tooltip: AppLocalizations.of(context).santeAjouterSoin,
           backgroundColor: AppTheme.accentTeal,
-          child: const Icon(Icons.medical_services, color: Colors.white),
         ),
-        const SizedBox(height: 12),
-        // Bouton Ajouter pesée
-        FloatingActionButton(
-          heroTag: 'add_pesee',
+        UnifiedFABAction(
+          icon: Icons.monitor_weight,
+          label: 'Pesée',
           onPressed: _ajouterPesee,
+          tooltip: AppLocalizations.of(context).santeAjouterPesee,
           backgroundColor: AppTheme.info,
-          child: const Icon(Icons.monitor_weight, color: Colors.white),
         ),
       ],
     );
@@ -205,7 +208,7 @@ class _LapinDetailScreenState extends State<LapinDetailScreen> {
 
   /// FAB pour l'onglet Reproduction
   Widget _buildReproductionFAB() {
-    final isFemelle = widget.lapin.sexe.toLowerCase() == 'femelle';
+    final isFemelle = widget.lapin.sexe == Sexe.femelle;
     final isAdulte = widget.lapin.ageEnMois >= 5;
 
     if (!isAdulte ||
@@ -214,20 +217,13 @@ class _LapinDetailScreenState extends State<LapinDetailScreen> {
       return const SizedBox.shrink();
     }
 
-    return FloatingActionButton.extended(
-      heroTag: 'accoupler',
+    return UnifiedFAB.extended(
       onPressed: isFemelle
           ? _naviguerVersAccouplement
           : _naviguerVersReproductions,
-      backgroundColor: AppTheme.accentPink,
-      icon: const Icon(Icons.favorite, color: Colors.white),
-      label: Text(
-        isFemelle ? 'Accoupler' : 'Voir reproductions',
-        style: const TextStyle(
-          color: Colors.white,
-          fontWeight: FontWeight.w600,
-        ),
-      ),
+      icon: Icons.favorite,
+      label: isFemelle ? 'Accoupler' : 'Voir reproductions',
+      tooltip: isFemelle ? 'Accoupler' : 'Voir reproductions',
     );
   }
 
@@ -280,6 +276,11 @@ class _LapinDetailScreenState extends State<LapinDetailScreen> {
               ? _mettreEnQuarantaine
               : null,
           onMarkDecede: _marquerCommeDecede,
+          onMatingPressed: _naviguerVersAccouplement,
+          onPalpationPressed: _fairePalpation,
+          onNestPrepPressed: _preparerNid,
+          onWeaningPressed: _faireSevrage,
+          onReproductionsPressed: _naviguerVersReproductions,
         );
       case 1:
         return StatisticsTab(
@@ -336,7 +337,7 @@ class _LapinDetailScreenState extends State<LapinDetailScreen> {
         context: context,
         barrierDismissible: false,
         builder: (context) => Center(
-          child: CircularProgressIndicator(color: AppTheme.primaryYellow),
+          child: CircularProgressIndicator(color: AppTheme.accentGreen),
         ),
       );
 
@@ -347,7 +348,7 @@ class _LapinDetailScreenState extends State<LapinDetailScreen> {
     } catch (e) {
       if (!mounted) return;
       Navigator.pop(context);
-      SnackbarHelper.showError(context, 'Erreur: ${e.toString()}');
+      ErrorService.showError(context, e);
     }
   }
 
@@ -402,6 +403,27 @@ class _LapinDetailScreenState extends State<LapinDetailScreen> {
     Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => const ReproductionScreen()),
+    );
+  }
+
+  void _fairePalpation() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const PalpationScreen()),
+    );
+  }
+
+  void _preparerNid() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const PreparationNidScreen()),
+    );
+  }
+
+  void _faireSevrage() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const SevrageScreen()),
     );
   }
 }

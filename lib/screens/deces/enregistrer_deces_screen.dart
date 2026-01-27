@@ -7,6 +7,7 @@ import '../../providers/deces_provider.dart';
 import '../../providers/lapin_provider.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/uniform_app_bar.dart';
+import '../../services/error_service.dart';
 
 /// Écran pour enregistrer un décès
 class EnregistrerDecesScreen extends StatefulWidget {
@@ -109,12 +110,7 @@ class _EnregistrerDecesScreenState extends State<EnregistrerDecesScreen> {
       }
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(AppLocalizations.of(context).decesErreur(e.toString())),
-          backgroundColor: AppTheme.error,
-        ),
-      );
+      ErrorService.showError(context, e);
     } finally {
       if (mounted) {
         setState(() {
@@ -129,10 +125,8 @@ class _EnregistrerDecesScreenState extends State<EnregistrerDecesScreen> {
     final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: UniformAppBar(
+      appBar: SimpleAppBar(
         title: AppLocalizations.of(context).decesEnregistrerDeces,
-        icon: Icons.sentiment_very_dissatisfied_rounded,
-        iconColor: AppTheme.textSecondary,
       ),
       backgroundColor: theme.colorScheme.surface,
       body: SingleChildScrollView(

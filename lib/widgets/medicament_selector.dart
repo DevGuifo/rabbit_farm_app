@@ -163,7 +163,7 @@ class _MedicamentSelectorState extends State<MedicamentSelector> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final textSecondary = isDark
-        ? AppTheme.stitchGreenLight
+        ? AppTheme.success100
         : AppTheme.textSecondary;
 
     if (_loading) {

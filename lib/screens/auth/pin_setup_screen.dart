@@ -4,7 +4,7 @@ import '../../l10n/app_localizations.dart';
 import '../../theme/app_theme.dart';
 import '../../providers/auth_provider.dart';
 import '../../widgets/uniform_app_bar.dart';
-import '../home_screen.dart';
+import '../../utils/onboarding_navigation_helper.dart';
 
 /// Écran de configuration du PIN
 ///
@@ -96,18 +96,8 @@ class _PinSetupScreenState extends State<PinSetupScreen> {
     Navigator.pop(context); // Fermer le dialog de chargement
 
     if (success) {
-      // Navigation vers HomeScreen
-      Navigator.pushReplacement(
-        context,
-        PageRouteBuilder(
-          pageBuilder: (context, animation, secondaryAnimation) =>
-              const HomeScreen(),
-          transitionsBuilder: (context, animation, secondaryAnimation, child) {
-            return FadeTransition(opacity: animation, child: child);
-          },
-          transitionDuration: const Duration(milliseconds: 300),
-        ),
-      );
+      // Navigation basée sur l'état de l'onboarding
+      await OnboardingNavigationHelper.navigateBasedOnOnboardingStatus(context);
     } else {
       setState(() {
         _errorMessage =
@@ -123,8 +113,8 @@ class _PinSetupScreenState extends State<PinSetupScreen> {
 
     return Scaffold(
       backgroundColor: isDark
-          ? AppTheme.stitchBackgroundDark
-          : AppTheme.stitchBackgroundLight,
+          ? AppTheme.backgroundDark
+          : AppTheme.backgroundLight,
       appBar: SimpleAppBar(
         title: AppLocalizations.of(context).authConfigurationPIN,
         showBackButton: true,
@@ -145,7 +135,7 @@ class _PinSetupScreenState extends State<PinSetupScreen> {
                   fontWeight: FontWeight.w800,
                   color: isDark
                       ? AppTheme.textOnPrimary
-                      : AppTheme.stitchTextDark,
+                      : AppTheme.textPrimary,
                 ),
               ),
 

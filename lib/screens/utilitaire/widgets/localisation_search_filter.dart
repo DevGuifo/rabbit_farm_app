@@ -55,8 +55,8 @@ class LocalisationSearchFilter extends StatelessWidget {
               Icons.search_rounded,
               size: 20,
               color: isDark
-                  ? AppTheme.stitchGreen
-                  : AppTheme.stitchTextSecLight,
+                  ? AppTheme.accentGreen
+                  : AppTheme.textSecondary,
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -65,15 +65,15 @@ class LocalisationSearchFilter extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 15,
                   color: isDark
-                      ? AppTheme.stitchTextLight
-                      : AppTheme.stitchTextMainLight,
+                      ? AppTheme.textOnPrimary
+                      : AppTheme.textPrimary,
                 ),
                 decoration: InputDecoration(
                   hintText: AppLocalizations.of(context).hintSearchCageLocation,
                   hintStyle: TextStyle(
                     color: isDark
-                        ? AppTheme.stitchGreen
-                        : AppTheme.stitchTextSecLight,
+                        ? AppTheme.accentGreen
+                        : AppTheme.textSecondary,
                   ),
                   border: InputBorder.none,
                   contentPadding: EdgeInsets.zero,
@@ -144,8 +144,8 @@ class LocalisationSearchFilter extends StatelessWidget {
                   : (isWarning
                         ? AppTheme.warning
                         : (isDark
-                              ? AppTheme.stitchGreen
-                              : AppTheme.stitchTextSecLight)),
+                              ? AppTheme.accentGreen
+                              : AppTheme.textSecondary)),
             ),
             const SizedBox(width: 6),
             Text(
@@ -155,8 +155,8 @@ class LocalisationSearchFilter extends StatelessWidget {
                 color: isActive
                     ? AppTheme.textPrimary
                     : (isDark
-                          ? AppTheme.stitchTextLight
-                          : AppTheme.stitchTextMainLight),
+                          ? AppTheme.textOnPrimary
+                          : AppTheme.textPrimary),
               ),
             ),
           ],

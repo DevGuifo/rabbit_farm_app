@@ -47,7 +47,7 @@ class CageCardWidget extends StatelessWidget {
       child: Container(
         margin: const EdgeInsets.only(bottom: 12),
         decoration: BoxDecoration(
-          color: isDark ? AppTheme.stitchSurfaceDark : AppTheme.cardLight,
+          color: isDark ? AppTheme.surfaceDark : AppTheme.cardLight,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
             color: isDark ? AppTheme.greyCardDark : AppTheme.greyLight,
@@ -96,8 +96,8 @@ class CageCardWidget extends StatelessWidget {
                   Icons.more_vert_rounded,
                   size: 24,
                   color: isDark
-                      ? AppTheme.stitchGreen
-                      : AppTheme.stitchTextSecLight,
+                      ? AppTheme.accentGreen
+                      : AppTheme.textSecondary,
                 ),
                 padding: const EdgeInsets.all(12),
               ),
@@ -158,8 +158,8 @@ class CageCardWidget extends StatelessWidget {
               'Cage ${cage.numero}',
               style: AppTheme.titleSmall.copyWith(
                 color: isDark
-                    ? AppTheme.stitchTextLight
-                    : AppTheme.stitchTextMainLight,
+                    ? AppTheme.textOnPrimary
+                    : AppTheme.textPrimary,
               ),
             ),
             if (needsCleaning)
@@ -190,9 +190,7 @@ class CageCardWidget extends StatelessWidget {
                   '○',
                   style: AppTheme.caption.copyWith(
                     fontWeight: FontWeight.w600,
-                    color: isDark
-                        ? AppTheme.grey500
-                        : AppTheme.grey600,
+                    color: isDark ? AppTheme.grey500 : AppTheme.grey600,
                   ),
                 ),
               ),
@@ -204,9 +202,7 @@ class CageCardWidget extends StatelessWidget {
           style: TextStyle(
             fontSize: 13,
             fontWeight: FontWeight.w500,
-            color: isDark
-                ? AppTheme.stitchGreen
-                : AppTheme.stitchTextSecLight,
+            color: isDark ? AppTheme.accentGreen : AppTheme.textSecondary,
           ),
         ),
         if (occupants > 0) ...[
@@ -215,8 +211,8 @@ class CageCardWidget extends StatelessWidget {
             'Doe + ${occupants - 1} Kits',
             style: AppTheme.caption.copyWith(
               color: isDark
-                  ? AppTheme.stitchTextLight.withValues(alpha: 0.8)
-                  : AppTheme.stitchTextMainLight.withValues(alpha: 0.8),
+                  ? AppTheme.textOnPrimary.withValues(alpha: 0.8)
+                  : AppTheme.textPrimary.withValues(alpha: 0.8),
             ),
           ),
         ],
@@ -226,7 +222,7 @@ class CageCardWidget extends StatelessWidget {
             'Ready for assignment',
             style: AppTheme.caption.copyWith(
               fontWeight: FontWeight.w500,
-              color: Color(0xFF13EC25),
+              color: AppTheme.success,
             ),
           ),
         ],
@@ -244,8 +240,8 @@ class CageCardWidget extends StatelessWidget {
                 lastCleaned,
                 style: AppTheme.caption.copyWith(
                   color: isDark
-                      ? AppTheme.stitchTextLight.withValues(alpha: 0.8)
-                      : AppTheme.stitchTextMainLight.withValues(alpha: 0.8),
+                      ? AppTheme.textOnPrimary.withValues(alpha: 0.8)
+                      : AppTheme.textPrimary.withValues(alpha: 0.8),
                 ),
               ),
             ],

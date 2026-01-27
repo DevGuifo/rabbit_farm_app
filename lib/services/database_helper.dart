@@ -1,31 +1,53 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart' show protected;
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
-import '../models/lapin.dart';
-import '../models/accouplement.dart';
-import '../models/portee.dart';
-import '../models/pesee.dart';
-import '../models/soin.dart';
-import '../models/recette.dart';
-import '../models/depense.dart';
+import 'database/database_base.dart';
+import 'database/lapin_database_mixin.dart';
+import 'database/reproduction_database_mixin.dart';
+import 'database/sante_database_mixin.dart';
+import 'database/finance_database_mixin.dart';
+import 'database/localisation_database_mixin.dart';
+import 'database/lot_database_mixin.dart';
 import '../models/deces.dart';
 import '../models/aliment.dart';
 import '../models/tache.dart';
 import '../models/user.dart';
 import '../models/user_action_log.dart';
-import '../models/batiment.dart';
-import '../models/clapier.dart';
-import '../models/cage.dart';
-import '../models/medicament.dart';
-import '../models/rituel.dart';
-import '../models/anomalie_rituel.dart';
+
+import '../models/tache_quotidienne.dart';
+import '../models/anomalie_tache.dart';
 import '../models/journal_entry.dart';
+import '../models/farm.dart';
+import '../models/user_profile.dart';
+import '../models/onboarding_status.dart';
+import '../models/kpi_history_entry.dart'; // ✅ PHASE 4
 import '../utils/logger.dart';
 import '../utils/data_migration_service.dart';
 import 'secure_storage_service.dart';
 
 /// Service de gestion de la base de données SQLite
-class DatabaseHelper {
+///
+/// Cette classe implémente [DatabaseBase] pour permettre l'utilisation
+/// des mixins de base de données (LapinDatabaseMixin, ReproductionDatabaseMixin, etc.)
+///
+/// ## Architecture
+///
+/// La migration progressive vers les mixins est en cours :
+/// - Phase 1: DatabaseHelper hérite de DatabaseBase ✅
+/// - Phase 2: Mixins créés (Lapin, Reproduction, Sante, Finance, Localisation) ✅
+/// - Phase 3: Application des mixins à DatabaseHelper ✅
+///
+/// Les méthodes des mixins sont désormais disponibles via l'héritage.
+/// Les méthodes existantes dans DatabaseHelper restent pour la compatibilité.
+class DatabaseHelper extends DatabaseBase
+    with
+        LapinDatabaseMixin,
+        ReproductionDatabaseMixin,
+        SanteDatabaseMixin,
+        FinanceDatabaseMixin,
+        LocalisationDatabaseMixin,
+        LotDatabaseMixin {
   // Singleton pattern
   static final DatabaseHelper instance = DatabaseHelper._init();
   static Database? _database;
@@ -34,7 +56,14 @@ class DatabaseHelper {
 
   DatabaseHelper._init();
 
+  /// Constructeur protégé pour permettre le mocking dans les tests
+  @protected
+  DatabaseHelper.forTesting();
+
   /// Obtenir l'instance de la base de données
+  ///
+  /// Implémente [DatabaseBase.database]
+  @override
   Future<Database> get database async {
     if (_database != null) return _database!;
     _database = await _initDB('mon_elevage_lapins.db');
@@ -48,7 +77,7 @@ class DatabaseHelper {
 
     return await openDatabase(
       path,
-      version: 20,
+      version: 27, // ✅ Version 27: Contraintes référentielles (FK)
       onCreate: _createDB,
       onUpgrade: _upgradeDB,
     );
@@ -79,9 +108,36 @@ class DatabaseHelper {
         origine $textTypeNullable,
         notes $textTypeNullable,
         caracteristiques $textTypeNullable,
-        cage_id INTEGER
+        cage_id INTEGER,
+        lot_id INTEGER,
+        FOREIGN KEY (cage_id) REFERENCES cages (id) ON DELETE SET NULL,
+        FOREIGN KEY (lot_id) REFERENCES lots (id) ON DELETE RESTRICT
       )
     ''');
+
+    // Table des lots (gestion par lots - version 24)
+    await db.execute('''
+      CREATE TABLE lots (
+        id $idType,
+        identifiant $textType UNIQUE,
+        date_creation $textType,
+        effectif_initial INTEGER NOT NULL,
+        effectif_actuel INTEGER NOT NULL,
+        type $textType,
+        statut $textType,
+        cage_id INTEGER,
+        metadata $textTypeNullable,
+        photo_path $textTypeNullable,
+        has_individus INTEGER NOT NULL DEFAULT 0,
+        FOREIGN KEY (cage_id) REFERENCES cages (id) ON DELETE SET NULL
+      )
+    ''');
+
+    // Index sur les lots
+    await db.execute('CREATE INDEX idx_lots_identifiant ON lots(identifiant)');
+    await db.execute('CREATE INDEX idx_lots_type ON lots(type)');
+    await db.execute('CREATE INDEX idx_lots_statut ON lots(statut)');
+    await db.execute('CREATE INDEX idx_lapins_lot_id ON lapins(lot_id)');
 
     // Table des relations (généalogie)
     await db.execute('''
@@ -568,9 +624,9 @@ class DatabaseHelper {
       'CREATE INDEX idx_user_action_logs_entity_type ON user_action_logs(entity_type)',
     );
 
-    // Table des rituels quotidiens (version 17)
+    // Table des tâches quotidiennes (anciennement rituels, version 17 → 23)
     await db.execute('''
-      CREATE TABLE rituels (
+      CREATE TABLE taches_quotidiennes (
         id $idType,
         date $textType,
         type $textType,
@@ -580,20 +636,24 @@ class DatabaseHelper {
       )
     ''');
 
-    await db.execute('CREATE INDEX idx_rituels_date ON rituels(date)');
-    await db.execute('CREATE INDEX idx_rituels_type ON rituels(type)');
     await db.execute(
-      'CREATE UNIQUE INDEX idx_rituels_date_type ON rituels(date, type)',
+      'CREATE INDEX idx_taches_quotidiennes_date ON taches_quotidiennes(date)',
+    );
+    await db.execute(
+      'CREATE INDEX idx_taches_quotidiennes_type ON taches_quotidiennes(type)',
+    );
+    await db.execute(
+      'CREATE UNIQUE INDEX idx_taches_quotidiennes_date_type ON taches_quotidiennes(date, type)',
     );
 
-    // Table des anomalies de rituels (version 18)
+    // Table des anomalies de tâches (anciennement anomalies_rituels, version 18 → 23)
     await db.execute('''
-      CREATE TABLE anomalies_rituels (
+      CREATE TABLE anomalies_taches (
         id $idType,
         date_observation $textType,
-        rituel_id INTEGER,
-        action_rituel_id $textType,
-        action_rituel_titre $textType,
+        tache_id INTEGER,
+        action_tache_id $textType,
+        action_tache_titre $textType,
         types_anomalies $textType,
         portee $textType,
         lapin_id INTEGER,
@@ -604,22 +664,22 @@ class DatabaseHelper {
         statut $textType DEFAULT 'nouveau',
         note_libre $textTypeNullable,
         date_resolution $textTypeNullable,
-        FOREIGN KEY (rituel_id) REFERENCES rituels (id) ON DELETE SET NULL,
+        FOREIGN KEY (tache_id) REFERENCES taches_quotidiennes (id) ON DELETE SET NULL,
         FOREIGN KEY (lapin_id) REFERENCES lapins (id) ON DELETE SET NULL
       )
     ''');
 
     await db.execute(
-      'CREATE INDEX idx_anomalies_date ON anomalies_rituels(date_observation)',
+      'CREATE INDEX idx_anomalies_taches_date ON anomalies_taches(date_observation)',
     );
     await db.execute(
-      'CREATE INDEX idx_anomalies_statut ON anomalies_rituels(statut)',
+      'CREATE INDEX idx_anomalies_taches_statut ON anomalies_taches(statut)',
     );
     await db.execute(
-      'CREATE INDEX idx_anomalies_severite ON anomalies_rituels(severite)',
+      'CREATE INDEX idx_anomalies_taches_severite ON anomalies_taches(severite)',
     );
     await db.execute(
-      'CREATE INDEX idx_anomalies_rituel_id ON anomalies_rituels(rituel_id)',
+      'CREATE INDEX idx_anomalies_taches_tache_id ON anomalies_taches(tache_id)',
     );
 
     // Table du journal automatique (version 20)
@@ -651,7 +711,75 @@ class DatabaseHelper {
     );
     await db.execute('CREATE INDEX idx_journal_lu ON journal_automatique(lu)');
 
-    logger.info('✅ Toutes les tables créées avec succès (versions 1-20)');
+    // Tables onboarding (version 21)
+    await db.execute('''
+      CREATE TABLE farms (
+        id $idType,
+        user_id INTEGER,
+        nom $textTypeNullable,
+        region $textTypeNullable,
+        pays $textTypeNullable,
+        type_elevage $textType,
+        taille_elevage $textTypeNullable,
+        date_creation $textType,
+        date_modification $textTypeNullable,
+        FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
+      )
+    ''');
+
+    await db.execute('''
+      CREATE TABLE user_profiles (
+        id $idType,
+        user_id INTEGER,
+        role $textTypeNullable,
+        niveau_experience $textTypeNullable,
+        date_creation $textType,
+        date_modification $textTypeNullable,
+        FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
+      )
+    ''');
+
+    await db.execute('''
+      CREATE TABLE onboarding_status (
+        id $idType,
+        user_id INTEGER,
+        etape_actuelle $textType,
+        est_termine INTEGER NOT NULL DEFAULT 0,
+        synchronisation_autorisee INTEGER NOT NULL DEFAULT 1,
+        date_creation $textType,
+        date_modification $textTypeNullable,
+        date_termine $textTypeNullable,
+        FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
+      )
+    ''');
+
+    // Index pour l'onboarding
+    await db.execute(
+      'CREATE INDEX idx_onboarding_user ON onboarding_status(user_id)',
+    );
+    await db.execute(
+      'CREATE INDEX idx_user_profile_user ON user_profiles(user_id)',
+    );
+    await db.execute('CREATE INDEX idx_farm_user ON farms(user_id)');
+
+    // Table historique KPIs (version 22) - pour graphiques de tendance
+    await db.execute('''
+      CREATE TABLE kpi_historique (
+        id $idType,
+        date $textType,
+        kpi_name $textType,
+        value REAL NOT NULL
+      )
+    ''');
+
+    await db.execute(
+      'CREATE INDEX idx_kpi_historique_date ON kpi_historique(date)',
+    );
+    await db.execute(
+      'CREATE INDEX idx_kpi_historique_name ON kpi_historique(kpi_name)',
+    );
+
+    logger.info('✅ Toutes les tables créées avec succès (versions 1-22)');
   }
 
   /// Mettre à jour la base de données (migrations)
@@ -1912,14 +2040,463 @@ class DatabaseHelper {
         logger.error('❌ Erreur lors de la migration vers version 20: $e');
       }
     }
+
+    // Migration de la version 20 à 21 : Tables onboarding
+    if (oldVersion < 21) {
+      const idType = 'INTEGER PRIMARY KEY AUTOINCREMENT';
+      const textType = 'TEXT NOT NULL';
+      const textTypeNullable = 'TEXT';
+
+      try {
+        // Table des fermes
+        await db.execute('''
+          CREATE TABLE IF NOT EXISTS farms (
+            id $idType,
+            user_id INTEGER,
+            nom $textTypeNullable,
+            region $textTypeNullable,
+            pays $textTypeNullable,
+            type_elevage $textType,
+            taille_elevage $textTypeNullable,
+            date_creation $textType,
+            date_modification $textTypeNullable,
+            FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
+          )
+        ''');
+
+        // Table des profils utilisateurs
+        await db.execute('''
+          CREATE TABLE IF NOT EXISTS user_profiles (
+            id $idType,
+            user_id INTEGER,
+            role $textTypeNullable,
+            niveau_experience $textTypeNullable,
+            date_creation $textType,
+            date_modification $textTypeNullable,
+            FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
+          )
+        ''');
+
+        // Table du statut d'onboarding
+        await db.execute('''
+          CREATE TABLE IF NOT EXISTS onboarding_status (
+            id $idType,
+            user_id INTEGER,
+            etape_actuelle $textType,
+            est_termine INTEGER NOT NULL DEFAULT 0,
+            synchronisation_autorisee INTEGER NOT NULL DEFAULT 1,
+            date_creation $textType,
+            date_modification $textTypeNullable,
+            date_termine $textTypeNullable,
+            FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
+          )
+        ''');
+
+        // Index pour l'onboarding
+        await db.execute(
+          'CREATE INDEX IF NOT EXISTS idx_onboarding_user ON onboarding_status(user_id)',
+        );
+        await db.execute(
+          'CREATE INDEX IF NOT EXISTS idx_user_profile_user ON user_profiles(user_id)',
+        );
+        await db.execute(
+          'CREATE INDEX IF NOT EXISTS idx_farm_user ON farms(user_id)',
+        );
+
+        logger.info('✅ Migration vers version 21 : Tables onboarding créées');
+      } catch (e) {
+        logger.error('❌ Erreur lors de la migration vers version 21: $e');
+      }
+    }
+
+    // ✅ PHASE 4 : Migration vers version 22 - Table historique KPIs
+    if (oldVersion < 22) {
+      const idType = 'INTEGER PRIMARY KEY AUTOINCREMENT';
+      const textType = 'TEXT NOT NULL';
+
+      try {
+        // Table d'historique des KPIs pour graphiques de tendance
+        await db.execute('''
+          CREATE TABLE IF NOT EXISTS kpi_historique (
+            id $idType,
+            date $textType,
+            kpi_name $textType,
+            value REAL NOT NULL
+          )
+        ''');
+
+        // Index pour améliorer les performances des requêtes
+        await db.execute(
+          'CREATE INDEX IF NOT EXISTS idx_kpi_historique_date ON kpi_historique(date)',
+        );
+        await db.execute(
+          'CREATE INDEX IF NOT EXISTS idx_kpi_historique_name ON kpi_historique(kpi_name)',
+        );
+
+        logger.info('✅ Migration vers version 22 : Table kpi_historique créée');
+      } catch (e) {
+        logger.error('❌ Erreur lors de la migration vers version 22: $e');
+      }
+    }
+
+    // ✅ Migration vers version 23 - Renommer rituels → taches_quotidiennes
+    if (oldVersion < 23) {
+      try {
+        // Renommer la table rituels → taches_quotidiennes
+        await db.execute('ALTER TABLE rituels RENAME TO taches_quotidiennes');
+
+        // Recréer les index avec les nouveaux noms
+        await db.execute('DROP INDEX IF EXISTS idx_rituels_date');
+        await db.execute('DROP INDEX IF EXISTS idx_rituels_type');
+        await db.execute('DROP INDEX IF EXISTS idx_rituels_date_type');
+        await db.execute(
+          'CREATE INDEX idx_taches_quotidiennes_date ON taches_quotidiennes(date)',
+        );
+        await db.execute(
+          'CREATE INDEX idx_taches_quotidiennes_type ON taches_quotidiennes(type)',
+        );
+        await db.execute(
+          'CREATE UNIQUE INDEX idx_taches_quotidiennes_date_type ON taches_quotidiennes(date, type)',
+        );
+
+        // Renommer la table anomalies_rituels → anomalies_taches
+        await db.execute(
+          'ALTER TABLE anomalies_rituels RENAME TO anomalies_taches',
+        );
+
+        // Recréer les index des anomalies
+        await db.execute('DROP INDEX IF EXISTS idx_anomalies_date');
+        await db.execute('DROP INDEX IF EXISTS idx_anomalies_statut');
+        await db.execute('DROP INDEX IF EXISTS idx_anomalies_severite');
+        await db.execute('DROP INDEX IF EXISTS idx_anomalies_rituel_id');
+        await db.execute(
+          'CREATE INDEX idx_anomalies_taches_date ON anomalies_taches(date_observation)',
+        );
+        await db.execute(
+          'CREATE INDEX idx_anomalies_taches_statut ON anomalies_taches(statut)',
+        );
+        await db.execute(
+          'CREATE INDEX idx_anomalies_taches_severite ON anomalies_taches(severite)',
+        );
+        await db.execute(
+          'CREATE INDEX idx_anomalies_taches_tache_id ON anomalies_taches(rituel_id)',
+        );
+
+        logger.info(
+          '✅ Migration vers version 23 : Tables rituels → taches_quotidiennes',
+        );
+      } catch (e) {
+        logger.error('❌ Erreur migration version 23: $e');
+      }
+    }
+
+    // ✅ Migration vers version 24 - Ajout table lots et lot_id sur lapins
+    if (oldVersion < 24) {
+      try {
+        // Créer la table lots
+        await db.execute('''
+          CREATE TABLE lots (
+            id $idType,
+            identifiant $textType UNIQUE,
+            date_creation $textType,
+            effectif_initial INTEGER NOT NULL,
+            effectif_actuel INTEGER NOT NULL,
+            type $textType,
+            statut $textType,
+            cage_id INTEGER,
+            metadata $textTypeNullable,
+            photo_path $textTypeNullable,
+            has_individus INTEGER NOT NULL DEFAULT 0
+          )
+        ''');
+
+        // Créer les index sur lots
+        await db.execute(
+          'CREATE INDEX idx_lots_identifiant ON lots(identifiant)',
+        );
+        await db.execute('CREATE INDEX idx_lots_type ON lots(type)');
+        await db.execute('CREATE INDEX idx_lots_statut ON lots(statut)');
+
+        // Ajouter la colonne lot_id sur lapins
+        await db.execute('ALTER TABLE lapins ADD COLUMN lot_id INTEGER');
+        await db.execute('CREATE INDEX idx_lapins_lot_id ON lapins(lot_id)');
+
+        logger.info(
+          '✅ Migration vers version 24 : Table lots créée, colonne lot_id ajoutée',
+        );
+      } catch (e) {
+        logger.error('❌ Erreur migration version 24: $e');
+      }
+    }
+
+    if (oldVersion < 25) {
+      try {
+        // SQLite ne supporte pas ALTER TABLE ADD CONSTRAINT
+        // On doit recréer les tables avec les contraintes FK
+        // Pour cette migration, on ajoute seulement des index pour améliorer les performances
+        // Les contraintes FK seront appliquées lors de la prochaine création complète de la BDD
+
+        logger.info(
+          '📋 Migration vers version 25 : Préparation contraintes FK',
+        );
+
+        // Créer des index supplémentaires pour améliorer les performances des FK
+        await db.execute(
+          'CREATE INDEX IF NOT EXISTS idx_lapins_cage_id ON lapins(cage_id)',
+        );
+        await db.execute(
+          'CREATE INDEX IF NOT EXISTS idx_lots_cage_id ON lots(cage_id)',
+        );
+        await db.execute(
+          'CREATE INDEX IF NOT EXISTS idx_anomalies_cage_id ON anomalies_taches(cage_id)',
+        );
+
+        // Note: Les enums sont maintenant gérés au niveau applicatif (TypeSoin, Sexe, etc.)
+        // Les valeurs String en BDD sont validées via fromString() dans les modèles
+
+        logger.info(
+          '✅ Migration vers version 25 : Index FK ajoutés, migration enums applicative',
+        );
+      } catch (e) {
+        logger.error('❌ Erreur migration version 25: $e');
+      }
+    }
+
+    if (oldVersion < 26) {
+      try {
+        logger.info(
+          '📋 Migration vers version 26 : Migration medicament → medicamentId',
+        );
+
+        // 1. Créer table temporaire pour mapper anciennes valeurs
+        await db.execute('''
+          CREATE TEMPORARY TABLE medicaments_temp_mapping (
+            ancien_nom TEXT PRIMARY KEY,
+            medicament_id INTEGER
+          )
+        ''');
+
+        // 2. Récupérer tous les médicaments existants avec leur ID
+        final medicaments = await db.query('medicaments');
+        for (final med in medicaments) {
+          final id = med['id'] as int;
+          final nom = (med['nom'] as String).toLowerCase();
+
+          // Insérer mapping nom → id
+          await db.execute(
+            'INSERT OR IGNORE INTO medicaments_temp_mapping VALUES (?, ?)',
+            [nom, id],
+          );
+        }
+
+        // 3. Migrer les soins existants
+        // Mettre à jour medicament_id pour les soins où medicament contient un nom
+        await db.execute('''
+          UPDATE soins 
+          SET medicament_id = (
+            SELECT medicament_id 
+            FROM medicaments_temp_mapping 
+            WHERE LOWER(medicaments_temp_mapping.ancien_nom) = LOWER(soins.medicament)
+            LIMIT 1
+          )
+          WHERE medicament IS NOT NULL 
+          AND medicament != '' 
+          AND medicament_id IS NULL
+        ''');
+
+        // 4. Compter combien de lignes ont été migrées
+        final result = await db.rawQuery(
+          'SELECT COUNT(*) as count FROM soins WHERE medicament_id IS NOT NULL',
+        );
+        final count = result.first['count'] as int;
+
+        logger.info(
+          '✅ Migration vers version 26 : $count soins migrés avec medicamentId',
+        );
+
+        // Note: La colonne medicament sera supprimée dans une prochaine version (v27)
+        // Une fois que toutes les données sont migrées et validées
+      } catch (e) {
+        logger.error('❌ Erreur migration version 26: $e');
+      }
+    }
+
+    // Migration vers version 27 : Ajout des contraintes référentielles (FK)
+    // Nécessite de recréer les tables lapins et lots car SQLite ne supporte pas ADD FOREIGN KEY
+    if (oldVersion < 27) {
+      logger.info(
+        '🔄 Migration vers version 27 : Ajout des contraintes référentielles...',
+      );
+
+      try {
+        // Désactiver les contraintes FK temporairement
+        await db.execute('PRAGMA foreign_keys = OFF');
+
+        await db.transaction((txn) async {
+          // --- MIGRATION LAPINS ---
+          logger.info('  📦 Migration table lapins...');
+
+          // 1. Renommer l'ancienne table
+          await txn.execute('ALTER TABLE lapins RENAME TO lapins_old_v27');
+
+          // 2. Créer la nouvelle table avec FK
+          await txn.execute('''
+            CREATE TABLE lapins (
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              nom TEXT NOT NULL,
+              race TEXT NOT NULL,
+              sexe TEXT NOT NULL,
+              date_naissance TEXT NOT NULL,
+              poids REAL,
+              statut TEXT,
+              localisation TEXT,
+              photo_path TEXT,
+              numero_identification TEXT,
+              couleur TEXT,
+              prix_achat REAL,
+              origine TEXT,
+              notes TEXT,
+              caracteristiques TEXT,
+              cage_id INTEGER,
+              lot_id INTEGER,
+              user_id TEXT,
+              created_at TEXT NOT NULL DEFAULT (datetime('now')),
+              updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+              synced_at TEXT,
+              is_dirty INTEGER NOT NULL DEFAULT 1,
+              is_deleted INTEGER NOT NULL DEFAULT 0,
+              deleted_at TEXT,
+              sync_conflict TEXT,
+              FOREIGN KEY (cage_id) REFERENCES cages (id) ON DELETE SET NULL,
+              FOREIGN KEY (lot_id) REFERENCES lots (id) ON DELETE RESTRICT
+            )
+          ''');
+
+          // 3. Copier les données
+          await txn.execute('''
+            INSERT INTO lapins (
+              id, nom, race, sexe, date_naissance, poids, statut, localisation,
+              photo_path, numero_identification, couleur, prix_achat, origine,
+              notes, caracteristiques, cage_id, lot_id, user_id, created_at,
+              updated_at, synced_at, is_dirty, is_deleted, deleted_at, sync_conflict
+            )
+            SELECT 
+              id, nom, race, sexe, date_naissance, poids, statut, localisation,
+              photo_path, numero_identification, couleur, prix_achat, origine,
+              notes, caracteristiques, cage_id, lot_id, user_id, created_at,
+              updated_at, synced_at, is_dirty, is_deleted, deleted_at, sync_conflict
+            FROM lapins_old_v27
+          ''');
+
+          // 4. Supprimer l'ancienne table
+          await txn.execute('DROP TABLE lapins_old_v27');
+
+          // 5. Recréer les index pour lapins
+          await txn.execute('CREATE INDEX idx_lapins_lot_id ON lapins(lot_id)');
+          await txn.execute(
+            'CREATE INDEX idx_lapins_localisation ON lapins(localisation)',
+          );
+          await txn.execute(
+            'CREATE INDEX idx_lapins_cage_id ON lapins(cage_id)',
+          );
+          await txn.execute(
+            'CREATE INDEX idx_lapins_user_id ON lapins(user_id)',
+          );
+          await txn.execute(
+            'CREATE INDEX idx_lapins_is_dirty ON lapins(is_dirty)',
+          );
+          await txn.execute(
+            'CREATE INDEX idx_lapins_updated_at ON lapins(updated_at)',
+          );
+
+          // --- MIGRATION LOTS ---
+          logger.info('  📦 Migration table lots...');
+
+          // 1. Renommer l'ancienne table
+          await txn.execute('ALTER TABLE lots RENAME TO lots_old_v27');
+
+          // 2. Créer la nouvelle table avec FK
+          await txn.execute('''
+            CREATE TABLE lots (
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              identifiant TEXT UNIQUE,
+              date_creation TEXT,
+              effectif_initial INTEGER NOT NULL,
+              effectif_actuel INTEGER NOT NULL,
+              type TEXT,
+              statut TEXT,
+              cage_id INTEGER,
+              metadata TEXT,
+              photo_path TEXT,
+              has_individus INTEGER NOT NULL DEFAULT 0,
+              user_id TEXT,
+              created_at TEXT NOT NULL DEFAULT (datetime('now')),
+              updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+              synced_at TEXT,
+              is_dirty INTEGER NOT NULL DEFAULT 1,
+              is_deleted INTEGER NOT NULL DEFAULT 0,
+              deleted_at TEXT,
+              sync_conflict TEXT,
+              FOREIGN KEY (cage_id) REFERENCES cages (id) ON DELETE SET NULL
+            )
+          ''');
+
+          // 3. Copier les données
+          await txn.execute('''
+            INSERT INTO lots (
+              id, identifiant, date_creation, effectif_initial, effectif_actuel,
+              type, statut, cage_id, metadata, photo_path, has_individus,
+              user_id, created_at, updated_at, synced_at, is_dirty, is_deleted,
+              deleted_at, sync_conflict
+            )
+            SELECT 
+              id, identifiant, date_creation, effectif_initial, effectif_actuel,
+              type, statut, cage_id, metadata, photo_path, has_individus,
+              user_id, created_at, updated_at, synced_at, is_dirty, is_deleted,
+              deleted_at, sync_conflict
+            FROM lots_old_v27
+          ''');
+
+          // 4. Supprimer l'ancienne table
+          await txn.execute('DROP TABLE lots_old_v27');
+
+          // 5. Recréer les index pour lots
+          await txn.execute(
+            'CREATE INDEX idx_lots_identifiant ON lots(identifiant)',
+          );
+          await txn.execute('CREATE INDEX idx_lots_type ON lots(type)');
+          await txn.execute('CREATE INDEX idx_lots_statut ONLots(statut)');
+          await txn.execute('CREATE INDEX idx_lots_user_id ON lots(user_id)');
+          await txn.execute('CREATE INDEX idx_lots_is_dirty ON lots(is_dirty)');
+          await txn.execute(
+            'CREATE INDEX idx_lots_updated_at ON lots(updated_at)',
+          );
+        });
+
+        // Réactiver les contraintes FK
+        await db.execute('PRAGMA foreign_keys = ON');
+
+        logger.info(
+          '✅ Migration vers version 27 : Contraintes référentielles (FK) ajoutées avec succès',
+        );
+      } catch (e, stack) {
+        logger.error('❌ Erreur FATALE lors de la migration v27 : $e\n$stack');
+        // Tenter de restaurer si possible
+        await db.execute('PRAGMA foreign_keys = ON');
+        rethrow;
+      }
+    }
   }
 
-  // ============= MÉTHODES UTILITAIRES =============
+  // ============= MÉTHODES UTILITAIRES (DatabaseBase) =============
 
   /// Obtenir le user_id actuel depuis SecureStorage
   ///
   /// Retourne null si aucun utilisateur n'est connecté
-  Future<String?> _getCurrentUserId() async {
+  ///
+  /// Implémente [DatabaseBase.getCurrentUserId]
+  @override
+  Future<String?> getCurrentUserId() async {
     try {
       return await _secureStorage.getUserId();
     } catch (e) {
@@ -1933,21 +2510,24 @@ class DatabaseHelper {
   /// [baseWhere] : Clause WHERE de base (peut être null)
   /// [baseWhereArgs] : Arguments de la clause WHERE de base
   /// [userId] : User ID pour le filtrage (peut être null)
-  /// [tableName] : Nom de la table pour vérifier si user_id existe (optionnel)
+  /// [tableName] : Nom de la table pour vérifier si user_id existe (requis)
   ///
   /// Retourne un tuple (where, whereArgs) avec le filtrage user_id ajouté si la colonne existe
-  Future<(String, List<dynamic>)> _buildWhereWithUserId(
+  ///
+  /// Implémente [DatabaseBase.buildWhereWithUserId]
+  @override
+  Future<(String, List<dynamic>)> buildWhereWithUserId(
     String? baseWhere,
     List<dynamic>? baseWhereArgs,
     String? userId, {
-    String? tableName,
+    required String tableName,
   }) async {
     final whereArgs = <dynamic>[];
     var where = '';
 
     // Vérifier si la colonne user_id existe dans la table
     bool hasUserIdColumn = true;
-    if (tableName != null && userId != null) {
+    if (userId != null) {
       try {
         final db = await database;
         final columns = await db.rawQuery("PRAGMA table_info($tableName)");
@@ -1990,46 +2570,47 @@ class DatabaseHelper {
   /// - is_deleted = 0 (par défaut, si colonne existe)
   ///
   /// Vérifie l'existence des colonnes avant de les ajouter pour éviter les erreurs
-  Future<Map<String, dynamic>> _prepareDataForInsert(
+  ///
+  /// Implémente [DatabaseBase.prepareDataForInsert]
+  @override
+  Future<Map<String, dynamic>> prepareDataForInsert(
     Map<String, dynamic> data, {
-    String? tableName,
+    required String tableName,
   }) async {
     final map = Map<String, dynamic>.from(data);
 
-    // Si un nom de table est fourni, vérifier l'existence des colonnes
+    // Vérifier l'existence des colonnes dans la table
     bool hasUserId = true;
     bool hasCreatedAt = true;
     bool hasUpdatedAt = true;
     bool hasIsDirty = true;
     bool hasIsDeleted = true;
 
-    if (tableName != null) {
-      final db = await database;
-      try {
-        final columns = await db.rawQuery("PRAGMA table_info($tableName)");
-        final columnNames = columns.map((row) => row['name'] as String).toSet();
+    final db = await database;
+    try {
+      final columns = await db.rawQuery("PRAGMA table_info($tableName)");
+      final columnNames = columns.map((row) => row['name'] as String).toSet();
 
-        hasUserId = columnNames.contains('user_id');
-        hasCreatedAt = columnNames.contains('created_at');
-        hasUpdatedAt = columnNames.contains('updated_at');
-        hasIsDirty = columnNames.contains('is_dirty');
-        hasIsDeleted = columnNames.contains('is_deleted');
-      } catch (e) {
-        // En cas d'erreur, supposer que les colonnes n'existent pas
-        logger.debug(
-          '⚠️ Impossible de vérifier les colonnes pour $tableName: $e',
-        );
-        hasUserId = false;
-        hasCreatedAt = false;
-        hasUpdatedAt = false;
-        hasIsDirty = false;
-        hasIsDeleted = false;
-      }
+      hasUserId = columnNames.contains('user_id');
+      hasCreatedAt = columnNames.contains('created_at');
+      hasUpdatedAt = columnNames.contains('updated_at');
+      hasIsDirty = columnNames.contains('is_dirty');
+      hasIsDeleted = columnNames.contains('is_deleted');
+    } catch (e) {
+      // En cas d'erreur, supposer que les colonnes n'existent pas
+      logger.debug(
+        '⚠️ Impossible de vérifier les colonnes pour $tableName: $e',
+      );
+      hasUserId = false;
+      hasCreatedAt = false;
+      hasUpdatedAt = false;
+      hasIsDirty = false;
+      hasIsDeleted = false;
     }
 
     // Définir user_id si non défini, utilisateur connecté, et colonne existe
     if (hasUserId && map['user_id'] == null) {
-      final userId = await _getCurrentUserId();
+      final userId = await getCurrentUserId();
       if (userId != null) {
         map['user_id'] = userId;
       }
@@ -2071,7 +2652,10 @@ class DatabaseHelper {
   /// Filtrer les colonnes inexistantes d'un Map avant update
   ///
   /// Vérifie l'existence des colonnes dans la table et supprime celles qui n'existent pas
-  Future<Map<String, dynamic>> _filterColumnsForUpdate(
+  ///
+  /// Implémente [DatabaseBase.filterColumnsForUpdate]
+  @override
+  Future<Map<String, dynamic>> filterColumnsForUpdate(
     Map<String, dynamic> data,
     String tableName,
   ) async {
@@ -2097,233 +2681,9 @@ class DatabaseHelper {
   }
 
   // ============= OPÉRATIONS CRUD SUR INFRASTRUCTURE =============
-  // Phase 5: Méthodes helper pour uniformiser l'API
-
-  /// Insérer un bâtiment dans la base de données
-  Future<Batiment> insertBatiment(Batiment batiment) async {
-    final db = await database;
-    final map = await _prepareDataForInsert(
-      batiment.toMap(),
-      tableName: 'batiments',
-    );
-    final id = await db.insert('batiments', map);
-    return batiment.copyWith(id: id);
-  }
-
-  /// Supprimer un bâtiment (cascade sur clapiers et cages)
-  Future<void> deleteBatiment(int id) async {
-    final db = await database;
-    await db.delete('batiments', where: 'id = ?', whereArgs: [id]);
-  }
-
-  /// Insérer un clapier dans la base de données
-  Future<Clapier> insertClapier(Clapier clapier) async {
-    final db = await database;
-    final map = await _prepareDataForInsert(
-      clapier.toMap(),
-      tableName: 'clapiers',
-    );
-    final id = await db.insert('clapiers', map);
-    return clapier.copyWith(id: id);
-  }
-
-  /// Insérer une cage dans la base de données
-  Future<Cage> insertCage(Cage cage) async {
-    final db = await database;
-    final map = await _prepareDataForInsert(cage.toMap(), tableName: 'cages');
-    final id = await db.insert('cages', map);
-    return cage.copyWith(id: id);
-  }
-
-  /// Insérer un médicament dans la base de données
-  Future<Medicament> insertMedicament(Medicament medicament) async {
-    final db = await database;
-    final map = await _prepareDataForInsert(
-      medicament.toMap(),
-      tableName: 'medicaments',
-    );
-    final id = await db.insert('medicaments', map);
-    return medicament.copyWith(id: id);
-  }
-
-  // ============= OPÉRATIONS CRUD SUR LES LAPINS =============
-
-  /// Insérer un lapin dans la base de données
-  ///
-  /// Définit automatiquement user_id si disponible
-  Future<Lapin> insertLapin(Lapin lapin) async {
-    final db = await database;
-    final map = await _prepareDataForInsert(lapin.toMap(), tableName: 'lapins');
-    final id = await db.insert('lapins', map);
-    return lapin.copyWith(id: id);
-  }
-
-  /// Récupérer tous les lapins
-  ///
-  /// Filtre automatiquement par user_id si un utilisateur est connecté
-  Future<List<Lapin>> getAllLapins() async {
-    final db = await database;
-    final userId = await _getCurrentUserId();
-
-    final (where, whereArgs) = await _buildWhereWithUserId(
-      null,
-      null,
-      userId,
-      tableName: 'lapins',
-    );
-    final result = await db.query(
-      'lapins',
-      where: where,
-      whereArgs: whereArgs.isEmpty ? null : whereArgs,
-      orderBy: 'nom ASC',
-    );
-    return result.map((json) => Lapin.fromMap(json)).toList();
-  }
-
-  /// Récupérer un lapin par son ID
-  ///
-  /// Vérifie que le lapin appartient à l'utilisateur connecté
-  Future<Lapin?> getLapinById(int id) async {
-    final db = await database;
-    final userId = await _getCurrentUserId();
-
-    final (where, whereArgs) = await _buildWhereWithUserId(
-      'id = ?',
-      [id],
-      userId,
-      tableName: 'lapins',
-    );
-    final maps = await db.query('lapins', where: where, whereArgs: whereArgs);
-
-    if (maps.isNotEmpty) {
-      return Lapin.fromMap(maps.first);
-    } else {
-      return null;
-    }
-  }
-
-  /// Mettre à jour un lapin
-  ///
-  /// Vérifie que le lapin appartient à l'utilisateur connecté
-  /// Définit automatiquement updated_at
-  Future<int> updateLapin(Lapin lapin) async {
-    final db = await database;
-    final userId = await _getCurrentUserId();
-
-    final map = lapin.toMap();
-    // Définir updated_at automatiquement (si colonne existe)
-    final now = DateTime.now().toIso8601String();
-    map['updated_at'] = now;
-    // Marquer comme dirty pour synchronisation (si colonne existe)
-    map['is_dirty'] = 1;
-
-    // Filtrer les colonnes inexistantes
-    final filteredMap = await _filterColumnsForUpdate(map, 'lapins');
-
-    final (where, whereArgs) = await _buildWhereWithUserId(
-      'id = ?',
-      [lapin.id],
-      userId,
-      tableName: 'lapins',
-    );
-    return db.update('lapins', filteredMap, where: where, whereArgs: whereArgs);
-  }
-
-  /// Supprimer un lapin
-  ///
-  /// Vérifie que le lapin appartient à l'utilisateur connecté
-  /// Utilise soft delete (is_deleted = 1) pour la synchronisation
-  Future<int> deleteLapin(int id) async {
-    final db = await database;
-    final userId = await _getCurrentUserId();
-
-    // Soft delete : marquer comme supprimé au lieu de supprimer réellement
-    final updateData = {
-      'is_deleted': 1,
-      'is_dirty': 1,
-      'updated_at': DateTime.now().toIso8601String(),
-    };
-
-    // Filtrer les colonnes inexistantes
-    final filteredData = await _filterColumnsForUpdate(updateData, 'lapins');
-
-    final (where, whereArgs) = await _buildWhereWithUserId(
-      'id = ?',
-      [id],
-      userId,
-      tableName: 'lapins',
-    );
-    return await db.update(
-      'lapins',
-      filteredData,
-      where: where,
-      whereArgs: whereArgs,
-    );
-  }
-
-  /// Récupérer les lapins par sexe
-  ///
-  /// Filtre automatiquement par user_id si un utilisateur est connecté
-  Future<List<Lapin>> getLapinsBySexe(String sexe) async {
-    final db = await database;
-    final userId = await _getCurrentUserId();
-
-    final (where, whereArgs) = await _buildWhereWithUserId(
-      'sexe = ?',
-      [sexe],
-      userId,
-      tableName: 'lapins',
-    );
-    final result = await db.query(
-      'lapins',
-      where: where,
-      whereArgs: whereArgs,
-      orderBy: 'nom ASC',
-    );
-    return result.map((json) => Lapin.fromMap(json)).toList();
-  }
-
-  /// Récupérer les lapins par statut
-  ///
-  /// Filtre automatiquement par user_id si un utilisateur est connecté
-  Future<List<Lapin>> getLapinsByStatut(String statut) async {
-    final db = await database;
-    final userId = await _getCurrentUserId();
-
-    final (where, whereArgs) = await _buildWhereWithUserId(
-      'statut = ?',
-      [statut],
-      userId,
-      tableName: 'lapins',
-    );
-    final result = await db.query(
-      'lapins',
-      where: where,
-      whereArgs: whereArgs,
-      orderBy: 'nom ASC',
-    );
-    return result.map((json) => Lapin.fromMap(json)).toList();
-  }
-
-  /// Compter le nombre total de lapins
-  ///
-  /// Filtre automatiquement par user_id si un utilisateur est connecté
-  Future<int> countLapins() async {
-    final db = await database;
-    final userId = await _getCurrentUserId();
-
-    final (where, whereArgs) = await _buildWhereWithUserId(
-      null,
-      null,
-      userId,
-      tableName: 'lapins',
-    );
-    final result = await db.rawQuery(
-      'SELECT COUNT(*) FROM lapins WHERE $where',
-      whereArgs.isEmpty ? null : whereArgs,
-    );
-    return Sqflite.firstIntValue(result) ?? 0;
-  }
+  // ============= LOCALISATION DÉPLACÉE VERS LocalisationDatabaseMixin =============
+  // Les méthodes insertBatiment, getAllBatiments, etc. sont désormais fournies par le mixin.
+  // ============= MÉTHODES UTILITAIRES =============
 
   /// Fermer la base de données
   Future<void> close() async {
@@ -2331,309 +2691,9 @@ class DatabaseHelper {
     db.close();
   }
 
-  // ============= OPÉRATIONS SUR LES RELATIONS =============
-
-  /// Récupérer les IDs des parents d'un lapin
-  Future<Map<String, int?>?> getRelationByLapinId(int lapinId) async {
-    final db = await database;
-    final List<Map<String, dynamic>> maps = await db.query(
-      'relations',
-      where: 'lapin_id = ?',
-      whereArgs: [lapinId],
-    );
-    if (maps.isEmpty) return null;
-    return {
-      'pereId': maps.first['pere_id'] as int?,
-      'mereId': maps.first['mere_id'] as int?,
-    };
-  }
-
-  /// Enregistrer les parents d'un lapin
-  Future<void> setParents(int lapinId, int? pereId, int? mereId) async {
-    final db = await database;
-
-    // Supprimer la relation existante si elle existe
-    await db.delete('relations', where: 'lapin_id = ?', whereArgs: [lapinId]);
-
-    // Insérer la nouvelle relation
-    await db.insert('relations', {
-      'lapin_id': lapinId,
-      'pere_id': pereId,
-      'mere_id': mereId,
-    });
-  }
-
-  /// Récupérer le père d'un lapin
-  Future<Lapin?> getPere(int lapinId) async {
-    final db = await database;
-    final result = await db.rawQuery(
-      '''
-      SELECT l.* FROM lapins l
-      INNER JOIN relations r ON l.id = r.pere_id
-      WHERE r.lapin_id = ?
-    ''',
-      [lapinId],
-    );
-
-    if (result.isNotEmpty) {
-      return Lapin.fromMap(result.first);
-    }
-    return null;
-  }
-
-  /// Récupérer la mère d'un lapin
-  Future<Lapin?> getMere(int lapinId) async {
-    final db = await database;
-    final result = await db.rawQuery(
-      '''
-      SELECT l.* FROM lapins l
-      INNER JOIN relations r ON l.id = r.mere_id
-      WHERE r.lapin_id = ?
-    ''',
-      [lapinId],
-    );
-
-    if (result.isNotEmpty) {
-      return Lapin.fromMap(result.first);
-    }
-    return null;
-  }
-
-  /// Récupérer les deux parents d'un lapin
-  Future<Map<String, Lapin?>> getParents(int lapinId) async {
-    final pere = await getPere(lapinId);
-    final mere = await getMere(lapinId);
-    return {'pere': pere, 'mere': mere};
-  }
-
-  /// Récupérer les enfants d'un lapin
-  Future<List<Lapin>> getEnfants(int lapinId) async {
-    final db = await database;
-    final result = await db.rawQuery(
-      '''
-      SELECT DISTINCT l.* FROM lapins l
-      INNER JOIN relations r ON l.id = r.lapin_id
-      WHERE r.pere_id = ? OR r.mere_id = ?
-      ORDER BY l.nom ASC
-    ''',
-      [lapinId, lapinId],
-    );
-
-    return result.map((json) => Lapin.fromMap(json)).toList();
-  }
-
-  /// Récupérer les ancêtres d'un lapin (récursif sur N générations)
-  Future<Map<String, dynamic>> getAncetres(
-    int lapinId, {
-    int generations = 3,
-  }) async {
-    final lapin = await getLapinById(lapinId);
-    if (lapin == null) return {};
-
-    Map<String, dynamic> arbre = {'lapin': lapin, 'pere': null, 'mere': null};
-
-    if (generations > 0) {
-      final parents = await getParents(lapinId);
-      if (parents['pere'] != null) {
-        arbre['pere'] = await getAncetres(
-          parents['pere']!.id!,
-          generations: generations - 1,
-        );
-      }
-      if (parents['mere'] != null) {
-        arbre['mere'] = await getAncetres(
-          parents['mere']!.id!,
-          generations: generations - 1,
-        );
-      }
-    }
-
-    return arbre;
-  }
-
-  /// Calculer le coefficient de consanguinité selon l'algorithme de Wright
-  /// F = Σ (1/2)^(n+1) * (1 + FA)
-  /// où n = nombre de générations dans le chemin commun, FA = consanguinité de l'ancêtre commun
-  Future<double> calculerConsanguinite(int lapinId) async {
-    final parents = await getParents(lapinId);
-    final pere = parents['pere'];
-    final mere = parents['mere'];
-
-    // Si pas de parents, pas de consanguinité
-    if (pere == null || mere == null || pere.id == null || mere.id == null) {
-      return 0.0;
-    }
-
-    // Si les parents sont les mêmes (impossible mais vérification)
-    if (pere.id == mere.id) {
-      return 1.0; // Consanguinité maximale
-    }
-
-    // Récupérer tous les ancêtres du père et de la mère (jusqu'à 5 générations pour précision)
-    final ancetresPere = await _collecterTousAncetres(
-      pere.id!,
-      maxGenerations: 5,
-    );
-    final ancetresMere = await _collecterTousAncetres(
-      mere.id!,
-      maxGenerations: 5,
-    );
-
-    // Trouver les ancêtres communs
-    final ancetresCommuns = ancetresPere.keys.toSet().intersection(
-      ancetresMere.keys.toSet(),
-    );
-
-    if (ancetresCommuns.isEmpty) {
-      return 0.0; // Pas d'ancêtres communs = pas de consanguinité
-    }
-
-    // Calculer le coefficient de consanguinité selon Wright
-    double coefficientTotal = 0.0;
-
-    for (final ancetreId in ancetresCommuns) {
-      // Récupérer les chemins vers cet ancêtre commun depuis le père et la mère
-      final cheminsPere = await _trouverCheminsVersAncetre(
-        pere.id!,
-        ancetreId,
-        ancetresPere,
-      );
-      final cheminsMere = await _trouverCheminsVersAncetre(
-        mere.id!,
-        ancetreId,
-        ancetresMere,
-      );
-
-      // Pour chaque combinaison de chemins
-      for (final cheminPere in cheminsPere) {
-        for (final cheminMere in cheminsMere) {
-          // Longueur totale du chemin (père -> ancêtre + ancêtre -> mère)
-          final longueurChemin = cheminPere.length + cheminMere.length;
-
-          // Calculer la consanguinité de l'ancêtre commun (récursif)
-          final consanguiniteAncetre = await calculerConsanguinite(ancetreId);
-
-          // Formule de Wright : (1/2)^(n+1) * (1 + FA)
-          final contribution =
-              (1 / (1 << (longueurChemin + 1))) * (1 + consanguiniteAncetre);
-          coefficientTotal += contribution;
-        }
-      }
-    }
-
-    return coefficientTotal.clamp(0.0, 1.0);
-  }
-
-  /// Collecter tous les ancêtres d'un lapin avec leur profondeur
-  Future<Map<int, int>> _collecterTousAncetres(
-    int lapinId, {
-    int maxGenerations = 5,
-    int profondeur = 0,
-    Map<int, int>? resultat,
-  }) async {
-    resultat ??= {};
-    if (profondeur >= maxGenerations) return resultat;
-
-    final parents = await getParents(lapinId);
-    final pere = parents['pere'];
-    final mere = parents['mere'];
-
-    if (pere != null && pere.id != null) {
-      // Enregistrer l'ancêtre avec sa profondeur minimale
-      if (!resultat.containsKey(pere.id!) ||
-          resultat[pere.id]! > profondeur + 1) {
-        resultat[pere.id!] = profondeur + 1;
-      }
-      await _collecterTousAncetres(
-        pere.id!,
-        maxGenerations: maxGenerations,
-        profondeur: profondeur + 1,
-        resultat: resultat,
-      );
-    }
-
-    if (mere != null && mere.id != null) {
-      if (!resultat.containsKey(mere.id!) ||
-          resultat[mere.id]! > profondeur + 1) {
-        resultat[mere.id!] = profondeur + 1;
-      }
-      await _collecterTousAncetres(
-        mere.id!,
-        maxGenerations: maxGenerations,
-        profondeur: profondeur + 1,
-        resultat: resultat,
-      );
-    }
-
-    return resultat;
-  }
-
-  /// Trouver tous les chemins vers un ancêtre commun
-  Future<List<List<int>>> _trouverCheminsVersAncetre(
-    int lapinId,
-    int ancetreId,
-    Map<int, int> ancetres,
-  ) async {
-    if (lapinId == ancetreId) {
-      return [[]]; // Chemin vide (on est déjà à l'ancêtre)
-    }
-
-    if (!ancetres.containsKey(ancetreId)) {
-      return []; // Ancêtre non accessible depuis ce lapin
-    }
-
-    // Récupérer les parents de ce lapin
-    return _trouverCheminsRecursif(lapinId, ancetreId, ancetres, {});
-  }
-
-  /// Trouver les chemins récursivement (avec protection contre les cycles)
-  Future<List<List<int>>> _trouverCheminsRecursif(
-    int lapinId,
-    int ancetreId,
-    Map<int, int> ancetres,
-    Set<int> visite,
-  ) async {
-    if (lapinId == ancetreId) {
-      return [[]];
-    }
-
-    if (visite.contains(lapinId)) {
-      return []; // Cycle détecté
-    }
-
-    visite.add(lapinId);
-    final parents = await getParents(lapinId);
-    final pere = parents['pere'];
-    final mere = parents['mere'];
-
-    List<List<int>> chemins = [];
-
-    if (pere != null && pere.id != null) {
-      final cheminsPere = await _trouverCheminsRecursif(
-        pere.id!,
-        ancetreId,
-        ancetres,
-        Set.from(visite),
-      );
-      for (final chemin in cheminsPere) {
-        chemins.add([pere.id!, ...chemin]);
-      }
-    }
-
-    if (mere != null && mere.id != null) {
-      final cheminsMere = await _trouverCheminsRecursif(
-        mere.id!,
-        ancetreId,
-        ancetres,
-        Set.from(visite),
-      );
-      for (final chemin in cheminsMere) {
-        chemins.add([mere.id!, ...chemin]);
-      }
-    }
-
-    return chemins;
-  }
+  // ============= OPÉRATIONS AVANCÉES SUR LA GÉNÉALOGIE =============
+  // Les méthodes de base (getRelationByLapinId, setParents, getPere, getMere, getEnfants)
+  // sont fournies par LapinDatabaseMixin
 
   /// Supprimer la base de données (utile pour les tests)
   Future<void> deleteDatabase() async {
@@ -2643,585 +2703,32 @@ class DatabaseHelper {
     _database = null;
   }
 
-  // ============= OPÉRATIONS CRUD SUR LES ACCOUPLEMENTS =============
-
-  /// Insérer un accouplement dans la base de données
-  ///
-  /// Définit automatiquement user_id si disponible
-  Future<Accouplement> insertAccouplement(Accouplement accouplement) async {
-    final db = await database;
-    final map = await _prepareDataForInsert(
-      accouplement.toMap(),
-      tableName: 'accouplements',
-    );
-    final id = await db.insert('accouplements', map);
-    return accouplement.copyWith(id: id);
-  }
-
-  /// Récupérer tous les accouplements
-  ///
-  /// Filtre automatiquement par user_id si un utilisateur est connecté
-  Future<List<Accouplement>> getAllAccouplements() async {
-    final db = await database;
-    final userId = await _getCurrentUserId();
-
-    final (where, whereArgs) = await _buildWhereWithUserId(
-      null,
-      null,
-      userId,
-      tableName: 'accouplements',
-    );
-    final result = await db.query(
-      'accouplements',
-      where: where,
-      whereArgs: whereArgs.isEmpty ? null : whereArgs,
-      orderBy: 'date_accouplement DESC',
-    );
-    return result.map((json) => Accouplement.fromMap(json)).toList();
-  }
-
-  /// Récupérer un accouplement par son ID
-  ///
-  /// Vérifie que l'accouplement appartient à l'utilisateur connecté
-  Future<Accouplement?> getAccouplementById(int id) async {
-    final db = await database;
-    final userId = await _getCurrentUserId();
-
-    final (where, whereArgs) = await _buildWhereWithUserId(
-      'id = ?',
-      [id],
-      userId,
-      tableName: 'accouplements',
-    );
-    final maps = await db.query(
-      'accouplements',
-      where: where,
-      whereArgs: whereArgs,
-    );
-
-    if (maps.isNotEmpty) {
-      return Accouplement.fromMap(maps.first);
-    } else {
-      return null;
-    }
-  }
-
-  /// Mettre à jour un accouplement
-  ///
-  /// Vérifie que l'accouplement appartient à l'utilisateur connecté
-  /// Définit automatiquement updated_at et is_dirty
-  Future<int> updateAccouplement(Accouplement accouplement) async {
-    final db = await database;
-    final userId = await _getCurrentUserId();
-
-    final map = accouplement.toMap();
-    final now = DateTime.now().toIso8601String();
-    map['updated_at'] = now;
-    map['is_dirty'] = 1;
-
-    // Filtrer les colonnes inexistantes
-    final filteredMap = await _filterColumnsForUpdate(map, 'accouplements');
-
-    final (where, whereArgs) = await _buildWhereWithUserId(
-      'id = ?',
-      [accouplement.id],
-      userId,
-      tableName: 'accouplements',
-    );
-    return db.update(
-      'accouplements',
-      filteredMap,
-      where: where,
-      whereArgs: whereArgs,
-    );
-  }
-
-  /// Supprimer un accouplement
-  ///
-  /// Vérifie que l'accouplement appartient à l'utilisateur connecté
-  /// Utilise soft delete pour la synchronisation
-  Future<int> deleteAccouplement(int id) async {
-    final db = await database;
-    final userId = await _getCurrentUserId();
-
-    final updateData = {
-      'is_deleted': 1,
-      'is_dirty': 1,
-      'updated_at': DateTime.now().toIso8601String(),
-    };
-
-    // Filtrer les colonnes inexistantes
-    final filteredData = await _filterColumnsForUpdate(
-      updateData,
-      'accouplements',
-    );
-
-    final (where, whereArgs) = await _buildWhereWithUserId(
-      'id = ?',
-      [id],
-      userId,
-      tableName: 'accouplements',
-    );
-    return await db.update(
-      'accouplements',
-      filteredData,
-      where: where,
-      whereArgs: whereArgs,
-    );
-  }
-
-  /// Récupérer les accouplements par statut
-  ///
-  /// Filtre automatiquement par user_id si un utilisateur est connecté
-  Future<List<Accouplement>> getAccouplementsByStatut(String statut) async {
-    final db = await database;
-    final userId = await _getCurrentUserId();
-
-    final (where, whereArgs) = await _buildWhereWithUserId(
-      'statut = ?',
-      [statut],
-      userId,
-      tableName: 'accouplements',
-    );
-    final result = await db.query(
-      'accouplements',
-      where: where,
-      whereArgs: whereArgs,
-      orderBy: 'date_accouplement DESC',
-    );
-    return result.map((json) => Accouplement.fromMap(json)).toList();
-  }
-
-  /// Récupérer les accouplements en attente (à venir)
-  Future<List<Accouplement>> getAccouplementsEnAttente() async {
-    return await getAccouplementsByStatut('en_attente');
-  }
-
-  /// Récupérer les accouplements d'une femelle
-  Future<List<Accouplement>> getAccouplementsByFemelle(int femelleId) async {
-    final db = await database;
-    final result = await db.query(
-      'accouplements',
-      where: 'femelle_id = ?',
-      whereArgs: [femelleId],
-      orderBy: 'date_accouplement DESC',
-    );
-    return result.map((json) => Accouplement.fromMap(json)).toList();
-  }
-
-  /// Récupérer les accouplements d'un mâle
-  Future<List<Accouplement>> getAccouplementsByMale(int maleId) async {
-    final db = await database;
-    final result = await db.query(
-      'accouplements',
-      where: 'male_id = ?',
-      whereArgs: [maleId],
-      orderBy: 'date_accouplement DESC',
-    );
-    return result.map((json) => Accouplement.fromMap(json)).toList();
-  }
-
-  // ============= OPÉRATIONS CRUD SUR LES PORTÉES =============
-
-  /// Insérer une portée dans la base de données
-  ///
-  /// Définit automatiquement user_id si disponible
-  Future<Portee> insertPortee(Portee portee) async {
-    final db = await database;
-    final map = await _prepareDataForInsert(
-      portee.toMap(),
-      tableName: 'portees',
-    );
-    final id = await db.insert('portees', map);
-    return portee.copyWith(id: id);
-  }
-
-  /// Récupérer toutes les portées
-  ///
-  /// Filtre automatiquement par user_id si un utilisateur est connecté
-  Future<List<Portee>> getAllPortees() async {
-    final db = await database;
-    final userId = await _getCurrentUserId();
-
-    final (where, whereArgs) = await _buildWhereWithUserId(
-      null,
-      null,
-      userId,
-      tableName: 'portees',
-    );
-    final result = await db.query(
-      'portees',
-      where: where,
-      whereArgs: whereArgs.isEmpty ? null : whereArgs,
-      orderBy: 'date_mise_bas_reelle DESC',
-    );
-    return result.map((json) => Portee.fromMap(json)).toList();
-  }
-
-  /// Récupérer une portée par son ID
-  Future<Portee?> getPorteeById(int id) async {
-    final db = await database;
-    final maps = await db.query('portees', where: 'id = ?', whereArgs: [id]);
-
-    if (maps.isNotEmpty) {
-      return Portee.fromMap(maps.first);
-    } else {
-      return null;
-    }
-  }
-
-  /// Récupérer la portée d'un accouplement
-  Future<Portee?> getPorteeByAccouplement(int accouplementId) async {
-    final db = await database;
-    final maps = await db.query(
-      'portees',
-      where: 'accouplement_id = ?',
-      whereArgs: [accouplementId],
-    );
-
-    if (maps.isNotEmpty) {
-      return Portee.fromMap(maps.first);
-    } else {
-      return null;
-    }
-  }
-
-  /// Mettre à jour une portée
-  Future<int> updatePortee(Portee portee) async {
-    final db = await database;
-    final map = portee.toMap();
-    final now = DateTime.now().toIso8601String();
-    map['updated_at'] = now;
-    map['is_dirty'] = 1;
-
-    // Filtrer les colonnes inexistantes
-    final filteredMap = await _filterColumnsForUpdate(map, 'portees');
-
-    return db.update(
-      'portees',
-      filteredMap,
-      where: 'id = ?',
-      whereArgs: [portee.id],
-    );
-  }
-
-  /// Supprimer une portée
-  ///
-  /// Utilise soft delete pour la synchronisation
-  Future<int> deletePortee(int id) async {
-    final db = await database;
-    final userId = await _getCurrentUserId();
-
-    final updateData = {
-      'is_deleted': 1,
-      'is_dirty': 1,
-      'updated_at': DateTime.now().toIso8601String(),
-    };
-
-    // Filtrer les colonnes inexistantes
-    final filteredData = await _filterColumnsForUpdate(updateData, 'portees');
-
-    final (where, whereArgs) = await _buildWhereWithUserId(
-      'id = ?',
-      [id],
-      userId,
-      tableName: 'portees',
-    );
-    return await db.update(
-      'portees',
-      filteredData,
-      where: where,
-      whereArgs: whereArgs,
-    );
-  }
-
-  // ============= OPÉRATIONS CRUD SUR LES PESÉES =============
-
-  /// Insérer une pesée dans la base de données
-  ///
-  /// Définit automatiquement user_id si disponible
-  Future<Pesee> insertPesee(Pesee pesee) async {
-    final db = await database;
-    final map = await _prepareDataForInsert(pesee.toMap(), tableName: 'pesees');
-    final id = await db.insert('pesees', map);
-    return pesee.copyWith(id: id);
-  }
-
-  /// Récupérer toutes les pesées
-  ///
-  /// Filtre automatiquement par user_id si un utilisateur est connecté
-  Future<List<Pesee>> getAllPesees() async {
-    final db = await database;
-    final userId = await _getCurrentUserId();
-
-    final (where, whereArgs) = await _buildWhereWithUserId(
-      null,
-      null,
-      userId,
-      tableName: 'pesees',
-    );
-    final result = await db.query(
-      'pesees',
-      where: where,
-      whereArgs: whereArgs.isEmpty ? null : whereArgs,
-      orderBy: 'date DESC',
-    );
-    return result.map((json) => Pesee.fromMap(json)).toList();
-  }
-
-  /// Récupérer les pesées d'un lapin
-  Future<List<Pesee>> getPeseesByLapin(int lapinId) async {
-    final db = await database;
-    final result = await db.query(
-      'pesees',
-      where: 'lapin_id = ?',
-      whereArgs: [lapinId],
-      orderBy: 'date ASC',
-    );
-    return result.map((json) => Pesee.fromMap(json)).toList();
-  }
-
-  /// Récupérer la dernière pesée d'un lapin
-  Future<Pesee?> getDernierePesee(int lapinId) async {
-    final db = await database;
-    final result = await db.query(
-      'pesees',
-      where: 'lapin_id = ?',
-      whereArgs: [lapinId],
-      orderBy: 'date DESC',
-      limit: 1,
-    );
-
-    if (result.isNotEmpty) {
-      return Pesee.fromMap(result.first);
-    }
-    return null;
-  }
-
-  /// Mettre à jour une pesée
-  Future<int> updatePesee(Pesee pesee) async {
-    final db = await database;
-    final map = pesee.toMap();
-    final now = DateTime.now().toIso8601String();
-    map['updated_at'] = now;
-    map['is_dirty'] = 1;
-
-    // Filtrer les colonnes inexistantes
-    final filteredMap = await _filterColumnsForUpdate(map, 'pesees');
-
-    return db.update(
-      'pesees',
-      filteredMap,
-      where: 'id = ?',
-      whereArgs: [pesee.id],
-    );
-  }
-
-  /// Supprimer une pesée
-  ///
-  /// Utilise soft delete pour la synchronisation
-  Future<int> deletePesee(int id) async {
-    final db = await database;
-    final userId = await _getCurrentUserId();
-
-    final updateData = {
-      'is_deleted': 1,
-      'is_dirty': 1,
-      'updated_at': DateTime.now().toIso8601String(),
-    };
-
-    // Filtrer les colonnes inexistantes
-    final filteredData = await _filterColumnsForUpdate(updateData, 'pesees');
-
-    final (where, whereArgs) = await _buildWhereWithUserId(
-      'id = ?',
-      [id],
-      userId,
-      tableName: 'pesees',
-    );
-    return await db.update(
-      'pesees',
-      filteredData,
-      where: where,
-      whereArgs: whereArgs,
-    );
-  }
-
-  /// Récupérer les pesées par période
-  ///
-  /// Filtre automatiquement par user_id si un utilisateur est connecté
-  Future<List<Pesee>> getPeseesByPeriode(DateTime debut, DateTime fin) async {
-    final db = await database;
-    final userId = await _getCurrentUserId();
-
-    final (where, whereArgs) = await _buildWhereWithUserId(
-      'date >= ? AND date <= ?',
-      [debut.toIso8601String(), fin.toIso8601String()],
-      userId,
-      tableName: 'pesees',
-    );
-    final result = await db.query(
-      'pesees',
-      where: where,
-      whereArgs: whereArgs,
-      orderBy: 'date DESC',
-    );
-    return result.map((json) => Pesee.fromMap(json)).toList();
-  }
-
-  // ============= OPÉRATIONS CRUD SUR LES SOINS =============
-
-  /// Insérer un soin dans la base de données
-  ///
-  /// Définit automatiquement user_id si disponible
-  Future<Soin> insertSoin(Soin soin) async {
-    final db = await database;
-    final map = await _prepareDataForInsert(soin.toMap(), tableName: 'soins');
-    final id = await db.insert('soins', map);
-    return soin.copyWith(id: id);
-  }
-
-  /// Récupérer tous les soins
-  ///
-  /// Filtre automatiquement par user_id si un utilisateur est connecté
-  Future<List<Soin>> getAllSoins() async {
-    final db = await database;
-    final userId = await _getCurrentUserId();
-
-    final (where, whereArgs) = await _buildWhereWithUserId(
-      null,
-      null,
-      userId,
-      tableName: 'soins',
-    );
-    final result = await db.query(
-      'soins',
-      where: where,
-      whereArgs: whereArgs.isEmpty ? null : whereArgs,
-      orderBy: 'date DESC',
-    );
-    return result.map((json) => Soin.fromMap(json)).toList();
-  }
-
-  /// Récupérer les soins d'un lapin
-  Future<List<Soin>> getSoinsByLapin(int lapinId) async {
-    final db = await database;
-    final result = await db.query(
-      'soins',
-      where: 'lapin_id = ?',
-      whereArgs: [lapinId],
-      orderBy: 'date DESC',
-    );
-    return result.map((json) => Soin.fromMap(json)).toList();
-  }
-
-  /// Récupérer un soin par son ID
-  Future<Soin?> getSoinById(int id) async {
-    final db = await database;
-    final result = await db.query(
-      'soins',
-      where: 'id = ?',
-      whereArgs: [id],
-      limit: 1,
-    );
-    if (result.isEmpty) return null;
-    return Soin.fromMap(result.first);
-  }
-
-  /// Récupérer les soins avec rappel nécessaire
-  Future<List<Soin>> getSoinsAvecRappel() async {
-    final db = await database;
-    final now = DateTime.now().toIso8601String();
-    final result = await db.query(
-      'soins',
-      where: 'date_rappel IS NOT NULL AND date_rappel <= ?',
-      whereArgs: [now],
-      orderBy: 'date_rappel ASC',
-    );
-    return result.map((json) => Soin.fromMap(json)).toList();
-  }
-
-  /// Récupérer les soins par type
-  Future<List<Soin>> getSoinsByType(String type) async {
-    final db = await database;
-    final result = await db.query(
-      'soins',
-      where: 'type = ?',
-      whereArgs: [type],
-      orderBy: 'date DESC',
-    );
-    return result.map((json) => Soin.fromMap(json)).toList();
-  }
-
-  /// Mettre à jour un soin
-  Future<int> updateSoin(Soin soin) async {
-    final db = await database;
-    final map = soin.toMap();
-    final now = DateTime.now().toIso8601String();
-    map['updated_at'] = now;
-    map['is_dirty'] = 1;
-
-    // Filtrer les colonnes inexistantes
-    final filteredMap = await _filterColumnsForUpdate(map, 'soins');
-
-    return db.update(
-      'soins',
-      filteredMap,
-      where: 'id = ?',
-      whereArgs: [soin.id],
-    );
-  }
-
-  /// Supprimer un soin
-  ///
-  /// Utilise soft delete pour la synchronisation
-  Future<int> deleteSoin(int id) async {
-    final db = await database;
-    final userId = await _getCurrentUserId();
-
-    final updateData = {
-      'is_deleted': 1,
-      'is_dirty': 1,
-      'updated_at': DateTime.now().toIso8601String(),
-    };
-
-    // Filtrer les colonnes inexistantes
-    final filteredData = await _filterColumnsForUpdate(updateData, 'soins');
-
-    final (where, whereArgs) = await _buildWhereWithUserId(
-      'id = ?',
-      [id],
-      userId,
-      tableName: 'soins',
-    );
-    return await db.update(
-      'soins',
-      filteredData,
-      where: where,
-      whereArgs: whereArgs,
-    );
-  }
-
-  /// Récupérer les soins par période
-  Future<List<Soin>> getSoinsByPeriode(DateTime debut, DateTime fin) async {
-    final db = await database;
-    final result = await db.query(
-      'soins',
-      where: 'date >= ? AND date <= ?',
-      whereArgs: [debut.toIso8601String(), fin.toIso8601String()],
-      orderBy: 'date DESC',
-    );
-    return result.map((json) => Soin.fromMap(json)).toList();
-  }
-
-  // ============= OPÉRATIONS CRUD SUR LES MÉDICAMENTS =============
-
-  /// Récupérer tous les médicaments
-  Future<List<Medicament>> getAllMedicaments() async {
-    final db = await database;
-    final result = await db.query('medicaments', orderBy: 'nom ASC');
-    return result.map((json) => Medicament.fromMap(json)).toList();
-  }
+  // ============= MÉTHODES HÉRITÉES DES MIXINS =============
+  // Les opérations CRUD suivantes sont fournies par les mixins :
+  // - LapinDatabaseMixin : insertLapin, getAllLapins, getLapinById, updateLapin, deleteLapin,
+  //   getLapinsBySexe, getLapinsByStatut, countLapins, getRelationByLapinId, setParents,
+  //   getPere, getMere, getEnfants, getFreresSoeurs
+  // - ReproductionDatabaseMixin : insertAccouplement, getAllAccouplements, getAccouplementById,
+  //   updateAccouplement, deleteAccouplement, getAccouplementsByStatut, getAccouplementsEnAttente,
+  //   getAccouplementsByFemelle, getAccouplementsByMale, countAccouplementsByStatut,
+  //   insertPortee, getAllPortees, getPorteeById, getPorteeByAccouplement, updatePortee,
+  //   deletePortee, countPorteesAnnee, getTauxMortalitePortees
+  // - SanteDatabaseMixin : insertPesee, getAllPesees, getPeseesByLapin, getDernierePesee,
+  //   updatePesee, deletePesee, getPeseesByPeriode, getPoidssMoyenPeriode,
+  //   insertSoin, getAllSoins, getSoinsByLapin, getSoinById, getSoinsAvecRappel,
+  //   getSoinsByType, updateSoin, deleteSoin, getSoinsByPeriode, countSoinsByType,
+  //   insertMedicament, getAllMedicaments, getMedicamentById, updateMedicament
+  // - FinanceDatabaseMixin : insertRecette, getAllRecettes, getRecettesByPeriode,
+  //   getRecettesByCategorie, getRecettesByLapin, getTotalRecettes, getTotalRecettesByPeriode,
+  //   getTotalRecettesByCategorie, updateRecette, deleteRecette,
+  //   insertDepense, getAllDepenses, getDepensesByPeriode, getDepensesByCategorie,
+  //   getTotalDepenses, getTotalDepensesByPeriode, getTotalDepensesByCategorie,
+  //   updateDepense, deleteDepense, getBenefice, getBeneficeByPeriode, getResumeFinancier,
+  //   getEvolutionMensuelle
+  // - LocalisationDatabaseMixin : insertBatiment, getAllBatiments, updateBatiment, deleteBatiment,
+  //   insertClapier, getClapiersByBatiment, updateClapier, deleteClapier,
+  //   insertCage, getCagesByClapier, updateCage, deleteCage,
+  //   getCagesDisponibles, assignerLapinACage, libererCage, getLapinsByCage
 
   // ============= OPÉRATIONS CRUD SUR LES ALIMENTS =============
 
@@ -3232,354 +2739,6 @@ class DatabaseHelper {
     return result.map((json) => Aliment.fromMap(json)).toList();
   }
 
-  // ============= OPÉRATIONS CRUD SUR LES DEPENSES =============
-
-  /// Récupérer toutes les dépenses
-  Future<List<Depense>> getAllDepenses() async {
-    final db = await database;
-    final userId = await _getCurrentUserId();
-
-    final (where, whereArgs) = await _buildWhereWithUserId(
-      null,
-      null,
-      userId,
-      tableName: 'depenses',
-    );
-    final result = await db.query(
-      'depenses',
-      where: where,
-      whereArgs: whereArgs.isEmpty ? null : whereArgs,
-      orderBy: 'date DESC',
-    );
-    return result.map((json) => Depense.fromMap(json)).toList();
-  }
-
-  // ============= OPÉRATIONS CRUD SUR LES RECETTES =============
-
-  /// Insérer une recette
-  ///
-  /// Définit automatiquement user_id si disponible
-  Future<Recette> insertRecette(Recette recette) async {
-    final db = await database;
-    final map = await _prepareDataForInsert(
-      recette.toMap(),
-      tableName: 'recettes',
-    );
-    final id = await db.insert('recettes', map);
-    return recette.copyWith(id: id);
-  }
-
-  /// Récupérer toutes les recettes
-  ///
-  /// Filtre automatiquement par user_id si un utilisateur est connecté
-  Future<List<Recette>> getAllRecettes() async {
-    final db = await database;
-    final userId = await _getCurrentUserId();
-
-    final (where, whereArgs) = await _buildWhereWithUserId(
-      null,
-      null,
-      userId,
-      tableName: 'recettes',
-    );
-    final result = await db.query(
-      'recettes',
-      where: where,
-      whereArgs: whereArgs.isEmpty ? null : whereArgs,
-      orderBy: 'date DESC',
-    );
-    return result.map((json) => Recette.fromMap(json)).toList();
-  }
-
-  /// Récupérer les recettes par période
-  ///
-  /// Filtre automatiquement par user_id si un utilisateur est connecté
-  Future<List<Recette>> getRecettesByPeriode(
-    DateTime debut,
-    DateTime fin,
-  ) async {
-    final db = await database;
-    final userId = await _getCurrentUserId();
-
-    final (where, whereArgs) = await _buildWhereWithUserId(
-      'date >= ? AND date <= ?',
-      [debut.toIso8601String(), fin.toIso8601String()],
-      userId,
-      tableName: 'recettes',
-    );
-    final result = await db.query(
-      'recettes',
-      where: where,
-      whereArgs: whereArgs,
-      orderBy: 'date DESC',
-    );
-    return result.map((json) => Recette.fromMap(json)).toList();
-  }
-
-  /// Récupérer les recettes par catégorie
-  ///
-  /// Filtre automatiquement par user_id si un utilisateur est connecté
-  Future<List<Recette>> getRecettesByCategorie(String categorie) async {
-    final db = await database;
-    final userId = await _getCurrentUserId();
-
-    final (where, whereArgs) = await _buildWhereWithUserId(
-      'categorie = ?',
-      [categorie],
-      userId,
-      tableName: 'recettes',
-    );
-    final result = await db.query(
-      'recettes',
-      where: where,
-      whereArgs: whereArgs,
-      orderBy: 'date DESC',
-    );
-    return result.map((json) => Recette.fromMap(json)).toList();
-  }
-
-  /// Récupérer les recettes liées à un lapin
-  Future<List<Recette>> getRecettesByLapin(int lapinId) async {
-    final db = await database;
-    final result = await db.query(
-      'recettes',
-      where: 'lapin_id = ?',
-      whereArgs: [lapinId],
-      orderBy: 'date DESC',
-    );
-    return result.map((json) => Recette.fromMap(json)).toList();
-  }
-
-  /// Calculer le total des recettes
-  Future<double> getTotalRecettes() async {
-    final db = await database;
-    final result = await db.rawQuery(
-      'SELECT SUM(montant) as total FROM recettes',
-    );
-    return (result.first['total'] as double?) ?? 0.0;
-  }
-
-  /// Calculer le total des recettes par période
-  Future<double> getTotalRecettesByPeriode(DateTime debut, DateTime fin) async {
-    final db = await database;
-    final result = await db.rawQuery(
-      'SELECT SUM(montant) as total FROM recettes WHERE date >= ? AND date <= ?',
-      [debut.toIso8601String(), fin.toIso8601String()],
-    );
-    return (result.first['total'] as double?) ?? 0.0;
-  }
-
-  /// Calculer le total des recettes par catégorie
-  Future<Map<String, double>> getTotalRecettesByCategorie() async {
-    final db = await database;
-    final result = await db.rawQuery(
-      'SELECT categorie, SUM(montant) as total FROM recettes GROUP BY categorie',
-    );
-
-    final Map<String, double> totaux = {};
-    for (var row in result) {
-      totaux[row['categorie'] as String] = (row['total'] as double?) ?? 0.0;
-    }
-    return totaux;
-  }
-
-  /// Mettre à jour une recette
-  Future<int> updateRecette(Recette recette) async {
-    final db = await database;
-    final map = recette.toMap();
-    final now = DateTime.now().toIso8601String();
-    map['updated_at'] = now;
-    map['is_dirty'] = 1;
-
-    // Filtrer les colonnes inexistantes
-    final filteredMap = await _filterColumnsForUpdate(map, 'recettes');
-
-    return db.update(
-      'recettes',
-      filteredMap,
-      where: 'id = ?',
-      whereArgs: [recette.id],
-    );
-  }
-
-  /// Supprimer une recette
-  ///
-  /// Utilise soft delete pour la synchronisation
-  Future<int> deleteRecette(int id) async {
-    final db = await database;
-    final userId = await _getCurrentUserId();
-
-    final updateData = {
-      'is_deleted': 1,
-      'is_dirty': 1,
-      'updated_at': DateTime.now().toIso8601String(),
-    };
-
-    // Filtrer les colonnes inexistantes
-    final filteredData = await _filterColumnsForUpdate(updateData, 'recettes');
-
-    final (where, whereArgs) = await _buildWhereWithUserId(
-      'id = ?',
-      [id],
-      userId,
-      tableName: 'recettes',
-    );
-    return await db.update(
-      'recettes',
-      filteredData,
-      where: where,
-      whereArgs: whereArgs,
-    );
-  }
-
-  // ============= OPÉRATIONS CRUD SUR LES DÉPENSES =============
-
-  /// Insérer une dépense
-  ///
-  /// Définit automatiquement user_id si disponible
-  Future<Depense> insertDepense(Depense depense) async {
-    final db = await database;
-    final map = await _prepareDataForInsert(
-      depense.toMap(),
-      tableName: 'depenses',
-    );
-    final id = await db.insert('depenses', map);
-    return depense.copyWith(id: id);
-  }
-
-  /// Récupérer les dépenses par période
-  ///
-  /// Filtre automatiquement par user_id si un utilisateur est connecté
-  Future<List<Depense>> getDepensesByPeriode(
-    DateTime debut,
-    DateTime fin,
-  ) async {
-    final db = await database;
-    final userId = await _getCurrentUserId();
-
-    final (where, whereArgs) = await _buildWhereWithUserId(
-      'date >= ? AND date <= ?',
-      [debut.toIso8601String(), fin.toIso8601String()],
-      userId,
-      tableName: 'depenses',
-    );
-    final result = await db.query(
-      'depenses',
-      where: where,
-      whereArgs: whereArgs,
-      orderBy: 'date DESC',
-    );
-    return result.map((json) => Depense.fromMap(json)).toList();
-  }
-
-  /// Récupérer les dépenses par catégorie
-  Future<List<Depense>> getDepensesByCategorie(String categorie) async {
-    final db = await database;
-    final result = await db.query(
-      'depenses',
-      where: 'categorie = ?',
-      whereArgs: [categorie],
-      orderBy: 'date DESC',
-    );
-    return result.map((json) => Depense.fromMap(json)).toList();
-  }
-
-  /// Calculer le total des dépenses
-  Future<double> getTotalDepenses() async {
-    final db = await database;
-    final result = await db.rawQuery(
-      'SELECT SUM(montant) as total FROM depenses',
-    );
-    return (result.first['total'] as double?) ?? 0.0;
-  }
-
-  /// Calculer le total des dépenses par période
-  Future<double> getTotalDepensesByPeriode(DateTime debut, DateTime fin) async {
-    final db = await database;
-    final result = await db.rawQuery(
-      'SELECT SUM(montant) as total FROM depenses WHERE date >= ? AND date <= ?',
-      [debut.toIso8601String(), fin.toIso8601String()],
-    );
-    return (result.first['total'] as double?) ?? 0.0;
-  }
-
-  /// Calculer le total des dépenses par catégorie
-  Future<Map<String, double>> getTotalDepensesByCategorie() async {
-    final db = await database;
-    final result = await db.rawQuery(
-      'SELECT categorie, SUM(montant) as total FROM depenses GROUP BY categorie',
-    );
-
-    final Map<String, double> totaux = {};
-    for (var row in result) {
-      totaux[row['categorie'] as String] = (row['total'] as double?) ?? 0.0;
-    }
-    return totaux;
-  }
-
-  /// Calculer le bénéfice (recettes - dépenses)
-  Future<double> getBenefice() async {
-    final recettes = await getTotalRecettes();
-    final depenses = await getTotalDepenses();
-    return recettes - depenses;
-  }
-
-  /// Calculer le bénéfice par période
-  Future<double> getBeneficeByPeriode(DateTime debut, DateTime fin) async {
-    final recettes = await getTotalRecettesByPeriode(debut, fin);
-    final depenses = await getTotalDepensesByPeriode(debut, fin);
-    return recettes - depenses;
-  }
-
-  /// Mettre à jour une dépense
-  Future<int> updateDepense(Depense depense) async {
-    final db = await database;
-    final map = depense.toMap();
-    final now = DateTime.now().toIso8601String();
-    map['updated_at'] = now;
-    map['is_dirty'] = 1;
-
-    // Filtrer les colonnes inexistantes
-    final filteredMap = await _filterColumnsForUpdate(map, 'depenses');
-
-    return db.update(
-      'depenses',
-      filteredMap,
-      where: 'id = ?',
-      whereArgs: [depense.id],
-    );
-  }
-
-  /// Supprimer une dépense
-  ///
-  /// Utilise soft delete pour la synchronisation
-  Future<int> deleteDepense(int id) async {
-    final db = await database;
-    final userId = await _getCurrentUserId();
-
-    final updateData = {
-      'is_deleted': 1,
-      'is_dirty': 1,
-      'updated_at': DateTime.now().toIso8601String(),
-    };
-
-    // Filtrer les colonnes inexistantes
-    final filteredData = await _filterColumnsForUpdate(updateData, 'depenses');
-
-    final (where, whereArgs) = await _buildWhereWithUserId(
-      'id = ?',
-      [id],
-      userId,
-      tableName: 'depenses',
-    );
-    return await db.update(
-      'depenses',
-      filteredData,
-      where: where,
-      whereArgs: whereArgs,
-    );
-  }
-
   // ============= OPÉRATIONS CRUD SUR LES DÉCÈS =============
 
   /// Insérer un décès
@@ -3587,7 +2746,7 @@ class DatabaseHelper {
   /// Définit automatiquement user_id si disponible
   Future<Deces> insertDeces(Deces deces) async {
     final db = await database;
-    final map = await _prepareDataForInsert(deces.toMap(), tableName: 'deces');
+    final map = await prepareDataForInsert(deces.toMap(), tableName: 'deces');
     final id = await db.insert('deces', map);
     return deces.copyWith(id: id);
   }
@@ -3597,9 +2756,9 @@ class DatabaseHelper {
   /// Filtre automatiquement par user_id si un utilisateur est connecté
   Future<List<Deces>> getAllDeces() async {
     final db = await database;
-    final userId = await _getCurrentUserId();
+    final userId = await getCurrentUserId();
 
-    final (where, whereArgs) = await _buildWhereWithUserId(
+    final (where, whereArgs) = await buildWhereWithUserId(
       null,
       null,
       userId,
@@ -3632,9 +2791,9 @@ class DatabaseHelper {
   /// Filtre automatiquement par user_id si un utilisateur est connecté
   Future<List<Deces>> getDecesByPeriode(DateTime debut, DateTime fin) async {
     final db = await database;
-    final userId = await _getCurrentUserId();
+    final userId = await getCurrentUserId();
 
-    final (where, whereArgs) = await _buildWhereWithUserId(
+    final (where, whereArgs) = await buildWhereWithUserId(
       'date_deces >= ? AND date_deces <= ?',
       [debut.toIso8601String(), fin.toIso8601String()],
       userId,
@@ -3680,7 +2839,7 @@ class DatabaseHelper {
     map['is_dirty'] = 1;
 
     // Filtrer les colonnes inexistantes
-    final filteredMap = await _filterColumnsForUpdate(map, 'deces');
+    final filteredMap = await filterColumnsForUpdate(map, 'deces');
 
     return db.update(
       'deces',
@@ -3695,7 +2854,7 @@ class DatabaseHelper {
   /// Utilise soft delete pour la synchronisation
   Future<int> deleteDeces(int id) async {
     final db = await database;
-    final userId = await _getCurrentUserId();
+    final userId = await getCurrentUserId();
 
     final updateData = {
       'is_deleted': 1,
@@ -3704,9 +2863,9 @@ class DatabaseHelper {
     };
 
     // Filtrer les colonnes inexistantes
-    final filteredData = await _filterColumnsForUpdate(updateData, 'deces');
+    final filteredData = await filterColumnsForUpdate(updateData, 'deces');
 
-    final (where, whereArgs) = await _buildWhereWithUserId(
+    final (where, whereArgs) = await buildWhereWithUserId(
       'id = ?',
       [id],
       userId,
@@ -3727,7 +2886,7 @@ class DatabaseHelper {
   /// Définit automatiquement user_id si disponible
   Future<Aliment> insertAliment(Aliment aliment) async {
     final db = await database;
-    final map = await _prepareDataForInsert(
+    final map = await prepareDataForInsert(
       aliment.toMap(),
       tableName: 'aliments',
     );
@@ -3789,7 +2948,7 @@ class DatabaseHelper {
     map['is_dirty'] = 1;
 
     // Filtrer les colonnes inexistantes
-    final filteredMap = await _filterColumnsForUpdate(map, 'aliments');
+    final filteredMap = await filterColumnsForUpdate(map, 'aliments');
 
     return db.update(
       'aliments',
@@ -3804,7 +2963,7 @@ class DatabaseHelper {
   /// Utilise soft delete pour la synchronisation
   Future<int> deleteAliment(int id) async {
     final db = await database;
-    final userId = await _getCurrentUserId();
+    final userId = await getCurrentUserId();
 
     final updateData = {
       'is_deleted': 1,
@@ -3813,9 +2972,9 @@ class DatabaseHelper {
     };
 
     // Filtrer les colonnes inexistantes
-    final filteredData = await _filterColumnsForUpdate(updateData, 'aliments');
+    final filteredData = await filterColumnsForUpdate(updateData, 'aliments');
 
-    final (where, whereArgs) = await _buildWhereWithUserId(
+    final (where, whereArgs) = await buildWhereWithUserId(
       'id = ?',
       [id],
       userId,
@@ -3838,7 +2997,7 @@ class DatabaseHelper {
     DistributionAliment distribution,
   ) async {
     final db = await database;
-    final map = await _prepareDataForInsert(
+    final map = await prepareDataForInsert(
       distribution.toMap(),
       tableName: 'distributions_aliment',
     );
@@ -3916,7 +3075,7 @@ class DatabaseHelper {
     map['is_dirty'] = 1;
 
     // Filtrer les colonnes inexistantes
-    final filteredMap = await _filterColumnsForUpdate(
+    final filteredMap = await filterColumnsForUpdate(
       map,
       'distributions_aliment',
     );
@@ -3934,7 +3093,7 @@ class DatabaseHelper {
   /// Utilise soft delete pour la synchronisation
   Future<int> deleteDistributionAliment(int id) async {
     final db = await database;
-    final userId = await _getCurrentUserId();
+    final userId = await getCurrentUserId();
 
     final updateData = {
       'is_deleted': 1,
@@ -3943,12 +3102,12 @@ class DatabaseHelper {
     };
 
     // Filtrer les colonnes inexistantes
-    final filteredData = await _filterColumnsForUpdate(
+    final filteredData = await filterColumnsForUpdate(
       updateData,
       'distributions_aliment',
     );
 
-    final (where, whereArgs) = await _buildWhereWithUserId(
+    final (where, whereArgs) = await buildWhereWithUserId(
       'id = ?',
       [id],
       userId,
@@ -4275,64 +3434,74 @@ class DatabaseHelper {
     );
   }
 
-  // ============= OPÉRATIONS CRUD SUR LES RITUELS =============
+  // ============= OPÉRATIONS CRUD SUR LES TÂCHES QUOTIDIENNES =============
 
-  /// Insérer un nouveau rituel
-  Future<Rituel> insertRituel(Rituel rituel) async {
+  /// Insérer une nouvelle tâche quotidienne
+  Future<TacheQuotidienne> insertTacheQuotidienne(
+    TacheQuotidienne tache,
+  ) async {
     final db = await database;
 
     // Convertir les actions en JSON
     final actionsJson = jsonEncode(
-      rituel.actions.map((a) => a.toMap()).toList(),
+      tache.actions.map((a) => a.toMap()).toList(),
     );
 
     final map = {
       'date': DateTime(
-        rituel.date.year,
-        rituel.date.month,
-        rituel.date.day,
+        tache.date.year,
+        tache.date.month,
+        tache.date.day,
       ).toIso8601String(),
-      'type': rituel.type.name,
+      'type': tache.type.name,
       'actions': actionsJson,
-      'date_creation': rituel.dateCreation.toIso8601String(),
-      'date_completion': rituel.dateCompletion?.toIso8601String(),
+      'date_creation': tache.dateCreation.toIso8601String(),
+      'date_completion': tache.dateCompletion?.toIso8601String(),
     };
 
-    final id = await db.insert('rituels', map);
-    return rituel.copyWith(id: id);
+    final id = await db.insert('taches_quotidiennes', map);
+    return tache.copyWith(id: id);
   }
 
-  /// Mettre à jour un rituel
-  Future<int> updateRituel(Rituel rituel) async {
+  /// Mettre à jour une tâche quotidienne
+  Future<int> updateTacheQuotidienne(TacheQuotidienne tache) async {
     final db = await database;
 
     // Convertir les actions en JSON
     final actionsJson = jsonEncode(
-      rituel.actions.map((a) => a.toMap()).toList(),
+      tache.actions.map((a) => a.toMap()).toList(),
     );
 
     final map = {
       'date': DateTime(
-        rituel.date.year,
-        rituel.date.month,
-        rituel.date.day,
+        tache.date.year,
+        tache.date.month,
+        tache.date.day,
       ).toIso8601String(),
-      'type': rituel.type.name,
+      'type': tache.type.name,
       'actions': actionsJson,
-      'date_creation': rituel.dateCreation.toIso8601String(),
-      'date_completion': rituel.dateCompletion?.toIso8601String(),
+      'date_creation': tache.dateCreation.toIso8601String(),
+      'date_completion': tache.dateCompletion?.toIso8601String(),
     };
 
-    return db.update('rituels', map, where: 'id = ?', whereArgs: [rituel.id]);
+    return db.update(
+      'taches_quotidiennes',
+      map,
+      where: 'id = ?',
+      whereArgs: [tache.id],
+    );
   }
 
-  /// Récupérer un rituel par date et type
-  Future<Rituel?> getRituelByDateAndType(DateTime date, String type) async {
+  /// Récupérer une tâche par date et type
+  Future<TacheQuotidienne?> getTacheByDateAndType(
+    DateTime date,
+    String type,
+  ) async {
     final db = await database;
     final dateStr = DateTime(date.year, date.month, date.day).toIso8601String();
 
     final result = await db.query(
-      'rituels',
+      'taches_quotidiennes',
       where: 'date = ? AND type = ?',
       whereArgs: [dateStr, type],
       limit: 1,
@@ -4343,13 +3512,15 @@ class DatabaseHelper {
     final map = result.first;
     final actionsJson = map['actions'] as String;
     final actionsList = (jsonDecode(actionsJson) as List)
-        .map((a) => ActionRituel.fromMap(a as Map<String, dynamic>))
+        .map((a) => ActionTache.fromMap(a as Map<String, dynamic>))
         .toList();
 
-    return Rituel(
+    return TacheQuotidienne(
       id: map['id'] as int?,
       date: DateTime.parse(map['date'] as String),
-      type: TypeRituel.values.firstWhere((e) => e.name == map['type']),
+      type: TypeTacheQuotidienne.values.firstWhere(
+        (e) => e.name == map['type'],
+      ),
       actions: actionsList,
       dateCreation: DateTime.parse(map['date_creation'] as String),
       dateCompletion: map['date_completion'] != null
@@ -4358,12 +3529,12 @@ class DatabaseHelper {
     );
   }
 
-  /// Récupérer l'historique des rituels
-  Future<List<Rituel>> getHistoriqueRituels({int limite = 14}) async {
+  /// Récupérer l'historique des tâches quotidiennes
+  Future<List<TacheQuotidienne>> getHistoriqueTaches({int limite = 14}) async {
     final db = await database;
 
     final result = await db.query(
-      'rituels',
+      'taches_quotidiennes',
       orderBy: 'date DESC, type ASC',
       limit: limite,
     );
@@ -4371,13 +3542,15 @@ class DatabaseHelper {
     return result.map((map) {
       final actionsJson = map['actions'] as String;
       final actionsList = (jsonDecode(actionsJson) as List)
-          .map((a) => ActionRituel.fromMap(a as Map<String, dynamic>))
+          .map((a) => ActionTache.fromMap(a as Map<String, dynamic>))
           .toList();
 
-      return Rituel(
+      return TacheQuotidienne(
         id: map['id'] as int?,
         date: DateTime.parse(map['date'] as String),
-        type: TypeRituel.values.firstWhere((e) => e.name == map['type']),
+        type: TypeTacheQuotidienne.values.firstWhere(
+          (e) => e.name == map['type'],
+        ),
         actions: actionsList,
         dateCreation: DateTime.parse(map['date_creation'] as String),
         dateCompletion: map['date_completion'] != null
@@ -4387,36 +3560,36 @@ class DatabaseHelper {
     }).toList();
   }
 
-  /// Supprimer un rituel
-  Future<int> deleteRituel(int id) async {
+  /// Supprimer une tâche quotidienne
+  Future<int> deleteTacheQuotidienne(int id) async {
     final db = await database;
-    return db.delete('rituels', where: 'id = ?', whereArgs: [id]);
+    return db.delete('taches_quotidiennes', where: 'id = ?', whereArgs: [id]);
   }
 
-  /// Supprimer les rituels anciens (plus de X jours)
-  Future<int> deleteOldRituels(int daysOld) async {
+  /// Supprimer les tâches anciennes (plus de X jours)
+  Future<int> deleteOldTaches(int daysOld) async {
     final db = await database;
     final cutoffDate = DateTime.now().subtract(Duration(days: daysOld));
     return await db.delete(
-      'rituels',
+      'taches_quotidiennes',
       where: 'date < ?',
       whereArgs: [cutoffDate.toIso8601String()],
     );
   }
 
-  // ============= MÉTHODES ANOMALIES RITUELS =============
+  // ============= MÉTHODES ANOMALIES TÂCHES =============
 
-  /// Insérer une nouvelle anomalie de rituel
-  Future<int> insertAnomalieRituel(AnomalieRituel anomalie) async {
+  /// Insérer une nouvelle anomalie de tâche
+  Future<int> insertAnomalieTache(AnomalieTache anomalie) async {
     final db = await database;
-    return await db.insert('anomalies_rituels', anomalie.toMap());
+    return await db.insert('anomalies_taches', anomalie.toMap());
   }
 
   /// Mettre à jour une anomalie
-  Future<int> updateAnomalieRituel(AnomalieRituel anomalie) async {
+  Future<int> updateAnomalieTache(AnomalieTache anomalie) async {
     final db = await database;
     return await db.update(
-      'anomalies_rituels',
+      'anomalies_taches',
       anomalie.toMap(),
       where: 'id = ?',
       whereArgs: [anomalie.id],
@@ -4424,19 +3597,19 @@ class DatabaseHelper {
   }
 
   /// Récupérer une anomalie par ID
-  Future<AnomalieRituel?> getAnomalieRituelById(int id) async {
+  Future<AnomalieTache?> getAnomalieTacheById(int id) async {
     final db = await database;
     final result = await db.query(
-      'anomalies_rituels',
+      'anomalies_taches',
       where: 'id = ?',
       whereArgs: [id],
     );
     if (result.isEmpty) return null;
-    return AnomalieRituel.fromMap(result.first);
+    return AnomalieTache.fromMap(result.first);
   }
 
   /// Récupérer les anomalies du jour
-  Future<List<AnomalieRituel>> getAnomaliesAujourdhui() async {
+  Future<List<AnomalieTache>> getAnomaliesAujourdhui() async {
     final db = await database;
     final aujourdhui = DateTime.now();
     final dateStr = DateTime(
@@ -4446,70 +3619,70 @@ class DatabaseHelper {
     ).toIso8601String().substring(0, 10);
 
     final result = await db.query(
-      'anomalies_rituels',
+      'anomalies_taches',
       where: 'date_observation LIKE ?',
       whereArgs: ['$dateStr%'],
       orderBy: 'date_observation DESC',
     );
-    return result.map((m) => AnomalieRituel.fromMap(m)).toList();
+    return result.map((m) => AnomalieTache.fromMap(m)).toList();
   }
 
   /// Récupérer les anomalies non résolues
-  Future<List<AnomalieRituel>> getAnomaliesNonResolues() async {
+  Future<List<AnomalieTache>> getAnomaliesNonResolues() async {
     final db = await database;
     final result = await db.query(
-      'anomalies_rituels',
+      'anomalies_taches',
       where: 'statut IN (?, ?)',
       whereArgs: ['nouveau', 'enCours'],
       orderBy: 'severite DESC, date_observation DESC',
     );
-    return result.map((m) => AnomalieRituel.fromMap(m)).toList();
+    return result.map((m) => AnomalieTache.fromMap(m)).toList();
   }
 
   /// Récupérer les anomalies critiques (sévérité 3)
-  Future<List<AnomalieRituel>> getAnomaliesCritiques() async {
+  Future<List<AnomalieTache>> getAnomaliesCritiques() async {
     final db = await database;
     final result = await db.query(
-      'anomalies_rituels',
+      'anomalies_taches',
       where: 'severite = 3 AND statut IN (?, ?)',
       whereArgs: ['nouveau', 'enCours'],
       orderBy: 'date_observation DESC',
     );
-    return result.map((m) => AnomalieRituel.fromMap(m)).toList();
+    return result.map((m) => AnomalieTache.fromMap(m)).toList();
   }
 
   /// Récupérer l'historique des anomalies (avec pagination)
-  Future<List<AnomalieRituel>> getHistoriqueAnomalies({
+  Future<List<AnomalieTache>> getHistoriqueAnomalies({
     int limit = 50,
     int offset = 0,
   }) async {
     final db = await database;
     final result = await db.query(
-      'anomalies_rituels',
+      'anomalies_taches',
       orderBy: 'date_observation DESC',
       limit: limit,
       offset: offset,
     );
-    return result.map((m) => AnomalieRituel.fromMap(m)).toList();
+    return result.map((m) => AnomalieTache.fromMap(m)).toList();
   }
 
   /// Récupérer les anomalies pour un lapin spécifique
-  Future<List<AnomalieRituel>> getAnomaliesPourLapin(int lapinId) async {
+  Future<List<AnomalieTache>> getAnomaliesPourLapin(int lapinId) async {
     final db = await database;
     final result = await db.query(
-      'anomalies_rituels',
+      'anomalies_taches',
       where: 'lapin_id = ?',
       whereArgs: [lapinId],
       orderBy: 'date_observation DESC',
     );
-    return result.map((m) => AnomalieRituel.fromMap(m)).toList();
+    return result.map((m) => AnomalieTache.fromMap(m)).toList();
   }
 
   /// Marquer une anomalie comme résolue
   Future<int> resoudreAnomalie(int id, {ActionSuggeree? actionPrise}) async {
     final db = await database;
     return await db.update(
-      'anomalies_rituels',
+      'anomalies_taches',
       {
         'statut': 'resolu',
         'action_prise': actionPrise?.name,
@@ -4524,7 +3697,7 @@ class DatabaseHelper {
   Future<int> updateStatutAnomalie(int id, StatutAnomalie statut) async {
     final db = await database;
     return await db.update(
-      'anomalies_rituels',
+      'anomalies_taches',
       {'statut': statut.name},
       where: 'id = ?',
       whereArgs: [id],
@@ -4532,10 +3705,10 @@ class DatabaseHelper {
   }
 
   /// Supprimer une anomalie
-  Future<int> deleteAnomalieRituel(int id) async {
+  Future<int> deleteAnomalieTache(int id) async {
     final db = await database;
     return await db.delete(
-      'anomalies_rituels',
+      'anomalies_taches',
       where: 'id = ?',
       whereArgs: [id],
     );
@@ -4546,7 +3719,7 @@ class DatabaseHelper {
     final db = await database;
     final result = await db.rawQuery('''
       SELECT statut, COUNT(*) as count 
-      FROM anomalies_rituels 
+      FROM anomalies_taches 
       GROUP BY statut
     ''');
 
@@ -4570,28 +3743,28 @@ class DatabaseHelper {
 
     // Total aujourd'hui
     final countAujourdhui = await db.rawQuery('''
-      SELECT COUNT(*) as count FROM anomalies_rituels 
+      SELECT COUNT(*) as count FROM anomalies_taches 
       WHERE date_observation LIKE '$dateAujourdhui%'
     ''');
     final totalAujourdhui = (countAujourdhui.first['count'] as int?) ?? 0;
 
     // Total semaine
     final countSemaine = await db.rawQuery('''
-      SELECT COUNT(*) as count FROM anomalies_rituels 
+      SELECT COUNT(*) as count FROM anomalies_taches 
       WHERE date_observation >= '${debutSemaine.toIso8601String()}'
     ''');
     final totalSemaine = (countSemaine.first['count'] as int?) ?? 0;
 
     // Non résolues
     final countNonResolues = await db.rawQuery('''
-      SELECT COUNT(*) as count FROM anomalies_rituels 
+      SELECT COUNT(*) as count FROM anomalies_taches 
       WHERE statut IN ('nouveau', 'enCours')
     ''');
     final nonResolues = (countNonResolues.first['count'] as int?) ?? 0;
 
     // Critiques
     final countCritiques = await db.rawQuery('''
-      SELECT COUNT(*) as count FROM anomalies_rituels 
+      SELECT COUNT(*) as count FROM anomalies_taches 
       WHERE severite = 3 AND statut IN ('nouveau', 'enCours')
     ''');
     final critiques = (countCritiques.first['count'] as int?) ?? 0;
@@ -4819,6 +3992,228 @@ class DatabaseHelper {
       'journal_automatique',
       where: 'timestamp < ?',
       whereArgs: [limite.toIso8601String()],
+    );
+  }
+
+  // ============= MÉTHODES ONBOARDING =============
+
+  /// CRUD Farm
+  Future<int> insertFarm(Farm farm) async {
+    final db = await database;
+    return await db.insert('farms', farm.toMap());
+  }
+
+  Future<Farm?> getFarmByUserId(int userId) async {
+    final db = await database;
+    final maps = await db.query(
+      'farms',
+      where: 'user_id = ?',
+      whereArgs: [userId],
+      limit: 1,
+    );
+
+    if (maps.isNotEmpty) {
+      return Farm.fromMap(maps.first);
+    }
+    return null;
+  }
+
+  Future<void> updateFarm(Farm farm) async {
+    final db = await database;
+    await db.update(
+      'farms',
+      farm.toMap(),
+      where: 'id = ?',
+      whereArgs: [farm.id],
+    );
+  }
+
+  Future<void> deleteFarmByUserId(int userId) async {
+    final db = await database;
+    await db.delete('farms', where: 'user_id = ?', whereArgs: [userId]);
+  }
+
+  /// CRUD UserProfile
+  Future<int> insertUserProfile(UserProfile profile) async {
+    final db = await database;
+    return await db.insert('user_profiles', profile.toMap());
+  }
+
+  Future<UserProfile?> getUserProfileByUserId(int userId) async {
+    final db = await database;
+    final maps = await db.query(
+      'user_profiles',
+      where: 'user_id = ?',
+      whereArgs: [userId],
+      limit: 1,
+    );
+
+    if (maps.isNotEmpty) {
+      return UserProfile.fromMap(maps.first);
+    }
+    return null;
+  }
+
+  Future<void> updateUserProfile(UserProfile profile) async {
+    final db = await database;
+    await db.update(
+      'user_profiles',
+      profile.toMap(),
+      where: 'id = ?',
+      whereArgs: [profile.id],
+    );
+  }
+
+  Future<void> deleteUserProfileByUserId(int userId) async {
+    final db = await database;
+    await db.delete('user_profiles', where: 'user_id = ?', whereArgs: [userId]);
+  }
+
+  /// CRUD OnboardingStatus
+  Future<int> insertOnboardingStatus(OnboardingStatus status) async {
+    final db = await database;
+    return await db.insert('onboarding_status', status.toMap());
+  }
+
+  Future<OnboardingStatus?> getOnboardingStatus(int userId) async {
+    final db = await database;
+    final maps = await db.query(
+      'onboarding_status',
+      where: 'user_id = ?',
+      whereArgs: [userId],
+      limit: 1,
+    );
+
+    if (maps.isNotEmpty) {
+      return OnboardingStatus.fromMap(maps.first);
+    }
+    return null;
+  }
+
+  Future<void> updateOnboardingStatus(OnboardingStatus status) async {
+    final db = await database;
+    await db.update(
+      'onboarding_status',
+      status.toMap(),
+      where: 'id = ?',
+      whereArgs: [status.id],
+    );
+  }
+
+  Future<void> deleteOnboardingStatus(int userId) async {
+    final db = await database;
+    await db.delete(
+      'onboarding_status',
+      where: 'user_id = ?',
+      whereArgs: [userId],
+    );
+  }
+
+  // ============= MÉTHODES KPI HISTORIQUE (PHASE 4) =============
+
+  /// S'assurer que la table kpi_historique existe
+  Future<void> _ensureKpiHistoriqueTableExists() async {
+    final db = await database;
+    try {
+      // Vérifier si la table existe
+      final result = await db.rawQuery(
+        "SELECT name FROM sqlite_master WHERE type='table' AND name='kpi_historique'",
+      );
+
+      if (result.isEmpty) {
+        // Créer la table si elle n'existe pas
+        await db.execute('''
+          CREATE TABLE IF NOT EXISTS kpi_historique (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            date TEXT NOT NULL,
+            kpi_name TEXT NOT NULL,
+            value REAL NOT NULL
+          )
+        ''');
+        await db.execute(
+          'CREATE INDEX IF NOT EXISTS idx_kpi_historique_date ON kpi_historique(date)',
+        );
+        await db.execute(
+          'CREATE INDEX IF NOT EXISTS idx_kpi_historique_name ON kpi_historique(kpi_name)',
+        );
+        logger.info('✅ Table kpi_historique créée dynamiquement');
+      }
+    } catch (e) {
+      logger.error(
+        '❌ Erreur lors de la vérification/création de kpi_historique: $e',
+      );
+    }
+  }
+
+  /// Enregistrer un KPI dans l'historique
+  Future<int> insertKpiHistory(KpiHistoryEntry entry) async {
+    await _ensureKpiHistoriqueTableExists();
+    final db = await database;
+    return await db.insert('kpi_historique', entry.toMap());
+  }
+
+  /// Enregistrer plusieurs KPIs en batch (optimisation)
+  Future<void> insertKpiHistoryBatch(List<KpiHistoryEntry> entries) async {
+    await _ensureKpiHistoriqueTableExists();
+    final db = await database;
+    final batch = db.batch();
+
+    for (final entry in entries) {
+      batch.insert('kpi_historique', entry.toMap());
+    }
+
+    await batch.commit(noResult: true);
+  }
+
+  /// Récupérer l'historique d'un KPI spécifique sur N jours
+  Future<List<KpiHistoryEntry>> getKpiHistory({
+    required String kpiName,
+    required int days,
+  }) async {
+    await _ensureKpiHistoriqueTableExists();
+    final db = await database;
+    final dateLimit = DateTime.now().subtract(Duration(days: days));
+
+    final maps = await db.query(
+      'kpi_historique',
+      where: 'kpi_name = ? AND date >= ?',
+      whereArgs: [kpiName, dateLimit.toIso8601String()],
+      orderBy: 'date ASC',
+    );
+
+    return List.generate(maps.length, (i) {
+      return KpiHistoryEntry.fromMap(maps[i]);
+    });
+  }
+
+  /// Récupérer le dernier enregistrement d'un KPI (pour éviter doublons)
+  Future<KpiHistoryEntry?> getLatestKpiEntry(String kpiName) async {
+    await _ensureKpiHistoriqueTableExists();
+    final db = await database;
+    final maps = await db.query(
+      'kpi_historique',
+      where: 'kpi_name = ?',
+      whereArgs: [kpiName],
+      orderBy: 'date DESC',
+      limit: 1,
+    );
+
+    if (maps.isNotEmpty) {
+      return KpiHistoryEntry.fromMap(maps.first);
+    }
+    return null;
+  }
+
+  /// Supprimer les entrées plus anciennes que N jours (nettoyage)
+  Future<int> deleteOldKpiHistory(int daysToKeep) async {
+    await _ensureKpiHistoriqueTableExists();
+    final db = await database;
+    final dateLimit = DateTime.now().subtract(Duration(days: daysToKeep));
+
+    return await db.delete(
+      'kpi_historique',
+      where: 'date < ?',
+      whereArgs: [dateLimit.toIso8601String()],
     );
   }
 }

@@ -3,9 +3,10 @@ import 'package:provider/provider.dart';
 import 'package:rabbit_farm_app/l10n/app_localizations.dart';
 import '../../../models/accouplement.dart';
 import '../../../models/lapin.dart';
+import '../../../models/enums/sexe.dart';
 import '../../../providers/lapin_provider.dart';
 import 'reproduction_pairing_card.dart';
-import 'package:rabbit_farm_app/theme/app_theme.dart';
+import 'package:rabbit_farm_app/widgets/common/common_widgets.dart';
 
 /// Liste des accouplements avec filtre optionnel
 /// Widget modulaire pour composition dans orchestrateur
@@ -35,35 +36,11 @@ class ReproductionPairingsList extends StatelessWidget {
     if (displayedPairings.isEmpty) {
       return Padding(
         padding: const EdgeInsets.all(40),
-        child: Center(
-          child: Column(
-            children: [
-              Icon(
-                Icons.favorite_border,
-                size: 64,
-                color: (isDark ? AppTheme.textLight : AppTheme.textPrimary)
-                    .withValues(alpha: 0.3),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                AppLocalizations.of(context).reproAucunAccouplement,
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                  color: isDark ? AppTheme.textLight : AppTheme.textPrimary,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                AppLocalizations.of(context).reproPlanifierPourCommencer,
-                style: AppTheme.bodyMedium.copyWith(
-                  color: isDark
-                      ? AppTheme.textSecondary.withValues(alpha: 0.7)
-                      : AppTheme.textSecondary.withValues(alpha: 0.7),
-                ),
-              ),
-            ],
-          ),
+        child: EmptyState(
+          isDark: isDark,
+          icon: Icons.favorite_border,
+          title: AppLocalizations.of(context).reproAucunAccouplement,
+          subtitle: AppLocalizations.of(context).reproPlanifierPourCommencer,
         ),
       );
     }
@@ -76,7 +53,7 @@ class ReproductionPairingsList extends StatelessWidget {
           orElse: () => Lapin(
             nom: 'Femelle introuvable',
             race: '',
-            sexe: 'F',
+            sexe: Sexe.femelle,
             dateNaissance: DateTime.now(),
             id: -1,
           ),
@@ -86,7 +63,7 @@ class ReproductionPairingsList extends StatelessWidget {
           orElse: () => Lapin(
             nom: 'Mâle introuvable',
             race: '',
-            sexe: 'M',
+            sexe: Sexe.male,
             dateNaissance: DateTime.now(),
             id: -1,
           ),

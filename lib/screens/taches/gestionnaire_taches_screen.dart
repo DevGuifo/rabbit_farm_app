@@ -1,7 +1,8 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../l10n/app_localizations.dart';
-import '../../providers/tache_provider.dart';
+import '../../models/enums/tache_enums.dart';
+import '../../providers/tache_generique_provider.dart';
 import '../../providers/lapin_provider.dart';
 import '../../providers/sync_provider.dart';
 import '../../models/lapin.dart';
@@ -30,7 +31,7 @@ class _GestionnaireTachesScreenState extends State<GestionnaireTachesScreen> {
   }
 
   Future<void> _chargerDonnees() async {
-    final tacheProvider = context.read<TacheProvider>();
+    final tacheProvider = context.read<TacheGeneriqueProvider>();
     final lapinProvider = context.read<LapinProvider>();
     await Future.wait([
       tacheProvider.chargerTaches(),
@@ -53,7 +54,7 @@ class _GestionnaireTachesScreenState extends State<GestionnaireTachesScreen> {
             child: RefreshIndicator(
               onRefresh: _chargerDonnees,
               color: AppTheme.primaryNeonGreen,
-              child: Consumer<TacheProvider>(
+              child: Consumer<TacheGeneriqueProvider>(
                 builder: (context, tacheProvider, _) {
                   final lapinProvider = context.watch<LapinProvider>();
                   if (tacheProvider.isLoading) {
@@ -182,22 +183,22 @@ class _GestionnaireTachesScreenState extends State<GestionnaireTachesScreen> {
     }
   }
 
-  void _toggleStatut(tache) {
-    final provider = context.read<TacheProvider>();
-    String nouveauStatut;
-    if (tache.statut == 'a_faire') {
-      nouveauStatut = 'en_cours';
-    } else if (tache.statut == 'en_cours') {
-      nouveauStatut = 'terminee';
-    } else if (tache.statut == 'terminee') {
-      nouveauStatut = 'a_faire';
+  void _toggleStatut(dynamic tache) {
+    final provider = context.read<TacheGeneriqueProvider>();
+    StatutTache nouveauStatut;
+    if (tache.statut == StatutTache.aFaire) {
+      nouveauStatut = StatutTache.enCours;
+    } else if (tache.statut == StatutTache.enCours) {
+      nouveauStatut = StatutTache.terminee;
+    } else if (tache.statut == StatutTache.terminee) {
+      nouveauStatut = StatutTache.aFaire;
     } else {
-      nouveauStatut = 'a_faire';
+      nouveauStatut = StatutTache.aFaire;
     }
     provider.changerStatut(tache.id!, nouveauStatut);
   }
 
-  void _supprimerTache(tache) async {
+  void _supprimerTache(dynamic tache) async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -220,7 +221,7 @@ class _GestionnaireTachesScreenState extends State<GestionnaireTachesScreen> {
     );
 
     if (confirmed == true && mounted) {
-      final provider = context.read<TacheProvider>();
+      final provider = context.read<TacheGeneriqueProvider>();
       await provider.supprimerTache(tache.id!);
     }
   }

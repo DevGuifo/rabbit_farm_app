@@ -203,7 +203,7 @@ class SuiviSanitaireRapport extends StatelessWidget {
                             ),
                           ),
                           pw.Text(
-                            soin.type,
+                            soin.type.label,
                             style: const pw.TextStyle(
                               fontSize: 9,
                               color: PdfAppTheme.neutral500700,

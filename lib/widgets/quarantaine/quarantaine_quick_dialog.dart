@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/lapin.dart';
 import '../../models/quarantaine.dart';
+import '../../models/enums/quarantaine_enums.dart';
 import '../../providers/quarantaine_provider.dart';
 import '../../utils/snackbar_helper.dart';
 import 'package:rabbit_farm_app/theme/app_theme.dart';
@@ -315,12 +316,12 @@ class _QuarantaineQuickDialogState extends State<QuarantaineQuickDialog> {
       final quarantaine = Quarantaine(
         lapinId: widget.lapin.id!,
         dateDebut: _dateDebut,
-        motif: _motif,
+        motif: MotifQuarantaine.fromString(_motif),
         symptomes: _symptomesController.text.isNotEmpty
             ? _symptomesController.text
             : null,
         traitement: null, // Sera ajouté plus tard si besoin
-        statut: 'en_cours',
+        statut: StatutQuarantaine.enCours,
         notes: _notesController.text.isNotEmpty ? _notesController.text : null,
       );
 

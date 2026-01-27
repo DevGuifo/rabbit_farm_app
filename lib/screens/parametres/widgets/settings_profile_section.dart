@@ -24,8 +24,8 @@ class SettingsProfileSection extends StatelessWidget {
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: isDark
-            ? AppTheme.stitchSurfaceDark
-            : AppTheme.stitchSurfaceLight,
+            ? AppTheme.surfaceDark
+            : AppTheme.surfaceWhite,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: isDark
@@ -89,7 +89,7 @@ class SettingsProfileSection extends StatelessWidget {
                     fontWeight: FontWeight.bold,
                     color: isDark
                         ? AppTheme.textOnPrimary
-                        : AppTheme.stitchTextDark,
+                        : AppTheme.textPrimary,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -101,7 +101,7 @@ class SettingsProfileSection extends StatelessWidget {
                     fontSize: 14,
                     color: isDark
                         ? AppTheme.stitchTextSecDark
-                        : AppTheme.stitchTextSecLight,
+                        : AppTheme.textSecondary,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,

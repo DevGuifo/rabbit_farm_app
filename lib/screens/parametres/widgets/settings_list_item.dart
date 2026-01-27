@@ -57,7 +57,7 @@ class SettingsListItem extends StatelessWidget {
                     fontWeight: FontWeight.w500,
                     color: isDark
                         ? AppTheme.textOnPrimary
-                        : AppTheme.stitchTextDark,
+                        : AppTheme.textPrimary,
                   ),
                 ),
                 if (subtitle != null) ...[
@@ -68,7 +68,7 @@ class SettingsListItem extends StatelessWidget {
                       fontSize: 12,
                       color: isDark
                           ? AppTheme.stitchTextSecDark
-                          : AppTheme.stitchTextSecLight,
+                          : AppTheme.textSecondary,
                     ),
                   ),
                 ],

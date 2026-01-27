@@ -51,7 +51,7 @@ class NotesCard extends StatelessWidget {
                   style: AppTheme.titleMedium.copyWith(
                     color: isDark
                         ? AppTheme.textLight
-                        : AppTheme.stitchTextMainLight,
+                        : AppTheme.textPrimary,
                   ),
                 ),
               ],
@@ -68,7 +68,7 @@ class NotesCard extends StatelessWidget {
                   margin: const EdgeInsets.only(top: 4),
                   child: const Icon(
                     Icons.sticky_note_2,
-                    color: AppTheme.primaryYellow,
+                    color: AppTheme.accentGreen,
                     size: 24,
                   ),
                 ),

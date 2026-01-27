@@ -6,7 +6,9 @@ import '../../providers/quarantaine_provider.dart';
 import '../../providers/lapin_provider.dart';
 import '../../utils/dialog_helper.dart';
 import '../../models/quarantaine.dart';
+import '../../models/enums/quarantaine_enums.dart';
 import '../../theme/app_theme.dart';
+import '../../widgets/common/common_widgets.dart';
 
 class QuarantaineScreen extends StatefulWidget {
   const QuarantaineScreen({super.key});
@@ -29,10 +31,8 @@ class _QuarantaineScreenState extends State<QuarantaineScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Quarantaine'),
-        backgroundColor: AppTheme.accentAmber,
-        foregroundColor: Colors.white,
+      appBar: SimpleAppBar(
+        title: AppLocalizations.of(context).quarantaineMiseEnQuarantaine,
         actions: [
           PopupMenuButton<String>(
             icon: const Icon(Icons.filter_list),
@@ -68,7 +68,7 @@ class _QuarantaineScreenState extends State<QuarantaineScreen> {
           List<Quarantaine> quarantainesFiltrees = _filtreStatut == 'tous'
               ? quarantaineProvider.quarantaines
               : quarantaineProvider.quarantaines
-                    .where((q) => q.statut == _filtreStatut)
+                    .where((q) => q.statut.value == _filtreStatut)
                     .toList();
 
           // Statistiques
@@ -191,10 +191,9 @@ class _QuarantaineScreenState extends State<QuarantaineScreen> {
           );
         },
       ),
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton: UnifiedFAB(
         onPressed: () => _showAjouterQuarantaineDialog(context),
-        backgroundColor: AppTheme.accentAmber,
-        child: const Icon(Icons.add),
+        tooltip: '${AppLocalizations.of(context).commonAjouter} en quarantaine',
       ),
     );
   }
@@ -380,34 +379,21 @@ class _QuarantaineScreenState extends State<QuarantaineScreen> {
     );
   }
 
-  Color _getMotifColor(String motif) {
+  Color _getMotifColor(MotifQuarantaine motif) {
     switch (motif) {
-      case 'nouveau':
+      case MotifQuarantaine.nouveau:
         return Colors.blue;
-      case 'maladie':
+      case MotifQuarantaine.maladie:
         return Colors.red;
-      case 'isolement_sanitaire':
+      case MotifQuarantaine.isolementSanitaire:
         return Colors.orange;
-      case 'observation':
+      case MotifQuarantaine.observation:
         return Colors.purple;
-      default:
-        return Colors.grey;
     }
   }
 
-  String _getMotifLabel(String motif) {
-    switch (motif) {
-      case 'nouveau':
-        return 'Nouvel arrivant';
-      case 'maladie':
-        return 'Maladie';
-      case 'isolement_sanitaire':
-        return 'Isolement sanitaire';
-      case 'observation':
-        return 'Observation';
-      default:
-        return motif;
-    }
+  String _getMotifLabel(MotifQuarantaine motif) {
+    return motif.label;
   }
 
   void _showAjouterQuarantaineDialog(BuildContext context) {
@@ -423,7 +409,7 @@ class _QuarantaineScreenState extends State<QuarantaineScreen> {
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setState) => AlertDialog(
-          title: const Text('Mettre en quarantaine'),
+          title: Text(AppLocalizations.of(context).cheptelMettreQuarantaine),
           content: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -450,19 +436,32 @@ class _QuarantaineScreenState extends State<QuarantaineScreen> {
                     labelText: 'Motif',
                     border: OutlineInputBorder(),
                   ),
-                  items: const [
+                  items: [
                     DropdownMenuItem(
                       value: 'nouveau',
-                      child: Text('Nouvel arrivant'),
+                      child: Text(
+                        AppLocalizations.of(context).motifNouvelArrivant,
+                      ),
                     ),
-                    DropdownMenuItem(value: 'maladie', child: Text('Maladie')),
+                    DropdownMenuItem(
+                      value: 'maladie',
+                      child: Text(
+                        AppLocalizations.of(context).quarantaineMaladie,
+                      ),
+                    ),
                     DropdownMenuItem(
                       value: 'isolement_sanitaire',
-                      child: Text('Isolement sanitaire'),
+                      child: Text(
+                        AppLocalizations.of(
+                          context,
+                        ).quarantaineIsolementSanitaire,
+                      ),
                     ),
                     DropdownMenuItem(
                       value: 'observation',
-                      child: Text('Observation'),
+                      child: Text(
+                        AppLocalizations.of(context).quarantaineObservation,
+                      ),
                     ),
                   ],
                   onChanged: (value) => setState(() => motif = value!),
@@ -540,14 +539,14 @@ class _QuarantaineScreenState extends State<QuarantaineScreen> {
                 final quarantaine = Quarantaine(
                   lapinId: lapinSelectionne!,
                   dateDebut: dateDebut,
-                  motif: motif,
+                  motif: MotifQuarantaine.fromString(motif),
                   symptomes: symptomesController.text.isNotEmpty
                       ? symptomesController.text
                       : null,
                   traitement: traitementController.text.isNotEmpty
                       ? traitementController.text
                       : null,
-                  statut: 'en_cours',
+                  statut: StatutQuarantaine.enCours,
                   notes: notesController.text.isNotEmpty
                       ? notesController.text
                       : null,
@@ -558,7 +557,9 @@ class _QuarantaineScreenState extends State<QuarantaineScreen> {
                 );
                 Navigator.pop(context);
               },
-              child: const Text('Mettre en quarantaine'),
+              child: Text(
+                AppLocalizations.of(context).cheptelMettreQuarantaine,
+              ),
             ),
           ],
         ),

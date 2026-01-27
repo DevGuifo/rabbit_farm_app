@@ -7,6 +7,7 @@ import '../../providers/lapin_provider.dart';
 import '../../providers/reproduction_provider.dart';
 import '../../utils/dialog_helper.dart';
 import '../../models/reforme.dart';
+import '../../models/enums/reforme_enums.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/uniform_app_bar.dart';
 
@@ -82,7 +83,7 @@ class _ReformeScreenState extends State<ReformeScreen> {
           List<Reforme> reformesFiltrees = _filtreMotif == 'tous'
               ? reformeProvider.reformes
               : reformeProvider.reformes
-                    .where((r) => r.motif == _filtreMotif)
+                    .where((r) => r.motif.value == _filtreMotif)
                     .toList();
 
           // Statistiques
@@ -433,68 +434,46 @@ class _ReformeScreenState extends State<ReformeScreen> {
     );
   }
 
-  Color _getMotifColor(String motif) {
+  Color _getMotifColor(MotifReforme motif) {
     switch (motif) {
-      case 'age':
+      case MotifReforme.age:
         return AppTheme.neutral500;
-      case 'improductif':
+      case MotifReforme.improductif:
         return AppTheme.warning;
-      case 'maladie':
+      case MotifReforme.maladie:
         return AppTheme.error;
-      case 'genetique':
+      case MotifReforme.genetique:
         return AppTheme.accentPurple;
-      case 'comportement':
+      case MotifReforme.comportement:
         return AppTheme.accentOrange;
-      default:
+      case MotifReforme.autre:
         return AppTheme.infoGrey;
     }
   }
 
-  IconData _getMotifIcon(String motif) {
+  IconData _getMotifIcon(MotifReforme motif) {
     switch (motif) {
-      case 'age':
+      case MotifReforme.age:
         return Icons.cake;
-      case 'improductif':
+      case MotifReforme.improductif:
         return Icons.trending_down;
-      case 'maladie':
+      case MotifReforme.maladie:
         return Icons.local_hospital;
-      case 'genetique':
+      case MotifReforme.genetique:
         return Icons.science;
-      case 'comportement':
+      case MotifReforme.comportement:
         return Icons.psychology;
-      default:
+      case MotifReforme.autre:
         return Icons.info;
     }
   }
 
-  String _getMotifLabel(String motif) {
-    switch (motif) {
-      case 'age':
-        return 'Âge avancé';
-      case 'improductif':
-        return 'Improductif';
-      case 'maladie':
-        return 'Maladie';
-      case 'genetique':
-        return 'Raison génétique';
-      case 'comportement':
-        return 'Comportement';
-      default:
-        return 'Autre';
-    }
+  String _getMotifLabel(MotifReforme motif) {
+    return motif.label;
   }
 
-  String _getDestinationLabel(String destination) {
-    switch (destination) {
-      case 'vente':
-        return 'Vente';
-      case 'abattage':
-        return 'Abattage';
-      case 'don':
-        return 'Don';
-      default:
-        return 'Autre';
-    }
+  String _getDestinationLabel(DestinationReforme destination) {
+    return destination.label;
   }
 
   void _showAjouterReformeDialog(BuildContext context) {
@@ -689,8 +668,8 @@ class _ReformeScreenState extends State<ReformeScreen> {
                 final reforme = Reforme(
                   lapinId: lapinSelectionne!,
                   dateReforme: dateReforme,
-                  motif: motif,
-                  destination: destination,
+                  motif: MotifReforme.fromString(motif),
+                  destination: DestinationReforme.fromString(destination),
                   poidsVif: poidsController.text.isNotEmpty
                       ? double.parse(poidsController.text)
                       : null,

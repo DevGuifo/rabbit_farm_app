@@ -60,12 +60,12 @@ class DetailSegmentedControl extends StatelessWidget {
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
         decoration: BoxDecoration(
-          color: isSelected ? AppTheme.primaryYellow : Colors.transparent,
+          color: isSelected ? AppTheme.accentGreen : Colors.transparent,
           borderRadius: BorderRadius.circular(AppTheme.radiusFull),
           boxShadow: isSelected
               ? [
                   BoxShadow(
-                    color: AppTheme.primaryYellow.withValues(alpha: 0.2),
+                    color: AppTheme.accentGreen.withValues(alpha: 0.2),
                     blurRadius: 8,
                     offset: const Offset(0, 2),
                   ),

@@ -110,7 +110,10 @@ class _EditSevrageScreenState extends State<EditSevrageScreen> {
       }
     } catch (e) {
       if (mounted) {
-        SnackbarHelper.showError(context, 'Erreur: $e');
+        SnackbarHelper.showError(
+          context,
+          AppLocalizations.of(context).msgErreurOperationEchouee,
+        );
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -120,10 +123,8 @@ class _EditSevrageScreenState extends State<EditSevrageScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: UniformAppBar(
+      appBar: SimpleAppBar(
         title: AppLocalizations.of(context).screenModifierSevrage,
-        icon: Icons.child_care_rounded,
-        iconColor: AppTheme.primaryGreen,
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())

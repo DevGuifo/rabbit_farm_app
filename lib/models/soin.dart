@@ -1,12 +1,13 @@
+import 'enums/type_soin.dart';
+
 /// Modèle de données pour un soin vétérinaire
 class Soin {
   final int? id;
   final int lapinId;
   final DateTime date;
-  final String type; // 'vaccination', 'traitement', 'vermifuge', 'autre'
+  final TypeSoin type;
   final String description;
-  final String? medicament; // ⚠️ DEPRECATED - Utiliser medicamentId
-  final int? medicamentId; // FK vers medicaments.id (Phase 2 Refactoring)
+  final int? medicamentId; // FK vers medicaments.id
   final String? dosage;
   final DateTime? dateRappel;
   final String? notes;
@@ -17,7 +18,6 @@ class Soin {
     required this.date,
     required this.type,
     required this.description,
-    this.medicament,
     this.medicamentId,
     this.dosage,
     this.dateRappel,
@@ -41,9 +41,8 @@ class Soin {
     int? id,
     int? lapinId,
     DateTime? date,
-    String? type,
+    TypeSoin? type,
     String? description,
-    String? medicament,
     int? medicamentId,
     String? dosage,
     DateTime? dateRappel,
@@ -55,7 +54,6 @@ class Soin {
       date: date ?? this.date,
       type: type ?? this.type,
       description: description ?? this.description,
-      medicament: medicament ?? this.medicament,
       medicamentId: medicamentId ?? this.medicamentId,
       dosage: dosage ?? this.dosage,
       dateRappel: dateRappel ?? this.dateRappel,
@@ -69,9 +67,8 @@ class Soin {
       'id': id,
       'lapin_id': lapinId,
       'date': date.toIso8601String(),
-      'type': type,
+      'type': type.toDatabase(),
       'description': description,
-      'medicament': medicament,
       'medicament_id': medicamentId,
       'dosage': dosage,
       'date_rappel': dateRappel?.toIso8601String(),
@@ -85,9 +82,8 @@ class Soin {
       id: map['id'] as int?,
       lapinId: map['lapin_id'] as int,
       date: DateTime.parse(map['date'] as String),
-      type: map['type'] as String,
+      type: TypeSoin.fromString(map['type'] as String),
       description: map['description'] as String,
-      medicament: map['medicament'] as String?,
       medicamentId: map['medicament_id'] as int?,
       dosage: map['dosage'] as String?,
       dateRappel: map['date_rappel'] != null

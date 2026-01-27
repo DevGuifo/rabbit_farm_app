@@ -8,6 +8,7 @@ import '../../models/lapin.dart';
 import '../../models/pesee.dart';
 import '../../providers/sante_provider.dart';
 import '../../theme/app_theme.dart';
+import '../../widgets/common/common_widgets.dart';
 import 'ajouter_pesee_screen.dart';
 import '../alertes/alertes_screen.dart';
 import '../parametres/parametres_screen.dart';
@@ -97,51 +98,51 @@ class _PeseeTrackingScreenState extends State<PeseeTrackingScreen> {
     return Scaffold(
       backgroundColor: backgroundColor,
       body: SafeArea(
-        child: Column(
-          children: [
-            _buildHeader(isDark, textMain),
-            Expanded(
-              child: RefreshIndicator(
-                onRefresh: _chargerDonnees,
-                child: SingleChildScrollView(
-                  physics: const AlwaysScrollableScrollPhysics(),
-                  child: Column(
-                    children: [
-                      _buildRabbitSelector(
-                        isDark,
-                        surfaceColor,
-                        textMain,
-                        textSub,
-                      ),
-                      _buildChartCard(
-                        isDark,
-                        surfaceColor,
-                        textMain,
-                        textSub,
-                        currentWeight,
-                        lastMonthDiff,
-                        filteredPesees,
-                      ),
-                      _buildPeriodFilters(
-                        isDark,
-                        surfaceColor,
-                        textMain,
-                        textSub,
-                      ),
-                      _buildHistory(
-                        isDark,
-                        surfaceColor,
-                        textMain,
-                        textSub,
-                        filteredPesees,
-                      ),
-                      const SizedBox(height: 80),
-                    ],
-                  ),
+        child: RefreshIndicator(
+          onRefresh: _chargerDonnees,
+          child: CustomScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            slivers: [
+              // Header fixe
+              SliverToBoxAdapter(child: _buildHeader(isDark, textMain)),
+              // Contenu scrollable
+              SliverToBoxAdapter(
+                child: Column(
+                  children: [
+                    _buildRabbitSelector(
+                      isDark,
+                      surfaceColor,
+                      textMain,
+                      textSub,
+                    ),
+                    _buildChartCard(
+                      isDark,
+                      surfaceColor,
+                      textMain,
+                      textSub,
+                      currentWeight,
+                      lastMonthDiff,
+                      filteredPesees,
+                    ),
+                    _buildPeriodFilters(
+                      isDark,
+                      surfaceColor,
+                      textMain,
+                      textSub,
+                    ),
+                    _buildHistory(
+                      isDark,
+                      surfaceColor,
+                      textMain,
+                      textSub,
+                      filteredPesees,
+                    ),
+                    const SizedBox(height: 80),
+                  ],
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
       floatingActionButton: _buildFAB(isDark),
@@ -471,7 +472,7 @@ class _PeseeTrackingScreenState extends State<PeseeTrackingScreen> {
           LineChartBarData(
             spots: spots,
             isCurved: true,
-            color: AppTheme.stitchGreenVivid,
+            color: AppTheme.success400,
             barWidth: 4,
             isStrokeCapRound: true,
             dotData: FlDotData(
@@ -481,12 +482,12 @@ class _PeseeTrackingScreenState extends State<PeseeTrackingScreen> {
                 return FlDotCirclePainter(
                   radius: isLast ? 6 : 4,
                   color: isLast
-                      ? AppTheme.stitchGreenVivid
+                      ? AppTheme.success400
                       : (isDark ? AppTheme.santeChartDark : AppTheme.cardLight),
                   strokeWidth: 3,
                   strokeColor: isLast
                       ? (isDark ? AppTheme.santeChartDark : AppTheme.cardLight)
-                      : AppTheme.stitchGreenVivid,
+                      : AppTheme.success400,
                 );
               },
             ),
@@ -496,8 +497,8 @@ class _PeseeTrackingScreenState extends State<PeseeTrackingScreen> {
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
                 colors: [
-                  AppTheme.stitchGreenVivid.withValues(alpha: 0.3),
-                  AppTheme.stitchGreenVivid.withValues(alpha: 0.0),
+                  AppTheme.success400.withValues(alpha: 0.3),
+                  AppTheme.success400.withValues(alpha: 0.0),
                 ],
               ),
             ),
@@ -555,8 +556,8 @@ class _PeseeTrackingScreenState extends State<PeseeTrackingScreen> {
                   decoration: BoxDecoration(
                     color: isActive
                         ? (isDark
-                              ? AppTheme.stitchGreenVivid.withValues(alpha: 0.9)
-                              : AppTheme.stitchGreenVivid)
+                              ? AppTheme.success400.withValues(alpha: 0.9)
+                              : AppTheme.success400)
                         : surfaceColor,
                     borderRadius: BorderRadius.circular(20),
                     border: isActive
@@ -638,7 +639,7 @@ class _PeseeTrackingScreenState extends State<PeseeTrackingScreen> {
                     style: TextStyle(
                       color: isDark
                           ? AppTheme.santeGreenLight
-                          : AppTheme.stitchGreenVivid,
+                          : AppTheme.success400,
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
                     ),
@@ -792,47 +793,17 @@ class _PeseeTrackingScreenState extends State<PeseeTrackingScreen> {
   }
 
   Widget _buildFAB(bool isDark) {
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(32),
-        gradient: const LinearGradient(
-          colors: [AppTheme.stitchGreenVivid, Color(0xFF65a30d)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: AppTheme.stitchGreenVivid.withValues(alpha: 0.4),
-            blurRadius: 16,
-            offset: const Offset(0, 4),
+    return UnifiedFAB.extended(
+      onPressed: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => AjouterPeseeScreen(lapin: widget.lapin),
           ),
-        ],
-      ),
-      child: FloatingActionButton.extended(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => AjouterPeseeScreen(lapin: widget.lapin),
-            ),
-          ).then((_) => _chargerDonnees());
-        },
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        icon: Icon(
-          Icons.add,
-          size: 26,
-          color: isDark ? AppTheme.textPrimary : AppTheme.cardLight,
-        ),
-        label: Text(
-          'Add Weight',
-          style: TextStyle(
-            color: isDark ? AppTheme.textPrimary : AppTheme.cardLight,
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-      ),
+        ).then((_) => _chargerDonnees());
+      },
+      label: AppLocalizations.of(context).santeAjouterPesee,
+      tooltip: AppLocalizations.of(context).santeAjouterPesee,
     );
   }
 }

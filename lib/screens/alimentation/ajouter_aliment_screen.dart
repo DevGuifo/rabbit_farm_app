@@ -138,10 +138,8 @@ class _AjouterAlimentScreenState extends State<AjouterAlimentScreen> {
     final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: UniformAppBar(
+      appBar: SimpleAppBar(
         title: AppLocalizations.of(context).screenAjouterAliment,
-        icon: Icons.add_circle_rounded,
-        iconColor: AppTheme.primaryGreen,
       ),
       backgroundColor: theme.colorScheme.surface,
       body: SingleChildScrollView(

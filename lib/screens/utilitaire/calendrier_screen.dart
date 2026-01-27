@@ -3,6 +3,9 @@ import 'package:provider/provider.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:intl/intl.dart';
 import '../../l10n/app_localizations.dart';
+import '../../models/enums/sexe.dart';
+import '../../models/enums/statut_accouplement.dart';
+import '../../models/enums/type_soin.dart';
 import '../../providers/reproduction_provider.dart';
 import '../../providers/lapin_provider.dart';
 import '../../providers/sante_provider.dart';
@@ -58,7 +61,7 @@ class _CalendrierScreenState extends State<CalendrierScreen> {
         orElse: () => Lapin(
           nom: 'Inconnue',
           race: '',
-          sexe: 'femelle',
+          sexe: Sexe.femelle,
           dateNaissance: DateTime.now(),
         ),
       );
@@ -103,7 +106,7 @@ class _CalendrierScreenState extends State<CalendrierScreen> {
       );
 
       // Sevrage prévu (J35-42)
-      if (accouplement.statut == 'confirme') {
+      if (accouplement.statut == StatutAccouplement.confirme) {
         final dateSevrage = dateMB.add(const Duration(days: 38));
         final keySevrage = DateTime(
           dateSevrage.year,
@@ -125,7 +128,7 @@ class _CalendrierScreenState extends State<CalendrierScreen> {
 
     // 2. ÉVÉNEMENTS DE SANTÉ (Vaccinations)
     for (final soin in santeProvider.soins) {
-      if (soin.type == 'vaccination' && soin.dateRappel != null) {
+      if (soin.type == TypeSoin.vaccination && soin.dateRappel != null) {
         final dateRappel = soin.dateRappel!;
         final keyRappel = DateTime(
           dateRappel.year,
@@ -139,7 +142,7 @@ class _CalendrierScreenState extends State<CalendrierScreen> {
           orElse: () => Lapin(
             nom: 'Inconnu',
             race: '',
-            sexe: 'male',
+            sexe: Sexe.male,
             dateNaissance: DateTime.now(),
           ),
         );

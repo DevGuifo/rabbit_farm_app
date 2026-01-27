@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../l10n/app_localizations.dart';
 import '../models/lapin.dart';
 import '../models/soin.dart';
+import '../models/enums/type_soin.dart';
 import '../services/database_helper.dart';
 import '../theme/app_theme.dart';
 
@@ -18,19 +19,19 @@ class QuickAddSoinDialog extends StatefulWidget {
 class _QuickAddSoinDialogState extends State<QuickAddSoinDialog> {
   final _formKey = GlobalKey<FormState>();
   final _descriptionController = TextEditingController();
-  String _typeSoin = 'vaccination';
+  TypeSoin _typeSoin = TypeSoin.vaccination;
   DateTime _date = DateTime.now();
   bool _isLoading = false;
 
   final List<Map<String, dynamic>> _typesSoins = [
-    {'value': 'vaccination', 'label': 'Vaccination', 'icon': Icons.vaccines},
+    {'value': TypeSoin.vaccination, 'label': 'Vaccination', 'icon': Icons.vaccines},
     {
-      'value': 'vermifuge',
+      'value': TypeSoin.vermifuge,
       'label': 'Vermifuge',
       'icon': Icons.medication_liquid,
     },
-    {'value': 'traitement', 'label': 'Traitement', 'icon': Icons.healing},
-    {'value': 'autre', 'label': 'Autre', 'icon': Icons.medical_services},
+    {'value': TypeSoin.traitement, 'label': 'Traitement', 'icon': Icons.healing},
+    {'value': TypeSoin.autre, 'label': 'Autre', 'icon': Icons.medical_services},
   ];
 
   @override
@@ -156,7 +157,7 @@ class _QuickAddSoinDialogState extends State<QuickAddSoinDialog> {
                     selected: isSelected,
                     onSelected: (selected) {
                       if (selected) {
-                        setState(() => _typeSoin = type['value'] as String);
+                        setState(() => _typeSoin = type['value'] as TypeSoin);
                       }
                     },
                     selectedColor: AppTheme.accentTeal,

@@ -1,8 +1,10 @@
+import 'enums/finance_enums.dart';
+
 /// Modèle de données pour une recette (revenu)
 class Recette {
   final int? id;
   final DateTime date;
-  final String categorie; // 'vente_lapin', 'vente_portee', 'autre'
+  final CategorieRecette categorie;
   final double montant;
   final String description;
   final int? lapinId; // Optionnel : lien vers un lapin vendu
@@ -22,7 +24,7 @@ class Recette {
   Recette copyWith({
     int? id,
     DateTime? date,
-    String? categorie,
+    CategorieRecette? categorie,
     double? montant,
     String? description,
     int? lapinId,
@@ -44,7 +46,7 @@ class Recette {
     return {
       'id': id,
       'date': date.toIso8601String(),
-      'categorie': categorie,
+      'categorie': categorie.toDatabase(),
       'montant': montant,
       'description': description,
       'lapin_id': lapinId,
@@ -57,7 +59,7 @@ class Recette {
     return Recette(
       id: map['id'] as int?,
       date: DateTime.parse(map['date'] as String),
-      categorie: map['categorie'] as String,
+      categorie: CategorieRecette.fromString(map['categorie'] as String),
       montant: (map['montant'] as num).toDouble(),
       description: map['description'] as String,
       lapinId: map['lapin_id'] as int?,

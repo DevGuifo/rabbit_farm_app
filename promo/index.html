@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rabbit Farm App - Gestion Intelligente de votre Élevage</title>
+    <meta name="description"
+        content="Application mobile tout-en-un pour gérer votre élevage de lapins. Suivez la reproduction, la santé et les finances, même sans internet.">
+    <link rel="icon" type="image/png" href="../assets/logo/logo.png">
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .hero {
+            background-image: linear-gradient(rgba(255, 255, 255, 0.92), rgba(255, 255, 255, 0.85)), url('images/hero_banner.png');
+            background-size: cover;
+            background-position: center;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Header -->
+    <header id="header">
+        <div class="container">
+            <nav>
+                <div class="logo">
+                    <img src="../assets/logo/logo.png" alt="Rabbit Farm Logo"> Rabbit Farm
+                </div>
+                <div class="nav-links">
+                    <a href="#features">Fonctionnalités</a>
+                    <a href="#demo">Démo</a>
+                    <a href="#how-it-works">Comment ça marche</a>
+                    <a href="#testimonials">Témoignages</a>
+                    <a href="#faq">FAQ</a>
+                    <a href="#download" class="btn btn-primary" style="padding: 0.6rem 1.5rem;">Télécharger</a>
+                </div>
+                <div class="menu-toggle">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero" id="hero">
+        <div class="container">
+            <div class="hero-content">
+                <div class="badge">
+                    <i class="fas fa-award"></i> Application #1 pour les éleveurs
+                </div>
+                <h1>Gérez votre élevage de lapins comme un pro.</h1>
+                <p>L'application tout-en-un pour les éleveurs professionnels et amateurs. Suivez la reproduction, la
+                    santé et les finances de votre cheptel, même sans internet.</p>
+                <div class="hero-buttons">
+                    <a href="#download" class="btn btn-primary">
+                        <i class="fab fa-android"></i> Télécharger pour Android
+                    </a>
+                    <a href="#demo" class="btn btn-secondary">
+                        <i class="fas fa-play"></i> Voir la démo
+                    </a>
+                </div>
+                <div class="hero-stats">
+                    <div class="stat-item">
+                        <span class="stat-number">500+</span>
+                        <span class="stat-label">Téléchargements</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number">4.8★</span>
+                        <span class="stat-label">Note moyenne</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number">100%</span>
+                        <span class="stat-label">Hors-ligne</span>
+                    </div>
+                </div>
+            </div>
+            <div class="hero-image">
+                <img src="images/dashboard.png" alt="Dashboard App Interface">
+            </div>
+        </div>
+    </section>
+
+    <!-- Demo / Screenshots Section -->
+    <section id="demo" class="showcase">
+        <div class="container">
+            <h2 class="section-title animate-on-scroll">Découvrez l'interface</h2>
+            <p class="section-subtitle animate-on-scroll">Une expérience utilisateur fluide et intuitive, conçue pour
+                vous faire gagner du temps sur le terrain.</p>
+
+            <div class="screenshot-grid">
+                <div class="screenshot-card animate-on-scroll">
+                    <img src="images/rabbit_list.png" alt="Liste des lapins">
+                    <div class="screenshot-caption">Gestion du Cheptel</div>
+                </div>
+                <div class="screenshot-card animate-on-scroll">
+                    <img src="images/tasks.png" alt="Tâches et Rappels">
+                    <div class="screenshot-caption">Tâches Intelligentes</div>
+                </div>
+                <div class="screenshot-card animate-on-scroll">
+                    <img src="images/charts.png" alt="Statistiques Financières">
+                    <div class="screenshot-caption">Suivi Financier</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="features">
+        <div class="container">
+            <h2 class="section-title animate-on-scroll">Tout ce dont vous avez besoin</h2>
+            <p class="section-subtitle animate-on-scroll">Une suite complète d'outils conçus spécifiquement pour la
+                cuniculture moderne.</p>
+
+            <div class="features-grid">
+                <div class="feature-card animate-on-scroll">
+                    <div class="feature-icon"><i class="fas fa-paw"></i></div>
+                    <h3>Gestion du Cheptel</h3>
+                    <p>Fiches détaillées pour chaque lapin : généalogie sur 4 générations, poids, photos et historique
+                        complet.</p>
+                </div>
+
+                <div class="feature-card animate-on-scroll">
+                    <div class="feature-icon"><i class="fas fa-heart"></i></div>
+                    <h3>Suivi de Reproduction</h3>
+                    <p>Planifiez les accouplements, calculez automatiquement les dates de mise bas et suivez chaque
+                        portée.</p>
+                </div>
+
+                <div class="feature-card animate-on-scroll">
+                    <div class="feature-icon"><i class="fas fa-stethoscope"></i></div>
+                    <h3>Santé & Soins</h3>
+                    <p>Carnet de santé numérique, rappels de vaccinations et suivi des traitements pour un élevage sain.
+                    </p>
+                </div>
+
+                <div class="feature-card animate-on-scroll">
+                    <div class="feature-icon"><i class="fas fa-chart-line"></i></div>
+                    <h3>Gestion Financière</h3>
+                    <p>Analysez la rentabilité de votre élevage avec des graphiques clairs et des rapports détaillés.
+                    </p>
+                </div>
+
+                <div class="feature-card animate-on-scroll">
+                    <div class="feature-icon"><i class="fas fa-wifi-slash"></i></div>
+                    <h3>100% Hors-ligne</h3>
+                    <p>Travaillez n'importe où sans internet. Vos données sont synchronisées dès que vous êtes connecté.
+                    </p>
+                </div>
+
+                <div class="feature-card animate-on-scroll">
+                    <div class="feature-icon"><i class="fas fa-bell"></i></div>
+                    <h3>Rappels Automatiques</h3>
+                    <p>Ne manquez plus aucune tâche importante grâce aux notifications intelligentes et
+                        personnalisables.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works Section -->
+    <section id="how-it-works" class="how-it-works">
+        <div class="container">
+            <h2 class="section-title animate-on-scroll">Comment ça marche ?</h2>
+            <p class="section-subtitle animate-on-scroll">En 3 étapes simples, prenez le contrôle total de votre
+                élevage.</p>
+
+            <div class="steps-container">
+                <div class="step animate-on-scroll">
+                    <div class="step-number">1</div>
+                    <h3>Téléchargez l'app</h3>
+                    <p>Installez Rabbit Farm gratuitement depuis le Google Play Store.</p>
+                </div>
+                <div class="step animate-on-scroll">
+                    <div class="step-number">2</div>
+                    <h3>Ajoutez vos lapins</h3>
+                    <p>Créez les fiches de votre cheptel avec photos, parents et informations clés.</p>
+                </div>
+                <div class="step animate-on-scroll">
+                    <div class="step-number">3</div>
+                    <h3>Laissez l'app vous guider</h3>
+                    <p>Recevez des rappels automatiques et suivez vos performances en temps réel.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials Section -->
+    <section id="testimonials" class="testimonials">
+        <div class="container">
+            <h2 class="section-title animate-on-scroll">Ce que disent nos utilisateurs</h2>
+            <p class="section-subtitle animate-on-scroll">Découvrez pourquoi des centaines d'éleveurs font confiance à
+                Rabbit Farm App.</p>
+
+            <div class="testimonials-grid">
+                <div class="testimonial-card animate-on-scroll">
+                    <div class="testimonial-stars">
+                        <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i
+                            class="fas fa-star"></i><i class="fas fa-star"></i>
+                    </div>
+                    <p class="testimonial-text">"Avant, je notais tout sur des carnets. Maintenant, tout est organisé
+                        dans mon téléphone. Un gain de temps incroyable !"</p>
+                    <div class="testimonial-author">
+                        <div class="testimonial-avatar">JD</div>
+                        <div class="testimonial-info">
+                            <h4>Jean Dupont</h4>
+                            <span>Éleveur amateur, Bretagne</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="testimonial-card animate-on-scroll">
+                    <div class="testimonial-stars">
+                        <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i
+                            class="fas fa-star"></i><i class="fas fa-star"></i>
+                    </div>
+                    <p class="testimonial-text">"Le mode hors-ligne est parfait pour moi en zone rurale. L'application
+                        fonctionne même sans réseau mobile."</p>
+                    <div class="testimonial-author">
+                        <div class="testimonial-avatar">ML</div>
+                        <div class="testimonial-info">
+                            <h4>Marie Lambert</h4>
+                            <span>Éleveuse professionnelle, Auvergne</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="testimonial-card animate-on-scroll">
+                    <div class="testimonial-stars">
+                        <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i
+                            class="fas fa-star"></i><i class="fas fa-star-half-alt"></i>
+                    </div>
+                    <p class="testimonial-text">"Grâce à la vue financière, j'ai pu identifier mes meilleurs
+                        reproducteurs et optimiser ma rentabilité."</p>
+                    <div class="testimonial-author">
+                        <div class="testimonial-avatar">PC</div>
+                        <div class="testimonial-info">
+                            <h4>Pierre Clement</h4>
+                            <span>Éleveur semi-pro, Normandie</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQ Section -->
+    <section id="faq" class="faq">
+        <div class="container">
+            <h2 class="section-title animate-on-scroll">Questions Fréquentes</h2>
+            <p class="section-subtitle animate-on-scroll">Tout ce que vous devez savoir avant de commencer.</p>
+
+            <div class="faq-container">
+                <div class="faq-item animate-on-scroll">
+                    <div class="faq-question">
+                        L'application est-elle vraiment gratuite ?
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Oui, Rabbit Farm App est entièrement gratuite à télécharger et à utiliser. Toutes les
+                            fonctionnalités principales sont accessibles sans abonnement.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item animate-on-scroll">
+                    <div class="faq-question">
+                        Mes données sont-elles sécurisées ?
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Absolument. Vos données sont stockées localement sur votre appareil et chiffrées. La
+                            synchronisation cloud optionnelle utilise des protocoles sécurisés.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item animate-on-scroll">
+                    <div class="faq-question">
+                        Puis-je utiliser l'app sans internet ?
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Oui ! L'application fonctionne à 100% hors-ligne. Toutes les fonctionnalités sont disponibles
+                            sans connexion internet.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item animate-on-scroll">
+                    <div class="faq-question">
+                        L'application est-elle disponible sur iPhone ?
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Actuellement, Rabbit Farm App est disponible uniquement sur Android (version 7.0+). Une
+                            version iOS est prévue pour 2027.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item animate-on-scroll">
+                    <div class="faq-question">
+                        Comment exporter mes données ?
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Vous pouvez exporter vos données en PDF, CSV ou Excel depuis les Paramètres. Les sauvegardes
+                            complètes sont également possibles.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section id="download" class="cta">
+        <div class="container">
+            <h2 class="animate-on-scroll">Prêt à transformer votre élevage ?</h2>
+            <p class="animate-on-scroll">Rejoignez des centaines d'éleveurs qui ont déjà fait le choix de la simplicité
+                et de l'efficacité.</p>
+            <a href="#" class="btn animate-on-scroll">
+                <i class="fab fa-google-play"></i> Télécharger sur Google Play
+            </a>
+            <p class="cta-note animate-on-scroll">Compatible Android 7.0+ • Gratuit • Sans publicité</p>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-brand">
+                    <span class="footer-logo">
+                        <i class="fas fa-carrot"></i> Rabbit Farm App
+                    </span>
+                    <p>La solution professionnelle pour les éleveurs de lapins modernes. Gérez votre cheptel
+                        efficacement.</p>
+                    <div class="footer-social">
+                        <a href="#"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-youtube"></i></a>
+                    </div>
+                </div>
+                <div class="footer-column">
+                    <h4>Produit</h4>
+                    <ul>
+                        <li><a href="#features">Fonctionnalités</a></li>
+                        <li><a href="#demo">Démo</a></li>
+                        <li><a href="#download">Télécharger</a></li>
+                    </ul>
+                </div>
+                <div class="footer-column">
+                    <h4>Ressources</h4>
+                    <ul>
+                        <li><a href="#faq">FAQ</a></li>
+                        <li><a href="#">Guide d'utilisation</a></li>
+                        <li><a href="#">Blog</a></li>
+                    </ul>
+                </div>
+                <div class="footer-column">
+                    <h4>Légal</h4>
+                    <ul>
+                        <li><a href="#">Confidentialité</a></li>
+                        <li><a href="#">CGU</a></li>
+                        <li><a href="#">Contact</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="copyright">
+                &copy; 2026 Rabbit Farm App. Tous droits réservés. Fait avec <i class="fas fa-heart"
+                    style="color: #ef4444;"></i> pour les éleveurs.
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript for interactions -->
+    <script>
+        // Header scroll effect
+        window.addEventListener('scroll', function () {
+            const header = document.getElementById('header');
+            if (window.scrollY > 50) {
+                header.classList.add('scrolled');
+            } else {
+                header.classList.remove('scrolled');
+            }
+        });
+
+        // Scroll animation observer
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.animate-on-scroll').forEach(el => {
+            observer.observe(el);
+        });
+
+        // FAQ accordion
+        document.querySelectorAll('.faq-question').forEach(question => {
+            question.addEventListener('click', () => {
+                const item = question.parentElement;
+                const isActive = item.classList.contains('active');
+
+                // Close all
+                document.querySelectorAll('.faq-item').forEach(faq => {
+                    faq.classList.remove('active');
+                });
+
+                // Open clicked if wasn't active
+                if (!isActive) {
+                    item.classList.add('active');
+                }
+            });
+        });
+
+        // Mobile menu toggle
+        document.querySelector('.menu-toggle')?.addEventListener('click', function () {
+            document.querySelector('.nav-links').classList.toggle('active');
+        });
+    </script>
+
+</body>
+
+</html>

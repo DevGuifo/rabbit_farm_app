@@ -4,8 +4,7 @@ import 'package:rabbit_farm_app/utils/logger.dart';
 import '../../models/batiment.dart';
 import '../../models/clapier.dart';
 import '../../models/cage.dart';
-import '../../services/database_helper.dart';
-import '../../services/localisation_service.dart';
+import '../../repositories/localisation_repository.dart';
 import '../../widgets/common/common_widgets.dart';
 import 'widgets/localisation_app_bar.dart';
 import 'widgets/localisation_stats_cards.dart';
@@ -32,7 +31,7 @@ class LocalisationScreen extends StatefulWidget {
 }
 
 class _LocalisationScreenState extends State<LocalisationScreen> {
-  final _dbHelper = DatabaseHelper.instance;
+  final _repository = LocalisationRepository.instance;
 
   List<Batiment> _batiments = [];
   final List<Map<String, dynamic>> _allCagesData = [];
@@ -59,12 +58,12 @@ class _LocalisationScreenState extends State<LocalisationScreen> {
     setState(() => _loading = true);
 
     try {
-      _batiments = await _dbHelper.getAllBatiments();
+      _batiments = await _repository.getAllBatiments();
 
       if (_batiments.isEmpty) {
         // Initialiser avec un bâtiment par défaut
-        await _dbHelper.ajouterBatiment(Batiment(nom: 'Bâtiment A'));
-        _batiments = await _dbHelper.getAllBatiments();
+        await _repository.insertBatiment(Batiment(nom: 'Bâtiment A'));
+        _batiments = await _repository.getAllBatiments();
       }
 
       if (_batiments.isNotEmpty && _batimentSelectionne == null) {
@@ -89,18 +88,18 @@ class _LocalisationScreenState extends State<LocalisationScreen> {
     for (var batiment in _batiments) {
       _batimentsMap[batiment.id!] = batiment;
 
-      final clapiers = await _dbHelper.getClapiersByBatiment(batiment.id!);
+      final clapiers = await _repository.getClapiersByBatiment(batiment.id!);
       int totalCages = 0;
       int emptyCages = 0;
 
       for (var clapier in clapiers) {
         _clapiersMap[clapier.id!] = clapier;
 
-        final cages = await _dbHelper.getCagesByClapier(clapier.id!);
+        final cages = await _repository.getCagesByClapier(clapier.id!);
         totalCages += cages.length;
 
         for (var cage in cages) {
-          final occupants = await _dbHelper.getOccupantsCage(cage.id!);
+          final occupants = await _repository.getOccupantsCage(cage.id!);
           final statut = cage.getStatut(occupants);
           final couleur = cage.getCouleurStatut(occupants);
           final disponible = cage.estDisponible(occupants);
@@ -222,8 +221,8 @@ class _LocalisationScreenState extends State<LocalisationScreen> {
     return Scaffold(
       backgroundColor: isDark
           ? AppTheme
-                .stitchBackgroundDark // Stitch background-dark
-          : AppTheme.stitchBackgroundLight, // Stitch background-light
+                .backgroundDark // Stitch background-dark
+          : AppTheme.backgroundLight, // Stitch background-light
       body: SafeArea(
         child: Column(
           children: [
@@ -280,8 +279,8 @@ class _LocalisationScreenState extends State<LocalisationScreen> {
                           'All Cages',
                           style: AppTheme.titleLarge.copyWith(
                             color: isDark
-                                ? AppTheme.stitchTextLight
-                                : AppTheme.stitchTextMainLight,
+                                ? AppTheme.textOnPrimary
+                                : AppTheme.textPrimary,
                           ),
                         ),
                       ),
@@ -518,8 +517,7 @@ class _LocalisationScreenState extends State<LocalisationScreen> {
     if (confirm != true) return;
 
     try {
-      final db = await _dbHelper.database;
-      await db.delete('batiments', where: 'id = ?', whereArgs: [batiment.id]);
+      await _repository.deleteBatiment(batiment.id!);
       await _chargerDonnees();
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -551,7 +549,7 @@ class _LocalisationScreenState extends State<LocalisationScreen> {
     if (confirm != true) return;
 
     try {
-      await _dbHelper.supprimerCage(cage.id!);
+      await _repository.deleteCage(cage.id!);
       await _chargerDonnees();
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -581,7 +579,7 @@ class _LocalisationScreenState extends State<LocalisationScreen> {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: Theme.of(context).brightness == Brightness.dark
-            ? AppTheme.stitchSurfaceDarkAlt
+            ? AppTheme.surfaceDark
             : AppTheme.textOnPrimary,
         title: Text(title),
         content: Text(message),
