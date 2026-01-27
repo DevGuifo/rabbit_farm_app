@@ -47,6 +47,21 @@ abstract class DatabaseBase {
     String? userId, {
     required String tableName,
   });
+
+  /// Exécute une transaction atomique
+  ///
+  /// Garantit que toutes les opérations dans [action] sont exécutées
+  /// de manière atomique (tout ou rien). En cas d'erreur, toutes les
+  /// modifications sont annulées (rollback).
+  ///
+  /// Exemple:
+  /// ```dart
+  /// await transaction((txn) async {
+  ///   await txn.insert('portees', porteeData);
+  ///   await txn.update('accouplements', {'statut': 'termine'}, where: 'id = ?', whereArgs: [id]);
+  /// });
+  /// ```
+  Future<T> transaction<T>(Future<T> Function(Transaction txn) action);
 }
 
 /// Extension de Database pour les logs en mode debug

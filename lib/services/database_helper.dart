@@ -70,6 +70,15 @@ class DatabaseHelper extends DatabaseBase
     return _database!;
   }
 
+  /// Exécute une transaction atomique
+  ///
+  /// Implémente [DatabaseBase.transaction]
+  @override
+  Future<T> transaction<T>(Future<T> Function(Transaction txn) action) async {
+    final db = await database;
+    return await db.transaction(action);
+  }
+
   /// Initialiser la base de données
   Future<Database> _initDB(String filePath) async {
     final dbPath = await getDatabasesPath();
