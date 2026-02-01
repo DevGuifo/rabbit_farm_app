@@ -80,6 +80,9 @@ class DatabaseHelper extends DatabaseBase
   }
 
   /// Initialiser la base de données
+  ///
+  /// ⚠️ PHASE D CRITIQUE: `onConfigure` active PRAGMA foreign_keys=ON
+  /// pour appliquer les contraintes FK à chaque connexion SQLite.
   Future<Database> _initDB(String filePath) async {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, filePath);
@@ -87,6 +90,10 @@ class DatabaseHelper extends DatabaseBase
     return await openDatabase(
       path,
       version: 27, // ✅ Version 27: Contraintes référentielles (FK)
+      onConfigure: (db) async {
+        // 🔴 CRITIQUE: Active les contraintes FK (désactivées par défaut en SQLite)
+        await db.execute('PRAGMA foreign_keys = ON');
+      },
       onCreate: _createDB,
       onUpgrade: _upgradeDB,
     );

@@ -5,7 +5,6 @@ import '../../models/lapin.dart';
 import '../../models/enums/sexe.dart';
 import '../../providers/lot_provider.dart';
 import '../../theme/app_theme.dart';
-import '../../widgets/uniform_app_bar.dart';
 import '../cheptel/lapin_detail_screen.dart';
 
 /// Écran de détail d'un lot

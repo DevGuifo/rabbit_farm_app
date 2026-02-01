@@ -276,8 +276,20 @@ class LotProvider with ChangeNotifier {
   }
 
   /// Supprimer un lot
+  ///
+  /// ⚠️ Garde-fou Phase C : Vérifie qu'aucun lapin n'est associé au lot avant suppression.
+  /// Si des lapins sont présents, lance une exception avec message explicite.
   Future<void> supprimerLot(int id) async {
     try {
+      // Garde-fou : Vérifier qu'aucun lapin n'est associé
+      final nombreLapins = await compterIndividusDuLot(id);
+      if (nombreLapins > 0) {
+        throw StateError(
+          'Impossible de supprimer ce lot : $nombreLapins lapin(s) y sont encore associés. '
+          'Veuillez d\'abord retirer ou réassigner ces lapins.',
+        );
+      }
+
       final lot = getLotById(id);
       final identifiant = lot?.identifiant ?? 'Lot #$id';
 
@@ -295,6 +307,8 @@ class LotProvider with ChangeNotifier {
       );
 
       logger.info('✅ Lot $identifiant supprimé');
+    } on StateError {
+      rethrow; // Propager l'erreur de garde-fou
     } catch (e) {
       logger.error('❌ Erreur lors de la suppression du lot', e);
       rethrow;
@@ -467,6 +481,49 @@ class LotProvider with ChangeNotifier {
       }
     } catch (e) {
       logger.error('❌ Erreur lors de l\'assignation du lapin', e);
+      rethrow;
+    }
+  }
+
+  /// Retirer un lapin d'un lot (Phase C - garde-fou)
+  ///
+  /// Cette méthode retire un lapin du lot sans perte de données :
+  /// - Le lapin reste dans la base avec lot_id = null
+  /// - L'effectif du lot est décrémenté
+  /// - Le journal est mis à jour
+  Future<void> retirerLapinDuLot(int lapinId, int lotId) async {
+    try {
+      // Retirer le lapin du lot (met lot_id à null)
+      await _db.retirerLapinDuLot(lapinId);
+
+      // Mettre à jour l'effectif du lot
+      final index = _lots.indexWhere((l) => l.id == lotId);
+      if (index != -1) {
+        final lot = _lots[index];
+        final nouveauEffectif = lot.effectifActuel - 1;
+        _lots[index] = lot.copyWith(effectifActuel: nouveauEffectif);
+
+        // Si plus aucun individu, mettre à jour hasIndividus
+        if (nouveauEffectif == 0) {
+          _lots[index] = _lots[index].copyWith(hasIndividus: false);
+        }
+
+        notifyListeners();
+
+        // 📝 Journal automatique
+        await _journal.enregistrer(
+          typeEntite: TypeEntite.autre,
+          typeAction: TypeAction.modification,
+          entiteId: lotId,
+          entiteNom: 'Lot ${lot.identifiant}',
+          resumeAuto: 'Lapin #$lapinId retiré du lot ${lot.identifiant}',
+          contexte: {'lapinId': lapinId, 'effectifRestant': nouveauEffectif},
+        );
+      }
+
+      logger.info('✅ Lapin #$lapinId retiré du lot #$lotId');
+    } catch (e) {
+      logger.error('❌ Erreur lors du retrait du lapin', e);
       rethrow;
     }
   }

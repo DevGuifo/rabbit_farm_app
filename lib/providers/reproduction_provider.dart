@@ -203,8 +203,24 @@ class ReproductionProvider with ChangeNotifier {
   /// Ajouter une portée
   Future<Portee> ajouterPortee(Portee portee) async {
     try {
-      final nouvellePortee = await _repository.insertPortee(portee);
+      // ✅ TRANSACTION ATOMIQUE: Création portée + Clôture accouplement
+      final nouvellePortee = await _repository.enregistrerMiseBas(
+        portee: portee,
+        accouplementId: portee.accouplementId,
+      );
+
       _portees.insert(0, nouvellePortee);
+
+      // Mettre à jour l'accouplement dans le cache local
+      final index = _accouplements.indexWhere(
+        (a) => a.id == portee.accouplementId,
+      );
+      if (index != -1) {
+        _accouplements[index] = _accouplements[index].copyWith(
+          statut: StatutAccouplement.termine,
+        );
+      }
+
       notifyListeners();
 
       // 📝 Journal automatique - récupérer la mère via l'accouplement

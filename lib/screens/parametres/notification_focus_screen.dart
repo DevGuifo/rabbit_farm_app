@@ -50,7 +50,7 @@ class _NotificationFocusScreenState extends State<NotificationFocusScreen> {
           SnackBar(
             content: Text(
               'Mode ${newMode.label} activé',
-              style: const TextStyle(color: Colors.white),
+              style: const TextStyle(color: AppTheme.textOnPrimary),
             ),
             backgroundColor: AppTheme.primaryGreen,
             duration: const Duration(seconds: 2),
@@ -72,7 +72,7 @@ class _NotificationFocusScreenState extends State<NotificationFocusScreen> {
           : AppTheme.backgroundLight,
       appBar: AppBar(
         title: const Text('Mode Focus'),
-        backgroundColor: Colors.transparent,
+        backgroundColor: AppTheme.transparent,
         elevation: 0,
       ),
       body: _isLoading
@@ -189,7 +189,7 @@ class _NotificationFocusScreenState extends State<NotificationFocusScreen> {
               decoration: BoxDecoration(
                 color: isSelected
                     ? AppTheme.primaryGreen
-                    : (isDark ? AppTheme.backgroundDark : Colors.grey[200]),
+                    : (isDark ? AppTheme.backgroundDark : AppTheme.greyLight),
                 shape: BoxShape.circle,
               ),
               child: Center(
