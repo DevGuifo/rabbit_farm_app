@@ -8,6 +8,7 @@ import '../../../../l10n/app_localizations.dart';
 import '../../../../providers/finance_provider.dart';
 import '../../../../theme/app_theme.dart';
 import '../../../../theme/pdf_app_theme.dart';
+import '../../../../services/preferences_service.dart';
 
 /// Rapport financier avec comptabilité et résultats
 class RapportFinancierRapport extends StatelessWidget {
@@ -55,6 +56,9 @@ class RapportFinancierRapport extends StatelessWidget {
   }
 
   Future<void> _genererPDF(BuildContext context) async {
+    // Charger le format de monnaie depuis les préférences
+    final moneyFormat = await PreferencesService().getMoneyFormatter();
+    
     final financeProvider = Provider.of<FinanceProvider>(
       context,
       listen: false,
@@ -138,7 +142,7 @@ class RapportFinancierRapport extends StatelessWidget {
                         ),
                       ),
                       pw.Text(
-                        '${NumberFormat('#,##0.00', 'fr_FR').format(totalRecettes)} €',
+                        moneyFormat.format(totalRecettes),
                         style: pw.TextStyle(
                           fontSize: 12,
                           color: PdfAppTheme.success700,
@@ -159,7 +163,7 @@ class RapportFinancierRapport extends StatelessWidget {
                         ),
                       ),
                       pw.Text(
-                        '${NumberFormat('#,##0.00', 'fr_FR').format(totalDepenses)} €',
+                        moneyFormat.format(totalDepenses),
                         style: pw.TextStyle(
                           fontSize: 12,
                           color: PdfAppTheme.error700,
@@ -180,7 +184,7 @@ class RapportFinancierRapport extends StatelessWidget {
                         ),
                       ),
                       pw.Text(
-                        '${NumberFormat('#,##0.00', 'fr_FR').format(benefice)} €',
+                        moneyFormat.format(benefice),
                         style: pw.TextStyle(
                           fontSize: 16,
                           color: benefice >= 0
@@ -223,7 +227,7 @@ class RapportFinancierRapport extends StatelessWidget {
                       ),
                     ),
                     pw.Text(
-                      '${NumberFormat('#,##0.00', 'fr_FR').format(recette.montant)} €',
+                      moneyFormat.format(recette.montant),
                       style: pw.TextStyle(
                         fontSize: 10,
                         color: PdfAppTheme.success700,
@@ -262,7 +266,7 @@ class RapportFinancierRapport extends StatelessWidget {
                       ),
                     ),
                     pw.Text(
-                      '${NumberFormat('#,##0.00', 'fr_FR').format(depense.montant)} €',
+                      moneyFormat.format(depense.montant),
                       style: pw.TextStyle(
                         fontSize: 10,
                         color: PdfAppTheme.error700,

@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../l10n/app_localizations.dart';
 import '../../theme/app_theme.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/onboarding_provider.dart';
 import '../../providers/connectivity_provider.dart';
 import '../../utils/onboarding_navigation_helper.dart';
 import 'pin_setup_screen.dart';
@@ -118,6 +119,7 @@ class _AuthScreenState extends State<AuthScreen> {
       final success = await authProvider.signUp(
         email: _emailController.text.trim(),
         password: _passwordController.text,
+        name: _fullNameController.text.trim(),
       );
 
       if (!mounted) return;
@@ -125,6 +127,16 @@ class _AuthScreenState extends State<AuthScreen> {
       navigator.pop(); // Fermer le dialog de chargement
 
       if (success) {
+        if (!mounted) return;
+        
+        // 🆕 IMPORTANT: Réinitialiser l'onboarding pour le nouvel utilisateur
+        // Garantit que le nouvel utilisateur passera par l'onboarding V2
+        final onboardingProvider = Provider.of<OnboardingProvider>(context, listen: false);
+        final userId = authProvider.currentUserId;
+        if (userId != null) {
+          await onboardingProvider.resetOnboardingForNewUser(userId);
+        }
+        
         if (!mounted) return;
         // Navigation vers l'écran de configuration du PIN
         Navigator.pushReplacement(

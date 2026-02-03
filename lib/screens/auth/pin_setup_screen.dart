@@ -5,12 +5,16 @@ import '../../theme/app_theme.dart';
 import '../../providers/auth_provider.dart';
 import '../../widgets/uniform_app_bar.dart';
 import '../../utils/onboarding_navigation_helper.dart';
+import '../onboarding/onboarding_main_screen.dart';
 
 /// Écran de configuration du PIN
 ///
 /// Permet à l'utilisateur de configurer un PIN pour l'authentification offline
 class PinSetupScreen extends StatefulWidget {
-  const PinSetupScreen({super.key});
+  /// Indique si l'utilisateur vient de s'inscrire (doit faire l'onboarding)
+  final bool isNewUser;
+  
+  const PinSetupScreen({super.key, this.isNewUser = false});
 
   @override
   State<PinSetupScreen> createState() => _PinSetupScreenState();
@@ -96,8 +100,24 @@ class _PinSetupScreenState extends State<PinSetupScreen> {
     Navigator.pop(context); // Fermer le dialog de chargement
 
     if (success) {
-      // Navigation basée sur l'état de l'onboarding
-      await OnboardingNavigationHelper.navigateBasedOnOnboardingStatus(context);
+      // Si c'est un nouvel utilisateur, aller directement à l'onboarding
+      if (widget.isNewUser) {
+        Navigator.pushReplacement(
+          context,
+          PageRouteBuilder(
+            pageBuilder: (context, animation, secondaryAnimation) =>
+                const OnboardingMainScreen(),
+            transitionsBuilder:
+                (context, animation, secondaryAnimation, child) {
+                  return FadeTransition(opacity: animation, child: child);
+                },
+            transitionDuration: const Duration(milliseconds: 300),
+          ),
+        );
+      } else {
+        // Utilisateur existant: navigation basée sur l'état de l'onboarding
+        await OnboardingNavigationHelper.navigateBasedOnOnboardingStatus(context);
+      }
     } else {
       setState(() {
         _errorMessage =

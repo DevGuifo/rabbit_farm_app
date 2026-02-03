@@ -4,6 +4,8 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../l10n/app_localizations.dart';
 import '../../services/notification_service.dart';
+import '../../services/preferences_service.dart';
+import '../../constants/preferences_keys.dart';
 import '../../core/services/navigation_service.dart';
 import '../../utils/demo_data_loader.dart';
 import '../../providers/theme_provider.dart';
@@ -19,6 +21,7 @@ import '../utilitaire/export_import_screen.dart';
 import '../optimisation/sevrage_screen.dart';
 import '../auth/auth_screen.dart';
 import '../utilisateur/gestion_utilisateurs_screen.dart';
+import 'sync_diagnostic_screen.dart';
 import '../utilisateur/editer_profil_screen.dart';
 import '../alertes/alertes_screen.dart';
 import 'widgets/settings_profile_section.dart';
@@ -37,9 +40,11 @@ class ParametresScreen extends StatefulWidget {
 
 class _ParametresScreenState extends State<ParametresScreen> {
   final NotificationService _notificationService = NotificationService();
+  final PreferencesService _prefs = PreferencesService();
 
-  // Préférences utilisateur (mock pour l'instant)
+  // Préférences utilisateur
   String _unitsOfMeasurement = 'kg/cm';
+  SupportedCurrency _selectedCurrency = SupportedCurrencies.getByCode('EUR') ?? SupportedCurrencies.all.first;
   bool _breedingReminders = true;
   bool _vaccinationAlerts = true;
   final String _lastSyncTime = '2m ago'; // MOCK DATA
@@ -52,8 +57,10 @@ class _ParametresScreenState extends State<ParametresScreen> {
 
   Future<void> _chargerPreferences() async {
     final prefs = await SharedPreferences.getInstance();
+    final currencyCode = await _prefs.getCurrency();
     setState(() {
       _unitsOfMeasurement = prefs.getString('units_of_measurement') ?? 'kg/cm';
+      _selectedCurrency = SupportedCurrencies.getByCode(currencyCode) ?? SupportedCurrencies.all.first;
       _breedingReminders = prefs.getBool('breeding_reminders') ?? true;
       _vaccinationAlerts = prefs.getBool('vaccination_alerts') ?? true;
     });
@@ -157,12 +164,19 @@ class _ParametresScreenState extends State<ParametresScreen> {
                   SettingsSectionCard(
                     title: AppLocalizations.of(context).paramGeneral,
                     children: [
-                      // Unités de mesure
+                      // Unités de mesure (poids)
                       SettingsListItem(
                         icon: Icons.straighten,
                         title: AppLocalizations.of(context).paramUnitesMesure,
                         trailingText: _unitsOfMeasurement,
                         onTap: _handleUnitsOfMeasurement,
+                      ),
+                      // Devise
+                      SettingsListItem(
+                        icon: Icons.attach_money,
+                        title: 'Devise',
+                        trailingText: '${_selectedCurrency.symbol} ${_selectedCurrency.code}',
+                        onTap: _handleCurrency,
                       ),
                       // Langue
                       Consumer<LocaleProvider>(
@@ -279,6 +293,19 @@ class _ParametresScreenState extends State<ParametresScreen> {
                         ).paramEtatSynchronisationDetail(_lastSyncTime),
                         onTap: _handleSyncStatus,
                       ),
+                      // Diagnostic synchronisation (debug)
+                      if (kDebugMode)
+                        SettingsListItem(
+                          icon: Icons.bug_report,
+                          title: 'Diagnostic Sync',
+                          subtitle: 'Tester et débugger la synchronisation',
+                          onTap: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const SyncDiagnosticScreen(),
+                            ),
+                          ),
+                        ),
                       // Exporter données
                       SettingsListItem(
                         icon: Icons.download,
@@ -537,6 +564,121 @@ class _ParametresScreenState extends State<ParametresScreen> {
             );
           },
         ),
+      ),
+    );
+  }
+
+  /// Gestion du changement de devise avec confirmation
+  void _handleCurrency() {
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Devise'),
+        content: SizedBox(
+          width: double.maxFinite,
+          child: ListView.builder(
+            shrinkWrap: true,
+            itemCount: SupportedCurrencies.all.length,
+            itemBuilder: (context, index) {
+              final currency = SupportedCurrencies.all[index];
+              final isSelected = currency.code == _selectedCurrency.code;
+              return ListTile(
+                title: Text('${currency.symbol} ${currency.name}'),
+                subtitle: Text(currency.code),
+                leading: Icon(
+                  isSelected
+                      ? Icons.radio_button_checked
+                      : Icons.radio_button_unchecked,
+                  color: isSelected ? Theme.of(context).primaryColor : null,
+                ),
+                onTap: () async {
+                  Navigator.pop(dialogContext);
+                  
+                  // Si changement de devise, demander confirmation
+                  if (currency.code != _selectedCurrency.code) {
+                    final confirmed = await _showCurrencyChangeConfirmation(
+                      currency,
+                    );
+                    if (confirmed == true) {
+                      await _prefs.setCurrency(currency.code);
+                      setState(() {
+                        _selectedCurrency = currency;
+                      });
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              'Devise changée en ${currency.symbol} ${currency.name}',
+                            ),
+                            backgroundColor: Colors.green,
+                          ),
+                        );
+                      }
+                    }
+                  }
+                },
+              );
+            },
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: Text(AppLocalizations.of(context).commonCancel),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Confirmation avant changement de devise
+  Future<bool?> _showCurrencyChangeConfirmation(SupportedCurrency newCurrency) {
+    return showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Changer de devise ?'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Vous allez passer de ${_selectedCurrency.symbol} (${_selectedCurrency.code}) '
+              'à ${newCurrency.symbol} (${newCurrency.code}).',
+            ),
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.orange.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.orange.withValues(alpha: 0.3)),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.info_outline, color: Colors.orange[700], size: 20),
+                  const SizedBox(width: 8),
+                  const Expanded(
+                    child: Text(
+                      'Les nouvelles transactions utiliseront cette devise. '
+                      'Les anciennes transactions seront converties automatiquement dans les totaux.',
+                      style: TextStyle(fontSize: 12),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(AppLocalizations.of(context).commonCancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Confirmer'),
+          ),
+        ],
       ),
     );
   }

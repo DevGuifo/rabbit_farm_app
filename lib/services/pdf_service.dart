@@ -11,6 +11,7 @@ import '../models/cage.dart';
 import '../models/enums/sexe.dart';
 import '../models/enums/type_soin.dart';
 import '../services/database_helper.dart';
+import '../services/preferences_service.dart';
 
 class PdfService {
   static final PdfService _instance = PdfService._internal();
@@ -19,11 +20,9 @@ class PdfService {
 
   final DatabaseHelper _db = DatabaseHelper.instance;
   final DateFormat _formatDate = DateFormat('dd/MM/yyyy');
-  final NumberFormat _formatMontant = NumberFormat.currency(
-    symbol: '€',
-    decimalDigits: 2,
-    locale: 'fr_FR',
-  );
+  
+  /// Fallback synchrone pour les contextes non-async (basé sur les préférences utilisateur)
+  NumberFormat get _formatMontant => PreferencesService().getMoneyFormatterSync();
 
   /// Générer la fiche complète d'un lapin
   Future<void> genererFicheLapin(Lapin lapin) async {

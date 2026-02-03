@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import '../../../theme/app_theme.dart';
 
@@ -16,6 +17,22 @@ class SettingsProfileSection extends StatelessWidget {
     this.onEditProfilePressed,
   });
 
+  /// Retourne le bon ImageProvider selon le type de chemin
+  /// - FileImage pour les fichiers locaux (/ ou file://)
+  /// - AssetImage pour les assets (assets/)
+  /// - NetworkImage pour les URLs HTTP
+  ImageProvider _getImageProvider(String path) {
+    if (path.startsWith('http://') || path.startsWith('https://')) {
+      return NetworkImage(path);
+    } else if (path.startsWith('assets/')) {
+      return AssetImage(path);
+    } else {
+      // Chemin local (file:// ou chemin absolu)
+      final cleanPath = path.replaceFirst('file://', '');
+      return FileImage(File(cleanPath));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -23,9 +40,7 @@ class SettingsProfileSection extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: isDark
-            ? AppTheme.surfaceDark
-            : AppTheme.surfaceWhite,
+        color: isDark ? AppTheme.surfaceDark : AppTheme.surfaceWhite,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: isDark
@@ -49,13 +64,10 @@ class SettingsProfileSection extends StatelessWidget {
             height: 64,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              border: Border.all(
-                color: AppTheme.primaryNeonGreen,
-                width: 2,
-              ),
+              border: Border.all(color: AppTheme.primaryNeonGreen, width: 2),
               image: avatarUrl != null
                   ? DecorationImage(
-                      image: NetworkImage(avatarUrl!),
+                      image: _getImageProvider(avatarUrl!),
                       fit: BoxFit.cover,
                     )
                   : null,
@@ -83,7 +95,7 @@ class SettingsProfileSection extends StatelessWidget {
               children: [
                 const SizedBox(height: 4),
                 Text(
-                  profileName ?? 'Green Valley Rabbits',
+                  profileName ?? 'Mon profil',
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
@@ -96,7 +108,7 @@ class SettingsProfileSection extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  profileEmail ?? 'john@greenvalley.com',
+                  profileEmail ?? '-',
                   style: TextStyle(
                     fontSize: 14,
                     color: isDark
@@ -113,7 +125,9 @@ class SettingsProfileSection extends StatelessWidget {
                   child: ElevatedButton(
                     onPressed: onEditProfilePressed,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: AppTheme.primaryNeonGreen.withValues(alpha: 0.1),
+                      backgroundColor: AppTheme.primaryNeonGreen.withValues(
+                        alpha: 0.1,
+                      ),
                       foregroundColor: AppTheme.primaryNeonGreen,
                       elevation: 0,
                       padding: const EdgeInsets.symmetric(vertical: 6),
@@ -138,4 +152,3 @@ class SettingsProfileSection extends StatelessWidget {
     );
   }
 }
-

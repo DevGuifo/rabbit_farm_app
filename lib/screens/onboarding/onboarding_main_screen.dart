@@ -3,14 +3,8 @@ import 'package:provider/provider.dart';
 import '../../l10n/app_localizations.dart';
 import '../../providers/onboarding_provider.dart';
 import '../../providers/auth_provider.dart';
-import '../../models/onboarding_status.dart';
 import '../../utils/logger.dart';
 import '../../theme/app_theme.dart';
-import 'presentation_screen.dart';
-import 'type_elevage_screen.dart';
-import 'informations_ferme_screen.dart';
-import 'profil_utilisateur_screen.dart';
-import 'synchronisation_screen.dart';
 
 /// Écran principal de l'onboarding qui aiguille vers la bonne étape
 class OnboardingMainScreen extends StatefulWidget {
@@ -58,38 +52,8 @@ class _OnboardingMainScreenState extends State<OnboardingMainScreen> {
       return;
     }
 
-    final step = provider.currentStep;
-    logger.info('Navigation vers l\'étape onboarding: ${step.name}');
-
-    // Afficher l'écran approprié selon l'étape
-    Widget targetScreen;
-    switch (step) {
-      case OnboardingStep.nonDemarre:
-      case OnboardingStep.presentation:
-        targetScreen = const OnboardingPresentationScreen();
-        break;
-      case OnboardingStep.typeElevage:
-        targetScreen = const OnboardingTypeElevageScreen();
-        break;
-      case OnboardingStep.informationsFerme:
-        targetScreen = const OnboardingInformationsFermeScreen();
-        break;
-      case OnboardingStep.profilUtilisateur:
-        targetScreen = const OnboardingProfilUtilisateurScreen();
-        break;
-      case OnboardingStep.synchronisation:
-        targetScreen = const OnboardingSynchronisationScreen();
-        break;
-      case OnboardingStep.termine:
-        Navigator.pushReplacementNamed(context, '/home');
-        return;
-    }
-
-    // Remplacer l'écran actuel par l'étape appropriée
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (_) => targetScreen),
-    );
+    // Rediriger vers l'onboarding V2
+    Navigator.pushReplacementNamed(context, '/onboarding/welcome');
   }
 
   @override

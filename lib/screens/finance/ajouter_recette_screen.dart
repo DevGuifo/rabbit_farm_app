@@ -10,6 +10,8 @@ import '../../providers/finance_provider.dart';
 import '../../providers/lapin_provider.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/common/common_widgets.dart';
+import '../../services/preferences_service.dart';
+import '../../constants/preferences_keys.dart';
 
 class AjouterRecetteScreen extends StatefulWidget {
   const AjouterRecetteScreen({super.key});
@@ -124,8 +126,8 @@ class _AjouterRecetteScreenState extends State<AjouterRecetteScreen> {
             TextFormField(
               controller: _montantController,
               decoration: InputDecoration(
-                labelText: AppLocalizations.of(context).financeMontant,
-                prefixIcon: const Icon(Icons.euro),
+                labelText: '${AppLocalizations.of(context).financeMontant} (${SupportedCurrencies.getSymbol(PreferencesService().getCurrencySync())})',
+                prefixIcon: const Icon(Icons.attach_money),
                 border: const OutlineInputBorder(),
               ),
               keyboardType: const TextInputType.numberWithOptions(

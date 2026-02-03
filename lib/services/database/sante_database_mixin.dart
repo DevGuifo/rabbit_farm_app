@@ -4,19 +4,19 @@ import '../../models/medicament.dart';
 import 'database_base.dart';
 
 /// Mixin contenant les opérations CRUD pour la santé des lapins
-/// 
+///
 /// Ce mixin encapsule toute la logique base de données relative à la santé :
 /// - CRUD pesées
 /// - CRUD soins
 /// - CRUD médicaments
-/// 
+///
 /// ## Usage
-/// 
+///
 /// Ce mixin est appliqué à `DatabaseHelper` :
 /// ```dart
 /// class DatabaseHelper with SanteDatabaseMixin { ... }
 /// ```
-/// 
+///
 /// ## Tables concernées
 /// - `pesees` : historique des pesées
 /// - `soins` : traitements et vaccinations
@@ -408,7 +408,7 @@ mixin SanteDatabaseMixin on DatabaseBase {
   Future<List<Medicament>> getMedicamentsPerimes({int joursAvant = 30}) async {
     final db = await database;
     final dateLimite = DateTime.now().add(Duration(days: joursAvant));
-    
+
     final result = await db.query(
       'medicaments',
       where: 'date_peremption IS NOT NULL AND date_peremption <= ?',
@@ -428,5 +428,69 @@ mixin SanteDatabaseMixin on DatabaseBase {
       orderBy: 'quantite_stock ASC',
     );
     return result.map((json) => Medicament.fromMap(json)).toList();
+  }
+
+  // ============= OPÉRATIONS ATOMIQUES =============
+
+  /// Insérer un soin ET décrémenter le stock de médicament en une transaction atomique
+  ///
+  /// Cette méthode garantit que:
+  /// 1. Le soin est enregistré
+  /// 2. Le stock du médicament associé est décrémenté
+  /// Si l'une des opérations échoue, les deux sont annulées.
+  ///
+  /// [soin] : Le soin à insérer
+  /// [quantiteUtilisee] : Quantité de médicament utilisée (optionnel, défaut: 1)
+  ///
+  /// Retourne le soin créé avec son ID
+  Future<Soin> insertSoinAvecDecrementStock(
+    Soin soin, {
+    double quantiteUtilisee = 1,
+  }) async {
+    if (soin.medicamentId == null) {
+      // Pas de médicament associé, insertion simple
+      return insertSoin(soin);
+    }
+
+    final db = await database;
+
+    return await db.transaction((txn) async {
+      // 1. Insérer le soin
+      final soinMap = await prepareDataForInsert(
+        soin.toMap(),
+        tableName: 'soins',
+      );
+      final soinId = await txn.insert('soins', soinMap);
+
+      // 2. Décrémenter le stock du médicament
+      await txn.rawUpdate(
+        '''
+        UPDATE medicaments 
+        SET quantite_stock = MAX(0, quantite_stock - ?),
+            updated_at = ?
+        WHERE id = ?
+      ''',
+        [quantiteUtilisee, DateTime.now().toIso8601String(), soin.medicamentId],
+      );
+
+      return soin.copyWith(id: soinId);
+    });
+  }
+
+  /// Mettre à jour le stock d'un médicament après utilisation
+  ///
+  /// [medicamentId] : ID du médicament
+  /// [quantite] : Quantité à décrémenter (positive) ou ajouter (négative)
+  Future<void> updateStockMedicament(int medicamentId, double quantite) async {
+    final db = await database;
+    await db.rawUpdate(
+      '''
+      UPDATE medicaments 
+      SET quantite_stock = MAX(0, quantite_stock - ?),
+          updated_at = ?
+      WHERE id = ?
+    ''',
+      [quantite, DateTime.now().toIso8601String(), medicamentId],
+    );
   }
 }

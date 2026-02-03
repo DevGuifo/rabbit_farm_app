@@ -9,6 +9,7 @@ import '../../../../providers/lapin_provider.dart';
 import '../../../../models/lapin.dart';
 import '../../../../theme/app_theme.dart';
 import '../../../../theme/pdf_app_theme.dart';
+import '../../../../services/preferences_service.dart';
 
 /// Certificat de vente officiel avec traçabilité complète
 class CertificatVenteRapport extends StatefulWidget {
@@ -108,6 +109,9 @@ class _CertificatVenteRapportState extends State<CertificatVenteRapport> {
   Future<void> _genererPDF(BuildContext context) async {
     if (_lapinSelectionne == null) return;
 
+    // Charger le format de monnaie depuis les préférences
+    final moneyFormat = await PreferencesService().getMoneyFormatter();
+
     final lapin = _lapinSelectionne!;
     final acheteur = _acheteurController.text;
     final montant = double.tryParse(_montantController.text) ?? 0.0;
@@ -204,7 +208,7 @@ class _CertificatVenteRapportState extends State<CertificatVenteRapport> {
                           style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
                         ),
                         pw.Text(
-                          '${NumberFormat('#,##0.00', 'fr_FR').format(montant)} €',
+                          moneyFormat.format(montant),
                           style: pw.TextStyle(
                             fontSize: 12,
                             color: PdfAppTheme.success700,

@@ -25,22 +25,22 @@ class SupabaseConfig {
   /// URL Supabase - Peut être surchargée via --dart-define=SUPABASE_URL=xxx
   ///
   /// IMPORTANT :
-  /// - La valeur par défaut ci-dessous est un EXEMPLE UNIQUEMENT.
-  /// - Ne JAMAIS commiter une vraie URL de projet Supabase de production ici.
+  /// - La valeur par défaut ci-dessous est pour le développement.
+  /// - En production, utilisez --dart-define pour surcharger.
   static const String _defaultUrl = String.fromEnvironment(
     'SUPABASE_URL',
-    defaultValue: 'https://example.supabase.co',
+    defaultValue: 'https://yxepbcxwlthnkhfijhuh.supabase.co',
   );
 
   /// Clé anonyme Supabase - Peut être surchargée via --dart-define=SUPABASE_ANON_KEY=xxx
   /// C'est la clé PUBLIQUE (anon key), PAS la service_role key !
   ///
   /// IMPORTANT :
-  /// - La valeur par défaut ci-dessous est un EXEMPLE UNIQUEMENT.
-  /// - Ne JAMAIS commiter une vraie clé anon de production dans le dépôt.
+  /// - La valeur par défaut ci-dessous est pour le développement.
+  /// - En production, utilisez --dart-define pour surcharger.
   static const String _defaultAnonKey = String.fromEnvironment(
     'SUPABASE_ANON_KEY',
-    defaultValue: 'sb_publishable_EXAMPLE_KEY_DO_NOT_USE',
+    defaultValue: 'sb_publishable_S4WsS_DaFGXbe7MTajeyCA_6FPUyqQV',
   );
 
   /// Vérifie si la configuration est valide

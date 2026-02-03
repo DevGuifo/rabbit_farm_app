@@ -96,9 +96,14 @@ class AuthProvider extends ChangeNotifier {
   ///
   /// [email] : Email de l'utilisateur
   /// [password] : Mot de passe
+  /// [name] : Nom complet de l'utilisateur (optionnel)
   ///
   /// Retourne true si l'inscription réussit
-  Future<bool> signUp({required String email, required String password}) async {
+  Future<bool> signUp({
+    required String email,
+    required String password,
+    String? name,
+  }) async {
     try {
       _setState(AuthState.authenticating);
       _clearError();
@@ -108,6 +113,7 @@ class AuthProvider extends ChangeNotifier {
       final userId = await _authService.signUp(
         email: email,
         password: password,
+        name: name,
       );
 
       _currentUserId = userId;

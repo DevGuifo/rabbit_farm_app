@@ -11,6 +11,7 @@ import '../../widgets/common/common_widgets.dart';
 import '../../utils/snackbar_helper.dart';
 import '../../utils/dialog_helper.dart';
 import '../../services/pdf_service.dart';
+import '../../services/preferences_service.dart';
 import 'ajouter_recette_screen.dart';
 import 'ajouter_depense_screen.dart';
 import 'edit_recette_screen.dart';
@@ -28,19 +29,27 @@ class FinanceScreen extends StatefulWidget {
 
 class _FinanceScreenState extends State<FinanceScreen> {
   final DateFormat _formatDate = DateFormat('dd/MM/yyyy');
-  final NumberFormat _formatMontant = NumberFormat.currency(
-    symbol: '€',
-    decimalDigits: 2,
-    locale: 'fr_FR',
-  );
+  late NumberFormat _formatMontant;
   final String _selectedView = 'dashboard'; // dashboard, recettes, depenses
 
   @override
   void initState() {
     super.initState();
+    // Formatter par défaut
+    _formatMontant = NumberFormat.currency(
+      symbol: '€',
+      decimalDigits: 2,
+      locale: 'fr_FR',
+    );
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      _initFormatter();
       context.read<FinanceProvider>().chargerTout();
     });
+  }
+
+  Future<void> _initFormatter() async {
+    final formatter = await PreferencesService().getMoneyFormatter();
+    if (mounted) setState(() => _formatMontant = formatter);
   }
 
   @override
@@ -219,11 +228,14 @@ class _FinanceScreenState extends State<FinanceScreen> {
       );
     }
 
+    final userCurrency = PreferencesService().getCurrencySync();
+
     return ListView.builder(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       itemCount: provider.recettes.length,
       itemBuilder: (context, index) {
         final recette = provider.recettes[index];
+        final showBadge = recette.currency != userCurrency;
         return _buildTransactionCard(
           isDark,
           recette.montant.toString(),
@@ -232,6 +244,7 @@ class _FinanceScreenState extends State<FinanceScreen> {
           AppTheme.success,
           () => _editRecette(recette),
           () => _deleteRecette(recette.id!),
+          currencyBadge: showBadge ? recette.currency : null,
         );
       },
     );
@@ -247,11 +260,14 @@ class _FinanceScreenState extends State<FinanceScreen> {
       );
     }
 
+    final userCurrency = PreferencesService().getCurrencySync();
+
     return ListView.builder(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       itemCount: provider.depenses.length,
       itemBuilder: (context, index) {
         final depense = provider.depenses[index];
+        final showBadge = depense.currency != userCurrency;
         return _buildTransactionCard(
           isDark,
           depense.montant.toString(),
@@ -260,6 +276,7 @@ class _FinanceScreenState extends State<FinanceScreen> {
           AppTheme.error,
           () => _editDepense(depense),
           () => _deleteDepense(depense.id!),
+          currencyBadge: showBadge ? depense.currency : null,
         );
       },
     );
@@ -306,8 +323,9 @@ class _FinanceScreenState extends State<FinanceScreen> {
     DateTime date,
     Color color,
     VoidCallback onEdit,
-    VoidCallback onDelete,
-  ) {
+    VoidCallback onDelete, {
+    String? currencyBadge,
+  }) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: GestureDetector(
@@ -343,14 +361,46 @@ class _FinanceScreenState extends State<FinanceScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      categorie,
-                      style: AppTheme.bodyLarge.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: isDark
-                            ? AppTheme.textLight
-                            : AppTheme.textPrimary,
-                      ),
+                    Row(
+                      children: [
+                        Flexible(
+                          child: Text(
+                            categorie,
+                            style: AppTheme.bodyLarge.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: isDark
+                                  ? AppTheme.textLight
+                                  : AppTheme.textPrimary,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        // Badge devise si différente de l'utilisateur
+                        if (currencyBadge != null) ...[
+                          const SizedBox(width: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: AppTheme.accentOrange.withValues(alpha: 0.15),
+                              borderRadius: BorderRadius.circular(4),
+                              border: Border.all(
+                                color: AppTheme.accentOrange.withValues(alpha: 0.4),
+                              ),
+                            ),
+                            child: Text(
+                              currencyBadge,
+                              style: AppTheme.caption.copyWith(
+                                color: AppTheme.accentOrange,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 10,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ],
                     ),
                     Text(
                       _formatDate.format(date),

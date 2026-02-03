@@ -4,6 +4,7 @@ import 'package:fl_chart/fl_chart.dart';
 import '../../l10n/app_localizations.dart';
 import '../../services/kpi_service.dart';
 import '../../services/kpi_history_service.dart'; // ✅ PHASE 4
+import '../../services/preferences_service.dart';
 import '../../theme/app_theme.dart';
 import 'kpi_trend_chart.dart';
 
@@ -27,12 +28,21 @@ class _RoiPerformanceSectionState extends State<RoiPerformanceSection> {
   final KpiHistoryService _historyService = KpiHistoryService();
   List<FlSpot> _mortaliteData = [];
   List<FlSpot> _gmqData = [];
+  NumberFormat? _moneyFormat;
 
   @override
   void initState() {
     super.initState();
+    _initFormatter();
     _chargerHistorique();
   }
+
+  Future<void> _initFormatter() async {
+    final formatter = await PreferencesService().getMoneyFormatter();
+    if (mounted) setState(() => _moneyFormat = formatter);
+  }
+
+  NumberFormat get euroFormat => _moneyFormat ?? NumberFormat.currency(locale: 'fr_FR', symbol: '€');
 
   Future<void> _chargerHistorique() async {
     try {
@@ -88,8 +98,6 @@ class _RoiPerformanceSectionState extends State<RoiPerformanceSection> {
 
   @override
   Widget build(BuildContext context) {
-    final euroFormat = NumberFormat.currency(locale: 'fr_FR', symbol: '€');
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [

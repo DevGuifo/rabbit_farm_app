@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 import 'secure_storage_service.dart';
 import '../utils/logger.dart';
 
@@ -62,11 +63,13 @@ class AuthService {
   ///
   /// [email] : Email de l'utilisateur
   /// [password] : Mot de passe (stocké de manière sécurisée)
+  /// [name] : Nom complet de l'utilisateur (optionnel)
   ///
   /// Retourne l'ID utilisateur local généré
   Future<String> signUp({
     required String email,
     required String password,
+    String? name,
   }) async {
     try {
       logger.info('📝 Inscription locale: $email');
@@ -77,6 +80,9 @@ class AuthService {
       // Sauvegarder les informations localement
       await _secureStorage.setUserId(userId);
       await _secureStorage.setUserEmail(email);
+      if (name != null && name.isNotEmpty) {
+        await _secureStorage.setUserName(name);
+      }
       // Note: Le mot de passe est géré par le système de PIN local
       // et n'est pas stocké en clair
 
@@ -90,10 +96,18 @@ class AuthService {
 
   /// Générer un ID utilisateur local unique
   String _generateLocalUserId(String email) {
-    final timestamp = DateTime.now().millisecondsSinceEpoch;
-    final random = (timestamp % 1000000).toString().padLeft(6, '0');
-    final emailHash = email.hashCode.abs().toString();
-    return 'local_${timestamp}_${random}_$emailHash';
+    // Utiliser un UUIDv4 minimal pour garantir un ID local stable et non prévisible
+    return _uuidV4();
+  }
+
+  String _bytesToHex(List<int> bytes) {
+    return bytes.map((b) => b.toRadixString(16).padLeft(2, '0')).join();
+  }
+
+  String _uuidV4() {
+    final rnd = Random.secure();
+    final bytes = List<int>.generate(16, (_) => rnd.nextInt(256));
+    return '${_bytesToHex(bytes.sublist(0, 4))}-${_bytesToHex(bytes.sublist(4, 6))}-${_bytesToHex(bytes.sublist(6, 8))}-${_bytesToHex(bytes.sublist(8, 10))}-${_bytesToHex(bytes.sublist(10, 16))}';
   }
 
   // ============= CONNEXION =============

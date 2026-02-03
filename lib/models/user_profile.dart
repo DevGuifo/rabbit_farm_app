@@ -1,4 +1,6 @@
+import 'dart:convert';
 import 'farm.dart';
+import 'objectif_elevage.dart';
 
 /// Rôles de l'utilisateur dans l'élevage
 enum RoleUtilisateur { proprietaire, employe, technicien }
@@ -9,6 +11,7 @@ class UserProfile {
   final int? userId; // Référence vers la table users
   final RoleUtilisateur? role;
   final NiveauExperience? niveauExperience;
+  final List<ObjectifElevage>? objectifs; // Onboarding V2
   final DateTime dateCreation;
   final DateTime? dateModification;
 
@@ -17,6 +20,7 @@ class UserProfile {
     this.userId,
     this.role,
     this.niveauExperience,
+    this.objectifs,
     required this.dateCreation,
     this.dateModification,
   });
@@ -73,6 +77,18 @@ class UserProfile {
     }
   }
 
+  /// Description des objectifs
+  String? get objectifsDescription {
+    if (objectifs == null || objectifs!.isEmpty) return null;
+    return objectifs!.map((o) => o.label).join(', ');
+  }
+
+  /// Objectifs en JSON pour stockage
+  String? get objectifsJson {
+    if (objectifs == null || objectifs!.isEmpty) return null;
+    return jsonEncode(ObjectifElevageExtension.toJsonList(objectifs));
+  }
+
   /// Créer UserProfile depuis une Map
   factory UserProfile.fromMap(Map<String, dynamic> map) {
     RoleUtilisateur? role;
@@ -107,11 +123,24 @@ class UserProfile {
       }
     }
 
+    // Parser les objectifs depuis JSON
+    List<ObjectifElevage>? objectifs;
+    final objectifsJson = map['objectifs'] as String?;
+    if (objectifsJson != null && objectifsJson.isNotEmpty) {
+      try {
+        final List<dynamic> decoded = jsonDecode(objectifsJson);
+        objectifs = ObjectifElevageExtension.fromJsonList(decoded);
+      } catch (_) {
+        objectifs = null;
+      }
+    }
+
     return UserProfile(
       id: map['id'] as int?,
       userId: map['user_id'] as int?,
       role: role,
       niveauExperience: niveau,
+      objectifs: objectifs,
       dateCreation: DateTime.parse(map['date_creation'] as String),
       dateModification: map['date_modification'] != null
           ? DateTime.parse(map['date_modification'] as String)
@@ -126,6 +155,7 @@ class UserProfile {
       'user_id': userId,
       'role': roleString,
       'niveau_experience': niveauExperienceString,
+      'objectifs': objectifsJson,
       'date_creation': dateCreation.toIso8601String(),
       'date_modification': dateModification?.toIso8601String(),
     };
@@ -137,6 +167,7 @@ class UserProfile {
     int? userId,
     RoleUtilisateur? role,
     NiveauExperience? niveauExperience,
+    List<ObjectifElevage>? objectifs,
     DateTime? dateCreation,
     DateTime? dateModification,
   }) {
@@ -145,6 +176,7 @@ class UserProfile {
       userId: userId ?? this.userId,
       role: role ?? this.role,
       niveauExperience: niveauExperience ?? this.niveauExperience,
+      objectifs: objectifs ?? this.objectifs,
       dateCreation: dateCreation ?? this.dateCreation,
       dateModification: dateModification ?? this.dateModification,
     );

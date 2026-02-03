@@ -8,6 +8,7 @@ import 'config/supabase_config.dart';
 import 'providers/locale_provider.dart';
 import 'providers/theme_provider.dart';
 import 'providers/auth_provider.dart';
+import 'providers/user_provider.dart';
 import 'providers/connectivity_provider.dart';
 import 'providers/sync_provider.dart';
 import 'services/notification_service.dart';
@@ -16,14 +17,22 @@ import 'services/smart_notification_service.dart';
 import 'services/coach_notification_service.dart';
 import 'services/daily_summary_notification_service.dart';
 import 'services/kpi_history_service.dart';
+import 'services/preferences_service.dart';
 import 'core/services/navigation_service.dart';
 import 'services/auth_service.dart';
+import 'services/secure_storage_service.dart';
 import 'screens/onboarding/onboarding_main_screen.dart';
 import 'screens/onboarding/presentation_screen.dart';
 import 'screens/onboarding/type_elevage_screen.dart';
 import 'screens/onboarding/informations_ferme_screen.dart';
 import 'screens/onboarding/profil_utilisateur_screen.dart';
 import 'screens/onboarding/synchronisation_screen.dart';
+import 'screens/onboarding/v2/welcome_screen.dart';
+import 'screens/onboarding/v2/elevage_screen.dart';
+import 'screens/onboarding/v2/objectifs_screen.dart';
+import 'screens/onboarding/v2/preferences_screen.dart';
+import 'screens/onboarding/v2/notifications_screen.dart';
+import 'screens/onboarding/v2/ready_screen.dart';
 import 'screens/home_screen.dart';
 import 'core/utils/logger.dart';
 import 'theme/app_theme.dart';
@@ -61,6 +70,9 @@ void main() async {
 
   // Initialiser les chaînes de notification
   await NotificationStrings.initialize();
+
+  // Initialiser le service de préférences utilisateur (onboarding V2)
+  await PreferencesService().initialize();
 
   // Initialiser le service de notifications
   await NotificationService().initialize();
@@ -104,6 +116,14 @@ void main() async {
   // Créer et initialiser les providers d'authentification
   final authProvider = AuthProvider();
   await authProvider.initialize();
+  // Initialiser l'utilisateur applicatif à partir de l'auth (mapping stable)
+  try {
+    final secure = SecureStorageService();
+    final storedEmail = await secure.getUserEmail();
+    await UserProvider().initializeCurrentUser(authProvider.currentUserId, storedEmail);
+  } catch (e) {
+    logger.warning('Impossible d\'initialiser UserProvider automatiquement: $e');
+  }
 
   final connectivityProvider = ConnectivityProvider();
   await connectivityProvider.initialize();
@@ -148,6 +168,7 @@ class BunnyManagerApp extends StatelessWidget {
     return {
       '/home': (context) => const HomeScreen(),
       '/onboarding': (context) => const OnboardingMainScreen(),
+      // Routes onboarding V1 (legacy)
       '/onboarding/presentation': (context) =>
           const OnboardingPresentationScreen(),
       '/onboarding/type-elevage': (context) =>
@@ -158,6 +179,13 @@ class BunnyManagerApp extends StatelessWidget {
           const OnboardingProfilUtilisateurScreen(),
       '/onboarding/synchronisation': (context) =>
           const OnboardingSynchronisationScreen(),
+      // Routes onboarding V2
+      '/onboarding/welcome': (context) => const WelcomeScreenV2(),
+      '/onboarding/elevage': (context) => const ElevageScreenV2(),
+      '/onboarding/objectifs': (context) => const ObjectifsScreen(),
+      '/onboarding/preferences': (context) => const PreferencesScreen(),
+      '/onboarding/notifications': (context) => const NotificationsScreen(),
+      '/onboarding/ready': (context) => const ReadyScreen(),
     };
   }
 

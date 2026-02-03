@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../l10n/app_localizations.dart';
 import '../../services/kpi_service.dart';
+import '../../services/preferences_service.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/kpi_thresholds.dart';
 import '../../screens/finance/finance_screen.dart';
@@ -9,7 +10,7 @@ import '../../screens/cheptel/cheptel_screen.dart';
 
 /// Section des indicateurs de performance globale
 /// Affiche les KPIs clés pour un aperçu rapide (<5 secondes)
-class PerformanceIndicatorsSection extends StatelessWidget {
+class PerformanceIndicatorsSection extends StatefulWidget {
   final KpiData kpis;
   final bool isDark;
 
@@ -20,9 +21,27 @@ class PerformanceIndicatorsSection extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
-    final euroFormat = NumberFormat.currency(locale: 'fr_FR', symbol: '€');
+  State<PerformanceIndicatorsSection> createState() => _PerformanceIndicatorsSectionState();
+}
 
+class _PerformanceIndicatorsSectionState extends State<PerformanceIndicatorsSection> {
+  NumberFormat? _moneyFormat;
+
+  @override
+  void initState() {
+    super.initState();
+    _initFormatter();
+  }
+
+  Future<void> _initFormatter() async {
+    final formatter = await PreferencesService().getMoneyFormatter();
+    if (mounted) setState(() => _moneyFormat = formatter);
+  }
+
+  NumberFormat get euroFormat => _moneyFormat ?? NumberFormat.currency(locale: 'fr_FR', symbol: '€');
+
+  @override
+  Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -32,7 +51,7 @@ class PerformanceIndicatorsSection extends StatelessWidget {
             AppLocalizations.of(context).dashPerformanceGlobale,
             style: AppTheme.titleMedium.copyWith(
               fontWeight: FontWeight.bold,
-              color: isDark ? AppTheme.textLight : AppTheme.textPrimary,
+              color: widget.isDark ? AppTheme.textLight : AppTheme.textPrimary,
             ),
           ),
         ),
@@ -59,10 +78,10 @@ class PerformanceIndicatorsSection extends StatelessWidget {
                     context: context,
                     icon: Icons.pets,
                     label: AppLocalizations.of(context).dashLapinsActifs,
-                    value: '${kpis.totalLapins}',
+                    value: '${widget.kpis.totalLapins}',
                     subtitle: AppLocalizations.of(
                       context,
-                    ).dashFemellesRepro(kpis.femellesReproductrices),
+                    ).dashFemellesRepro(widget.kpis.femellesReproductrices),
                     color: AppTheme.info,
                     onTap: () {
                       Navigator.push(
@@ -79,13 +98,13 @@ class PerformanceIndicatorsSection extends StatelessWidget {
                     context: context,
                     icon: Icons.trending_up,
                     label: AppLocalizations.of(context).dashGMQMoyen,
-                    value: '${kpis.gmqMoyen.toStringAsFixed(1)}g',
+                    value: '${widget.kpis.gmqMoyen.toStringAsFixed(1)}g',
                     subtitle: AppLocalizations.of(
                       context,
-                    ).dashPeseesMois(kpis.peseesCeMois),
+                    ).dashPeseesMois(widget.kpis.peseesCeMois),
                     color: AppTheme.success,
                     statusOverride: KpiThresholds.gmqStatus(
-                      kpis.gmqMoyen,
+                      widget.kpis.gmqMoyen,
                     ), // ✅ PHASE 3
                     onTap: () {
                       Navigator.push(
@@ -102,12 +121,12 @@ class PerformanceIndicatorsSection extends StatelessWidget {
                     context: context,
                     icon: Icons.family_restroom,
                     label: AppLocalizations.of(context).dashTauxReproduction,
-                    value: '${kpis.tauxReproduction.toStringAsFixed(0)}%',
+                    value: '${widget.kpis.tauxReproduction.toStringAsFixed(0)}%',
                     subtitle: AppLocalizations.of(
                       context,
-                    ).dashAccouplementsActifs(kpis.accouplementsActifs),
+                    ).dashAccouplementsActifs(widget.kpis.accouplementsActifs),
                     statusOverride: KpiThresholds.reproductionStatus(
-                      kpis.tauxReproduction,
+                      widget.kpis.tauxReproduction,
                     ), // ✅ PHASE 3
                     color: AppTheme.accentPurple,
                     onTap: null, // Pas de navigation spécifique
@@ -116,19 +135,19 @@ class PerformanceIndicatorsSection extends StatelessWidget {
                   // Bénéfice mensuel
                   _buildPerformanceCard(
                     context: context,
-                    icon: kpis.beneficeMensuel >= 0
+                    icon: widget.kpis.beneficeMensuel >= 0
                         ? Icons.attach_money
                         : Icons.money_off,
                     label: AppLocalizations.of(context).dashBeneficeMensuel,
-                    value: euroFormat.format(kpis.beneficeMensuel),
+                    value: euroFormat.format(widget.kpis.beneficeMensuel),
                     subtitle: AppLocalizations.of(
                       context,
-                    ).dashRecettes(euroFormat.format(kpis.recettesMensuelles)),
-                    color: kpis.beneficeMensuel >= 0
+                    ).dashRecettes(euroFormat.format(widget.kpis.recettesMensuelles)),
+                    color: widget.kpis.beneficeMensuel >= 0
                         ? AppTheme.success
                         : AppTheme.error,
                     statusOverride: KpiThresholds.beneficeStatus(
-                      kpis.beneficeMensuel,
+                      widget.kpis.beneficeMensuel,
                     ), // ✅ PHASE 3
                     onTap: () {
                       Navigator.push(
@@ -165,10 +184,10 @@ class PerformanceIndicatorsSection extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: isDark ? AppTheme.cardDark : AppTheme.cardLight,
+          color: widget.isDark ? AppTheme.cardDark : AppTheme.cardLight,
           borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
           border: Border.all(
-            color: isDark ? AppTheme.neutral800 : AppTheme.neutral100,
+            color: widget.isDark ? AppTheme.neutral800 : AppTheme.neutral100,
             width: 1,
           ),
           boxShadow: [
@@ -199,7 +218,7 @@ class PerformanceIndicatorsSection extends StatelessWidget {
                 if (statusOverride != null)
                   KpiThresholds.buildStatusBadge(
                     statusOverride,
-                    isDark: isDark,
+                    isDark: widget.isDark,
                   ),
               ],
             ),
@@ -213,7 +232,7 @@ class PerformanceIndicatorsSection extends StatelessWidget {
                 style: AppTheme.titleLarge.copyWith(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
-                  color: isDark ? AppTheme.textOnPrimary : AppTheme.textPrimary,
+                  color: widget.isDark ? AppTheme.textOnPrimary : AppTheme.textPrimary,
                 ),
               ),
             ),
@@ -228,7 +247,7 @@ class PerformanceIndicatorsSection extends StatelessWidget {
                     style: AppTheme.bodySmall.copyWith(
                       fontWeight: FontWeight.w600,
                       color:
-                          (isDark ? AppTheme.textLight : AppTheme.textSecondary)
+                          (widget.isDark ? AppTheme.textLight : AppTheme.textSecondary)
                               .withValues(alpha: 0.8),
                     ),
                     maxLines: 1,

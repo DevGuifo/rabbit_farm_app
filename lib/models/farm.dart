@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 /// Types d'élevage disponibles
 enum TypeElevage { familial, semiProfessionnel, professionnel }
 
@@ -21,6 +23,7 @@ class Farm {
   final String? pays;
   final TypeElevage typeElevage;
   final TailleElevage? tailleElevage;
+  final List<String>? racesElevees; // Onboarding V2
   final DateTime dateCreation;
   final DateTime? dateModification;
 
@@ -32,6 +35,7 @@ class Farm {
     this.pays,
     required this.typeElevage,
     this.tailleElevage,
+    this.racesElevees,
     required this.dateCreation,
     this.dateModification,
   });
@@ -126,6 +130,18 @@ class Farm {
       }
     }
 
+    // Parser les races depuis JSON
+    List<String>? races;
+    final racesJson = map['races_elevees'] as String?;
+    if (racesJson != null && racesJson.isNotEmpty) {
+      try {
+        final List<dynamic> decoded = jsonDecode(racesJson);
+        races = decoded.map((e) => e.toString()).toList();
+      } catch (_) {
+        races = null;
+      }
+    }
+
     return Farm(
       id: map['id'] as int?,
       userId: map['user_id'] as int?,
@@ -134,6 +150,7 @@ class Farm {
       pays: map['pays'] as String?,
       typeElevage: type,
       tailleElevage: taille,
+      racesElevees: races,
       dateCreation: DateTime.parse(map['date_creation'] as String),
       dateModification: map['date_modification'] != null
           ? DateTime.parse(map['date_modification'] as String)
@@ -151,6 +168,7 @@ class Farm {
       'pays': pays,
       'type_elevage': typeElevageString,
       'taille_elevage': tailleElevageString,
+      'races_elevees': racesElevees != null ? jsonEncode(racesElevees) : null,
       'date_creation': dateCreation.toIso8601String(),
       'date_modification': dateModification?.toIso8601String(),
     };
@@ -165,6 +183,7 @@ class Farm {
     String? pays,
     TypeElevage? typeElevage,
     TailleElevage? tailleElevage,
+    List<String>? racesElevees,
     DateTime? dateCreation,
     DateTime? dateModification,
   }) {
@@ -176,6 +195,7 @@ class Farm {
       pays: pays ?? this.pays,
       typeElevage: typeElevage ?? this.typeElevage,
       tailleElevage: tailleElevage ?? this.tailleElevage,
+      racesElevees: racesElevees ?? this.racesElevees,
       dateCreation: dateCreation ?? this.dateCreation,
       dateModification: dateModification ?? this.dateModification,
     );

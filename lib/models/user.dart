@@ -16,6 +16,7 @@ enum UserRole {
 /// Modèle de données représentant un utilisateur
 class User {
   final int? id;
+  final String? authUid; // Identifiant d'authentification (UUID)
   final String email;
   final String nom;
   final String? prenom;
@@ -28,6 +29,7 @@ class User {
 
   User({
     this.id,
+    this.authUid,
     required this.email,
     required this.nom,
     this.prenom,
@@ -83,6 +85,7 @@ class User {
 
     return User(
       id: map['id'] as int?,
+      authUid: map['auth_uid'] as String?,
       email: map['email'] as String,
       nom: map['nom'] as String,
       prenom: map['prenom'] as String?,
@@ -101,6 +104,7 @@ class User {
   Map<String, dynamic> toMap() {
     return {
       'id': id,
+      'auth_uid': authUid,
       'email': email,
       'nom': nom,
       'prenom': prenom,
@@ -116,6 +120,7 @@ class User {
   /// Créer une copie du User avec des modifications
   User copyWith({
     int? id,
+    String? authUid,
     String? email,
     String? nom,
     String? prenom,
@@ -128,6 +133,7 @@ class User {
   }) {
     return User(
       id: id ?? this.id,
+      authUid: authUid ?? this.authUid,
       email: email ?? this.email,
       nom: nom ?? this.nom,
       prenom: prenom ?? this.prenom,
@@ -142,7 +148,7 @@ class User {
 
   @override
   String toString() {
-    return 'User(id: $id, email: $email, nom: $nomComplet, role: $roleString)';
+    return 'User(id: $id, authUid: $authUid, email: $email, nom: $nomComplet, role: $roleString)';
   }
 }
 

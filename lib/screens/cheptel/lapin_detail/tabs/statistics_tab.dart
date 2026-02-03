@@ -10,11 +10,12 @@ import '../../../../models/lapin.dart';
 import '../../../../models/enums/statut_accouplement.dart';
 import '../../../../theme/app_theme.dart';
 import '../../../../services/rentabilite_service.dart';
+import '../../../../services/preferences_service.dart';
 import '../../../../providers/alimentation_provider.dart';
 import '../../../../providers/medicament_provider.dart';
 
 /// Onglet Statistics - Préserve la logique existante avec style Stitch
-class StatisticsTab extends StatelessWidget {
+class StatisticsTab extends StatefulWidget {
   final List<Pesee> pesees;
   final List<Soin> soins;
   final List<Accouplement> accouplements;
@@ -31,10 +32,30 @@ class StatisticsTab extends StatelessWidget {
   });
 
   @override
+  State<StatisticsTab> createState() => _StatisticsTabState();
+}
+
+class _StatisticsTabState extends State<StatisticsTab> {
+  NumberFormat? _moneyFormat;
+
+  @override
+  void initState() {
+    super.initState();
+    _initFormatter();
+  }
+
+  Future<void> _initFormatter() async {
+    final formatter = await PreferencesService().getMoneyFormatter();
+    if (mounted) setState(() => _moneyFormat = formatter);
+  }
+
+  NumberFormat get formatMontant => _moneyFormat ?? NumberFormat.currency(symbol: '€', decimalDigits: 2);
+
+  @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final dernierePesee = pesees.isNotEmpty ? pesees.first : null;
-    final dernierSoin = soins.isNotEmpty ? soins.first : null;
+    final dernierePesee = widget.pesees.isNotEmpty ? widget.pesees.first : null;
+    final dernierSoin = widget.soins.isNotEmpty ? widget.soins.first : null;
     final formatDate = DateFormat('dd/MM/yyyy');
 
     return SingleChildScrollView(
@@ -55,7 +76,7 @@ class StatisticsTab extends StatelessWidget {
                 isDark,
                 Icons.monitor_weight,
                 'Pesées',
-                pesees.length.toString(),
+                widget.pesees.length.toString(),
                 AppTheme.info,
                 subtitle: dernierePesee != null
                     ? 'Dernière: ${formatDate.format(dernierePesee.date)}'
@@ -66,7 +87,7 @@ class StatisticsTab extends StatelessWidget {
                 isDark,
                 Icons.medical_services,
                 'Soins',
-                soins.length.toString(),
+                widget.soins.length.toString(),
                 AppTheme.accentTeal,
                 subtitle: dernierSoin != null
                     ? 'Dernier: ${formatDate.format(dernierSoin.date)}'
@@ -77,31 +98,31 @@ class StatisticsTab extends StatelessWidget {
                 isDark,
                 Icons.favorite,
                 'Accouplements',
-                accouplements.length.toString(),
+                widget.accouplements.length.toString(),
                 AppTheme.accentPink,
                 subtitle:
-                    '${accouplements.where((a) => a.statut == StatutAccouplement.confirme).length} ${AppLocalizations.of(context).cheptelConfirmes.toLowerCase()}',
+                    '${widget.accouplements.where((a) => a.statut == StatutAccouplement.confirme).length} ${AppLocalizations.of(context).cheptelConfirmes.toLowerCase()}',
               ),
               _buildStatCard(
                 context,
                 isDark,
                 Icons.pets,
                 'Portées',
-                portees.length.toString(),
+                widget.portees.length.toString(),
                 AppTheme.primaryGreen,
                 subtitle:
-                    '${portees.fold(0, (sum, p) => sum + p.nombreVivants)} petits sevrés',
+                    '${widget.portees.fold(0, (sum, p) => sum + p.nombreVivants)} petits sevrés',
               ),
             ],
           ),
 
-          if (pesees.length >= 2) ...[
+          if (widget.pesees.length >= 2) ...[
             const SizedBox(height: 24),
             _buildWeightEvolutionCard(context, isDark, formatDate),
           ],
 
           // Section Rentabilité
-          if (lapin.id != null) ...[
+          if (widget.lapin.id != null) ...[
             const SizedBox(height: 24),
             _buildRentabiliteCard(context, isDark),
           ],
@@ -173,7 +194,7 @@ class StatisticsTab extends StatelessWidget {
     final outlineColor = AppTheme.getOutlineColor(context);
 
     // Prendre les 5 dernières pesées
-    final peseesTri = List<Pesee>.from(pesees)
+    final peseesTri = List<Pesee>.from(widget.pesees)
       ..sort((a, b) => a.date.compareTo(b.date));
     final dernieresPesees = peseesTri.take(5).toList();
 
@@ -254,7 +275,6 @@ class StatisticsTab extends StatelessWidget {
   Widget _buildRentabiliteCard(BuildContext context, bool isDark) {
     final surfaceColor = AppTheme.getSurfaceColor(context);
     final outlineColor = AppTheme.getOutlineColor(context);
-    final formatMontant = NumberFormat.currency(symbol: '€', decimalDigits: 2);
 
     return Consumer2<AlimentationProvider, MedicamentProvider>(
       builder: (context, alimentationProvider, medicamentProvider, child) {
@@ -264,7 +284,7 @@ class StatisticsTab extends StatelessWidget {
         );
 
         return FutureBuilder<Map<String, dynamic>>(
-          future: rentabiliteService.calculerRentabiliteLapin(lapin.id!),
+          future: rentabiliteService.calculerRentabiliteLapin(widget.lapin.id!),
           builder: (context, snapshot) {
             if (!snapshot.hasData) {
               return Container(

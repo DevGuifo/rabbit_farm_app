@@ -589,6 +589,217 @@ class SyncService {
     }
   }
 
+  // ============= SYNCHRONISATION BIDIRECTIONNELLE =============
+
+  /// Récupérer les données depuis Supabase et les fusionner localement
+  ///
+  /// [tableName] : Nom de la table à synchroniser
+  /// [lastSyncDate] : Date depuis laquelle récupérer les modifications
+  ///
+  /// Retourne le nombre d'enregistrements mis à jour localement
+  Future<int> pullFromServer({
+    required String tableName,
+    DateTime? lastSyncDate,
+  }) async {
+    final client = supabaseConfig.client;
+    if (client == null) {
+      logger.warning('pullFromServer: Supabase non disponible');
+      return 0;
+    }
+
+    try {
+      // Construire la requête
+      var query = client.from(tableName).select();
+
+      // Filtrer par user_id si disponible
+      final userId = supabaseConfig.currentUser?.id;
+      if (userId != null) {
+        query = query.eq('user_id', userId);
+      }
+
+      // Filtrer par date de dernière synchronisation
+      if (lastSyncDate != null) {
+        query = query.gte('updated_at', lastSyncDate.toIso8601String());
+      }
+
+      final serverData = await query;
+
+      if (serverData.isEmpty) {
+        logger.info('pullFromServer: Aucune donnée à importer pour $tableName');
+        return 0;
+      }
+
+      final db = await DatabaseHelper.instance.database;
+      int updatedCount = 0;
+
+      for (final record in serverData) {
+        try {
+          final serverUpdatedAt = DateTime.parse(
+            record['updated_at'] as String,
+          );
+          final localId = record['local_id'] as int?;
+
+          if (localId == null) continue;
+
+          // Vérifier si l'enregistrement existe localement
+          final localResult = await db.query(
+            tableName,
+            where: 'id = ?',
+            whereArgs: [localId],
+          );
+
+          if (localResult.isEmpty) {
+            // Nouvel enregistrement - insérer
+            await db.insert(tableName, _prepareForLocalInsert(record));
+            updatedCount++;
+          } else {
+            // Enregistrement existe - vérifier conflit
+            final localRecord = localResult.first;
+            final localUpdatedAtStr = localRecord['updated_at'] as String?;
+
+            if (localUpdatedAtStr != null) {
+              final localUpdatedAt = DateTime.parse(localUpdatedAtStr);
+
+              // Stratégie : Last-Write-Wins basée sur updated_at
+              if (serverUpdatedAt.isAfter(localUpdatedAt)) {
+                await db.update(
+                  tableName,
+                  _prepareForLocalInsert(record),
+                  where: 'id = ?',
+                  whereArgs: [localId],
+                );
+                updatedCount++;
+              }
+            }
+          }
+        } catch (e) {
+          logger.error('Erreur traitement record: $e');
+        }
+      }
+
+      logger.info(
+        'pullFromServer: $updatedCount enregistrements mis à jour dans $tableName',
+      );
+      return updatedCount;
+    } catch (e) {
+      logger.error('Erreur pullFromServer: $e');
+      return 0;
+    }
+  }
+
+  /// Préparer les données pour insertion locale (retirer les champs Supabase-only)
+  Map<String, dynamic> _prepareForLocalInsert(Map<String, dynamic> record) {
+    final cleaned = Map<String, dynamic>.from(record);
+    // Conserver local_id comme id pour SQLite
+    if (cleaned.containsKey('local_id')) {
+      cleaned['id'] = cleaned['local_id'];
+    }
+    // Supprimer les champs spécifiques Supabase
+    cleaned.remove('uuid');
+    cleaned.remove('created_by');
+    // Marquer comme synchronisé
+    cleaned['is_dirty'] = 0;
+    cleaned['is_synced'] = 1;
+    return cleaned;
+  }
+
+  /// Synchronisation complète bidirectionnelle
+  ///
+  /// 1. Push les modifications locales vers le serveur
+  /// 2. Pull les modifications du serveur vers le local
+  ///
+  /// [tables] : Liste des tables à synchroniser (défaut: tables principales)
+  Future<SyncResult> fullSync({List<String>? tables}) async {
+    final tablesToSync =
+        tables ??
+        [
+          'lapins',
+          'accouplements',
+          'portees',
+          'soins',
+          'pesees',
+          'deces',
+          'recettes',
+          'depenses',
+        ];
+
+    final startTime = DateTime.now();
+    int totalSynced = 0;
+    int totalFailed = 0;
+    final errors = <String>[];
+
+    try {
+      // 1. Push local vers serveur
+      final pushResult = await syncNow();
+      totalSynced += pushResult.syncedCount;
+      totalFailed += pushResult.failedCount;
+      errors.addAll(pushResult.errors);
+
+      // 2. Pull serveur vers local
+      for (final table in tablesToSync) {
+        try {
+          final pulled = await pullFromServer(
+            tableName: table,
+            lastSyncDate: _lastSyncTime,
+          );
+          totalSynced += pulled;
+        } catch (e) {
+          errors.add('Pull $table: $e');
+          totalFailed++;
+        }
+      }
+
+      _lastSyncTime = DateTime.now();
+
+      return SyncResult(
+        success: totalFailed == 0,
+        syncedCount: totalSynced,
+        failedCount: totalFailed,
+        duration: DateTime.now().difference(startTime),
+        errors: errors,
+      );
+    } catch (e) {
+      return SyncResult(
+        success: false,
+        duration: DateTime.now().difference(startTime),
+        errors: [e.toString()],
+      );
+    }
+  }
+
+  /// Réinitialiser la synchronisation (vider la queue et forcer resync)
+  Future<void> resetSync() async {
+    try {
+      final db = await DatabaseHelper.instance.database;
+
+      // Supprimer tous les éléments de la queue
+      await db.delete('sync_queue');
+
+      // Réinitialiser les drapeaux
+      _lastSyncTime = null;
+      await refreshPendingCount();
+
+      logger.info('Synchronisation réinitialisée');
+    } catch (e) {
+      logger.error('Erreur resetSync: $e');
+    }
+  }
+
+  /// Vérifier la connectivité avec Supabase
+  Future<bool> checkConnectivity() async {
+    final client = supabaseConfig.client;
+    if (client == null) return false;
+
+    try {
+      // Ping simple vers Supabase
+      await client.from('sync_logs').select('id').limit(1);
+      return true;
+    } catch (e) {
+      logger.warning('Connectivité Supabase: $e');
+      return false;
+    }
+  }
+
   /// Libérer les ressources
   void dispose() {
     _autoSyncTimer?.cancel();

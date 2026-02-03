@@ -72,7 +72,7 @@ class _NotificationFocusScreenState extends State<NotificationFocusScreen> {
           : AppTheme.backgroundLight,
       appBar: AppBar(
         title: const Text('Mode Focus'),
-        backgroundColor: AppTheme.transparent,
+        backgroundColor: Colors.transparent,
         elevation: 0,
       ),
       body: _isLoading

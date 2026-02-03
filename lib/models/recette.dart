@@ -9,6 +9,9 @@ class Recette {
   final String description;
   final int? lapinId; // Optionnel : lien vers un lapin vendu
   final String? notes;
+  /// Code de la devise utilisée (ex: 'EUR', 'XOF', 'USD')
+  /// Par défaut 'EUR' pour la rétrocompatibilité
+  final String currency;
 
   Recette({
     this.id,
@@ -18,6 +21,7 @@ class Recette {
     required this.description,
     this.lapinId,
     this.notes,
+    this.currency = 'EUR',
   });
 
   /// Créer une copie avec des modifications
@@ -29,6 +33,7 @@ class Recette {
     String? description,
     int? lapinId,
     String? notes,
+    String? currency,
   }) {
     return Recette(
       id: id ?? this.id,
@@ -38,6 +43,7 @@ class Recette {
       description: description ?? this.description,
       lapinId: lapinId ?? this.lapinId,
       notes: notes ?? this.notes,
+      currency: currency ?? this.currency,
     );
   }
 
@@ -51,6 +57,7 @@ class Recette {
       'description': description,
       'lapin_id': lapinId,
       'notes': notes,
+      'currency': currency,
     };
   }
 
@@ -64,11 +71,12 @@ class Recette {
       description: map['description'] as String,
       lapinId: map['lapin_id'] as int?,
       notes: map['notes'] as String?,
+      currency: map['currency'] as String? ?? 'EUR',
     );
   }
 
   @override
   String toString() {
-    return 'Recette{id: $id, date: $date, montant: $montant€, categorie: $categorie}';
+    return 'Recette{id: $id, date: $date, montant: $montant $currency, categorie: $categorie}';
   }
 }

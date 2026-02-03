@@ -4,21 +4,27 @@ import '../models/depense.dart';
 import '../models/journal_entry.dart';
 import '../repositories/finance_repository.dart';
 import '../services/journal_service.dart';
+import '../services/preferences_service.dart';
+import '../constants/preferences_keys.dart';
 
 class FinanceProvider with ChangeNotifier {
   final FinanceRepository _repository;
   final JournalService _journal;
+  final PreferencesService _prefs;
 
   FinanceProvider()
     : _repository = FinanceRepository.instance,
-      _journal = JournalService();
+      _journal = JournalService(),
+      _prefs = PreferencesService();
 
   @visibleForTesting
   FinanceProvider.withRepository(
     FinanceRepository repository, {
     JournalService? journalService,
+    PreferencesService? prefsService,
   }) : _repository = repository,
-       _journal = journalService ?? JournalService();
+       _journal = journalService ?? JournalService(),
+       _prefs = prefsService ?? PreferencesService();
 
   List<Recette> _recettes = [];
   List<Depense> _depenses = [];
@@ -26,8 +32,29 @@ class FinanceProvider with ChangeNotifier {
   List<Recette> get recettes => _recettes;
   List<Depense> get depenses => _depenses;
 
-  double get totalRecettes => _recettes.fold(0.0, (sum, r) => sum + r.montant);
-  double get totalDepenses => _depenses.fold(0.0, (sum, d) => sum + d.montant);
+  /// Convertit un montant d'une devise source vers la devise de l'utilisateur
+  double _convertirVersDeviseUtilisateur(double montant, String sourceCode) {
+    final userCurrencyCode = _prefs.getCurrencySync();
+    if (sourceCode == userCurrencyCode) {
+      return montant; // Pas de conversion nécessaire
+    }
+    // Convertir via EUR comme intermédiaire
+    return SupportedCurrencies.convert(
+      amount: montant,
+      fromCode: sourceCode,
+      toCode: userCurrencyCode,
+    );
+  }
+
+  /// Total des recettes converti dans la devise de l'utilisateur
+  double get totalRecettes => _recettes.fold(0.0, (sum, r) => 
+      sum + _convertirVersDeviseUtilisateur(r.montant, r.currency));
+  
+  /// Total des dépenses converti dans la devise de l'utilisateur
+  double get totalDepenses => _depenses.fold(0.0, (sum, d) => 
+      sum + _convertirVersDeviseUtilisateur(d.montant, d.currency));
+  
+  /// Bénéfice net converti dans la devise de l'utilisateur
   double get benefice => totalRecettes - totalDepenses;
 
   /// Charger toutes les recettes et dépenses
@@ -38,8 +65,15 @@ class FinanceProvider with ChangeNotifier {
   }
 
   /// Ajouter une recette
+  /// La devise de l'utilisateur est automatiquement associée à la recette
   Future<void> ajouterRecette(Recette recette) async {
-    final nouvelleRecette = await _repository.insertRecette(recette);
+    // Associer la devise de l'utilisateur si non définie
+    final userCurrencyCode = _prefs.getCurrencySync();
+    final recetteAvecDevise = recette.currency == 'EUR' 
+        ? recette.copyWith(currency: userCurrencyCode)
+        : recette;
+    
+    final nouvelleRecette = await _repository.insertRecette(recetteAvecDevise);
     _recettes.insert(0, nouvelleRecette);
     notifyListeners();
 
@@ -52,13 +86,21 @@ class FinanceProvider with ChangeNotifier {
       contexte: {
         'date': nouvelleRecette.date.toIso8601String(),
         'description': nouvelleRecette.description,
+        'currency': nouvelleRecette.currency,
       },
     );
   }
 
   /// Ajouter une dépense
+  /// La devise de l'utilisateur est automatiquement associée à la dépense
   Future<void> ajouterDepense(Depense depense) async {
-    final nouvelleDepense = await _repository.insertDepense(depense);
+    // Associer la devise de l'utilisateur si non définie
+    final userCurrencyCode = _prefs.getCurrencySync();
+    final depenseAvecDevise = depense.currency == 'EUR'
+        ? depense.copyWith(currency: userCurrencyCode)
+        : depense;
+    
+    final nouvelleDepense = await _repository.insertDepense(depenseAvecDevise);
     _depenses.insert(0, nouvelleDepense);
     notifyListeners();
 
@@ -71,6 +113,7 @@ class FinanceProvider with ChangeNotifier {
       contexte: {
         'date': nouvelleDepense.date.toIso8601String(),
         'description': nouvelleDepense.description,
+        'currency': nouvelleDepense.currency,
       },
     );
   }

@@ -8,6 +8,9 @@ class Depense {
   final double montant;
   final String description;
   final String? notes;
+  /// Code de la devise utilisée (ex: 'EUR', 'XOF', 'USD')
+  /// Par défaut 'EUR' pour la rétrocompatibilité
+  final String currency;
 
   Depense({
     this.id,
@@ -16,6 +19,7 @@ class Depense {
     required this.montant,
     required this.description,
     this.notes,
+    this.currency = 'EUR',
   });
 
   /// Créer une copie avec des modifications
@@ -26,6 +30,7 @@ class Depense {
     double? montant,
     String? description,
     String? notes,
+    String? currency,
   }) {
     return Depense(
       id: id ?? this.id,
@@ -34,6 +39,7 @@ class Depense {
       montant: montant ?? this.montant,
       description: description ?? this.description,
       notes: notes ?? this.notes,
+      currency: currency ?? this.currency,
     );
   }
 
@@ -46,6 +52,7 @@ class Depense {
       'montant': montant,
       'description': description,
       'notes': notes,
+      'currency': currency,
     };
   }
 
@@ -58,11 +65,12 @@ class Depense {
       montant: (map['montant'] as num).toDouble(),
       description: map['description'] as String,
       notes: map['notes'] as String?,
+      currency: map['currency'] as String? ?? 'EUR',
     );
   }
 
   @override
   String toString() {
-    return 'Depense{id: $id, date: $date, montant: $montant€, categorie: $categorie}';
+    return 'Depense{id: $id, date: $date, montant: $montant $currency, categorie: $categorie}';
   }
 }

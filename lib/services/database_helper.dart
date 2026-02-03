@@ -89,7 +89,7 @@ class DatabaseHelper extends DatabaseBase
 
     return await openDatabase(
       path,
-      version: 27, // ✅ Version 27: Contraintes référentielles (FK)
+      version: 30, // ✅ Version 30: Devise currency dans recettes/depenses
       onConfigure: (db) async {
         // 🔴 CRITIQUE: Active les contraintes FK (désactivées par défaut en SQLite)
         await db.execute('PRAGMA foreign_keys = ON');
@@ -236,6 +236,7 @@ class DatabaseHelper extends DatabaseBase
         description $textType,
         lapin_id INTEGER,
         notes $textTypeNullable,
+        currency TEXT DEFAULT 'EUR',
         FOREIGN KEY (lapin_id) REFERENCES lapins (id) ON DELETE SET NULL
       )
     ''');
@@ -248,7 +249,8 @@ class DatabaseHelper extends DatabaseBase
         categorie $textType,
         montant REAL NOT NULL,
         description $textType,
-        notes $textTypeNullable
+        notes $textTypeNullable,
+        currency TEXT DEFAULT 'EUR'
       )
     ''');
 
@@ -595,7 +597,7 @@ class DatabaseHelper extends DatabaseBase
     await db.execute('CREATE INDEX idx_taches_lapin_id ON taches(lapin_id)');
     await db.execute('CREATE INDEX idx_taches_categorie ON taches(categorie)');
 
-    // Table des utilisateurs (version 16)
+    // Table des utilisateurs (version 16, enrichie v28)
     await db.execute('''
       CREATE TABLE users (
         id $idType,
@@ -607,13 +609,15 @@ class DatabaseHelper extends DatabaseBase
         is_active INTEGER NOT NULL DEFAULT 1,
         date_creation $textType,
         derniere_connexion $textTypeNullable,
-        notes $textTypeNullable
+        notes $textTypeNullable,
+        auth_uid $textTypeNullable UNIQUE
       )
     ''');
 
     await db.execute('CREATE INDEX idx_users_email ON users(email)');
     await db.execute('CREATE INDEX idx_users_role ON users(role)');
     await db.execute('CREATE INDEX idx_users_is_active ON users(is_active)');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_users_auth_uid ON users(auth_uid)');
 
     // Table de l'historique des actions utilisateurs (version 16)
     await db.execute('''
@@ -737,9 +741,9 @@ class DatabaseHelper extends DatabaseBase
         pays $textTypeNullable,
         type_elevage $textType,
         taille_elevage $textTypeNullable,
+        races_elevees $textTypeNullable,
         date_creation $textType,
-        date_modification $textTypeNullable,
-        FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
+        date_modification $textTypeNullable
       )
     ''');
 
@@ -749,9 +753,9 @@ class DatabaseHelper extends DatabaseBase
         user_id INTEGER,
         role $textTypeNullable,
         niveau_experience $textTypeNullable,
+        objectifs $textTypeNullable,
         date_creation $textType,
-        date_modification $textTypeNullable,
-        FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
+        date_modification $textTypeNullable
       )
     ''');
 
@@ -764,8 +768,7 @@ class DatabaseHelper extends DatabaseBase
         synchronisation_autorisee INTEGER NOT NULL DEFAULT 1,
         date_creation $textType,
         date_modification $textTypeNullable,
-        date_termine $textTypeNullable,
-        FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
+        date_termine $textTypeNullable
       )
     ''');
 
@@ -2075,8 +2078,7 @@ class DatabaseHelper extends DatabaseBase
             type_elevage $textType,
             taille_elevage $textTypeNullable,
             date_creation $textType,
-            date_modification $textTypeNullable,
-            FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
+            date_modification $textTypeNullable
           )
         ''');
 
@@ -2088,8 +2090,7 @@ class DatabaseHelper extends DatabaseBase
             role $textTypeNullable,
             niveau_experience $textTypeNullable,
             date_creation $textType,
-            date_modification $textTypeNullable,
-            FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
+            date_modification $textTypeNullable
           )
         ''');
 
@@ -2500,6 +2501,79 @@ class DatabaseHelper extends DatabaseBase
         // Tenter de restaurer si possible
         await db.execute('PRAGMA foreign_keys = ON');
         rethrow;
+      }
+    }
+
+    // ✅ Migration vers version 28 : Colonne auth_uid pour mapping utilisateur
+    if (oldVersion < 28) {
+      logger.info(
+        '🔄 Migration vers version 28 : Ajout colonne auth_uid dans users...',
+      );
+
+      try {
+        // Ajouter la colonne auth_uid à la table users
+        await db.execute('ALTER TABLE users ADD COLUMN auth_uid TEXT UNIQUE');
+
+        // Créer un index pour optimiser les recherches par auth_uid
+        await db.execute(
+          'CREATE INDEX IF NOT EXISTS idx_users_auth_uid ON users(auth_uid)',
+        );
+
+        logger.info(
+          '✅ Migration vers version 28 : Colonne auth_uid ajoutée avec succès',
+        );
+      } catch (e) {
+        logger.error('❌ Erreur lors de la migration vers version 28: $e');
+      }
+    }
+
+    // ✅ Migration vers version 29 : Onboarding V2 (races_elevees, objectifs)
+    if (oldVersion < 29) {
+      logger.info(
+        '🔄 Migration vers version 29 : Ajout colonnes Onboarding V2...',
+      );
+
+      try {
+        // Ajouter la colonne races_elevees à la table farms (JSON array)
+        await db.execute(
+          'ALTER TABLE farms ADD COLUMN races_elevees TEXT',
+        );
+
+        // Ajouter la colonne objectifs à la table user_profiles (JSON array)
+        await db.execute(
+          'ALTER TABLE user_profiles ADD COLUMN objectifs TEXT',
+        );
+
+        logger.info(
+          '✅ Migration vers version 29 : Colonnes Onboarding V2 ajoutées avec succès',
+        );
+      } catch (e) {
+        logger.error('❌ Erreur lors de la migration vers version 29: $e');
+      }
+    }
+
+    // ✅ Migration vers version 30 : Devise (currency) dans recettes/depenses
+    if (oldVersion < 30) {
+      logger.info(
+        '🔄 Migration vers version 30 : Ajout colonne currency aux tables financières...',
+      );
+
+      try {
+        // Ajouter la colonne currency à la table recettes (default 'EUR')
+        await db.execute(
+          "ALTER TABLE recettes ADD COLUMN currency TEXT DEFAULT 'EUR'",
+        );
+
+        // Ajouter la colonne currency à la table depenses (default 'EUR')
+        await db.execute(
+          "ALTER TABLE depenses ADD COLUMN currency TEXT DEFAULT 'EUR'",
+        );
+
+        logger.info(
+          '✅ Migration vers version 30 : Colonne currency ajoutée aux tables recettes et depenses',
+        );
+      } catch (e) {
+        logger.error('❌ Erreur lors de la migration vers version 30: $e');
       }
     }
   }
@@ -3315,6 +3389,36 @@ class DatabaseHelper extends DatabaseBase
     );
     if (result.isEmpty) return null;
     return User.fromMap(result.first);
+  }
+
+  /// Récupérer un utilisateur par auth_uid (identifiant d'authentification)
+  ///
+  /// [authUid] : L'identifiant unique d'authentification (UUID)
+  /// Retourne l'utilisateur correspondant ou null si non trouvé
+  Future<User?> getUserByAuthUid(String authUid) async {
+    final db = await database;
+    final result = await db.query(
+      'users',
+      where: 'auth_uid = ?',
+      whereArgs: [authUid],
+      limit: 1,
+    );
+    if (result.isEmpty) return null;
+    return User.fromMap(result.first);
+  }
+
+  /// Mettre à jour le auth_uid d'un utilisateur
+  ///
+  /// [userId] : L'ID de l'utilisateur dans la table users
+  /// [authUid] : Le nouvel auth_uid à associer
+  Future<int> updateUserAuthUid(int userId, String authUid) async {
+    final db = await database;
+    return await db.update(
+      'users',
+      {'auth_uid': authUid},
+      where: 'id = ?',
+      whereArgs: [userId],
+    );
   }
 
   /// Récupérer les utilisateurs actifs

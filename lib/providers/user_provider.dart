@@ -3,9 +3,9 @@ import '../models/user.dart';
 import '../models/user_action_log.dart';
 import '../services/database_helper.dart';
 import '../services/permission_service.dart';
+import '../services/secure_storage_service.dart';
 import '../utils/logger.dart';
 
-/// Provider pour gérer les utilisateurs et leurs actions
 class UserProvider extends ChangeNotifier {
   static final UserProvider _instance = UserProvider._internal();
   factory UserProvider() => _instance;
@@ -71,7 +71,15 @@ class UserProvider extends ChangeNotifier {
   }
 
   /// Initialiser l'utilisateur actuel depuis AuthProvider
-  /// Crée un utilisateur par défaut si nécessaire
+  /// 
+  /// [userId] est l'auth_uid (UUID string) provenant de AuthProvider
+  /// [email] est l'email stocké dans SecureStorage
+  /// 
+  /// Stratégie de résolution:
+  /// 1. Chercher par auth_uid en DB (source de vérité v28+)
+  /// 2. Fallback: mapping multi-utilisateur SecureStorage
+  /// 3. Fallback: recherche par email
+  /// 4. Création d'un nouvel utilisateur avec auth_uid
   Future<void> initializeCurrentUser(String? userId, String? email) async {
     if (userId == null && email == null) {
       logger.warning('⚠️ Aucun identifiant utilisateur disponible');
@@ -81,20 +89,61 @@ class UserProvider extends ChangeNotifier {
     // Charger tous les utilisateurs
     await chargerUsers();
 
-    // Chercher l'utilisateur par email
+    final secureStorage = SecureStorageService();
     User? user;
-    if (email != null) {
-      user = await _db.getUserByEmail(email);
+
+    // 1. Chercher par auth_uid en DB (source de vérité v28+)
+    if (userId != null) {
+      user = await _db.getUserByAuthUid(userId);
+      if (user != null) {
+        // Mettre à jour le cache multi-user
+        await secureStorage.setLinkedDbUserIdForAuthUid(userId, user.id!);
+        logger.info('✅ Utilisateur trouvé par auth_uid: ${user.id}');
+      }
     }
 
-    // Si aucun utilisateur trouvé, créer un utilisateur par défaut
+    // 2. Fallback: mapping multi-utilisateur SecureStorage
+    if (user == null && userId != null) {
+      final cachedDbId = await secureStorage.getLinkedDbUserIdForAuthUid(userId);
+      if (cachedDbId != null) {
+        user = await _db.getUserById(cachedDbId);
+        if (user != null && user.authUid == null) {
+          // Mettre à jour auth_uid en DB
+          await _db.updateUserAuthUid(cachedDbId, userId);
+          user = user.copyWith(authUid: userId);
+          logger.info('✅ auth_uid mis à jour pour user $cachedDbId');
+        }
+      }
+    }
+
+    // 3. Fallback: chercher par email
+    if (user == null && email != null) {
+      user = await _db.getUserByEmail(email);
+      if (user != null && userId != null) {
+        // Associer auth_uid à cet utilisateur
+        if (user.authUid == null) {
+          await _db.updateUserAuthUid(user.id!, userId);
+          user = user.copyWith(authUid: userId);
+        }
+        await secureStorage.setLinkedDbUserIdForAuthUid(userId, user.id!);
+        logger.info('✅ Utilisateur trouvé par email, auth_uid associé: ${user.id}');
+      }
+    }
+
+    // 4. Création d'un nouvel utilisateur avec auth_uid
     if (user == null) {
       final defaultEmail = email ?? 'user_$userId@local.com';
       logger.info('📝 Création d\'un utilisateur par défaut: $defaultEmail');
-      
+
+      final storedName = await secureStorage.getUserName();
+      final defaultName =
+          storedName ??
+          (email != null ? email.split('@').first : 'Utilisateur');
+
       user = User(
+        authUid: userId, // Associer auth_uid dès la création
         email: defaultEmail,
-        nom: email != null ? email.split('@').first : 'Utilisateur',
+        nom: defaultName,
         prenom: null,
         role: UserRole.eleveur,
         isActive: true,
@@ -104,7 +153,14 @@ class UserProvider extends ChangeNotifier {
 
       final id = await _db.createUser(user);
       user = user.copyWith(id: id);
-      logger.info('✅ Utilisateur créé avec ID: $id');
+      logger.info('✅ Utilisateur créé avec ID: $id, auth_uid: $userId');
+      
+      // Stocker le mapping multi-utilisateur
+      if (userId != null) {
+        await secureStorage.setLinkedDbUserIdForAuthUid(userId, id);
+      }
+      // Compatibilité legacy
+      await secureStorage.setLinkedDbUserId(id.toString());
     }
 
     // Définir comme utilisateur actuel
@@ -205,7 +261,9 @@ class UserProvider extends ChangeNotifier {
 
       // Ne pas permettre de supprimer l'utilisateur actuel
       if (_currentUser?.id == userId) {
-        _setError('Impossible de supprimer l\'utilisateur actuellement connecté');
+        _setError(
+          'Impossible de supprimer l\'utilisateur actuellement connecté',
+        );
         return false;
       }
 
@@ -384,4 +442,3 @@ class UserProvider extends ChangeNotifier {
     notifyListeners();
   }
 }
-

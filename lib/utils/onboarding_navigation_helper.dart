@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/onboarding_provider.dart';
 import '../providers/auth_provider.dart';
+import '../providers/user_provider.dart';
+import '../services/secure_storage_service.dart';
 import '../screens/onboarding/onboarding_main_screen.dart';
 import '../screens/home_screen.dart';
 import '../utils/logger.dart';
@@ -22,6 +24,7 @@ class OnboardingNavigationHelper {
         context,
         listen: false,
       );
+      final userProvider = Provider.of<UserProvider>(context, listen: false);
 
       // Vérifier qu'un utilisateur est connecté
       final userId = authProvider.currentUserId;
@@ -31,6 +34,11 @@ class OnboardingNavigationHelper {
         );
         return;
       }
+
+      // Initialiser UserProvider avec l'auth_uid (garantit la cohérence)
+      final secure = SecureStorageService();
+      final email = await secure.getUserEmail();
+      await userProvider.initializeCurrentUser(userId, email);
 
       // Charger l'état de l'onboarding
       await onboardingProvider.loadOnboardingStatus(userId);

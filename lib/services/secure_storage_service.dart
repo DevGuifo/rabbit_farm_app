@@ -25,12 +25,15 @@ class SecureStorageService {
 
   static const String _keyUserId = 'user_id';
   static const String _keyUserEmail = 'user_email';
+  static const String _keyUserName = 'user_name';
   static const String _keyAccessToken = 'access_token';
   static const String _keyRefreshToken = 'refresh_token';
   static const String _keyPinHash = 'local_pin_hash';
   static const String _keyPinSalt = 'local_pin_salt';
   static const String _keyIsPinSet = 'is_pin_set';
   static const String _keyLastSyncTimestamp = 'last_sync_timestamp';
+  // Mapping local: stocke l'ID DB lié à l'utilisateur auth actuel
+  static const String _keyLinkedDbUserId = 'linked_db_user_id';
 
   // ============= MÉTHODES GÉNÉRIQUES =============
 
@@ -211,6 +214,70 @@ class SecureStorageService {
   /// Récupérer l'email utilisateur
   Future<String?> getUserEmail() async {
     return await read(_keyUserEmail);
+  }
+
+  /// Stocker l'ID de l'utilisateur dans la base locale (mapping auth_uid -> local DB id)
+  /// @deprecated Utiliser setLinkedDbUserIdForAuthUid pour le multi-utilisateur
+  Future<void> setLinkedDbUserId(String dbUserId) async {
+    await write(_keyLinkedDbUserId, dbUserId);
+    logger.info('✅ Mapping auth->db stocké');
+  }
+
+  /// Récupérer l'ID DB lié à l'utilisateur authentifié
+  /// @deprecated Utiliser getLinkedDbUserIdForAuthUid pour le multi-utilisateur
+  Future<String?> getLinkedDbUserId() async {
+    return await read(_keyLinkedDbUserId);
+  }
+
+  /// Supprimer le mapping local entre auth uid et user DB
+  /// @deprecated Utiliser clearLinkedDbUserIdForAuthUid pour le multi-utilisateur
+  Future<void> clearLinkedDbUserId() async {
+    await delete(_keyLinkedDbUserId);
+    logger.info('✅ Mapping auth->db supprimé');
+  }
+
+  // ============= MÉTHODES MULTI-UTILISATEURS =============
+  // Préfixe pour les mappings par authUid
+  static const String _keyAuthDbMappingPrefix = 'auth_db_mapping_';
+
+  /// Stocker le mapping auth_uid -> DB user id (multi-utilisateurs)
+  ///
+  /// [authUid] : L'identifiant d'authentification (UUID)
+  /// [dbUserId] : L'ID de l'utilisateur dans la table users (int)
+  Future<void> setLinkedDbUserIdForAuthUid(String authUid, int dbUserId) async {
+    await write('$_keyAuthDbMappingPrefix$authUid', dbUserId.toString());
+    logger.info('✅ Mapping multi-user auth->db stocké pour $authUid');
+  }
+
+  /// Récupérer l'ID DB lié à un auth_uid spécifique (multi-utilisateurs)
+  ///
+  /// [authUid] : L'identifiant d'authentification (UUID)
+  /// Retourne l'ID DB (int) ou null si non trouvé
+  Future<int?> getLinkedDbUserIdForAuthUid(String authUid) async {
+    final value = await read('$_keyAuthDbMappingPrefix$authUid');
+    if (value == null) return null;
+    return int.tryParse(value);
+  }
+
+  /// Supprimer le mapping pour un auth_uid spécifique (multi-utilisateurs)
+  ///
+  /// [authUid] : L'identifiant d'authentification (UUID)
+  Future<void> clearLinkedDbUserIdForAuthUid(String authUid) async {
+    await delete('$_keyAuthDbMappingPrefix$authUid');
+    logger.info('✅ Mapping multi-user supprimé pour $authUid');
+  }
+
+  // ============= MÉTHODES SPÉCIFIQUES - NOM =============
+
+  /// Stocker le nom complet de l'utilisateur
+  Future<void> setUserName(String name) async {
+    await write(_keyUserName, name);
+    logger.info('✅ Nom utilisateur stocké');
+  }
+
+  /// Récupérer le nom complet de l'utilisateur
+  Future<String?> getUserName() async {
+    return await read(_keyUserName);
   }
 
   // ============= MÉTHODES DE NETTOYAGE =============
